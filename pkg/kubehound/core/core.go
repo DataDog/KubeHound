@@ -16,6 +16,9 @@ import (
 	"github.com/DataDog/ase-experimental/kubehound/kh/storage/storedb"
 )
 
+// ingestData will stream data from the collector through the ingestion pipeline.
+// Each object ingested will be processed, write one or more entries to the intermediate store and cache,
+// then create one or more vertices in the graph database. All I/O operations are performed asynchronously.
 func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.CacheProvider,
 	storedb storedb.Provider, graphdb graphdb.Provider) error {
 
@@ -47,6 +50,8 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 	return nil
 }
 
+// buildGraph will construct the attack graph by calculating and inserting all registered edges in parallel.
+// All I/O operations are performed asynchronously.
 func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
 	graphdb graphdb.Provider) error {
 
@@ -73,6 +78,7 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 	return nil
 }
 
+// Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context) error {
 	log.I.Info("Initializing application telemetry")
 	tc, err := telemetry.Initialize()
