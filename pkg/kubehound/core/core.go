@@ -6,14 +6,14 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graphbuilder"
+	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
-	"github.com/DataDog/ase-experimental/kubehound/kh/graph/edge"
-	"github.com/DataDog/ase-experimental/kubehound/kh/graphbuilder"
-	"github.com/DataDog/ase-experimental/kubehound/kh/ingestor"
-	"github.com/DataDog/ase-experimental/kubehound/kh/storage/cache"
-	"github.com/DataDog/ase-experimental/kubehound/kh/storage/graphdb"
-	"github.com/DataDog/ase-experimental/kubehound/kh/storage/storedb"
 )
 
 func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.CacheProvider,
@@ -27,7 +27,7 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 	defer collect.Close(ctx)
 
 	log.I.Info("Loading data ingestor")
-	ingest, err := ingestor.New(cfg, collect, cache, storedb, graphdb)
+	ingest, err := ingestor.Factory(cfg, collect, cache, storedb, graphdb)
 	if err != nil {
 		return fmt.Errorf("ingestor creation: %w", err)
 	}
@@ -85,21 +85,21 @@ func Launch(ctx context.Context) error {
 	cfg := config.MustLoadDefaultConfig()
 
 	log.I.Info("Loading cache provider")
-	cp, err := cache.Factory(cfg)
+	cp, err := cache.Factory(ctx, cfg)
 	if err != nil {
 		return fmt.Errorf("cache client creation: %w", err)
 	}
 	defer cp.Close(ctx)
 
 	log.I.Info("Loading store database provider")
-	sp, err := storedb.Factory(cfg)
+	sp, err := storedb.Factory(ctx, cfg)
 	if err != nil {
 		return fmt.Errorf("store database client creation: %w", err)
 	}
 	defer sp.Close(ctx)
 
 	log.I.Info("Loading graph database provider")
-	gp, err := graphdb.Factory(cfg)
+	gp, err := graphdb.Factory(ctx, cfg)
 	if err != nil {
 		return fmt.Errorf("graph database client creation: %w", err)
 	}
