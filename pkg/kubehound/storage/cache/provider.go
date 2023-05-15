@@ -18,6 +18,8 @@ type CacheDriver interface {
 }
 
 // CacheReader defines the interface for reading data from the cache provider.
+//
+//go:generate mockery --name CacheReader --output mocks --case underscore --filename cache_reader.go --with-expecter
 type CacheReader interface {
 	CacheDriver
 
@@ -26,6 +28,8 @@ type CacheReader interface {
 }
 
 // CacheProvider defines the interface for reading and writing data from the cache provider.
+//
+//go:generate mockery --name CacheProvider --output mocks --case underscore --filename cache_provider.go --with-expecter
 type CacheProvider interface {
 	CacheReader
 

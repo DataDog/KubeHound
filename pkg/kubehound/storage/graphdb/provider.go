@@ -56,6 +56,6 @@ type AsyncEdgeWriter interface {
 }
 
 // Factory returns an initialized instance of a graphdb provider from the provided application config.
-func Factory(cfg *config.KubehoundConfig) (Provider, error) {
+func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
 	return nil, globals.ErrNotImplemented
 }
