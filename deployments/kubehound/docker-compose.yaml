@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  mongodb:
+    image: mongo
+    container_name: storedb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongodb:/data/db
+    networks:
+      - kubenet
+
+  janusgraph:
+    image: janusgraph/janusgraph:latest
+    container_name: graphdb-ng
+    ports:
+      - "8182:8182"
+    volumes:
+      - ./data/janus:/data
+    networks:
+      - kubenet
+
+networks:
+  kubenet:
