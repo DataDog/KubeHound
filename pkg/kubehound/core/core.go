@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/ase-experimental/kubehound/kh/collector"
-	"github.com/DataDog/ase-experimental/kubehound/kh/config"
+	"github.com/DataDog/KubeHound/pkg/collector"
+	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/ase-experimental/kubehound/kh/graph/edge"
 	"github.com/DataDog/ase-experimental/kubehound/kh/graphbuilder"
 	"github.com/DataDog/ase-experimental/kubehound/kh/ingestor"
 	"github.com/DataDog/ase-experimental/kubehound/kh/storage/cache"
 	"github.com/DataDog/ase-experimental/kubehound/kh/storage/graphdb"
 	"github.com/DataDog/ase-experimental/kubehound/kh/storage/storedb"
-	"github.com/DataDog/ase-experimental/kubehound/kh/telemetry"
-	"github.com/DataDog/ase-experimental/kubehound/kh/telemetry/log"
 )
 
 func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.CacheProvider,
