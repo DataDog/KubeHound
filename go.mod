@@ -3,7 +3,9 @@ module github.com/DataDog/KubeHound
 go 1.19
 
 require (
+	github.com/alitto/pond v1.8.3
 	github.com/apache/tinkerpop/gremlin-go v0.0.0-20220530191148-29272fa563ec
+	github.com/hashicorp/go-multierror v1.1.1
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
 	go.mongodb.org/mongo-driver v1.11.6
@@ -19,7 +21,6 @@ require (
 	github.com/DataDog/go-tuf v0.3.0--fix-localmeta-fork // indirect
 	github.com/DataDog/sketches-go v1.3.0 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
-	github.com/alitto/pond v1.8.3 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
@@ -31,6 +32,7 @@ require (
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect

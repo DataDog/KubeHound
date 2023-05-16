@@ -14,6 +14,8 @@ type writerOptions struct {
 type WriterOption func(*writerOptions)
 
 // Provider defines the interface for implementations of the storedb provider for intermediate storage of normalized K8s data.
+//
+//go:generate mockery --name Provider --output mocks --case underscore --filename store_provider.go --with-expecter
 type Provider interface {
 	// HealthCheck provides a mechanism for the client to check health of the provider.
 	// Should return true if health check is successful, false otherwise.
@@ -30,6 +32,8 @@ type Provider interface {
 }
 
 // AysncWriter defines the interface for writer clients to queue aysnchronous, batched writes to the storedb.
+//
+//go:generate mockery --name AsyncWriter --output mocks --case underscore --filename store_writer.go --with-expecter
 type AsyncWriter interface {
 	// Queue add a model to an asynchronous write queue. Non-blocking.
 	Queue(ctx context.Context, model any) error

@@ -14,6 +14,9 @@ type writerOptions struct {
 
 type WriterOption func(*writerOptions)
 
+// Provider defines the interface for implementations of the graphdb provider for storage of the calculated K8s attack graph.
+//
+//go:generate mockery --name Provider --output mocks --case underscore --filename graph_provider.go --with-expecter
 type Provider interface {
 	// HealthCheck provides a mechanism for the client to check health of the provider.
 	// Should return true if health check is successful, false otherwise.
@@ -41,6 +44,7 @@ type WriterBase interface {
 	Close(ctx context.Context) error
 }
 
+// AsyncVertexWriter defines the interface for writer clients to queue aysnchronous, batched writes  of vertices to the graphdb.
 type AsyncVertexWriter interface {
 	WriterBase
 
@@ -48,6 +52,9 @@ type AsyncVertexWriter interface {
 	Queue(ctx context.Context, v any) error
 }
 
+// AsyncEdgeWriter defines the interface for writer clients to queue aysnchronous, batched writes of edges to the graphdb.
+//
+//go:generate mockery --name AsyncEdgeWriter --output mocks --case underscore --filename edge_writer.go --with-expecter
 type AsyncEdgeWriter interface {
 	WriterBase
 

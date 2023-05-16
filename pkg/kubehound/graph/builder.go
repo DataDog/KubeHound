@@ -2,15 +2,16 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/worker"
+	"github.com/hashicorp/go-multierror"
 )
 
 const (
@@ -41,7 +42,27 @@ func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider,
 
 // HealthCheck provides a mechanism for the caller to check health of the builder dependencies.
 func (b *Builder) HealthCheck(ctx context.Context) error {
-	return globals.ErrNotImplemented
+	var res *multierror.Error
+
+	ok, err := b.storedb.HealthCheck(ctx)
+	if err != nil {
+		res = multierror.Append(res, err)
+	}
+
+	if !ok {
+		res = multierror.Append(res, errors.New("store DB healthcheck"))
+	}
+
+	ok, err = b.graphdb.HealthCheck(ctx)
+	if err != nil {
+		res = multierror.Append(res, err)
+	}
+
+	if !ok {
+		res = multierror.Append(res, errors.New("graph DB healthcheck"))
+	}
+
+	return res.ErrorOrNil()
 }
 
 // buildEdge inserts a class of edges into the graph database.
@@ -71,12 +92,8 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Edge) error {
 				return err
 			}
 
-			select {
-			case <-complete:
-				return nil
-			case <-ctx.Done():
-				return ctx.Err()
-			}
+			<-complete
+			return nil
 		})
 
 	w.Close(ctx)
@@ -85,10 +102,7 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Edge) error {
 }
 
 // runInternal implements the Run function and is extracted separately to enable testing.
-func (b *Builder) runInternal(outer context.Context, registry edge.EdgeRegistry) error {
-	var err error
-	ctx, cancel := context.WithCancelCause(outer)
-	defer cancel(err)
+func (b *Builder) runInternal(ctx context.Context, registry edge.EdgeRegistry) error {
 
 	l := log.Trace(ctx, log.WithComponent(BuilderComponentName))
 	l.Info("Creating edge builder worker pool")
@@ -97,7 +111,8 @@ func (b *Builder) runInternal(outer context.Context, registry edge.EdgeRegistry)
 		return fmt.Errorf("graph builder worker pool create: %w", err)
 	}
 
-	if err := wp.Start(ctx); err != nil {
+	workCtx, err := wp.Start(ctx)
+	if err != nil {
 		return fmt.Errorf("graph builder worker pool start: %w", err)
 	}
 
@@ -106,25 +121,25 @@ func (b *Builder) runInternal(outer context.Context, registry edge.EdgeRegistry)
 		e := e
 		label := label
 
-		err := wp.Submit(func() {
+		wp.Submit(func() error {
 			l.Infof("Building edge %s", label)
 
-			err := b.buildEdge(ctx, e)
+			err := b.buildEdge(workCtx, e)
 			if err != nil {
 				l.Errorf("building edge %s: %w", label, err)
-				cancel(err) // Ensure all work is stopped on an edge error
-
+				return err
 			}
+
+			return nil
 		})
-		if err != nil {
-			l.Errorf("submitting edge %s to worker pool: %w", label, err)
-			cancel(err) // Ensure all work is stopped on any submit error
-		}
 	}
 
-	wp.WaitForComplete()
-	l.Info("Completed edge construction")
+	err = wp.WaitForComplete()
+	if err != nil {
+		return err
+	}
 
+	l.Info("Completed edge construction")
 	return nil
 }
 
