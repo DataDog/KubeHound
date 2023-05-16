@@ -26,6 +26,8 @@ type CompleteQueryCallback func(ctx context.Context) error
 type EdgeTraversal func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal
 
 // Edge interface defines objects used to construct edges within our graph database through processing data from the intermediate store.
+
+//go:generate mockery --name Edge --output mocks --case underscore --filename edge.go --with-expecter
 type Edge interface {
 	// Label returns the label for the edge (convention is all uppercase i.e EDGE_NAME)
 	Label() string

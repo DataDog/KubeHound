@@ -101,9 +101,9 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Edge) error {
 	return err
 }
 
-// runInternal implements the Run function and is extracted separately to enable testing.
-func (b *Builder) runInternal(ctx context.Context, registry edge.EdgeRegistry) error {
-
+// Run constructs all the registered edges in the graph database.
+// NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
+func (b *Builder) Run(ctx context.Context) error {
 	l := log.Trace(ctx, log.WithComponent(BuilderComponentName))
 	l.Info("Creating edge builder worker pool")
 	wp, err := worker.PoolFactory(b.cfg)
@@ -117,7 +117,7 @@ func (b *Builder) runInternal(ctx context.Context, registry edge.EdgeRegistry) e
 	}
 
 	l.Info("Starting edge construction")
-	for label, e := range registry {
+	for label, e := range b.registry {
 		e := e
 		label := label
 
@@ -126,7 +126,7 @@ func (b *Builder) runInternal(ctx context.Context, registry edge.EdgeRegistry) e
 
 			err := b.buildEdge(workCtx, e)
 			if err != nil {
-				l.Errorf("building edge %s: %w", label, err)
+				l.Errorf("building edge %s: %v", label, err)
 				return err
 			}
 
@@ -141,10 +141,4 @@ func (b *Builder) runInternal(ctx context.Context, registry edge.EdgeRegistry) e
 
 	l.Info("Completed edge construction")
 	return nil
-}
-
-// Run constructs all the registered edges in the graph database.
-// NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
-func (b *Builder) Run(ctx context.Context) error {
-	return b.runInternal(ctx, edge.Registry())
 }
