@@ -45,7 +45,7 @@ func Default() *KubehoundLogger {
 	}
 
 	logger := logrus.WithFields(fields)
-	if utils.ProdEnv() {
+	if globals.ProdEnv() {
 		logger.Logger.SetFormatter(&logrus.JSONFormatter{})
 	}
 
