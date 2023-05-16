@@ -1,4 +1,4 @@
-package graphbuilder
+package graph
 
 import (
 	"context"
@@ -10,10 +10,11 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/worker"
 )
 
 const (
-	ComponentName = "graph-builder"
+	BuilderComponentName = "graph-builder"
 )
 
 type Builder struct {
@@ -23,7 +24,7 @@ type Builder struct {
 	registry edge.EdgeRegistry
 }
 
-func New(cfg *config.KubehoundConfig, store storedb.Provider,
+func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider,
 	graph graphdb.Provider, registry edge.EdgeRegistry) (*Builder, error) {
 
 	n := &Builder{
@@ -78,27 +79,52 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Edge) error {
 	return nil
 }
 
-func (b *Builder) Run(ctx context.Context) error {
-	l := log.Trace(ctx, log.WithComponent(ComponentName))
-	wp, err := NewWorkerPool(b.cfg)
+func (b *Builder) runInternal(outer context.Context, registry edge.EdgeRegistry) error {
+	var err error
+	ctx, cancel := context.WithCancelCause(outer)
+	defer cancel(err)
+
+	l := log.Trace(ctx, log.WithComponent(BuilderComponentName))
+	l.Info("Creating edge builder worker pool")
+	wp, err := worker.PoolFactory(b.cfg)
 	if err != nil {
 		return fmt.Errorf("graph builder worker pool create: %w", err)
 	}
 
+	// Ensure all work is stopped on an edge error
+	go func() {
+		<-ctx.Done()
+		if context.Cause(ctx) != nil {
+			wp.Stop()
+		}
+	}()
+
 	l.Info("Starting edge construction")
-	for label, e := range edge.Registry() {
-		wp.Submit(func() {
+	for label, e := range registry {
+		e := e
+		label := label
+
+		err := wp.Submit(func() {
 			l.Infof("Building edge %s", label)
 
 			err := b.buildEdge(ctx, e)
 			if err != nil {
-				l.Errorf("error building edge %s: %w", label, err)
+				l.Errorf("building edge %s: %w", label, err)
+				cancel(err)
 			}
 		})
+		if err != nil {
+			l.Errorf("submitting edge %s to worker pool: %w", label, err)
+			cancel(err)
+		}
 	}
 
 	wp.WaitForComplete()
 	l.Info("Completed edge construction")
 
 	return nil
+}
+
+func (b *Builder) Run(ctx context.Context) error {
+	return b.runInternal(ctx, edge.Registry())
 }
