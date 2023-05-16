@@ -17,6 +17,7 @@ const (
 	BuilderComponentName = "graph-builder"
 )
 
+// Builder handles the construction of the graph edges once vertices have been ingested via the ingestion pipeline.
 type Builder struct {
 	cfg      *config.KubehoundConfig
 	storedb  storedb.Provider
@@ -24,6 +25,7 @@ type Builder struct {
 	registry edge.EdgeRegistry
 }
 
+// NewBuilder returns a new builder instance from the provided application config and service dependencies.
 func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider,
 	graph graphdb.Provider, registry edge.EdgeRegistry) (*Builder, error) {
 
@@ -37,19 +39,21 @@ func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider,
 	return n, nil
 }
 
+// HealthCheck
 func (b *Builder) HealthCheck(ctx context.Context) error {
 	return globals.ErrNotImplemented
 }
 
+// buildEdge inserts a class of edges into the graph database.
+// NOTE: function is blocking and expected to be called from within a goroutine.
 func (b *Builder) buildEdge(ctx context.Context, e edge.Edge) error {
 	w, err := b.graphdb.EdgeWriter(ctx, e.Traversal())
 	if err != nil {
 		return err
 	}
 
-	// l := log.Trace(ctx, log.WithComponent(ComponentName))
 	err = e.Stream(ctx, b.storedb,
-		func(ctx context.Context, entry interface{}) error {
+		func(ctx context.Context, entry edge.DataContainer) error {
 			processed, err := e.Processor(ctx, entry)
 			// TODO option for skip write if signalled by processor
 
@@ -67,18 +71,20 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Edge) error {
 				return err
 			}
 
-			<-complete
-			return nil
+			select {
+			case <-complete:
+				return nil
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 		})
 
 	w.Close(ctx)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
+// runInternal implements the Run function and is extracted separately to enable testing.
 func (b *Builder) runInternal(outer context.Context, registry edge.EdgeRegistry) error {
 	var err error
 	ctx, cancel := context.WithCancelCause(outer)
@@ -125,6 +131,8 @@ func (b *Builder) runInternal(outer context.Context, registry edge.EdgeRegistry)
 	return nil
 }
 
+// Run constructs all the registered edges in the graph database.
+// NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
 func (b *Builder) Run(ctx context.Context) error {
 	return b.runInternal(ctx, edge.Registry())
 }
