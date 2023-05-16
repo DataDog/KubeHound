@@ -39,7 +39,7 @@ func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider,
 	return n, nil
 }
 
-// HealthCheck
+// HealthCheck provides a mechanism for the caller to check health of the builder dependencies.
 func (b *Builder) HealthCheck(ctx context.Context) error {
 	return globals.ErrNotImplemented
 }
@@ -97,13 +97,9 @@ func (b *Builder) runInternal(outer context.Context, registry edge.EdgeRegistry)
 		return fmt.Errorf("graph builder worker pool create: %w", err)
 	}
 
-	// Ensure all work is stopped on an edge error
-	go func() {
-		<-ctx.Done()
-		if context.Cause(ctx) != nil {
-			wp.Stop()
-		}
-	}()
+	if err := wp.Start(ctx); err != nil {
+		return fmt.Errorf("graph builder worker pool start: %w", err)
+	}
 
 	l.Info("Starting edge construction")
 	for label, e := range registry {
@@ -116,12 +112,13 @@ func (b *Builder) runInternal(outer context.Context, registry edge.EdgeRegistry)
 			err := b.buildEdge(ctx, e)
 			if err != nil {
 				l.Errorf("building edge %s: %w", label, err)
-				cancel(err)
+				cancel(err) // Ensure all work is stopped on an edge error
+
 			}
 		})
 		if err != nil {
 			l.Errorf("submitting edge %s to worker pool: %w", label, err)
-			cancel(err)
+			cancel(err) // Ensure all work is stopped on any submit error
 		}
 	}
 
