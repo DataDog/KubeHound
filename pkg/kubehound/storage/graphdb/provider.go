@@ -51,7 +51,7 @@ type AsyncVertexWriter interface {
 type AsyncEdgeWriter interface {
 	WriterBase
 
-	// Queue add am edge model to an asynchronous write queue. Non-blocking.
+	// Queue add an edge model to an asynchronous write queue. Non-blocking.
 	Queue(ctx context.Context, e any) error
 }
 

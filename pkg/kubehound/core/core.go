@@ -47,6 +47,8 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 	return nil
 }
 
+// buildGraph will construct the attack graph by calculating and inserting all registered edges in parallel.
+// All I/O operations are performed asynchronously.
 func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
 	graphdb graphdb.Provider) error {
 
@@ -73,6 +75,7 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 	return nil
 }
 
+// Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context) error {
 	log.I.Info("Initializing application telemetry")
 	tc, err := telemetry.Initialize()
@@ -112,7 +115,7 @@ func Launch(ctx context.Context) error {
 
 	log.I.Info("Building attack graph")
 	if err := buildGraph(ctx, cfg, sp, gp); err != nil {
-		return fmt.Errorf("raw data ingest: %w", err)
+		return fmt.Errorf("building attack graph: %w", err)
 	}
 
 	log.I.Info("Attack graph generation complete")

@@ -3,6 +3,7 @@ package converter
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"testing"
 
@@ -51,9 +52,10 @@ func TestConverter_NodePipeline(t *testing.T) {
 
 	assert.Equal(t, storeNode.Id.Hex(), graphNode.StoreId)
 	assert.Equal(t, storeNode.K8.Name, graphNode.Name)
+	assert.False(t, storeNode.IsNamespaced)
 	assert.Equal(t, storeNode.K8.Namespace, graphNode.Namespace)
 	assert.False(t, graphNode.Critical)
-	assert.False(t, graphNode.Compromised)
+	assert.Equal(t, graph.CompromiseNone, graphNode.Compromised)
 }
 
 func TestConverter_RolePipeline(t *testing.T) {
@@ -67,7 +69,7 @@ func TestConverter_RolePipeline(t *testing.T) {
 	assert.NoError(t, err, "store role convert error")
 
 	assert.Equal(t, storeRole.Name, input.Name)
-	assert.False(t, storeRole.Global)
+	assert.True(t, storeRole.IsNamespaced)
 	assert.Equal(t, storeRole.Namespace, input.Namespace)
 	assert.Equal(t, storeRole.Rules, input.Rules)
 
@@ -99,8 +101,8 @@ func TestConverter_ClusterRolePipeline(t *testing.T) {
 	assert.NoError(t, err, "store role convert error")
 
 	assert.Equal(t, storeRole.Name, input.Name)
-	assert.True(t, storeRole.Global)
-	assert.Equal(t, storeRole.Namespace, "global")
+	assert.False(t, storeRole.IsNamespaced)
+	assert.Empty(t, storeRole.Namespace)
 	assert.Equal(t, storeRole.Rules, input.Rules)
 
 	// Store model -> graph model
@@ -137,7 +139,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 
 	assert.Equal(t, storeBinding.Name, input.Name)
 	assert.Equal(t, storeBinding.RoleId.Hex(), id)
-	assert.False(t, storeBinding.Global)
+	assert.True(t, storeBinding.IsNamespaced)
 	assert.Equal(t, storeBinding.Namespace, input.Namespace)
 
 	assert.Equal(t, 1, len(storeBinding.Subjects))
@@ -181,8 +183,8 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 
 	assert.Equal(t, storeBinding.Name, input.Name)
 	assert.Equal(t, storeBinding.RoleId.Hex(), id)
-	assert.True(t, storeBinding.Global)
-	assert.Equal(t, storeBinding.Namespace, "global")
+	assert.False(t, storeBinding.IsNamespaced)
+	assert.Empty(t, storeBinding.Namespace)
 
 	assert.Equal(t, 1, len(storeBinding.Subjects))
 	subject := storeBinding.Subjects[0]
@@ -208,6 +210,25 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, storeIdentity.Type, graphIdentity.Type)
 }
 
+func TestConverter_RoleCacheFailure(t *testing.T) {
+	t.Parallel()
+
+	c := mocks.NewCacheReader(t)
+	c.EXPECT().Get(mock.Anything, mock.Anything).Return("", errors.New("not found")).Twice()
+
+	rb, err := loadTestObject[types.RoleBindingType]("testdata/rolebinding.json")
+	assert.NoError(t, err, "role binding load error")
+
+	_, err = NewStoreWithCache(c).RoleBinding(context.TODO(), rb)
+	assert.ErrorContains(t, err, "role binding found with no matching role")
+
+	crb, err := loadTestObject[types.ClusterRoleBindingType]("testdata/clusterrolebinding.json")
+	assert.NoError(t, err, "cluster role binding load error")
+
+	_, err = NewStoreWithCache(c).ClusterRoleBinding(context.TODO(), crb)
+	assert.ErrorContains(t, err, "role binding found with no matching role")
+}
+
 func TestConverter_PodPipeline(t *testing.T) {
 	t.Parallel()
 
@@ -225,6 +246,7 @@ func TestConverter_PodPipeline(t *testing.T) {
 
 	assert.Equal(t, storePod.NodeId.Hex(), id)
 	assert.Equal(t, storePod.K8.Name, input.Name)
+	assert.True(t, storePod.IsNamespaced)
 	assert.Equal(t, storePod.K8.Namespace, input.Namespace)
 
 	// Store pod -> graph pod
@@ -238,7 +260,7 @@ func TestConverter_PodPipeline(t *testing.T) {
 	assert.Equal(t, storePod.K8.Spec.ServiceAccountName, graphPod.ServiceAccount)
 	assert.Equal(t, storePod.K8.Spec.NodeName, graphPod.Node)
 	assert.False(t, graphPod.Critical)
-	assert.False(t, graphPod.Compromised)
+	assert.Equal(t, graph.CompromiseNone, graphPod.Compromised)
 }
 
 func TestConverter_PodChildPipeline(t *testing.T) {
@@ -284,7 +306,7 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, storeContainer.Inherited.PodName, graphContainer.Pod)
 	assert.Equal(t, storeContainer.Inherited.NodeName, graphContainer.Node)
 	assert.Equal(t, []int{9200, 9300}, graphContainer.Ports)
-	assert.False(t, graphContainer.Compromised)
+	assert.Equal(t, graph.CompromiseNone, graphContainer.Compromised)
 	assert.False(t, graphContainer.Critical)
 
 	// Collector volume -> store volume
@@ -306,4 +328,17 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, storeVolume.Name, graphVolume.Name)
 	assert.Equal(t, graph.VolumeTypeProjected, graphVolume.Type)
 	assert.Equal(t, "token", graphVolume.Path)
+}
+
+func TestConverter_PodCacheFailure(t *testing.T) {
+	t.Parallel()
+
+	c := mocks.NewCacheReader(t)
+	c.EXPECT().Get(mock.Anything, mock.Anything).Return("", errors.New("not found"))
+
+	input, err := loadTestObject[types.PodType]("testdata/pod.json")
+	assert.NoError(t, err, "pod load error")
+
+	_, err = NewStoreWithCache(c).Pod(context.TODO(), input)
+	assert.ErrorContains(t, err, "not found")
 }

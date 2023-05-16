@@ -12,10 +12,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 )
 
-const (
-	GlobalNamespace = "global"
-)
-
 var (
 	ErrUnsupportedVolume   = errors.New("provided volume is not currently supported")
 	ErrDanglingRoleBinding = errors.New("role binding found with no matching role")
@@ -59,10 +55,16 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 
 // Node returns the store representation of a K8s node from an input K8s node object.
 func (c *StoreConverter) Node(_ context.Context, input types.NodeType) (*store.Node, error) {
-	return &store.Node{
+	output := &store.Node{
 		Id: store.StoreObjectID(),
 		K8: corev1.Node(*input),
-	}, nil
+	}
+
+	if len(input.Namespace) != 0 {
+		output.IsNamespaced = true
+	}
+
+	return output, nil
 }
 
 // Pod returns the store representation of a K8s pod from an input K8s pod object.
@@ -82,11 +84,17 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 		return nil, err
 	}
 
-	return &store.Pod{
+	output := &store.Pod{
 		Id:     store.StoreObjectID(),
 		NodeId: onid,
 		K8:     corev1.Pod(*input),
-	}, nil
+	}
+
+	if len(input.Namespace) != 0 {
+		output.IsNamespaced = true
+	}
+
+	return output, nil
 }
 
 // Volume returns the store representation of a K8s mounted volume from an input K8s volume object.
@@ -144,22 +152,22 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 // Role returns the store representation of a K8s role from an input K8s Role object.
 func (c *StoreConverter) Role(_ context.Context, input types.RoleType) (*store.Role, error) {
 	return &store.Role{
-		Id:        store.StoreObjectID(),
-		Name:      input.Name,
-		Global:    false,
-		Namespace: input.Namespace,
-		Rules:     input.Rules,
+		Id:           store.StoreObjectID(),
+		Name:         input.Name,
+		IsNamespaced: true,
+		Namespace:    input.Namespace,
+		Rules:        input.Rules,
 	}, nil
 }
 
 // ClusterRole returns the store representation of a K8s cluster role from an input K8s ClusterRole object.
 func (c *StoreConverter) ClusterRole(_ context.Context, input types.ClusterRoleType) (*store.Role, error) {
 	return &store.Role{
-		Id:        store.StoreObjectID(),
-		Name:      input.Name,
-		Global:    true,
-		Namespace: GlobalNamespace,
-		Rules:     input.Rules,
+		Id:           store.StoreObjectID(),
+		Name:         input.Name,
+		IsNamespaced: false,
+		Namespace:    "",
+		Rules:        input.Rules,
 	}, nil
 }
 
@@ -185,12 +193,12 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 
 	subj := input.Subjects
 	output = &store.RoleBinding{
-		Id:        store.StoreObjectID(),
-		RoleId:    orid,
-		Name:      input.Name,
-		Global:    false,
-		Namespace: input.Namespace,
-		Subjects:  make([]store.BindSubject, 0, len(subj)),
+		Id:           store.StoreObjectID(),
+		RoleId:       orid,
+		Name:         input.Name,
+		IsNamespaced: true,
+		Namespace:    input.Namespace,
+		Subjects:     make([]store.BindSubject, 0, len(subj)),
 	}
 
 	for _, s := range subj {
@@ -225,12 +233,12 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 	subj := input.Subjects
 	output = &store.RoleBinding{
-		Id:        store.StoreObjectID(),
-		RoleId:    orid,
-		Name:      input.Name,
-		Global:    true,
-		Namespace: GlobalNamespace,
-		Subjects:  make([]store.BindSubject, 0, len(subj)),
+		Id:           store.StoreObjectID(),
+		RoleId:       orid,
+		Name:         input.Name,
+		IsNamespaced: false,
+		Namespace:    "",
+		Subjects:     make([]store.BindSubject, 0, len(subj)),
 	}
 
 	for _, s := range subj {
@@ -246,10 +254,17 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 // Identity returns the store representation of a K8s identity role binding from an input store BindSubject (subfield of RoleBinding) object.
 // NOTE: store.Identity does not map directly to a K8s API object and instead derives from the subject of a role binding.
 func (c *StoreConverter) Identity(_ context.Context, input store.BindSubject) (*store.Identity, error) {
-	return &store.Identity{
+	output := &store.Identity{
 		Id:        input.IdentityId,
 		Name:      input.Subject.Name,
-		Namespace: input.Subject.Namespace,
+		Namespace: "",
 		Type:      input.Subject.Kind,
-	}, nil
+	}
+
+	if len(input.Subject.Namespace) != 0 {
+		output.IsNamespaced = true
+		output.Namespace = input.Subject.Namespace
+	}
+
+	return output, nil
 }

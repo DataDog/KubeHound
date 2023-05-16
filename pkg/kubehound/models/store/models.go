@@ -28,14 +28,16 @@ type Container struct {
 }
 
 type Pod struct {
-	Id     primitive.ObjectID `bson:"_id,omitempty"`
-	NodeId primitive.ObjectID `bson:"node_id,omitempty"`
-	K8     corev1.Pod         `bson:"k8,omitempty"`
+	Id           primitive.ObjectID `bson:"_id,omitempty"`
+	NodeId       primitive.ObjectID `bson:"node_id,omitempty"`
+	IsNamespaced bool               `bson:"is_namespaced"`
+	K8           corev1.Pod         `bson:"k8,omitempty"`
 }
 
 type Node struct {
-	Id primitive.ObjectID `bson:"_id,omitempty"`
-	K8 corev1.Node        `bson:"k8,omitempty"`
+	Id           primitive.ObjectID `bson:"_id,omitempty"`
+	IsNamespaced bool               `bson:"is_namespaced"`
+	K8           corev1.Node        `bson:"k8,omitempty"`
 }
 
 type VolumeMount struct {
@@ -53,11 +55,11 @@ type Volume struct {
 }
 
 type Role struct {
-	Id        primitive.ObjectID  `bson:"_id"`
-	Name      string              `bson:"name"`
-	Global    bool                `bson:"global"`
-	Namespace string              `bson:"namespace"`
-	Rules     []rbacv1.PolicyRule `bson:"rules"`
+	Id           primitive.ObjectID  `bson:"_id"`
+	Name         string              `bson:"name"`
+	IsNamespaced bool                `bson:"is_namespaced"`
+	Namespace    string              `bson:"namespace"`
+	Rules        []rbacv1.PolicyRule `bson:"rules"`
 }
 
 type BindSubject struct {
@@ -66,17 +68,18 @@ type BindSubject struct {
 }
 
 type RoleBinding struct {
-	Id        primitive.ObjectID `bson:"_id"`
-	Name      string             `bson:"name"`
-	RoleId    primitive.ObjectID `bson:"role_id"`
-	Global    bool               `bson:"global"`
-	Namespace string             `bson:"namespace"`
-	Subjects  []BindSubject      `bson:"subjects"`
+	Id           primitive.ObjectID `bson:"_id"`
+	Name         string             `bson:"name"`
+	RoleId       primitive.ObjectID `bson:"role_id"`
+	IsNamespaced bool               `bson:"is_namespaced"`
+	Namespace    string             `bson:"namespace"`
+	Subjects     []BindSubject      `bson:"subjects"`
 }
 
 type Identity struct {
-	Id        primitive.ObjectID `bson:"_id"`
-	Name      string             `bson:"name"`
-	Namespace string             `bson:"namespace"`
-	Type      string             `bson:"type"`
+	Id           primitive.ObjectID `bson:"_id"`
+	Name         string             `bson:"name"`
+	IsNamespaced bool               `bson:"is_namespaced"`
+	Namespace    string             `bson:"namespace"`
+	Type         string             `bson:"type"`
 }
