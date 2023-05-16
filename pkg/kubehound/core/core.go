@@ -118,7 +118,7 @@ func Launch(ctx context.Context) error {
 
 	log.I.Info("Building attack graph")
 	if err := buildGraph(ctx, cfg, sp, gp); err != nil {
-		return fmt.Errorf("raw data ingest: %w", err)
+		return fmt.Errorf("building attack graph: %w", err)
 	}
 
 	log.I.Info("Attack graph generation complete")
