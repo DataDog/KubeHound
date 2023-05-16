@@ -5,16 +5,16 @@ const (
 )
 
 type containerCacheKey struct {
-	pod       string
-	container string
+	podName       string
+	containerName string
 }
 
 var _ CacheKey = (*containerCacheKey)(nil) // Ensure interface compliance
 
-func ContainerKey(pod string, container string) *containerCacheKey {
+func ContainerKey(podName string, containerName string) *containerCacheKey {
 	return &containerCacheKey{
-		pod:       pod,
-		container: container,
+		podName:       podName,
+		containerName: containerName,
 	}
 }
 
@@ -23,5 +23,5 @@ func (k *containerCacheKey) Namespace() string {
 }
 
 func (k *containerCacheKey) Key() string {
-	return k.pod + "##" + k.container
+	return k.podName + "##" + k.containerName
 }
