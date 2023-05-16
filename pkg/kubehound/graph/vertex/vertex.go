@@ -1,14 +1,14 @@
 package vertex
 
 import (
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 )
 
 // An object to be consumed by a vertex traversal function to insert a vertex into the graph database.
 type TraversalInput any
 
 // VertexTraversal returns the function to create a graph database vertex insert from an array of input objects.
-type VertexTraversal func(g *gremlingo.GraphTraversal, insert TraversalInput) *gremlingo.GraphTraversal
+type VertexTraversal func(g *gremlin.GraphTraversal, insert TraversalInput) *gremlin.GraphTraversal
 
 // Vertex interface defines objects used to construct vertices within our graph database through processing data from an ingestion pipeline.
 type Vertex interface {

@@ -8,14 +8,16 @@ import (
 
 // WorkerPool provides a worker pool for parallelised processing tasks.
 type WorkerPool interface {
-	// Submit submits a work item to the queue to be consumed by the next available worker.
+	// Submit sends a work item to the worker pool to be processed.
 	Submit(workFunc func() error)
 
-	// TODO
+	// Start starts the worker pool and returns a derived context which is canceled the first time
+	// a function submitted to the group returns a non-nil error or the first time Wait returns,
+	// whichever occurs first.
 	Start(parent context.Context) (context.Context, error)
 
-	// Wait blocks until either all the work items have completed, one of them returned a
-	// non-nil error or the context associated to this pool was canceled.
+	// WaitForComplete blocks until either all the tasks submitted to this group have completed,
+	// one of them returned a non-nil error or the context associated to this group was canceled.
 	WaitForComplete() error
 }
 
