@@ -5,14 +5,14 @@ const (
 )
 
 type nodeCacheKey struct {
-	name string
+	nodeName string
 }
 
 var _ CacheKey = (*nodeCacheKey)(nil) // Ensure interface compliance
 
-func NodeKey(name string) *nodeCacheKey {
+func NodeKey(nodeName string) *nodeCacheKey {
 	return &nodeCacheKey{
-		name: name,
+		nodeName: nodeName,
 	}
 }
 
@@ -21,5 +21,5 @@ func (k *nodeCacheKey) Namespace() string {
 }
 
 func (k *nodeCacheKey) Key() string {
-	return k.name
+	return k.nodeName
 }
