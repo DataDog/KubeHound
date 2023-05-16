@@ -72,7 +72,11 @@ func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 	output := &graph.Node{
 		StoreId: input.Id.Hex(),
 		Name:    input.K8.Name,
-		//Namespace: input.K8.GetObjectMeta().GetNamespace(),
+	}
+
+	if input.IsNamespaced {
+		output.IsNamespaced = true
+		output.Namespace = input.K8.Namespace
 	}
 
 	return output, nil
