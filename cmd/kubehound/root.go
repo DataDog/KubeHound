@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/DataDog/Kubehound/pkg/kubehound/core"
+	"github.com/DataDog/KubeHound/pkg/kubehound/core"
 	"github.com/spf13/cobra"
 )
 
