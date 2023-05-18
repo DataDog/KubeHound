@@ -21,7 +21,7 @@ func MongoDB(store storedb.Provider) *mongo.Database {
 }
 
 // MongoProcessor is the default processor implementation for a mongoDB store provider.
-func MongoProcessor[T any](_ context.Context, entry interface{}) (map[string]any, error) {
+func MongoProcessor[T any](_ context.Context, entry DataContainer) (map[string]any, error) {
 	typed, ok := entry.(T)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -57,7 +57,7 @@ func MongoCursorHandler[T any](ctx context.Context, cur *mongo.Cursor,
 
 // structToMap transforms a struct to a map to be consumed by a mongoDB AsyncWriter implementation.
 // TODO: review implementation... surely there's a better way?
-func structToMap(in interface{}) (map[string]any, error) {
+func structToMap(in any) (map[string]any, error) {
 	var res map[string]any
 
 	tmp, err := json.Marshal(in)

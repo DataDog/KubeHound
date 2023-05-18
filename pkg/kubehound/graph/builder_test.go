@@ -56,6 +56,8 @@ func TestGraphBuilder_Success(t *testing.T) {
 }
 
 func TestGraphBuilder_HealthCheck(t *testing.T) {
+	t.Parallel()
+
 	gdb := graphdb.NewProvider(t)
 	sdb := storedb.NewProvider(t)
 	reg := make(e.EdgeRegistry)

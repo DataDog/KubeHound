@@ -30,9 +30,9 @@ func (e ContainerAttach) Label() string {
 func (e ContainerAttach) Traversal() EdgeTraversal {
 	return func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
 		return g.Inject(inserts).Unfold().As("ca").
-			V().HasLabel("Pod").Has("storeId", gremlin.T__.Select("ca").Select("pod")).As("p").
-			V().HasLabel("Container").Has("storeId", gremlin.T__.Select("ca").Select("container")).As("c").
-			MergeE(e.Label()).From("p").To("c")
+			V().HasLabel("Pod").Has("storeId", gremlin.T__.Select("ca").Select("pod")).As("pod").
+			V().HasLabel("Container").Has("storeId", gremlin.T__.Select("ca").Select("container")).As("container").
+			MergeE(e.Label()).From("pod").To("container")
 	}
 }
 
