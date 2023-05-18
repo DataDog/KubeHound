@@ -15,6 +15,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
+// PipelineIngestor is a parallelized pipeline based ingestor implementation.
 type PipelineIngestor struct {
 	cfg       *config.KubehoundConfig
 	collector collector.CollectorClient
@@ -24,6 +25,12 @@ type PipelineIngestor struct {
 	sequences []pipeline.Sequence
 }
 
+// ingestSequence returns the optimized pipeline sequence for ingestion.
+//
+//		__[collector.StreamNodes]___[collector.StreamPods]_____________________________________
+//	 __/													  								   \
+//	   \___ [collector.StreamRole]___________________[collector.StreamRoleBinding]_____________/
+//		   \___[collector.StreamClusterRole]____/\____[collector.StreamClusterRoleBinding]____/
 func ingestSequence() []pipeline.Sequence {
 	return []pipeline.Sequence{
 		{
@@ -65,6 +72,7 @@ func ingestSequence() []pipeline.Sequence {
 	}
 }
 
+// New creates a new pipeline ingestor instance.
 func New(cfg *config.KubehoundConfig, collect collector.CollectorClient, cache cache.CacheProvider,
 	storedb storedb.Provider, graphdb graphdb.Provider) (Ingestor, error) {
 
@@ -80,6 +88,7 @@ func New(cfg *config.KubehoundConfig, collect collector.CollectorClient, cache c
 	return n, nil
 }
 
+// HealthCheck enables a check of the ingestor service dependencies.
 func (i PipelineIngestor) HealthCheck(ctx context.Context) error {
 	return services.HealthCheck(ctx, []services.Dependency{
 		i.cache,
@@ -89,6 +98,7 @@ func (i PipelineIngestor) HealthCheck(ctx context.Context) error {
 	})
 }
 
+// Run executes the pipeline ingest and blocks until complete.
 func (i PipelineIngestor) Run(outer context.Context) error {
 	ctx, cancelAll := context.WithCancelCause(outer)
 	defer cancelAll(nil)
@@ -134,6 +144,7 @@ func (i PipelineIngestor) Run(outer context.Context) error {
 	return nil
 }
 
+// Close cleans up any resources owned by the pipeline ingestor.
 func (i PipelineIngestor) Close(ctx context.Context) error {
 	// No ownership of dependencies. Nothing to do here
 	return nil
