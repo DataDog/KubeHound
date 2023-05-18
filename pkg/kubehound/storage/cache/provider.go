@@ -5,13 +5,12 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
+	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 )
 
 // CacheDriver defines the interface for implementations of the cache provider for intermediate caching of K8s relationship data.
 type CacheDriver interface {
-	// HealthCheck provides a mechanism for the client to check health of the provider.
-	// Should return true if health check is successful, false otherwise.
-	HealthCheck(ctx context.Context) (bool, error)
+	services.Dependency
 
 	// Close cleans up any resources used by the CacheDriver implementation. CacheDriver cannot be reused after this call.
 	Close(ctx context.Context) error

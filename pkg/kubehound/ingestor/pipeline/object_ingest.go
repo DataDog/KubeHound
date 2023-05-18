@@ -26,7 +26,7 @@ type CleanupFunc func(ctx context.Context) error
 
 type objectIngestOptions struct {
 	cacheWriter  cache.AsyncWriter
-	ingest       collector.CollectorClient
+	collect      collector.CollectorClient
 	flush        []FlushFunc
 	cleanup      []CleanupFunc
 	storeConvert *converter.StoreConverter

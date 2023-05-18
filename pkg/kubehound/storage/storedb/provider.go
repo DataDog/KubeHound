@@ -5,6 +5,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
+	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
@@ -17,9 +18,7 @@ type WriterOption func(*writerOptions)
 //
 //go:generate mockery --name Provider --output mocks --case underscore --filename store_provider.go --with-expecter
 type Provider interface {
-	// HealthCheck provides a mechanism for the client to check health of the provider.
-	// Should return true if health check is successful, false otherwise.
-	HealthCheck(ctx context.Context) (bool, error)
+	services.Dependency
 
 	// Raw returns a handle to the underlying provider to allow implementation specific operations e.g db queries.
 	Raw() any

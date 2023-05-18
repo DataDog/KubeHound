@@ -9,3 +9,7 @@ func ProdEnv() bool {
 	// TODO
 	return false
 }
+
+const (
+	IngestorComponent = "pipeline-ingestor"
+)

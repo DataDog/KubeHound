@@ -2,16 +2,15 @@ package graph
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
+	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/worker"
-	"github.com/hashicorp/go-multierror"
 )
 
 const (
@@ -42,27 +41,10 @@ func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider,
 
 // HealthCheck provides a mechanism for the caller to check health of the builder dependencies.
 func (b *Builder) HealthCheck(ctx context.Context) error {
-	var res *multierror.Error
-
-	ok, err := b.storedb.HealthCheck(ctx)
-	if err != nil {
-		res = multierror.Append(res, err)
-	}
-
-	if !ok {
-		res = multierror.Append(res, errors.New("store DB healthcheck"))
-	}
-
-	ok, err = b.graphdb.HealthCheck(ctx)
-	if err != nil {
-		res = multierror.Append(res, err)
-	}
-
-	if !ok {
-		res = multierror.Append(res, errors.New("graph DB healthcheck"))
-	}
-
-	return res.ErrorOrNil()
+	return services.HealthCheck(ctx, []services.Dependency{
+		b.storedb,
+		b.graphdb,
+	})
 }
 
 // buildEdge inserts a class of edges into the graph database.

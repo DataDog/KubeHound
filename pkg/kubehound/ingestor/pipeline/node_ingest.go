@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	NodeIngestName = "node-ingest"
+	NodeIngestName = "k8s-node-ingest"
 )
 
 type NodeIngest struct {
@@ -21,7 +21,7 @@ type NodeIngest struct {
 
 var _ ObjectIngest = (*NodeIngest)(nil)
 
-func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) error {
+func (i NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) error {
 	// Normalize node to store object format
 	o, err := i.opts.storeConvert.Node(ctx, *node)
 	if err != nil {
@@ -52,15 +52,15 @@ func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) e
 	return nil
 }
 
-func (i *NodeIngest) completeCallback(ctx context.Context) error {
+func (i NodeIngest) completeCallback(ctx context.Context) error {
 	return i.flushWriters(ctx)
 }
 
-func (i *NodeIngest) Name() string {
+func (i NodeIngest) Name() string {
 	return NodeIngestName
 }
 
-func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
+func (i NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 	defer func() {
 		if err != nil {
@@ -78,10 +78,10 @@ func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	return err
 }
 
-func (i *NodeIngest) Run(ctx context.Context) error {
-	return i.opts.ingest.StreamNodes(ctx, i.streamCallback, i.completeCallback)
+func (i NodeIngest) Run(ctx context.Context) error {
+	return i.opts.collect.StreamNodes(ctx, i.streamCallback, i.completeCallback)
 }
 
-func (i *NodeIngest) Close(ctx context.Context) error {
+func (i NodeIngest) Close(ctx context.Context) error {
 	return i.cleanup(ctx)
 }

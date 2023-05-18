@@ -6,10 +6,13 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/pipeline"
+	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 type PipelineIngestor struct {
@@ -21,12 +24,49 @@ type PipelineIngestor struct {
 	sequences []pipeline.Sequence
 }
 
-// TODO dependency inject cache, store DB, graph DB
-// TODO health check all dependencies
-// TODO run all components in order. Each component shpould execute the appropriate pipeline
+func ingestSequence() []pipeline.Sequence {
+	return []pipeline.Sequence{
+		{
+			Name: "identity-pipeline",
+			Groups: []pipeline.Group{
+				{
+					Name: "k8s-role-group",
+					Ingests: []pipeline.ObjectIngest{
+						pipeline.RoleIngest{},
+						pipeline.ClusterRoleIngest{},
+					},
+				},
+				{
+					Name: "k8s-rolebinding-group",
+					Ingests: []pipeline.ObjectIngest{
+						pipeline.RoleBindingIngest{},
+						pipeline.ClusterRoleBindingIngest{},
+					},
+				},
+			},
+		},
+		{
+			Name: "application-pipeline",
+			Groups: []pipeline.Group{
+				{
+					Name: "k8s-node-group",
+					Ingests: []pipeline.ObjectIngest{
+						pipeline.NodeIngest{},
+					},
+				},
+				{
+					Name: "k8s-pod-group",
+					Ingests: []pipeline.ObjectIngest{
+						pipeline.PodIngest{},
+					},
+				},
+			},
+		},
+	}
+}
 
-func New(cfg *config.KubehoundConfig, collect collector.CollectorClient, cache cache.CacheProvider, storedb storedb.Provider,
-	graphdb graphdb.Provider) (Ingestor, error) {
+func New(cfg *config.KubehoundConfig, collect collector.CollectorClient, cache cache.CacheProvider,
+	storedb storedb.Provider, graphdb graphdb.Provider) (Ingestor, error) {
 
 	n := &PipelineIngestor{
 		cfg:       cfg,
@@ -34,58 +74,67 @@ func New(cfg *config.KubehoundConfig, collect collector.CollectorClient, cache c
 		cache:     cache,
 		storedb:   storedb,
 		graphdb:   graphdb,
-		sequences: make([]pipeline.Sequence, 0),
+		sequences: ingestSequence(),
 	}
-
-	n.sequences = append(n.sequences)
-	// [roles, clusterroles] -> [rolebinding, clusterrolebdinog]
-	// [nodes] -> [pods]
 
 	return n, nil
 }
 
-func (i PipelineIngestor) handleHealthCheck(ok bool, err error) error {
-	return nil
-}
-
 func (i PipelineIngestor) HealthCheck(ctx context.Context) error {
-	// Check ingestor
-	i.handleHealthCheck(i.collector.HealthCheck(ctx))
-
-	// Check cache connection
-	// Check store connection
-	// Check graph connection
-
-	return nil
+	return services.HealthCheck(ctx, []services.Dependency{
+		i.cache,
+		i.storedb,
+		i.graphdb,
+		i.collector,
+	})
 }
 
-func (i PipelineIngestor) Run(ctx context.Context) error {
+func (i PipelineIngestor) Run(outer context.Context) error {
+	ctx, cancelAll := context.WithCancelCause(outer)
+	defer cancelAll(nil)
 
-	// Call the ingestor to stream the components in order
-	// Pipelines
+	l := log.Trace(ctx, log.WithComponent(globals.IngestorComponent))
+	l.Info("Starting ingest sequences")
+
 	wg := &sync.WaitGroup{}
+	deps := &pipeline.Dependencies{
+		Config:    i.cfg,
+		Collector: i.collector,
+		Cache:     i.cache,
+		StoreDB:   i.storedb,
+		GraphDB:   i.graphdb,
+	}
+
+	// Run the sequences in parallel and cancel ingest on any errors. Note we deliberately avoid
+	// using a worker pool here as have a small, fixed number of tasks to run in parallel.
 	for _, seq := range i.sequences {
 		s := seq
 		wg.Add(1)
+
 		go func() {
 			defer wg.Done()
+			l.Infof("Running ingestor sequence %s", s.Name)
 
-			if err := s.Run(ctx, &pipeline.Dependencies{
-				Config:  i.cfg,
-				Cache:   i.cache,
-				StoreDB: i.storedb,
-				GraphDB: i.graphdb,
-			}); err != nil {
-				// TODO cancel everything on error
+			err := s.Run(ctx, deps)
+			if err != nil {
+				l.Errorf("ingestor sequence %s run: %v", s.Name, err)
+				cancelAll(err)
 			}
 		}()
 	}
 
+	l.Info("Waiting for ingest sequences to complete")
 	wg.Wait()
 
+	if ctx.Err() != nil {
+		return context.Cause(ctx)
+	}
+
+	l.Info("Completed pipeline ingest")
 	return nil
 }
 
 func (i PipelineIngestor) Close(ctx context.Context) error {
+	// No ownership of dependencies. Nothing to do here
 	return nil
 }
