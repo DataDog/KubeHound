@@ -5,16 +5,13 @@ import (
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/worker"
-)
-
-const (
-	BuilderComponentName = "graph-builder"
 )
 
 // Builder handles the construction of the graph edges once vertices have been ingested via the ingestion pipeline.
@@ -86,7 +83,7 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Edge) error {
 // Run constructs all the registered edges in the graph database.
 // NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
 func (b *Builder) Run(ctx context.Context) error {
-	l := log.Trace(ctx, log.WithComponent(BuilderComponentName))
+	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
 	l.Info("Creating edge builder worker pool")
 	wp, err := worker.PoolFactory(b.cfg)
 	if err != nil {

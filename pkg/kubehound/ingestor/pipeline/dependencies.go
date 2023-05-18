@@ -8,6 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 )
 
+// Dependencies encapsulates all of the ingest pipeline dependencies (initialized).
 type Dependencies struct {
 	Config    *config.KubehoundConfig
 	Collector collector.CollectorClient

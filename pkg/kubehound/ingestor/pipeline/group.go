@@ -8,11 +8,13 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
+// Group encapsulates a collection of object ingest pipelines that can be run in parallel.s
 type Group struct {
-	Name    string
-	Ingests []ObjectIngest
+	Name    string         // Name of the ingest group
+	Ingests []ObjectIngest // Parallelized object ingest pipelines
 }
 
+// Run executes all the object ingest pipelines in parallel and returns when all complete.
 func (g *Group) Run(outer context.Context, deps *Dependencies) error {
 	ctx, cancelGroup := context.WithCancelCause(outer)
 	defer cancelGroup(nil)

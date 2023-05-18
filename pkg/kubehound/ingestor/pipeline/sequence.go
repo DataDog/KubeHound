@@ -8,11 +8,13 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
+// Sequence encapsulates a set of ingest pipeline groups that must be executed sequentially.
 type Sequence struct {
 	Name   string
 	Groups []Group
 }
 
+// Run executes all the pipeline groups in sequence and returns when all complete.
 func (s *Sequence) Run(ctx context.Context, deps *Dependencies) error {
 	l := log.Trace(ctx, log.WithComponent(globals.IngestorComponent))
 

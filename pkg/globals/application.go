@@ -12,4 +12,5 @@ func ProdEnv() bool {
 
 const (
 	IngestorComponent = "pipeline-ingestor"
+	BuilderComponent  = "graph-builder"
 )
