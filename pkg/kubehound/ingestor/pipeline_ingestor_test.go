@@ -7,6 +7,8 @@ import (
 
 	collector "github.com/DataDog/KubeHound/pkg/collector/mocks"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/pipeline"
+	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/pipeline/mocks"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
@@ -14,9 +16,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// Ensure on happy path everything is called in expected order
-// Ensure on error path everything is cancelled appropriately
-func TestPipelineIngestor_HealtCheck(t *testing.T) {
+func TestPipelineIngestor_HealthCheck(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -48,12 +48,115 @@ func TestPipelineIngestor_HealtCheck(t *testing.T) {
 	assert.ErrorContains(t, err, "store test")
 }
 
+func createMockData(t *testing.T) (map[string]*mocks.ObjectIngest, *PipelineIngestor) {
+	ingests := make(map[string]*mocks.ObjectIngest)
+	ingests["nodes"] = mocks.NewObjectIngest(t)
+	ingests["pods"] = mocks.NewObjectIngest(t)
+	ingests["roles"] = mocks.NewObjectIngest(t)
+	ingests["croles"] = mocks.NewObjectIngest(t)
+	ingests["rolebindings"] = mocks.NewObjectIngest(t)
+	ingests["crolebindings"] = mocks.NewObjectIngest(t)
+
+	seq := []pipeline.Sequence{
+		{
+			Name: "identity-pipeline",
+			Groups: []pipeline.Group{
+				{
+					Name: "k8s-role-group",
+					Ingests: []pipeline.ObjectIngest{
+						ingests["roles"],
+						ingests["croles"],
+					},
+				},
+				{
+					Name: "k8s-rolebinding-group",
+					Ingests: []pipeline.ObjectIngest{
+						ingests["rolebindings"],
+						ingests["crolebindings"],
+					},
+				},
+			},
+		},
+		{
+			Name: "application-pipeline",
+			Groups: []pipeline.Group{
+				{
+					Name: "k8s-node-group",
+					Ingests: []pipeline.ObjectIngest{
+						ingests["nodes"],
+					},
+				},
+				{
+					Name: "k8s-pod-group",
+					Ingests: []pipeline.ObjectIngest{
+						ingests["pods"],
+					},
+				},
+			},
+		},
+	}
+
+	pi := &PipelineIngestor{
+		sequences: seq,
+	}
+
+	return ingests, pi
+}
+
 func TestPipelineIngestor_Run(t *testing.T) {
 	t.Parallel()
 
+	ingests, pi := createMockData(t)
+
+	for _, ingest := range ingests {
+		oi := ingest
+		oi.EXPECT().Initialize(mock.Anything, mock.AnythingOfType("*pipeline.Dependencies")).Return(nil).Once()
+		oi.EXPECT().Close(mock.Anything).Return(nil).Once()
+	}
+
+	// Expect calls to each object respecting the order/parallel logic of the pipeline
+	nodeRun := ingests["nodes"].EXPECT().Run(mock.Anything).Return(nil).Once()
+	ingests["pods"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(nodeRun)
+
+	roleRun := ingests["roles"].EXPECT().Run(mock.Anything).Return(nil).Once()
+	croleRun := ingests["croles"].EXPECT().Run(mock.Anything).Return(nil).Once()
+	ingests["rolebindings"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(roleRun).NotBefore(croleRun)
+	ingests["crolebindings"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(roleRun).NotBefore(croleRun)
+
+	err := pi.Run(context.Background())
+	assert.NoError(t, err)
 }
 
-func TestPipelineIngestor_RunError(t *testing.T) {
+func TestPipelineIngestor_RunInitError(t *testing.T) {
+	t.Parallel()
+	ingests, pi := createMockData(t)
+
+	for key, ingest := range ingests {
+		oi := ingest
+		if key == "nodes" {
+			oi.EXPECT().Initialize(mock.Anything, mock.AnythingOfType("*pipeline.Dependencies")).Return(errors.New("test error")).Once()
+		} else {
+			oi.EXPECT().Initialize(mock.Anything, mock.AnythingOfType("*pipeline.Dependencies")).Return(nil).Once()
+
+		}
+		oi.EXPECT().Close(mock.Anything).Return(nil).Once()
+	}
+
+	// Expect calls to each object respecting the order/parallel logic of the pipeline
+	nodeRun := ingests["nodes"].EXPECT().Run(mock.Anything).Return(nil).Once()
+	ingests["pods"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(nodeRun)
+
+	roleRun := ingests["roles"].EXPECT().Run(mock.Anything).Return(nil).Once()
+	croleRun := ingests["croles"].EXPECT().Run(mock.Anything).Return(nil).Once()
+	ingests["rolebindings"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(roleRun).NotBefore(croleRun)
+	ingests["crolebindings"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(roleRun).NotBefore(croleRun)
+
+	err := pi.Run(context.Background())
+	assert.NoError(t, err)
+}
+
+func TestPipelineIngestor_RunExecError(t *testing.T) {
 	t.Parallel()
 
+	// Pipeline run fails
 }
