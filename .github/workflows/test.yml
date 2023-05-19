@@ -13,17 +13,6 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3
-        with:
-          egress-policy: block
-          allowed-endpoints:
-            api.github.com:443
-            github.com:443
-            proxy.golang.org:443
-            golang.org:443
-            go.dev:443
-            storage.googleapis.com:443
       - name: Checkout repository
         uses: actions/checkout@v2
 
