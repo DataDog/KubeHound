@@ -25,10 +25,10 @@ jobs:
             go.dev:443
             storage.googleapis.com:443
       - name: Checkout repository
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+        uses: actions/checkout@v2
 
       - name: Set up Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
+        uses: actions/setup-go@v2
         with:
           go-version: 1.20
 
