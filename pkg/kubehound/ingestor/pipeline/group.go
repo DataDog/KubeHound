@@ -40,7 +40,7 @@ func (g *Group) Run(outer context.Context, deps *Dependencies) error {
 			defer wg.Done()
 			defer i.Close(ctx) // defers are LIFO
 
-			l.Infof("Running ingest %s", i.Name)
+			l.Infof("Running ingest %s", i.Name())
 
 			err := i.Run(ctx)
 			if err != nil {

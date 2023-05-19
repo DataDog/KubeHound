@@ -2,10 +2,13 @@ package pipeline
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"os"
 	"testing"
 
 	collector "github.com/DataDog/KubeHound/pkg/collector/mocks"
+	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
@@ -16,11 +19,29 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestObjectIngest_Initializer(t *testing.T) {
+// Shared function to load test objects across all ingests
+func loadTestObject[T types.InputType](filename string) (T, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+
+	var output T
+	err = decoder.Decode(&output)
+	if err != nil {
+		return nil, err
+	}
+
+	return output, nil
+}
+
+func TestIngestResources_Initializer(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	oi := &BaseObjectIngest{}
 
 	client := collector.NewCollectorClient(t)
 	c := cache.NewCacheProvider(t)
@@ -35,15 +56,16 @@ func TestObjectIngest_Initializer(t *testing.T) {
 	}
 
 	// Test default initialization
-	err := oi.baseInitialize(ctx, deps)
+	oi, err := CreateResources(ctx, deps)
 	assert.NoError(t, err)
-	assert.IsType(t, &converter.StoreConverter{}, oi.opts.storeConvert)
-	assert.IsType(t, &converter.GraphConverter{}, oi.opts.graphConvert)
-	assert.Equal(t, 0, len(oi.opts.cleanup))
-	assert.Equal(t, 0, len(oi.opts.flush))
+	assert.IsType(t, &collector.CollectorClient{}, oi.collect)
+	assert.IsType(t, &converter.StoreConverter{}, oi.storeConvert)
+	assert.IsType(t, &converter.GraphConverter{}, oi.graphConvert)
+	assert.Equal(t, 0, len(oi.cleanup))
+	assert.Equal(t, 0, len(oi.flush))
 
 	// Test cache writer mechanics
-	oi = &BaseObjectIngest{}
+	oi = &IngestResources{}
 	cw := cache.NewAsyncWriter(t)
 	cwDone := make(chan struct{})
 	cw.EXPECT().Flush(mock.Anything).Return(cwDone, nil)
@@ -51,15 +73,15 @@ func TestObjectIngest_Initializer(t *testing.T) {
 
 	c.EXPECT().BulkWriter(mock.Anything).Return(cw, nil)
 
-	err = oi.baseInitialize(ctx, deps, WithCacheWriter())
+	oi, err = CreateResources(ctx, deps, WithCacheWriter())
 	assert.NoError(t, err)
 
 	close(cwDone)
 	assert.NoError(t, oi.flushWriters(ctx))
-	assert.NoError(t, oi.cleanup(ctx))
+	assert.NoError(t, oi.cleanupAll(ctx))
 
 	// Test store writer mechanics
-	oi = &BaseObjectIngest{}
+	oi = &IngestResources{}
 	sw := storedb.NewAsyncWriter(t)
 	swDone := make(chan struct{})
 	sw.EXPECT().Flush(mock.Anything).Return(swDone, nil)
@@ -68,15 +90,15 @@ func TestObjectIngest_Initializer(t *testing.T) {
 	collection := collections.Node{}
 	sdb.EXPECT().BulkWriter(mock.Anything, collection).Return(sw, nil)
 
-	err = oi.baseInitialize(ctx, deps, WithStoreWriter(collection))
+	oi, err = CreateResources(ctx, deps, WithStoreWriter(collection))
 	assert.NoError(t, err)
 
 	close(swDone)
 	assert.NoError(t, oi.flushWriters(ctx))
-	assert.NoError(t, oi.cleanup(ctx))
+	assert.NoError(t, oi.cleanupAll(ctx))
 
 	// Test graph writer mechanics
-	oi = &BaseObjectIngest{}
+	oi = &IngestResources{}
 	gw := graphdb.NewAsyncVertexWriter(t)
 	gwDone := make(chan struct{})
 	gw.EXPECT().Flush(mock.Anything).Return(gwDone, nil)
@@ -85,19 +107,19 @@ func TestObjectIngest_Initializer(t *testing.T) {
 	vtx := vertex.Node{}
 	gdb.EXPECT().VertexWriter(mock.Anything, mock.AnythingOfType("vertex.VertexTraversal")).Return(gw, nil)
 
-	err = oi.baseInitialize(ctx, deps, WithGraphWriter(vtx))
+	oi, err = CreateResources(ctx, deps, WithGraphWriter(vtx))
 	assert.NoError(t, err)
 
 	close(gwDone)
 	assert.NoError(t, oi.flushWriters(ctx))
-	assert.NoError(t, oi.cleanup(ctx))
+	assert.NoError(t, oi.cleanupAll(ctx))
 }
 
-func TestObjectIngest_FlushErrors(t *testing.T) {
+func TestIngestResources_FlushErrors(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	oi := &BaseObjectIngest{}
+	oi := &IngestResources{}
 
 	client := collector.NewCollectorClient(t)
 	c := cache.NewCacheProvider(t)
@@ -123,7 +145,7 @@ func TestObjectIngest_FlushErrors(t *testing.T) {
 	sw.EXPECT().Flush(mock.Anything).Return(swDone, errors.New("test error"))
 	sdb.EXPECT().BulkWriter(mock.Anything, mock.Anything).Return(sw, nil)
 
-	err := oi.baseInitialize(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
+	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
 	assert.NoError(t, err)
 
 	close(cwDone)
@@ -131,11 +153,11 @@ func TestObjectIngest_FlushErrors(t *testing.T) {
 	assert.ErrorContains(t, oi.flushWriters(ctx), "test error")
 }
 
-func TestObjectIngest_CloseErrors(t *testing.T) {
+func TestIngestResources_CloseErrors(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	oi := &BaseObjectIngest{}
+	oi := &IngestResources{}
 
 	client := collector.NewCollectorClient(t)
 	c := cache.NewCacheProvider(t)
@@ -159,8 +181,8 @@ func TestObjectIngest_CloseErrors(t *testing.T) {
 	sw.EXPECT().Close(mock.Anything).Return(errors.New("test error"))
 	sdb.EXPECT().BulkWriter(mock.Anything, mock.Anything).Return(sw, nil)
 
-	err := oi.baseInitialize(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
+	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
 	assert.NoError(t, err)
 
-	assert.ErrorContains(t, oi.cleanup(ctx), "test error")
+	assert.ErrorContains(t, oi.cleanupAll(ctx), "test error")
 }

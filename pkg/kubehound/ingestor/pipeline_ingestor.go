@@ -39,15 +39,15 @@ func ingestSequence() []pipeline.Sequence {
 				{
 					Name: "k8s-role-group",
 					Ingests: []pipeline.ObjectIngest{
-						pipeline.RoleIngest{},
-						pipeline.ClusterRoleIngest{},
+						&pipeline.RoleIngest{},
+						&pipeline.ClusterRoleIngest{},
 					},
 				},
 				{
 					Name: "k8s-rolebinding-group",
 					Ingests: []pipeline.ObjectIngest{
-						pipeline.RoleBindingIngest{},
-						pipeline.ClusterRoleBindingIngest{},
+						&pipeline.RoleBindingIngest{},
+						&pipeline.ClusterRoleBindingIngest{},
 					},
 				},
 			},
@@ -58,13 +58,13 @@ func ingestSequence() []pipeline.Sequence {
 				{
 					Name: "k8s-node-group",
 					Ingests: []pipeline.ObjectIngest{
-						pipeline.NodeIngest{},
+						&pipeline.NodeIngest{},
 					},
 				},
 				{
 					Name: "k8s-pod-group",
 					Ingests: []pipeline.ObjectIngest{
-						pipeline.PodIngest{},
+						&pipeline.PodIngest{},
 					},
 				},
 			},

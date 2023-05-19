@@ -11,23 +11,23 @@ const (
 )
 
 type PodIngest struct {
-	BaseObjectIngest
+	IngestResources
 }
 
 var _ ObjectIngest = (*PodIngest)(nil)
 
-func (i PodIngest) Name() string {
+func (i *PodIngest) Name() string {
 	return PodIngestName
 }
 
-func (i PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
+func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	return globals.ErrNotImplemented
 }
 
-func (i PodIngest) Run(ctx context.Context) error {
+func (i *PodIngest) Run(ctx context.Context) error {
 	return globals.ErrNotImplemented
 }
 
-func (i PodIngest) Close(ctx context.Context) error {
+func (i *PodIngest) Close(ctx context.Context) error {
 	return globals.ErrNotImplemented
 }

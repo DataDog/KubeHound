@@ -11,23 +11,23 @@ const (
 )
 
 type RoleBindingIngest struct {
-	BaseObjectIngest
+	IngestResources
 }
 
 var _ ObjectIngest = (*RoleBindingIngest)(nil)
 
-func (i RoleBindingIngest) Name() string {
+func (i *RoleBindingIngest) Name() string {
 	return RoleBindingIngestName
 }
 
-func (i RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) error {
+func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	return globals.ErrNotImplemented
 }
 
-func (i RoleBindingIngest) Run(ctx context.Context) error {
+func (i *RoleBindingIngest) Run(ctx context.Context) error {
 	return globals.ErrNotImplemented
 }
 
-func (i RoleBindingIngest) Close(ctx context.Context) error {
+func (i *RoleBindingIngest) Close(ctx context.Context) error {
 	return globals.ErrNotImplemented
 }

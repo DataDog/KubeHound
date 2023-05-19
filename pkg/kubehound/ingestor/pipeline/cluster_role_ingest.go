@@ -11,23 +11,23 @@ const (
 )
 
 type ClusterRoleIngest struct {
-	BaseObjectIngest
+	IngestResources
 }
 
 var _ ObjectIngest = (*ClusterRoleIngest)(nil)
 
-func (i ClusterRoleIngest) Name() string {
+func (i *ClusterRoleIngest) Name() string {
 	return ClusterRoleIngestName
 }
 
-func (i ClusterRoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
+func (i *ClusterRoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	return globals.ErrNotImplemented
 }
 
-func (i ClusterRoleIngest) Run(ctx context.Context) error {
+func (i *ClusterRoleIngest) Run(ctx context.Context) error {
 	return globals.ErrNotImplemented
 }
 
-func (i ClusterRoleIngest) Close(ctx context.Context) error {
+func (i *ClusterRoleIngest) Close(ctx context.Context) error {
 	return globals.ErrNotImplemented
 }
