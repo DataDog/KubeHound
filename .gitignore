@@ -22,3 +22,6 @@ go.work
 
 # MacOS
 .DS_Store
+
+# Binaries
+bin/
