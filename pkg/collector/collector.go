@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 )
@@ -51,5 +50,5 @@ type CollectorClient interface {
 
 // ClientFactory creates an initialized instance of a collector client based on the provided application configuration.
 func ClientFactory(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	return nil, globals.ErrNotImplemented
+	return NewFile(cfg)
 }
