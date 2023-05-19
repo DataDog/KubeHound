@@ -27,9 +27,9 @@ type PipelineIngestor struct {
 
 // ingestSequence returns the optimized pipeline sequence for ingestion.
 //
-//		__[collector.StreamNodes]___[collector.StreamPods]_____________________________________
+//		__________[collector.StreamNodes]__________________[collector.StreamPods]_____________
 //	 __/													  								   \
-//	   \___ [collector.StreamRole]___________________[collector.StreamRoleBinding]_____________/
+//	   \__________ [collector.StreamRole]_______________[collector.StreamRoleBinding]__________/
 //		   \___[collector.StreamClusterRole]____/\____[collector.StreamClusterRoleBinding]____/
 func ingestSequence() []pipeline.Sequence {
 	return []pipeline.Sequence{
@@ -72,14 +72,14 @@ func ingestSequence() []pipeline.Sequence {
 	}
 }
 
-// New creates a new pipeline ingestor instance.
-func New(cfg *config.KubehoundConfig, collect collector.CollectorClient, cache cache.CacheProvider,
+// newPipelineIngestor creates a new pipeline ingestor instance.
+func newPipelineIngestor(cfg *config.KubehoundConfig, collect collector.CollectorClient, c cache.CacheProvider,
 	storedb storedb.Provider, graphdb graphdb.Provider) (Ingestor, error) {
 
 	n := &PipelineIngestor{
 		cfg:       cfg,
 		collector: collect,
-		cache:     cache,
+		cache:     c,
 		storedb:   storedb,
 		graphdb:   graphdb,
 		sequences: ingestSequence(),

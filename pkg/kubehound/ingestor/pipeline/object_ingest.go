@@ -16,6 +16,8 @@ import (
 
 // ObjectIngest represents an ingestion pipeline that receives an input object from a collector implementation,
 // processes and persists all resulting KubeHound objects (store models, cache entries, graph vertices, etc).
+//
+//go:generate mockery --name ObjectIngest --output mocks --case underscore --filename object_ingest.go --with-expecter
 type ObjectIngest interface {
 	// Name returns the name of the object ingest pipeline.
 	Name() string
@@ -141,6 +143,9 @@ func (i *BaseObjectIngest) graphWriter(v vertex.Vertex) graphdb.AsyncVertexWrite
 // This should be called from the ObjectIngest::Initialize function.
 func (i *BaseObjectIngest) baseInitialize(ctx context.Context, deps *Dependencies, opts ...ObjectIngestOption) error {
 	var err error
+
+	i.opts.graphWriters = make(map[string]graphdb.AsyncVertexWriter)
+	i.opts.storeWriters = make(map[string]storedb.AsyncWriter)
 
 	for _, o := range opts {
 		err = o(ctx, &i.opts, deps)

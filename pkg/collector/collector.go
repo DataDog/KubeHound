@@ -17,6 +17,7 @@ type ClusterRoleProcessor func(context.Context, *types.ClusterRoleType) error
 type RoleBindingProcessor func(context.Context, *types.RoleBindingType) error
 type ClusterRoleBindingProcessor func(context.Context, *types.ClusterRoleBindingType) error
 
+//go:generate mockery --name CollectorClient --output mocks --case underscore --filename collector_client.go --with-expecter
 type CollectorClient interface {
 	services.Dependency
 

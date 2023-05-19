@@ -44,6 +44,8 @@ type WriterBase interface {
 }
 
 // AsyncVertexWriter defines the interface for writer clients to queue aysnchronous, batched writes  of vertices to the graphdb.
+//
+//go:generate mockery --name AsyncVertexWriter --output mocks --case underscore --filename vertex_writer.go --with-expecter
 type AsyncVertexWriter interface {
 	WriterBase
 

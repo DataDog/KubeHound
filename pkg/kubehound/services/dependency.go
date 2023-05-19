@@ -25,6 +25,7 @@ func HealthCheck(ctx context.Context, deps []Dependency) error {
 		ok, err := d.HealthCheck(ctx)
 		if err != nil {
 			res = multierror.Append(res, err)
+			continue
 		}
 
 		if !ok {

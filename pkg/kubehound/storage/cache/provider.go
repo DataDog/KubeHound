@@ -37,6 +37,8 @@ type CacheProvider interface {
 }
 
 // AysncWriter defines the interface for writer clients to queue aysnchronous, batched writes to the cache.
+//
+//go:generate mockery --name AsyncWriter --output mocks --case underscore --filename cache_writer.go --with-expecter
 type AsyncWriter interface {
 	// Queue add a model to an asynchronous write queue. Non-blocking.
 	Queue(ctx context.Context, key CacheKey, value any) error
