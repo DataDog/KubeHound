@@ -1,0 +1,54 @@
+name: kubehound-golang-lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # from their official doc: https://github.com/golangci/golangci-lint-action
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+    # TODO blocked on these calls. Need to investigate
+    # endpoint called ip address:port 54.185.253.63:443, domain: raw.githubusercontent.com.
+    # endpoint called ip address:port 13.107.42.16:443, domain: artifactcache.actions.githubusercontent.com.
+    # endpoint called ip address:port 52.239.171.36:443, domain: mp1yacprodeus1file3.blob.core.windows.net.
+      # - name: harden-runner
+      #   uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3
+      #   with:
+      #     egress-policy: block
+      #     allowed-endpoints:
+      #       api.github.com:443
+      #       github.com:443
+      #       proxy.golang.org:443
+      #       golang.org:443
+      #       go.dev:443
+      #       storage.googleapis.com:443
+
+      - name: setup-golang
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: git-repo-checkout
+        uses: actions/checkout@v3
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
+          version: v1.50
+          working-directory: ./pkg
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
+          version: v1.50
+          working-directory: ./cmd
