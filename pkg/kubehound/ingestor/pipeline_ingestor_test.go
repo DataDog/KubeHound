@@ -108,8 +108,9 @@ func TestPipelineIngestor_Run(t *testing.T) {
 
 	ingests, pi := createMockData(t)
 
-	for _, ingest := range ingests {
+	for key, ingest := range ingests {
 		oi := ingest
+		oi.EXPECT().Name().Return(key)
 		oi.EXPECT().Initialize(mock.Anything, mock.AnythingOfType("*pipeline.Dependencies")).Return(nil).Once()
 		oi.EXPECT().Close(mock.Anything).Return(nil).Once()
 	}
@@ -129,34 +130,59 @@ func TestPipelineIngestor_Run(t *testing.T) {
 
 func TestPipelineIngestor_RunInitError(t *testing.T) {
 	t.Parallel()
-	ingests, pi := createMockData(t)
 
+	ingests, pi := createMockData(t)
 	for key, ingest := range ingests {
 		oi := ingest
-		if key == "nodes" {
+		switch key {
+		case "nodes":
 			oi.EXPECT().Initialize(mock.Anything, mock.AnythingOfType("*pipeline.Dependencies")).Return(errors.New("test error")).Once()
-		} else {
-			oi.EXPECT().Initialize(mock.Anything, mock.AnythingOfType("*pipeline.Dependencies")).Return(nil).Once()
-
+			oi.EXPECT().Name().Return(key)
+		case "pods":
+			// None - node ingest error means pods should be called!
+		default:
+			// May or may not be called
+			oi.EXPECT().Initialize(mock.Anything, mock.AnythingOfType("*pipeline.Dependencies")).Return(nil).Maybe()
+			oi.EXPECT().Name().Return(key).Maybe()
+			oi.EXPECT().Close(mock.Anything).Return(nil).Maybe()
 		}
-		oi.EXPECT().Close(mock.Anything).Return(nil).Once()
 	}
 
 	// Expect calls to each object respecting the order/parallel logic of the pipeline
-	nodeRun := ingests["nodes"].EXPECT().Run(mock.Anything).Return(nil).Once()
-	ingests["pods"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(nodeRun)
-
-	roleRun := ingests["roles"].EXPECT().Run(mock.Anything).Return(nil).Once()
-	croleRun := ingests["croles"].EXPECT().Run(mock.Anything).Return(nil).Once()
-	ingests["rolebindings"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(roleRun).NotBefore(croleRun)
-	ingests["crolebindings"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(roleRun).NotBefore(croleRun)
+	roleRun := ingests["roles"].EXPECT().Run(mock.Anything).Return(nil).Maybe()
+	croleRun := ingests["croles"].EXPECT().Run(mock.Anything).Return(nil).Maybe()
+	ingests["rolebindings"].EXPECT().Run(mock.Anything).Maybe().NotBefore(roleRun).NotBefore(croleRun)
+	ingests["crolebindings"].EXPECT().Run(mock.Anything).Return(nil).Maybe().NotBefore(roleRun).NotBefore(croleRun)
 
 	err := pi.Run(context.Background())
-	assert.NoError(t, err)
+	assert.ErrorContains(t, err, "group k8s-node-group ingest: test error")
 }
 
 func TestPipelineIngestor_RunExecError(t *testing.T) {
 	t.Parallel()
 
-	// Pipeline run fails
+	ingests, pi := createMockData(t)
+	for key, ingest := range ingests {
+		oi := ingest
+
+		switch key {
+		case "rolebindings", "crolebindings":
+			// Should not be initialize (or run) due to run failure of previous stage
+		default:
+			// May or may not be called
+			oi.EXPECT().Initialize(mock.Anything, mock.AnythingOfType("*pipeline.Dependencies")).Return(nil).Maybe()
+			oi.EXPECT().Name().Return(key).Maybe()
+			oi.EXPECT().Close(mock.Anything).Return(nil).Maybe()
+		}
+	}
+
+	// Expect calls to each object respecting the order/parallel logic of the pipeline
+	nodeRun := ingests["nodes"].EXPECT().Run(mock.Anything).Return(nil).Maybe()
+	ingests["pods"].EXPECT().Run(mock.Anything).Return(nil).Maybe().NotBefore(nodeRun)
+
+	ingests["roles"].EXPECT().Run(mock.Anything).Return(nil).Once()
+	ingests["croles"].EXPECT().Run(mock.Anything).Return(errors.New("test error")).Once()
+
+	err := pi.Run(context.Background())
+	assert.ErrorContains(t, err, "group k8s-role-group ingest: test error")
 }

@@ -31,8 +31,9 @@ func (g *Group) Run(outer context.Context, deps *Dependencies) error {
 		// Don't spin off a goroutine until we initalize successfully
 		err := i.Initialize(ctx, deps)
 		if err != nil {
-			l.Errorf("%s initialization: %w", i.Name(), err)
+			l.Errorf("%s initialization: %v", i.Name(), err)
 			cancelGroup(err)
+			break
 		}
 
 		wg.Add(1)
@@ -44,7 +45,7 @@ func (g *Group) Run(outer context.Context, deps *Dependencies) error {
 
 			err := i.Run(ctx)
 			if err != nil {
-				l.Errorf("%s run: %w", i.Name(), err)
+				l.Errorf("%s run: %v", i.Name(), err)
 				cancelGroup(err)
 			}
 		}()
