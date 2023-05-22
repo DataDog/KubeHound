@@ -253,7 +253,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 // Identity returns the store representation of a K8s identity role binding from an input store BindSubject (subfield of RoleBinding) object.
 // NOTE: store.Identity does not map directly to a K8s API object and instead derives from the subject of a role binding.
-func (c *StoreConverter) Identity(_ context.Context, input store.BindSubject) (*store.Identity, error) {
+func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject) (*store.Identity, error) {
 	output := &store.Identity{
 		Id:        input.IdentityId,
 		Name:      input.Subject.Name,
