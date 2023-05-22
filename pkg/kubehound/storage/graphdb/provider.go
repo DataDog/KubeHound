@@ -7,6 +7,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 )
 
 type writerOptions struct {
@@ -18,9 +19,7 @@ type WriterOption func(*writerOptions)
 //
 //go:generate mockery --name Provider --output mocks --case underscore --filename graph_provider.go --with-expecter
 type Provider interface {
-	// HealthCheck provides a mechanism for the client to check health of the provider.
-	// Should return true if health check is successful, false otherwise.
-	HealthCheck(ctx context.Context) (bool, error)
+	services.Dependency
 
 	// Raw returns a handle to the underlying provider to allow implementation specific operations e.g graph queries.
 	Raw() any
@@ -45,6 +44,8 @@ type WriterBase interface {
 }
 
 // AsyncVertexWriter defines the interface for writer clients to queue aysnchronous, batched writes  of vertices to the graphdb.
+//
+//go:generate mockery --name AsyncVertexWriter --output mocks --case underscore --filename vertex_writer.go --with-expecter
 type AsyncVertexWriter interface {
 	WriterBase
 

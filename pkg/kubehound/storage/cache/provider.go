@@ -5,13 +5,12 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
+	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 )
 
 // CacheDriver defines the interface for implementations of the cache provider for intermediate caching of K8s relationship data.
 type CacheDriver interface {
-	// HealthCheck provides a mechanism for the client to check health of the provider.
-	// Should return true if health check is successful, false otherwise.
-	HealthCheck(ctx context.Context) (bool, error)
+	services.Dependency
 
 	// Close cleans up any resources used by the CacheDriver implementation. CacheDriver cannot be reused after this call.
 	Close(ctx context.Context) error
@@ -38,6 +37,8 @@ type CacheProvider interface {
 }
 
 // AysncWriter defines the interface for writer clients to queue aysnchronous, batched writes to the cache.
+//
+//go:generate mockery --name AsyncWriter --output mocks --case underscore --filename cache_writer.go --with-expecter
 type AsyncWriter interface {
 	// Queue add a model to an asynchronous write queue. Non-blocking.
 	Queue(ctx context.Context, key CacheKey, value any) error
