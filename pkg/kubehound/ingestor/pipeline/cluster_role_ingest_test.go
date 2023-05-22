@@ -16,30 +16,30 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestNodeIngest_Pipeline(t *testing.T) {
-	ni := &NodeIngest{}
+func TestClusterRoleIngest_Pipeline(t *testing.T) {
+	ri := &ClusterRoleIngest{}
 
 	ctx := context.Background()
-	fakeNode, err := loadTestObject[types.NodeType]("testdata/node.json")
+	fakeRole, err := loadTestObject[types.ClusterRoleType]("testdata/clusterrole.json")
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
-	client.EXPECT().StreamNodes(ctx, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, np collector.NodeProcessor, c collector.Complete) error {
-			// Fake the stream of a single node from the collector client
-			err := np(ctx, &fakeNode)
+	client.EXPECT().StreamClusterRoles(ctx, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, process collector.ClusterRoleProcessor, complete collector.Complete) error {
+			// Fake the stream of a single cluster role from the collector client
+			err := process(ctx, &fakeRole)
 			if err != nil {
 				return err
 			}
 
-			return c(ctx)
+			return complete(ctx)
 		})
 
 	// Cache setup
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
 	cwDone := make(chan struct{})
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.nodeCacheKey"), mock.AnythingOfType("primitive.ObjectID")).Return(nil).Once()
+	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.roleCacheKey"), mock.AnythingOfType("primitive.ObjectID")).Return(nil).Once()
 	cw.EXPECT().Flush(ctx).Return(cwDone, nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
@@ -47,18 +47,18 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	// Store setup
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
-	nodes := collections.Node{}
+	roles := collections.Role{}
 	swDone := make(chan struct{})
-	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Node")).Return(nil).Once()
+	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).Return(nil).Once()
 	sw.EXPECT().Flush(ctx).Return(swDone, nil)
 	sw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, nodes).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, roles).Return(sw, nil)
 
 	// Graph setup
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
 	gwDone := make(chan struct{})
-	gw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Node")).Return(nil).Once()
+	gw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Role")).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(gwDone, nil)
 	gw.EXPECT().Close(ctx).Return(nil)
 	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.VertexTraversal")).Return(gw, nil)
@@ -71,7 +71,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	}
 
 	// Initialize
-	err = ni.Initialize(ctx, deps)
+	err = ri.Initialize(ctx, deps)
 	assert.NoError(t, err)
 
 	go func() {
@@ -83,10 +83,10 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	}()
 
 	// Run
-	err = ni.Run(ctx)
+	err = ri.Run(ctx)
 	assert.NoError(t, err)
 
 	// Close
-	err = ni.Close(ctx)
+	err = ri.Close(ctx)
 	assert.NoError(t, err)
 }
