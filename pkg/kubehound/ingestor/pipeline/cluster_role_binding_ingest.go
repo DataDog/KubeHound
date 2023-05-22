@@ -75,7 +75,7 @@ func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *sto
 // streamCallback is invoked by the collector for each cluster role binding collected.
 // The function ingests an input cluster role binding object into the store/graph and then ingests
 // all child objects (identites, etc) through their own ingestion pipeline.
-func (i *ClusterRoleBindingIngest) streamCallback(ctx context.Context, crb types.ClusterRoleBindingType) error {
+func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context, crb types.ClusterRoleBindingType) error {
 	// Normalize K8s cluster role binding to store object format
 	// TODO We can get cache misses here if bindings remain with no corresponding role which happens is staging!
 	o, err := i.r.storeConvert.ClusterRoleBinding(ctx, crb)
@@ -103,12 +103,12 @@ func (i *ClusterRoleBindingIngest) streamCallback(ctx context.Context, crb types
 
 // completeCallback is invoked by the collector when all roles have been streamed.
 // The function flushes all writers and waits for completion.
-func (i *ClusterRoleBindingIngest) completeCallback(ctx context.Context) error {
+func (i *ClusterRoleBindingIngest) Complete(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }
 
 func (i *ClusterRoleBindingIngest) Run(ctx context.Context) error {
-	return i.r.collect.StreamClusterRoleBindings(ctx, i.streamCallback, i.completeCallback)
+	return i.r.collect.StreamClusterRoleBindings(ctx, i)
 }
 
 func (i *ClusterRoleBindingIngest) Close(ctx context.Context) error {

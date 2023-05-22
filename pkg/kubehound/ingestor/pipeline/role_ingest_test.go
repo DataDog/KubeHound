@@ -24,15 +24,15 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
-	client.EXPECT().StreamRoles(ctx, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, process collector.RoleProcessor, complete collector.Complete) error {
+	client.EXPECT().StreamRoles(ctx, ri).
+		RunAndReturn(func(ctx context.Context, i collector.RoleIngestor) error {
 			// Fake the stream of a single role from the collector client
-			err := process(ctx, fakeRole)
+			err := i.IngestRole(ctx, fakeRole)
 			if err != nil {
 				return err
 			}
 
-			return complete(ctx)
+			return i.Complete(ctx)
 		})
 
 	// Cache setup

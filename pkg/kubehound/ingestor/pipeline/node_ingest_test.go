@@ -24,15 +24,15 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
-	client.EXPECT().StreamNodes(ctx, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, np collector.NodeProcessor, c collector.Complete) error {
+	client.EXPECT().StreamNodes(ctx, ni).
+		RunAndReturn(func(ctx context.Context, i collector.NodeIngestor) error {
 			// Fake the stream of a single node from the collector client
-			err := np(ctx, fakeNode)
+			err := i.IngestNode(ctx, fakeNode)
 			if err != nil {
 				return err
 			}
 
-			return c(ctx)
+			return i.Complete(ctx)
 		})
 
 	// Cache setup
