@@ -138,6 +138,13 @@ func CreateResources(ctx context.Context, deps *Dependencies, opts ...IngestReso
 		},
 	}
 
+	// Do a cleanup of whatever has been registered in the case of a partial success
+	defer func() {
+		if err != nil {
+			i.cleanupAll(ctx)
+		}
+	}()
+
 	for _, o := range opts {
 		err = o(ctx, &i.resourceOptions, deps)
 		if err != nil {
@@ -159,6 +166,9 @@ func (i *IngestResources) cleanupAll(ctx context.Context) error {
 			res = multierror.Append(res, err)
 		}
 	}
+
+	// Empty the cleanup to ensure it is only called once
+	i.cleanup = make([]CleanupFunc, 0)
 
 	return res.ErrorOrNil()
 }

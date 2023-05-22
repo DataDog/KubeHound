@@ -27,11 +27,6 @@ func (i *RoleIngest) Name() string {
 
 func (i *RoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
-	defer func() {
-		if err != nil {
-			i.r.cleanupAll(ctx)
-		}
-	}()
 
 	i.vertex = vertex.Role{}
 	i.collection = collections.Role{}
@@ -40,7 +35,11 @@ func (i *RoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 		WithStoreWriter(i.collection),
 		WithGraphWriter(i.vertex))
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // streamCallback is invoked by the collector for each role collected.
