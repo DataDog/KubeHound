@@ -7,6 +7,7 @@ import (
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
 type KubehoundConfig struct {
+	Collector CollectorConfig
 }
 
 // MustLoadDefaultConfig loads the default application configuration, treating all errors as fatal.

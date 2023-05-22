@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -41,21 +42,20 @@ const (
 )
 
 type FileCollector struct {
-	basePath string
+	cfg *config.FileCollectorConfig
 }
 
 func NewFile(cfg *config.KubehoundConfig) (CollectorClient, error) {
-	file, err := os.Stat(basePath)
-	if err != nil {
-		return nil, fmt.Errorf("error querying base path: %w", err)
+	if cfg.Collector.Type != config.CollectorTypeFile {
+		return nil, fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
 	}
 
-	if !file.IsDir() {
-		return nil, fmt.Errorf("base path must be a directory")
+	if cfg.Collector.File == nil {
+		return nil, errors.New("file collector config not provided")
 	}
 
 	return &FileCollector{
-		basePath: basePath,
+		cfg: cfg.Collector.File,
 	}, nil
 }
 
@@ -64,8 +64,15 @@ func (c *FileCollector) Name() string {
 }
 
 func (c *FileCollector) HealthCheck(ctx context.Context) (bool, error) {
-	// CHeck dir exists
-	// CHeck access??
+	file, err := os.Stat(basePath)
+	if err != nil {
+		return false, fmt.Errorf("file collector base path: %w", err)
+	}
+
+	if !file.IsDir() {
+		return false, fmt.Errorf("file collector base path is not a directory")
+	}
+
 	return true, nil
 }
 
