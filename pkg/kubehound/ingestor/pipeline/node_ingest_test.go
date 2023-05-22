@@ -27,7 +27,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	client.EXPECT().StreamNodes(mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, np collector.NodeProcessor, c collector.Complete) error {
 			// Fake the stream of a single node from the collector client
-			err := np(ctx, &fakeNode)
+			err := np(ctx, fakeNode)
 			if err != nil {
 				return err
 			}

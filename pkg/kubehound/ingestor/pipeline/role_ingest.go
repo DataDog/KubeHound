@@ -43,9 +43,9 @@ func (i *RoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	return err
 }
 
-func (i *RoleIngest) streamCallback(ctx context.Context, role *types.RoleType) error {
+func (i *RoleIngest) streamCallback(ctx context.Context, role types.RoleType) error {
 	// Normalize K8s role to store object format
-	o, err := i.r.storeConvert.Role(ctx, *role)
+	o, err := i.r.storeConvert.Role(ctx, role)
 	if err != nil {
 		return err
 	}

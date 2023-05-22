@@ -43,9 +43,9 @@ func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	return err
 }
 
-func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) error {
+func (i *NodeIngest) streamCallback(ctx context.Context, node types.NodeType) error {
 	// Normalize node to store object format
-	o, err := i.r.storeConvert.Node(ctx, *node)
+	o, err := i.r.storeConvert.Node(ctx, node)
 	if err != nil {
 		return err
 	}

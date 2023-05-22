@@ -27,7 +27,7 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	client.EXPECT().StreamRoles(mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, process collector.RoleProcessor, complete collector.Complete) error {
 			// Fake the stream of a single role from the collector client
-			err := process(ctx, &fakeRole)
+			err := process(ctx, fakeRole)
 			if err != nil {
 				return err
 			}

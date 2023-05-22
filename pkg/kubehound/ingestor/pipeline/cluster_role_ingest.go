@@ -43,10 +43,10 @@ func (i *ClusterRoleIngest) Initialize(ctx context.Context, deps *Dependencies) 
 	return err
 }
 
-func (i *ClusterRoleIngest) streamCallback(ctx context.Context, role *types.ClusterRoleType) error {
+func (i *ClusterRoleIngest) streamCallback(ctx context.Context, role types.ClusterRoleType) error {
 	// Normalize K8s cluster role to store object format. Cluster roles are treated as
 	// role within our model (with IsNamespaced flag set to false).
-	o, err := i.r.storeConvert.ClusterRole(ctx, *role)
+	o, err := i.r.storeConvert.ClusterRole(ctx, role)
 	if err != nil {
 		return err
 	}
