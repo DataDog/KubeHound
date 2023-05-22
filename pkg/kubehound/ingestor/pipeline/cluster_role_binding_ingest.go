@@ -78,6 +78,7 @@ func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *sto
 // all child objects (identites, etc) through their own ingestion pipeline.
 func (i *ClusterRoleBindingIngest) streamCallback(ctx context.Context, crb types.ClusterRoleBindingType) error {
 	// Normalize K8s cluster role binding to store object format
+	// TODO We can get cache misses here if bindings remain with no corresponding role which happens is staging!
 	o, err := i.r.storeConvert.ClusterRoleBinding(ctx, crb)
 	if err != nil {
 		return err
