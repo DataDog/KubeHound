@@ -68,10 +68,10 @@ func TestIngestResources_Initializer(t *testing.T) {
 	oi = &IngestResources{}
 	cw := cache.NewAsyncWriter(t)
 	cwDone := make(chan struct{})
-	cw.EXPECT().Flush(mock.Anything).Return(cwDone, nil)
-	cw.EXPECT().Close(mock.Anything).Return(nil)
+	cw.EXPECT().Flush(ctx).Return(cwDone, nil)
+	cw.EXPECT().Close(ctx).Return(nil)
 
-	c.EXPECT().BulkWriter(mock.Anything).Return(cw, nil)
+	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
 
 	oi, err = CreateResources(ctx, deps, WithCacheWriter())
 	assert.NoError(t, err)
@@ -84,11 +84,11 @@ func TestIngestResources_Initializer(t *testing.T) {
 	oi = &IngestResources{}
 	sw := storedb.NewAsyncWriter(t)
 	swDone := make(chan struct{})
-	sw.EXPECT().Flush(mock.Anything).Return(swDone, nil)
-	sw.EXPECT().Close(mock.Anything).Return(nil)
+	sw.EXPECT().Flush(ctx).Return(swDone, nil)
+	sw.EXPECT().Close(ctx).Return(nil)
 
 	collection := collections.Node{}
-	sdb.EXPECT().BulkWriter(mock.Anything, collection).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, collection).Return(sw, nil)
 
 	oi, err = CreateResources(ctx, deps, WithStoreWriter(collection))
 	assert.NoError(t, err)
@@ -101,11 +101,11 @@ func TestIngestResources_Initializer(t *testing.T) {
 	oi = &IngestResources{}
 	gw := graphdb.NewAsyncVertexWriter(t)
 	gwDone := make(chan struct{})
-	gw.EXPECT().Flush(mock.Anything).Return(gwDone, nil)
-	gw.EXPECT().Close(mock.Anything).Return(nil)
+	gw.EXPECT().Flush(ctx).Return(gwDone, nil)
+	gw.EXPECT().Close(ctx).Return(nil)
 
 	vtx := vertex.Node{}
-	gdb.EXPECT().VertexWriter(mock.Anything, mock.AnythingOfType("vertex.VertexTraversal")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.VertexTraversal")).Return(gw, nil)
 
 	oi, err = CreateResources(ctx, deps, WithGraphWriter(vtx))
 	assert.NoError(t, err)
@@ -136,14 +136,14 @@ func TestIngestResources_FlushErrors(t *testing.T) {
 	// Set cache to succeed
 	cw := cache.NewAsyncWriter(t)
 	cwDone := make(chan struct{})
-	cw.EXPECT().Flush(mock.Anything).Return(cwDone, nil)
-	c.EXPECT().BulkWriter(mock.Anything).Return(cw, nil)
+	cw.EXPECT().Flush(ctx).Return(cwDone, nil)
+	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
 
 	// Set store to fail
 	sw := storedb.NewAsyncWriter(t)
 	swDone := make(chan struct{})
-	sw.EXPECT().Flush(mock.Anything).Return(swDone, errors.New("test error"))
-	sdb.EXPECT().BulkWriter(mock.Anything, mock.Anything).Return(sw, nil)
+	sw.EXPECT().Flush(ctx).Return(swDone, errors.New("test error"))
+	sdb.EXPECT().BulkWriter(ctx, mock.Anything).Return(sw, nil)
 
 	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
 	assert.NoError(t, err)
@@ -173,13 +173,13 @@ func TestIngestResources_CloseErrors(t *testing.T) {
 
 	// Set cache to succeed
 	cw := cache.NewAsyncWriter(t)
-	cw.EXPECT().Close(mock.Anything).Return(nil)
-	c.EXPECT().BulkWriter(mock.Anything).Return(cw, nil)
+	cw.EXPECT().Close(ctx).Return(nil)
+	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
 
 	// Set store to fail
 	sw := storedb.NewAsyncWriter(t)
-	sw.EXPECT().Close(mock.Anything).Return(errors.New("test error"))
-	sdb.EXPECT().BulkWriter(mock.Anything, mock.Anything).Return(sw, nil)
+	sw.EXPECT().Close(ctx).Return(errors.New("test error"))
+	sdb.EXPECT().BulkWriter(ctx, mock.Anything).Return(sw, nil)
 
 	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
 	assert.NoError(t, err)
