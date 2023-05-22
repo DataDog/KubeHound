@@ -77,7 +77,7 @@ func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *sto
 // The function ingests an input cluster role binding object into the store/graph and then ingests
 // all child objects (identites, etc) through their own ingestion pipeline.
 func (i *ClusterRoleBindingIngest) streamCallback(ctx context.Context, crb types.ClusterRoleBindingType) error {
-	// Normalize K8s role to store object format
+	// Normalize K8s cluster role binding to store object format
 	o, err := i.r.storeConvert.ClusterRoleBinding(ctx, crb)
 	if err != nil {
 		return err

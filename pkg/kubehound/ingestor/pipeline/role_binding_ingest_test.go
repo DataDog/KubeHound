@@ -17,18 +17,18 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
-	ri := &ClusterRoleBindingIngest{}
+func TestRoleBindingIngest_Pipeline(t *testing.T) {
+	ri := &RoleBindingIngest{}
 
 	ctx := context.Background()
-	fakeCrb, err := loadTestObject[types.ClusterRoleBindingType]("testdata/clusterrolebinding.json")
+	fakeRb, err := loadTestObject[types.RoleBindingType]("testdata/rolebinding.json")
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
-	client.EXPECT().StreamClusterRoleBindings(ctx, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, process collector.ClusterRoleBindingProcessor, complete collector.Complete) error {
-			// Fake the stream of a single cluster role binding from the collector client
-			err := process(ctx, fakeCrb)
+	client.EXPECT().StreamRoleBindings(ctx, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, process collector.RoleBindingProcessor, complete collector.Complete) error {
+			// Fake the stream of a single role binding from the collector client
+			err := process(ctx, fakeRb)
 			if err != nil {
 				return err
 			}
