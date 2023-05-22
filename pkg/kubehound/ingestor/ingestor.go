@@ -5,12 +5,12 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 )
 
+// Ingestor is responsible for pulling data from the collector component and populating the store and graph databases.
 type Ingestor interface {
 	// HealthCheck provides a mechanism for the client to check health of the provider.
 	HealthCheck(ctx context.Context) error
@@ -23,8 +23,8 @@ type Ingestor interface {
 }
 
 // Factory creates a new ingestor instance from the provided configuration and service dependencies.
-func Factory(cfg *config.KubehoundConfig, collect collector.CollectorClient, cache cache.CacheProvider,
+func Factory(cfg *config.KubehoundConfig, collect collector.CollectorClient, c cache.CacheProvider,
 	storedb storedb.Provider, graphdb graphdb.Provider) (Ingestor, error) {
 
-	return nil, globals.ErrNotImplemented
+	return newPipelineIngestor(cfg, collect, c, storedb, graphdb)
 }

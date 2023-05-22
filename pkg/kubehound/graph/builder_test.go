@@ -71,18 +71,22 @@ func TestGraphBuilder_HealthCheck(t *testing.T) {
 	assert.NoError(t, b.HealthCheck(context.TODO()))
 
 	// Graph failure
+	gdb.EXPECT().Name().Return("graph")
 	gdb.EXPECT().HealthCheck(mock.Anything).Return(false, errors.New("service error")).Once()
 	sdb.EXPECT().HealthCheck(mock.Anything).Return(true, nil).Once()
 
 	assert.ErrorContains(t, b.HealthCheck(context.TODO()), "service error")
 
 	// Store failure
+	sdb.EXPECT().Name().Return("store")
 	gdb.EXPECT().HealthCheck(mock.Anything).Return(true, nil).Once()
 	sdb.EXPECT().HealthCheck(mock.Anything).Return(false, nil).Once()
 
-	assert.ErrorContains(t, b.HealthCheck(context.TODO()), "store DB healthcheck")
+	assert.ErrorContains(t, b.HealthCheck(context.TODO()), "store healthcheck")
 
 	// Friday 5pm :)
+	gdb.EXPECT().Name().Return("graph")
+	sdb.EXPECT().Name().Return("store")
 	gdb.EXPECT().HealthCheck(mock.Anything).Return(false, nil).Once()
 	sdb.EXPECT().HealthCheck(mock.Anything).Return(false, nil).Once()
 

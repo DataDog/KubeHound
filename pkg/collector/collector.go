@@ -6,6 +6,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 )
 
 type Complete func(context.Context) error
@@ -16,10 +17,9 @@ type ClusterRoleProcessor func(context.Context, *types.ClusterRoleType) error
 type RoleBindingProcessor func(context.Context, *types.RoleBindingType) error
 type ClusterRoleBindingProcessor func(context.Context, *types.ClusterRoleBindingType) error
 
+//go:generate mockery --name CollectorClient --output mocks --case underscore --filename collector_client.go --with-expecter
 type CollectorClient interface {
-	// HealthCheck provides a mechanism for the caller to check the health of the collector client (and underlying collector connection).
-	// Should return true if health check is successful, false otherwise.
-	HealthCheck(ctx context.Context) (bool, error)
+	services.Dependency
 
 	// StreamNodes will iterate through all NodeType objects collected by the collector and invoke the NodeProcessor callback on each.
 	// Once all the NodeType objects have been exhausted the Complete callback will be invoked to signal the end of the stream.
