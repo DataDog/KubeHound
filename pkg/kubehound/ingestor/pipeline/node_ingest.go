@@ -21,6 +21,28 @@ type NodeIngest struct {
 
 var _ ObjectIngest = (*NodeIngest)(nil)
 
+func (i *NodeIngest) Name() string {
+	return NodeIngestName
+}
+
+func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
+	var err error
+	defer func() {
+		if err != nil {
+			i.r.cleanupAll(ctx)
+		}
+	}()
+
+	i.vertex = vertex.Node{}
+	i.collection = collections.Node{}
+	i.r, err = CreateResources(ctx, deps,
+		WithCacheWriter(),
+		WithStoreWriter(i.collection),
+		WithGraphWriter(i.vertex))
+
+	return err
+}
+
 func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) error {
 	// Normalize node to store object format
 	o, err := i.r.storeConvert.Node(ctx, *node)
@@ -54,28 +76,6 @@ func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) e
 
 func (i *NodeIngest) completeCallback(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
-}
-
-func (i *NodeIngest) Name() string {
-	return NodeIngestName
-}
-
-func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
-	var err error
-	defer func() {
-		if err != nil {
-			i.r.cleanupAll(ctx)
-		}
-	}()
-
-	i.vertex = vertex.Node{}
-	i.collection = collections.Node{}
-	i.r, err = CreateResources(ctx, deps,
-		WithCacheWriter(),
-		WithStoreWriter(i.collection),
-		WithGraphWriter(i.vertex))
-
-	return err
 }
 
 func (i *NodeIngest) Run(ctx context.Context) error {
