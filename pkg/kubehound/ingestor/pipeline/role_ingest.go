@@ -43,6 +43,8 @@ func (i *RoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	return err
 }
 
+// streamCallback is invoked by the collector for each role collected.
+// The function ingests an input role into the cache/store/graph databases asynchronously.
 func (i *RoleIngest) streamCallback(ctx context.Context, role types.RoleType) error {
 	// Normalize K8s role to store object format
 	o, err := i.r.storeConvert.Role(ctx, role)
@@ -56,7 +58,7 @@ func (i *RoleIngest) streamCallback(ctx context.Context, role types.RoleType) er
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cache.RoleKey(o.Name), o.Id); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cache.RoleKey(o.Name), o.Id.Hex()); err != nil {
 		return err
 	}
 
@@ -74,6 +76,8 @@ func (i *RoleIngest) streamCallback(ctx context.Context, role types.RoleType) er
 	return nil
 }
 
+// completeCallback is invoked by the collector when all roles have been streamed.
+// The function flushes all writers and waits for completion.
 func (i *RoleIngest) completeCallback(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }

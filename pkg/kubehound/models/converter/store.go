@@ -38,7 +38,7 @@ func NewStoreWithCache(cache cache.CacheReader) *StoreConverter {
 // Container returns the store representation of a K8s container from an input K8s container object.
 func (c *StoreConverter) Container(_ context.Context, input types.ContainerType, parent *store.Pod) (*store.Container, error) {
 	return &store.Container{
-		Id:     store.StoreObjectID(),
+		Id:     store.ObjectID(),
 		PodId:  parent.Id,
 		NodeId: parent.NodeId,
 		Inherited: store.ContainerInherited{
@@ -56,7 +56,7 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 // Node returns the store representation of a K8s node from an input K8s node object.
 func (c *StoreConverter) Node(_ context.Context, input types.NodeType) (*store.Node, error) {
 	output := &store.Node{
-		Id: store.StoreObjectID(),
+		Id: store.ObjectID(),
 		K8: corev1.Node(*input),
 	}
 
@@ -85,7 +85,7 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 	}
 
 	output := &store.Pod{
-		Id:     store.StoreObjectID(),
+		Id:     store.ObjectID(),
 		NodeId: onid,
 		K8:     corev1.Pod(*input),
 	}
@@ -115,7 +115,7 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 	}
 
 	output := &store.Volume{
-		Id:     store.StoreObjectID(),
+		Id:     store.ObjectID(),
 		PodId:  parent.Id,
 		NodeId: parent.NodeId,
 		Name:   input.Name,
@@ -152,7 +152,7 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 // Role returns the store representation of a K8s role from an input K8s Role object.
 func (c *StoreConverter) Role(_ context.Context, input types.RoleType) (*store.Role, error) {
 	return &store.Role{
-		Id:           store.StoreObjectID(),
+		Id:           store.ObjectID(),
 		Name:         input.Name,
 		IsNamespaced: true,
 		Namespace:    input.Namespace,
@@ -163,7 +163,7 @@ func (c *StoreConverter) Role(_ context.Context, input types.RoleType) (*store.R
 // ClusterRole returns the store representation of a K8s cluster role from an input K8s ClusterRole object.
 func (c *StoreConverter) ClusterRole(_ context.Context, input types.ClusterRoleType) (*store.Role, error) {
 	return &store.Role{
-		Id:           store.StoreObjectID(),
+		Id:           store.ObjectID(),
 		Name:         input.Name,
 		IsNamespaced: false,
 		Namespace:    "",
@@ -193,7 +193,7 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 
 	subj := input.Subjects
 	output = &store.RoleBinding{
-		Id:           store.StoreObjectID(),
+		Id:           store.ObjectID(),
 		RoleId:       orid,
 		Name:         input.Name,
 		IsNamespaced: true,
@@ -203,7 +203,7 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 
 	for _, s := range subj {
 		output.Subjects = append(output.Subjects, store.BindSubject{
-			IdentityId: store.StoreObjectID(),
+			IdentityId: store.ObjectID(),
 			Subject:    s,
 		})
 	}
@@ -233,7 +233,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 	subj := input.Subjects
 	output = &store.RoleBinding{
-		Id:           store.StoreObjectID(),
+		Id:           store.ObjectID(),
 		RoleId:       orid,
 		Name:         input.Name,
 		IsNamespaced: false,
@@ -243,7 +243,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 	for _, s := range subj {
 		output.Subjects = append(output.Subjects, store.BindSubject{
-			IdentityId: store.StoreObjectID(),
+			IdentityId: store.ObjectID(),
 			Subject:    s,
 		})
 	}

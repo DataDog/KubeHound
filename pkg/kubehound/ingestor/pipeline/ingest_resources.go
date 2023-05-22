@@ -90,7 +90,7 @@ func WithGraphWriter[T vertex.Vertex](v T) IngestResourceOption {
 	return func(ctx context.Context, oic *resourceOptions, deps *Dependencies) error {
 		var err error
 
-		w, err := deps.GraphDB.VertexWriter(ctx, v.Traversal())
+		w, err := deps.GraphDB.VertexWriter(ctx, v)
 		if err != nil {
 			return err
 		}

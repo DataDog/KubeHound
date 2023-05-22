@@ -130,7 +130,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 
 	c := mocks.NewCacheReader(t)
 	k := cache.RoleKey("test-reader")
-	id := store.StoreObjectID().Hex()
+	id := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
 
 	// Collector input -> store rolebinding
@@ -174,7 +174,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 
 	c := mocks.NewCacheReader(t)
 	k := cache.RoleKey("test-reader")
-	id := store.StoreObjectID().Hex()
+	id := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
 
 	// Collector input -> store rolebinding
@@ -237,7 +237,7 @@ func TestConverter_PodPipeline(t *testing.T) {
 
 	c := mocks.NewCacheReader(t)
 	k := cache.NodeKey("test-node.ec2.internal")
-	id := store.StoreObjectID().Hex()
+	id := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
 
 	// Collector input -> store pod
@@ -271,11 +271,11 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 
 	c := mocks.NewCacheReader(t)
 	nk := cache.NodeKey("test-node.ec2.internal")
-	nid := store.StoreObjectID().Hex()
+	nid := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, nk).Return(nid, nil)
 
 	ck := cache.ContainerKey("app-monitors-client-78cb6d7899-j2rjp", "elasticsearch")
-	cid := store.StoreObjectID().Hex()
+	cid := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, ck).Return(cid, nil)
 
 	// Collector input -> store pod

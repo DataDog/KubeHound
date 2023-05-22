@@ -73,6 +73,7 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	return err
 }
 
+// processContainer will handle the ingestion pipeline for a container belonging to a processed K8s pod input.
 func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, container types.ContainerType) error {
 	// Normalize container to store object format
 	sc, err := i.r.storeConvert.Container(ctx, container, parent)
@@ -104,6 +105,7 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 	return nil
 }
 
+// processVolume will handle the ingestion pipeline for a volume belonging to a processed K8s pod input.
 func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume types.VolumeType) error {
 	// Normalize volume to store object format
 	sv, err := i.r.storeConvert.Volume(ctx, volume, parent)
@@ -130,6 +132,9 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 	return nil
 }
 
+// streamCallback is invoked by the collector for each pod collected.
+// The function ingests an input pod object into the cache/store/graph and then ingests
+// all child objects (containers, volumes, etc) through their own ingestion pipeline.
 func (i *PodIngest) streamCallback(ctx context.Context, pod types.PodType) error {
 	// Normalize pod to store object format
 	sp, err := i.r.storeConvert.Pod(ctx, pod)
@@ -139,11 +144,6 @@ func (i *PodIngest) streamCallback(ctx context.Context, pod types.PodType) error
 
 	// Async write to store
 	if err := i.r.storeWriter(i.c[podIndex]).Queue(ctx, sp); err != nil {
-		return err
-	}
-
-	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cache.NodeKey(sp.K8.Name), sp.Id); err != nil {
 		return err
 	}
 
@@ -180,6 +180,8 @@ func (i *PodIngest) streamCallback(ctx context.Context, pod types.PodType) error
 	return nil
 }
 
+// completeCallback is invoked by the collector when all pods have been streamed.
+// The function flushes all writers and waits for completion.
 func (i *PodIngest) completeCallback(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }

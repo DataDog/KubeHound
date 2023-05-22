@@ -43,6 +43,8 @@ func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	return err
 }
 
+// streamCallback is invoked by the collector for each node collected.
+// The function ingests an input node into the cache/store/graph databases asynchronously.
 func (i *NodeIngest) streamCallback(ctx context.Context, node types.NodeType) error {
 	// Normalize node to store object format
 	o, err := i.r.storeConvert.Node(ctx, node)
@@ -56,7 +58,7 @@ func (i *NodeIngest) streamCallback(ctx context.Context, node types.NodeType) er
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cache.NodeKey(o.K8.Name), o.Id); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cache.NodeKey(o.K8.Name), o.Id.Hex()); err != nil {
 		return err
 	}
 
@@ -74,6 +76,8 @@ func (i *NodeIngest) streamCallback(ctx context.Context, node types.NodeType) er
 	return nil
 }
 
+// completeCallback is invoked by the collector when all nodes have been streamed.
+// The function flushes all writers and waits for completion.
 func (i *NodeIngest) completeCallback(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }
