@@ -17,3 +17,7 @@ type ClusterRoleBindingType *rbacv1.ClusterRoleBinding
 type InputType interface {
 	PodType | NodeType | ContainerType | VolumeType | RoleType | RoleBindingType | ClusterRoleType | ClusterRoleBindingType
 }
+
+type ListInputType interface {
+	corev1.PodList | corev1.NodeList | rbacv1.RoleList | rbacv1.RoleBindingList | rbacv1.ClusterRoleList | rbacv1.ClusterRoleBindingList
+}

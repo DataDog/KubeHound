@@ -4,48 +4,59 @@ import (
 	"context"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 )
 
 // NodeIngestor defines the interface to allow an ingestor to consume node inputs from a collector.
+//
+//go:generate mockery --name NodeIngestor --output mockingest --case underscore --filename node_ingestor.go --with-expecter
 type NodeIngestor interface {
 	IngestNode(context.Context, types.NodeType) error
 	Complete(context.Context) error
 }
 
 // PodIngestor defines the interface to allow an ingestor to consume pod inputs from a collector.
+//
+//go:generate mockery --name PodIngestor --output mockingest --case underscore --filename pod_ingestor.go --with-expecter
 type PodIngestor interface {
 	IngestPod(context.Context, types.PodType) error
 	Complete(context.Context) error
 }
 
 // RoleIngestor defines the interface to allow an ingestor to consume role inputs from a collector.
+//
+//go:generate mockery --name RoleIngestor --output mockingest --case underscore --filename role_ingestor.go --with-expecter
 type RoleIngestor interface {
 	IngestRole(context.Context, types.RoleType) error
 	Complete(context.Context) error
 }
 
 // ClusterRoleIngestor defines the interface to allow an ingestor to consume cluster role inputs from a collector.
+//
+//go:generate mockery --name ClusterRoleIngestor --output mockingest --case underscore --filename cluster_role_ingestor.go --with-expecter
 type ClusterRoleIngestor interface {
 	IngestClusterRole(context.Context, types.ClusterRoleType) error
 	Complete(context.Context) error
 }
 
 // RoleBindingIngestor defines the interface to allow an ingestor to consume role binding inputs from a collector.
+//
+//go:generate mockery --name RoleBindingIngestor --output mockingest --case underscore --filename role_binding_ingestor.go --with-expecter
 type RoleBindingIngestor interface {
 	IngestRoleBinding(context.Context, types.RoleBindingType) error
 	Complete(context.Context) error
 }
 
 // ClusterRoleBindingIngestor defines the interface to allow an ingestor to consume cluster role binding inputs from a collector.
+//
+//go:generate mockery --name ClusterRoleBindingIngestor --output mockingest --case underscore --filename cluster_role_binding_ingestor.go --with-expecter
 type ClusterRoleBindingIngestor interface {
 	IngestClusterRoleBinding(context.Context, types.ClusterRoleBindingType) error
 	Complete(context.Context) error
 }
 
-//go:generate mockery --name CollectorClient --output mocks --case underscore --filename collector_client.go --with-expecter
+//go:generate mockery --name CollectorClient --output mockcollector --case underscore --filename collector_client.go --with-expecter
 type CollectorClient interface {
 	services.Dependency
 
@@ -79,5 +90,5 @@ type CollectorClient interface {
 
 // ClientFactory creates an initialized instance of a collector client based on the provided application configuration.
 func ClientFactory(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	return nil, globals.ErrNotImplemented
+	return NewFileCollector(ctx, cfg)
 }
