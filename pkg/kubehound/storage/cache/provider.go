@@ -41,7 +41,7 @@ type CacheProvider interface {
 //go:generate mockery --name AsyncWriter --output mocks --case underscore --filename cache_writer.go --with-expecter
 type AsyncWriter interface {
 	// Queue add a model to an asynchronous write queue. Non-blocking.
-	Queue(ctx context.Context, key CacheKey, value any) error
+	Queue(ctx context.Context, key CacheKey, value string) error
 
 	// Flush triggers writes of any remaining items in the queue.
 	// Blocks until operation completes. Wait on the returned channel which will be signaled when the flush operation completes.

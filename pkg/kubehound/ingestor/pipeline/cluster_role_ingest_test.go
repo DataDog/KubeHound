@@ -17,29 +17,29 @@ import (
 )
 
 func TestClusterRoleIngest_Pipeline(t *testing.T) {
-	ri := &ClusterRoleIngest{}
+	cri := &ClusterRoleIngest{}
 
 	ctx := context.Background()
 	fakeRole, err := loadTestObject[types.ClusterRoleType]("testdata/clusterrole.json")
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
-	client.EXPECT().StreamClusterRoles(ctx, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, process collector.ClusterRoleProcessor, complete collector.Complete) error {
+	client.EXPECT().StreamClusterRoles(ctx, cri).
+		RunAndReturn(func(ctx context.Context, i collector.ClusterRoleIngestor) error {
 			// Fake the stream of a single cluster role from the collector client
-			err := process(ctx, &fakeRole)
+			err := i.IngestClusterRole(ctx, fakeRole)
 			if err != nil {
 				return err
 			}
 
-			return complete(ctx)
+			return i.Complete(ctx)
 		})
 
 	// Cache setup
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
 	cwDone := make(chan struct{})
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.roleCacheKey"), mock.AnythingOfType("primitive.ObjectID")).Return(nil).Once()
+	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.roleCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
 	cw.EXPECT().Flush(ctx).Return(cwDone, nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
@@ -61,7 +61,7 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Role")).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(gwDone, nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.VertexTraversal")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Role")).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
@@ -71,7 +71,7 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 	}
 
 	// Initialize
-	err = ri.Initialize(ctx, deps)
+	err = cri.Initialize(ctx, deps)
 	assert.NoError(t, err)
 
 	go func() {
@@ -83,10 +83,10 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 	}()
 
 	// Run
-	err = ri.Run(ctx)
+	err = cri.Run(ctx)
 	assert.NoError(t, err)
 
 	// Close
-	err = ri.Close(ctx)
+	err = cri.Close(ctx)
 	assert.NoError(t, err)
 }

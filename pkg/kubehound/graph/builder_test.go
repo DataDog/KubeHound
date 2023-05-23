@@ -12,8 +12,6 @@ import (
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-
-	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 )
 
 func NewTestBuilder(t *testing.T, mockRegistry e.EdgeRegistry, gdb *graphdb.Provider, sdb *storedb.Provider) *Builder {
@@ -29,9 +27,7 @@ func NewTestBuilder(t *testing.T, mockRegistry e.EdgeRegistry, gdb *graphdb.Prov
 func TestGraphBuilder_Success(t *testing.T) {
 	t.Parallel()
 
-	fakeTraversal := func(g *gremlin.GraphTraversalSource, inserts []e.TraversalInput) *gremlin.GraphTraversal {
-		return nil
-	}
+	ctx := context.Background()
 	gdb := graphdb.NewProvider(t)
 	sdb := storedb.NewProvider(t)
 
@@ -40,18 +36,20 @@ func TestGraphBuilder_Success(t *testing.T) {
 	for i := 0; i < numTestEdges; i++ {
 		e := edge.NewEdge(t)
 
-		e.EXPECT().Traversal().Return(fakeTraversal)
 		e.EXPECT().Stream(mock.Anything, sdb, mock.AnythingOfType("edge.ProcessEntryCallback"), mock.AnythingOfType("edge.CompleteQueryCallback")).Return(nil)
-
 		reg["EDGE_"+strconv.Itoa(i)] = e
 	}
 
 	b := NewTestBuilder(t, reg, gdb, sdb)
 	gw := graphdb.NewAsyncEdgeWriter(t)
-	gdb.EXPECT().EdgeWriter(mock.Anything, mock.AnythingOfType("edge.EdgeTraversal")).Return(gw, nil)
-	gw.EXPECT().Close(mock.Anything).Times(numTestEdges).Return(nil)
+	gw.EXPECT().Close(mock.Anything).Return(nil).Times(numTestEdges)
 
-	err := b.Run(context.Background())
+	for _, ee := range reg {
+		e := ee
+		gdb.EXPECT().EdgeWriter(mock.Anything, e).Return(gw, nil)
+	}
+
+	err := b.Run(ctx)
 	assert.NoError(t, err)
 }
 
@@ -96,9 +94,6 @@ func TestGraphBuilder_HealthCheck(t *testing.T) {
 func TestGraphBuilder_EdgeErrorCancelsAll(t *testing.T) {
 	t.Parallel()
 
-	fakeTraversal := func(g *gremlin.GraphTraversalSource, inserts []e.TraversalInput) *gremlin.GraphTraversal {
-		return nil
-	}
 	gdb := graphdb.NewProvider(t)
 	sdb := storedb.NewProvider(t)
 
@@ -110,11 +105,9 @@ func TestGraphBuilder_EdgeErrorCancelsAll(t *testing.T) {
 		switch {
 		case i == 5:
 			// Raise an errors. Must be called
-			e.EXPECT().Traversal().Return(fakeTraversal)
 			e.EXPECT().Stream(mock.Anything, sdb, mock.AnythingOfType("edge.ProcessEntryCallback"), mock.AnythingOfType("edge.CompleteQueryCallback")).Return(errors.New("test error"))
 		default:
 			// No errors. May or May not be called!
-			e.EXPECT().Traversal().Return(fakeTraversal).Maybe()
 			e.EXPECT().Stream(mock.Anything, sdb, mock.AnythingOfType("edge.ProcessEntryCallback"), mock.AnythingOfType("edge.CompleteQueryCallback")).Return(nil).Maybe()
 		}
 
@@ -123,7 +116,7 @@ func TestGraphBuilder_EdgeErrorCancelsAll(t *testing.T) {
 
 	b := NewTestBuilder(t, reg, gdb, sdb)
 	gw := graphdb.NewAsyncEdgeWriter(t)
-	gdb.EXPECT().EdgeWriter(mock.Anything, mock.AnythingOfType("edge.EdgeTraversal")).Return(gw, nil).Maybe()
+	gdb.EXPECT().EdgeWriter(mock.Anything, mock.Anything).Return(gw, nil).Maybe()
 	gw.EXPECT().Close(mock.Anything).Return(nil).Maybe()
 
 	err := b.Run(context.Background())
