@@ -27,6 +27,7 @@ func MustLoadDefaultConfig() *KubehoundConfig {
 	return cfg
 }
 
+// NewConfig creates a new config instance from the provided file using viper.
 func NewConfig(configPath string) (*KubehoundConfig, error) {
 	c := viper.New()
 	c.SetConfigType(DefaultConfigType)
