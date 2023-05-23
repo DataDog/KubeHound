@@ -42,11 +42,13 @@ const (
 	FileCollectorName = "local-file-collector"
 )
 
+// FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
 type FileCollector struct {
 	cfg *config.FileCollectorConfig
 	log *log.KubehoundLogger
 }
 
+// NewFile creates a new instance of the file collector from the provided application config.
 func NewFile(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
 	if cfg.Collector.Type != config.CollectorTypeFile {
 		return nil, fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
@@ -84,6 +86,7 @@ func (c *FileCollector) Close(ctx context.Context) error {
 	return nil
 }
 
+// streamPodsNamespace streams the pod objects in a single file, corresponding to a cluster namespace.
 func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, ingestor PodIngestor) error {
 	list, err := readList[corev1.PodList](ctx, fp)
 	if err != nil {
@@ -121,6 +124,7 @@ func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) er
 	return ingestor.Complete(ctx)
 }
 
+// streamRolesNamespace streams the role objects in a single file, corresponding to a cluster namespace.
 func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ingestor RoleIngestor) error {
 	list, err := readList[rbacv1.RoleList](ctx, fp)
 	if err != nil {
@@ -158,6 +162,7 @@ func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) 
 	return ingestor.Complete(ctx)
 }
 
+// streamRoleBindingsNamespace streams the role bindings objects in a single file, corresponding to a cluster namespace.
 func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp string, ingestor RoleBindingIngestor) error {
 	list, err := readList[rbacv1.RoleBindingList](ctx, fp)
 	if err != nil {
@@ -255,9 +260,9 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 	return ingestor.Complete(ctx)
 }
 
-// This implementation reads the entire array into memory at once.
+// readList loads a list of K8s API objects into memory from a JSON file on disk.
+// NOTE: This implementation reads the entire array of objects from the file into memory at once.
 func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl, error) {
-
 	var inputList Tl
 	bytes, err := os.ReadFile(inputPath)
 	if err != nil {
