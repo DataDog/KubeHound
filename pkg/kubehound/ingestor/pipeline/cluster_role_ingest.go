@@ -27,26 +27,27 @@ func (i *ClusterRoleIngest) Name() string {
 
 func (i *ClusterRoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
-	defer func() {
-		if err != nil {
-			i.r.cleanupAll(ctx)
-		}
-	}()
 
 	i.vertex = vertex.Role{}
 	i.collection = collections.Role{}
+
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(),
 		WithStoreWriter(i.collection),
 		WithGraphWriter(i.vertex))
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
-func (i *ClusterRoleIngest) streamCallback(ctx context.Context, role *types.ClusterRoleType) error {
+// streamCallback is invoked by the collector for each cluster role collected.
+// The function ingests an input cluster role into the cache/store/graph databases asynchronously.
+func (i *ClusterRoleIngest) streamCallback(ctx context.Context, role types.ClusterRoleType) error {
 	// Normalize K8s cluster role to store object format. Cluster roles are treated as
 	// role within our model (with IsNamespaced flag set to false).
-	o, err := i.r.storeConvert.ClusterRole(ctx, *role)
+	o, err := i.r.storeConvert.ClusterRole(ctx, role)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func (i *ClusterRoleIngest) streamCallback(ctx context.Context, role *types.Clus
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cache.RoleKey(o.Name), o.Id); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cache.RoleKey(o.Name), o.Id.Hex()); err != nil {
 		return err
 	}
 
@@ -75,6 +76,8 @@ func (i *ClusterRoleIngest) streamCallback(ctx context.Context, role *types.Clus
 	return nil
 }
 
+// completeCallback is invoked by the collector when all cluster roles have been streamed.
+// The function flushes all writers and waits for completion.
 func (i *ClusterRoleIngest) completeCallback(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }

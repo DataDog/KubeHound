@@ -68,32 +68,32 @@ func (_c *Provider_Close_Call) RunAndReturn(run func(context.Context) error) *Pr
 	return _c
 }
 
-// EdgeWriter provides a mock function with given fields: ctx, g, opts
-func (_m *Provider) EdgeWriter(ctx context.Context, g edge.EdgeTraversal, opts ...graphdb.WriterOption) (graphdb.AsyncEdgeWriter, error) {
+// EdgeWriter provides a mock function with given fields: ctx, e, opts
+func (_m *Provider) EdgeWriter(ctx context.Context, e edge.Edge, opts ...graphdb.WriterOption) (graphdb.AsyncEdgeWriter, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, g)
+	_ca = append(_ca, ctx, e)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 graphdb.AsyncEdgeWriter
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, edge.EdgeTraversal, ...graphdb.WriterOption) (graphdb.AsyncEdgeWriter, error)); ok {
-		return rf(ctx, g, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, edge.Edge, ...graphdb.WriterOption) (graphdb.AsyncEdgeWriter, error)); ok {
+		return rf(ctx, e, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, edge.EdgeTraversal, ...graphdb.WriterOption) graphdb.AsyncEdgeWriter); ok {
-		r0 = rf(ctx, g, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, edge.Edge, ...graphdb.WriterOption) graphdb.AsyncEdgeWriter); ok {
+		r0 = rf(ctx, e, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(graphdb.AsyncEdgeWriter)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, edge.EdgeTraversal, ...graphdb.WriterOption) error); ok {
-		r1 = rf(ctx, g, opts...)
+	if rf, ok := ret.Get(1).(func(context.Context, edge.Edge, ...graphdb.WriterOption) error); ok {
+		r1 = rf(ctx, e, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -108,14 +108,14 @@ type Provider_EdgeWriter_Call struct {
 
 // EdgeWriter is a helper method to define mock.On call
 //   - ctx context.Context
-//   - g edge.EdgeTraversal
+//   - e edge.Edge
 //   - opts ...graphdb.WriterOption
-func (_e *Provider_Expecter) EdgeWriter(ctx interface{}, g interface{}, opts ...interface{}) *Provider_EdgeWriter_Call {
+func (_e *Provider_Expecter) EdgeWriter(ctx interface{}, e interface{}, opts ...interface{}) *Provider_EdgeWriter_Call {
 	return &Provider_EdgeWriter_Call{Call: _e.mock.On("EdgeWriter",
-		append([]interface{}{ctx, g}, opts...)...)}
+		append([]interface{}{ctx, e}, opts...)...)}
 }
 
-func (_c *Provider_EdgeWriter_Call) Run(run func(ctx context.Context, g edge.EdgeTraversal, opts ...graphdb.WriterOption)) *Provider_EdgeWriter_Call {
+func (_c *Provider_EdgeWriter_Call) Run(run func(ctx context.Context, e edge.Edge, opts ...graphdb.WriterOption)) *Provider_EdgeWriter_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		variadicArgs := make([]graphdb.WriterOption, len(args)-2)
 		for i, a := range args[2:] {
@@ -123,7 +123,7 @@ func (_c *Provider_EdgeWriter_Call) Run(run func(ctx context.Context, g edge.Edg
 				variadicArgs[i] = a.(graphdb.WriterOption)
 			}
 		}
-		run(args[0].(context.Context), args[1].(edge.EdgeTraversal), variadicArgs...)
+		run(args[0].(context.Context), args[1].(edge.Edge), variadicArgs...)
 	})
 	return _c
 }
@@ -133,7 +133,7 @@ func (_c *Provider_EdgeWriter_Call) Return(_a0 graphdb.AsyncEdgeWriter, _a1 erro
 	return _c
 }
 
-func (_c *Provider_EdgeWriter_Call) RunAndReturn(run func(context.Context, edge.EdgeTraversal, ...graphdb.WriterOption) (graphdb.AsyncEdgeWriter, error)) *Provider_EdgeWriter_Call {
+func (_c *Provider_EdgeWriter_Call) RunAndReturn(run func(context.Context, edge.Edge, ...graphdb.WriterOption) (graphdb.AsyncEdgeWriter, error)) *Provider_EdgeWriter_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -274,32 +274,32 @@ func (_c *Provider_Raw_Call) RunAndReturn(run func() interface{}) *Provider_Raw_
 	return _c
 }
 
-// VertexWriter provides a mock function with given fields: ctx, g, opts
-func (_m *Provider) VertexWriter(ctx context.Context, g vertex.VertexTraversal, opts ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error) {
+// VertexWriter provides a mock function with given fields: ctx, v, opts
+func (_m *Provider) VertexWriter(ctx context.Context, v vertex.Vertex, opts ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, g)
+	_ca = append(_ca, ctx, v)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 graphdb.AsyncVertexWriter
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, vertex.VertexTraversal, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)); ok {
-		return rf(ctx, g, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, vertex.Vertex, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)); ok {
+		return rf(ctx, v, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, vertex.VertexTraversal, ...graphdb.WriterOption) graphdb.AsyncVertexWriter); ok {
-		r0 = rf(ctx, g, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, vertex.Vertex, ...graphdb.WriterOption) graphdb.AsyncVertexWriter); ok {
+		r0 = rf(ctx, v, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(graphdb.AsyncVertexWriter)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, vertex.VertexTraversal, ...graphdb.WriterOption) error); ok {
-		r1 = rf(ctx, g, opts...)
+	if rf, ok := ret.Get(1).(func(context.Context, vertex.Vertex, ...graphdb.WriterOption) error); ok {
+		r1 = rf(ctx, v, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -314,14 +314,14 @@ type Provider_VertexWriter_Call struct {
 
 // VertexWriter is a helper method to define mock.On call
 //   - ctx context.Context
-//   - g vertex.VertexTraversal
+//   - v vertex.Vertex
 //   - opts ...graphdb.WriterOption
-func (_e *Provider_Expecter) VertexWriter(ctx interface{}, g interface{}, opts ...interface{}) *Provider_VertexWriter_Call {
+func (_e *Provider_Expecter) VertexWriter(ctx interface{}, v interface{}, opts ...interface{}) *Provider_VertexWriter_Call {
 	return &Provider_VertexWriter_Call{Call: _e.mock.On("VertexWriter",
-		append([]interface{}{ctx, g}, opts...)...)}
+		append([]interface{}{ctx, v}, opts...)...)}
 }
 
-func (_c *Provider_VertexWriter_Call) Run(run func(ctx context.Context, g vertex.VertexTraversal, opts ...graphdb.WriterOption)) *Provider_VertexWriter_Call {
+func (_c *Provider_VertexWriter_Call) Run(run func(ctx context.Context, v vertex.Vertex, opts ...graphdb.WriterOption)) *Provider_VertexWriter_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		variadicArgs := make([]graphdb.WriterOption, len(args)-2)
 		for i, a := range args[2:] {
@@ -329,7 +329,7 @@ func (_c *Provider_VertexWriter_Call) Run(run func(ctx context.Context, g vertex
 				variadicArgs[i] = a.(graphdb.WriterOption)
 			}
 		}
-		run(args[0].(context.Context), args[1].(vertex.VertexTraversal), variadicArgs...)
+		run(args[0].(context.Context), args[1].(vertex.Vertex), variadicArgs...)
 	})
 	return _c
 }
@@ -339,7 +339,7 @@ func (_c *Provider_VertexWriter_Call) Return(_a0 graphdb.AsyncVertexWriter, _a1 
 	return _c
 }
 
-func (_c *Provider_VertexWriter_Call) RunAndReturn(run func(context.Context, vertex.VertexTraversal, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)) *Provider_VertexWriter_Call {
+func (_c *Provider_VertexWriter_Call) RunAndReturn(run func(context.Context, vertex.Vertex, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)) *Provider_VertexWriter_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -27,25 +27,26 @@ func (i *NodeIngest) Name() string {
 
 func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
-	defer func() {
-		if err != nil {
-			i.r.cleanupAll(ctx)
-		}
-	}()
 
 	i.vertex = vertex.Node{}
 	i.collection = collections.Node{}
+
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(),
 		WithStoreWriter(i.collection),
 		WithGraphWriter(i.vertex))
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
-func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) error {
+// streamCallback is invoked by the collector for each node collected.
+// The function ingests an input node into the cache/store/graph databases asynchronously.
+func (i *NodeIngest) streamCallback(ctx context.Context, node types.NodeType) error {
 	// Normalize node to store object format
-	o, err := i.r.storeConvert.Node(ctx, *node)
+	o, err := i.r.storeConvert.Node(ctx, node)
 	if err != nil {
 		return err
 	}
@@ -56,7 +57,7 @@ func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) e
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cache.NodeKey(o.K8.Name), o.Id); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cache.NodeKey(o.K8.Name), o.Id.Hex()); err != nil {
 		return err
 	}
 
@@ -74,6 +75,8 @@ func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) e
 	return nil
 }
 
+// completeCallback is invoked by the collector when all nodes have been streamed.
+// The function flushes all writers and waits for completion.
 func (i *NodeIngest) completeCallback(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }
