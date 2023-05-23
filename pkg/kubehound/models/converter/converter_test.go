@@ -149,7 +149,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, subject.Subject, input.Subjects[0])
 
 	// Collector input -> store identity
-	storeIdentity, err := NewStore().Identity(context.TODO(), subject)
+	storeIdentity, err := NewStore().Identity(context.TODO(), &subject)
 	assert.NoError(t, err, "store identity convert error")
 
 	assert.Equal(t, subject.Subject.Name, storeIdentity.Name)
@@ -193,7 +193,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, subject.Subject, input.Subjects[0])
 
 	// Collector input -> store identity
-	storeIdentity, err := NewStore().Identity(context.TODO(), subject)
+	storeIdentity, err := NewStore().Identity(context.TODO(), &subject)
 	assert.NoError(t, err, "store identity convert error")
 
 	assert.Equal(t, subject.Subject.Name, storeIdentity.Name)

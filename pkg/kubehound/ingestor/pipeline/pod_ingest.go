@@ -37,11 +37,6 @@ func (i *PodIngest) Name() string {
 
 func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
-	defer func() {
-		if err != nil {
-			i.r.cleanupAll(ctx)
-		}
-	}()
 
 	//
 	// Pods will create other objects such as volumes (from the pod volume mount list) and containers
@@ -69,8 +64,11 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	}
 
 	i.r, err = CreateResources(ctx, deps, opts...)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 // processContainer will handle the ingestion pipeline for a container belonging to a processed K8s pod input.

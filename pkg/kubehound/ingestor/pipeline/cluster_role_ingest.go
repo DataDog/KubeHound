@@ -27,20 +27,19 @@ func (i *ClusterRoleIngest) Name() string {
 
 func (i *ClusterRoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
-	defer func() {
-		if err != nil {
-			i.r.cleanupAll(ctx)
-		}
-	}()
 
 	i.vertex = vertex.Role{}
 	i.collection = collections.Role{}
+
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(),
 		WithStoreWriter(i.collection),
 		WithGraphWriter(i.vertex))
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 // streamCallback is invoked by the collector for each cluster role collected.
