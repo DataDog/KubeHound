@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
-	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mocks"
+	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
