@@ -28,22 +28,21 @@ func (i *RoleBindingIngest) Name() string {
 
 func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
-	defer func() {
-		if err != nil {
-			i.r.cleanupAll(ctx)
-		}
-	}()
 
 	i.vertex = vertex.Identity{}
 	i.identity = collections.Identity{}
 	i.rolebinding = collections.RoleBinding{}
+
 	i.r, err = CreateResources(ctx, deps,
 		WithConverterCache(),
 		WithStoreWriter(i.identity),
 		WithStoreWriter(i.rolebinding),
 		WithGraphWriter(i.vertex))
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 // processSubject will handle the ingestion pipeline for a role binding subject belonging to a processed K8s role binding input.

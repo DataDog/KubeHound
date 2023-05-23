@@ -27,20 +27,19 @@ func (i *NodeIngest) Name() string {
 
 func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
-	defer func() {
-		if err != nil {
-			i.r.cleanupAll(ctx)
-		}
-	}()
 
 	i.vertex = vertex.Node{}
 	i.collection = collections.Node{}
+
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(),
 		WithStoreWriter(i.collection),
 		WithGraphWriter(i.vertex))
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 // streamCallback is invoked by the collector for each node collected.
