@@ -38,18 +38,18 @@ type IngestResourceOption func(ctx context.Context, oic *resourceOptions, deps *
 
 // WithCacheWriter initializes a cache writer (and registers a cleanup function) for the ingest pipeline.
 func WithCacheWriter() IngestResourceOption {
-	return func(ctx context.Context, oic *resourceOptions, deps *Dependencies) error {
+	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		var err error
-		oic.cacheWriter, err = deps.Cache.BulkWriter(ctx)
+		rOpts.cacheWriter, err = deps.Cache.BulkWriter(ctx)
 		if err != nil {
 			return err
 		}
 
-		oic.cleanup = append(oic.cleanup, func(ctx context.Context) error {
-			return oic.cacheWriter.Close(ctx)
+		rOpts.cleanup = append(rOpts.cleanup, func(ctx context.Context) error {
+			return rOpts.cacheWriter.Close(ctx)
 		})
 
-		oic.flush = append(oic.flush, oic.cacheWriter.Flush)
+		rOpts.flush = append(rOpts.flush, rOpts.cacheWriter.Flush)
 
 		return nil
 	}
@@ -57,8 +57,8 @@ func WithCacheWriter() IngestResourceOption {
 
 // WithCacheWriter initializes a store converter with cache access for the ingest pipeline.
 func WithConverterCache() IngestResourceOption {
-	return func(_ context.Context, oic *resourceOptions, deps *Dependencies) error {
-		oic.storeConvert = converter.NewStoreWithCache(deps.Cache)
+	return func(_ context.Context, rOpts *resourceOptions, deps *Dependencies) error {
+		rOpts.storeConvert = converter.NewStoreWithCache(deps.Cache)
 		return nil
 	}
 }
@@ -66,19 +66,18 @@ func WithConverterCache() IngestResourceOption {
 // WithStoreWriter initializes a bulk store writer (and registers a cleanup function) for the provided collection.
 // To access the writer use the storeWriter(c collections.Collection) function.
 func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
-	return func(ctx context.Context, oic *resourceOptions, deps *Dependencies) error {
-		var err error
+	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		w, err := deps.StoreDB.BulkWriter(ctx, c)
 		if err != nil {
 			return err
 		}
 
-		oic.storeWriters[c.Name()] = w
-		oic.cleanup = append(oic.cleanup, func(ctx context.Context) error {
+		rOpts.storeWriters[c.Name()] = w
+		rOpts.cleanup = append(rOpts.cleanup, func(ctx context.Context) error {
 			return w.Close(ctx)
 		})
 
-		oic.flush = append(oic.flush, w.Flush)
+		rOpts.flush = append(rOpts.flush, w.Flush)
 
 		return nil
 	}
@@ -87,20 +86,18 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 // WithStoreWriter initializes a bulk graph writer (and registers a cleanup function) for the provided vertex.
 // To access the writer use the graphWriter(v vertex.Vertex) function.
 func WithGraphWriter[T vertex.Vertex](v T) IngestResourceOption {
-	return func(ctx context.Context, oic *resourceOptions, deps *Dependencies) error {
-		var err error
-
+	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		w, err := deps.GraphDB.VertexWriter(ctx, v)
 		if err != nil {
 			return err
 		}
 
-		oic.graphWriters[v.Label()] = w
-		oic.cleanup = append(oic.cleanup, func(ctx context.Context) error {
+		rOpts.graphWriters[v.Label()] = w
+		rOpts.cleanup = append(rOpts.cleanup, func(ctx context.Context) error {
 			return w.Close(ctx)
 		})
 
-		oic.flush = append(oic.flush, w.Flush)
+		rOpts.flush = append(rOpts.flush, w.Flush)
 
 		return nil
 	}

@@ -23,3 +23,9 @@ go.work
 
 # MacOS
 .DS_Store
+<<<<<<< HEAD
+=======
+
+# Binaries
+bin/
+>>>>>>> main
