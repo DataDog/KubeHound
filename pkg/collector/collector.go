@@ -90,5 +90,5 @@ type CollectorClient interface {
 
 // ClientFactory creates an initialized instance of a collector client based on the provided application configuration.
 func ClientFactory(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	return NewFile(ctx, cfg)
+	return NewFileCollector(ctx, cfg)
 }

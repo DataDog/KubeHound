@@ -48,8 +48,8 @@ type FileCollector struct {
 	log *log.KubehoundLogger
 }
 
-// NewFile creates a new instance of the file collector from the provided application config.
-func NewFile(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
+// NewFileCollector creates a new instance of the file collector from the provided application config.
+func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
 	if cfg.Collector.Type != config.CollectorTypeFile {
 		return nil, fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
 	}

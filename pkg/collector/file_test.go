@@ -14,7 +14,7 @@ func TestFileCollector_Constructor(t *testing.T) {
 	cfg, err := config.NewConfig("testdata/kubehound-test.yaml")
 	assert.NoError(t, err)
 
-	c, err := NewFile(context.Background(), cfg)
+	c, err := NewFileCollector(context.Background(), cfg)
 	assert.NoError(t, err)
 	assert.IsType(t, &FileCollector{}, c)
 	assert.Equal(t, cfg.Collector.File.Directory, c.(*FileCollector).cfg.Directory)
@@ -56,7 +56,7 @@ func NewTestFileCollector(t *testing.T) *FileCollector {
 	cfg, err := config.NewConfig("testdata/kubehound-test.yaml")
 	assert.NoError(t, err)
 
-	c, err := NewFile(context.Background(), cfg)
+	c, err := NewFileCollector(context.Background(), cfg)
 	assert.NoError(t, err)
 
 	return c.(*FileCollector)
