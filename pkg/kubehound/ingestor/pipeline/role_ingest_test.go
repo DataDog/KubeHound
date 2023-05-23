@@ -27,7 +27,7 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	client.EXPECT().StreamRoles(ctx, mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, process collector.RoleProcessor, complete collector.Complete) error {
 			// Fake the stream of a single role from the collector client
-			err := process(ctx, &fakeRole)
+			err := process(ctx, fakeRole)
 			if err != nil {
 				return err
 			}
@@ -39,7 +39,7 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
 	cwDone := make(chan struct{})
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.roleCacheKey"), mock.AnythingOfType("primitive.ObjectID")).Return(nil).Once()
+	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.roleCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
 	cw.EXPECT().Flush(ctx).Return(cwDone, nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
@@ -61,7 +61,7 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Role")).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(gwDone, nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.VertexTraversal")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Role")).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
