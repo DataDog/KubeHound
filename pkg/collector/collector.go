@@ -9,16 +9,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 )
 
-// type Complete func(context.Context) error
-// type NodeProcessor func(context.Context, types.NodeType) error
-// type PodProcessor func(context.Context, types.PodType) error
-// type RoleProcessor func(context.Context, types.RoleType) error
-// type ClusterRoleProcessor func(context.Context, types.ClusterRoleType) error
-// type RoleBindingProcessor func(context.Context, types.RoleBindingType) error
-// type ClusterRoleBindingProcessor func(context.Context, types.ClusterRoleBindingType) error
-
-TODO fix all the doc strings
-
 type NodeIngestor interface {
 	IngestNode(context.Context, types.NodeType) error
 	Complete(context.Context) error
@@ -53,7 +43,7 @@ type ClusterRoleBindingIngestor interface {
 type CollectorClient interface {
 	services.Dependency
 
-	// StreamNodes will iterate through all NodeType objects collected by the collector and invoke the NodeProcessor callback on each.
+	// StreamNodes will iterate through all NodeType objects collected by the collector and invoke the ingestor.Ingest callback on each.
 	// Once all the NodeType objects have been exhausted the Complete callback will be invoked to signal the end of the stream.
 	StreamNodes(ctx context.Context, ingestor NodeIngestor) error
 
