@@ -27,41 +27,47 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 
 // Flush triggers writes of any remaining items in the queue.
 // wait on the returned channel which will be signaled when the flush operation completes.
+// On error, we return a nil channel, otherwise we always send something to the channel
 func (maw *MongoAsyncWriter) Flush(ctx context.Context) (chan struct{}, error) {
-	ch := make(chan struct{}, 0)
-	defer func(chan struct{}) {
-		log.I.Infof("Flushed data from mongo writer")
-		ch <- struct{}{}
-	}(ch)
+	ch := make(chan struct{}, 1)
 
 	if maw.mongodb.client == nil {
-		return ch, fmt.Errorf("mongodb client is not initialized")
+		return nil, fmt.Errorf("mongodb client is not initialized")
 	}
 
 	if maw.collection == nil {
-		return ch, fmt.Errorf("mongodb collection is not initialized")
+		return nil, fmt.Errorf("mongodb collection is not initialized")
 	}
 
 	if len(maw.ops) == 0 {
 		log.I.Debugf("Skipping flush on %s as no write operations", maw.collection.Name())
+		// we need to send something to the channel from this function whenever we don't return an error
+		// we cannot defer it because the go routine may last longer than the current function
+		// the defer is going to be executed at the return time, whetever or not the inner go routine is processing data
+		ch <- struct{}{}
 		return ch, nil
 	}
 
-	for start := 0; start < len(maw.ops); start += maw.batchSize {
-		end := start + maw.batchSize
-		// Avoid overflow
-		end = int(math.Min(float64(end), float64(len(maw.ops))))
-		// Nothing left in the queue, don't send it through mongodb driver!
-		if start == end {
-			break
+	go func(chan struct{}) {
+		for start := 0; start < len(maw.ops); start += maw.batchSize {
+			// time.Sleep(5 * time.Second)
+			end := start + maw.batchSize
+			// Avoid overflow
+			end = int(math.Min(float64(end), float64(len(maw.ops))))
+			// Nothing left in the queue, don't send it through mongodb driver!
+			if start == end {
+				break
+			}
+			bulkWriteOpts := options.BulkWrite().SetOrdered(false)
+			_, err := maw.collection.BulkWrite(ctx, maw.ops[start:end], bulkWriteOpts)
+			if err != nil {
+				log.I.Errorf("could not write in bulk to mongo: %w", err)
+			}
 		}
-
-		bulkWriteOpts := options.BulkWrite().SetOrdered(false)
-		_, err := maw.collection.BulkWrite(ctx, maw.ops[start:end], bulkWriteOpts)
-		if err != nil {
-			log.I.Errorf("could not write in bulk to mongo: %w", err)
-		}
-	}
+		// we only clear the ops slice after we have finished all bulk writes
+		maw.ops = nil
+		ch <- struct{}{}
+	}(ch)
 	return ch, nil
 }
 
