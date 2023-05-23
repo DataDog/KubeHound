@@ -5,10 +5,10 @@ const (
 )
 
 type CollectorConfig struct {
-	Type string
-	File *FileCollectorConfig
+	Type string               `mapstructure:"type"` // Collector type
+	File *FileCollectorConfig `mapstructure:"file"` // File collector specific configuration
 }
 
 type FileCollectorConfig struct {
-	Directory string
+	Directory string `mapstructure:"directory"` // Base directory holding the K8s data JSON files
 }
