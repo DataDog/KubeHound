@@ -149,7 +149,7 @@ func CreateResources(ctx context.Context, deps *Dependencies, opts ...IngestReso
 		}
 	}
 
-	return i, err
+	return i, nil
 }
 
 // cleanup invokes each registered cleanup handler in turn.
