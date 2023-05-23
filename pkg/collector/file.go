@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	corev1 "k8s.io/api/core/v1"
@@ -43,9 +44,10 @@ const (
 
 type FileCollector struct {
 	cfg *config.FileCollectorConfig
+	log *log.KubehoundLogger
 }
 
-func NewFile(cfg *config.KubehoundConfig) (CollectorClient, error) {
+func NewFile(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
 	if cfg.Collector.Type != config.CollectorTypeFile {
 		return nil, fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
 	}
@@ -56,6 +58,7 @@ func NewFile(cfg *config.KubehoundConfig) (CollectorClient, error) {
 
 	return &FileCollector{
 		cfg: cfg.Collector.File,
+		log: log.Trace(ctx, log.WithComponent(globals.FileCollectorComponent)),
 	}, nil
 }
 
@@ -64,7 +67,7 @@ func (c *FileCollector) Name() string {
 }
 
 func (c *FileCollector) HealthCheck(ctx context.Context) (bool, error) {
-	file, err := os.Stat(basePath)
+	file, err := os.Stat(c.cfg.Directory)
 	if err != nil {
 		return false, fmt.Errorf("file collector base path: %w", err)
 	}
@@ -81,231 +84,175 @@ func (c *FileCollector) Close(ctx context.Context) error {
 	return nil
 }
 
-func (c *FileCollector) loadPodsNamespace(ctx context.Context, fp string, callback PodProcessor) error {
-	bytes, err := os.ReadFile(fp)
+func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, ingestor PodIngestor) error {
+	list, err := readList[corev1.PodList](ctx, fp)
 	if err != nil {
-		return fmt.Errorf("error reading file %s: %v", fp, err)
+		return err
 	}
 
-	if len(bytes) == 0 {
-		return nil
-	}
-
-	var podList corev1.PodList
-	err = json.Unmarshal(bytes, &podList)
-	if err != nil {
-		return fmt.Errorf("error unmarshalling PodList JSON: %v", err)
-	}
-
-	for _, p := range podList.Items {
-		err = callback(ctx, &p)
+	for _, item := range list.Items {
+		i := types.PodType(&item)
+		err = ingestor.IngestPod(ctx, i)
 		if err != nil {
-			return fmt.Errorf("error processing pod %s::%s: %w", p.Namespace, p.Name, err)
+			return fmt.Errorf("processing K8s cluster role binding %s: %w", i.Name, err)
 		}
 	}
 
 	return nil
 }
 
-func (c *FileCollector) LoadPods(ctx context.Context, callback PodProcessor, complete Complete) error {
-	err := filepath.WalkDir(i.basePath, func(path string, d fs.DirEntry, err error) error {
-		if path == i.basePath || !d.IsDir() {
+func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
+	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil
 		}
 
-		f := filepath.Join(path, podPath)
-		log.I.Debugf("Ingesting pods from file %s", f)
+		fp := filepath.Join(path, podPath)
+		c.log.Debugf("Streaming pods from file %s", fp)
 
-		return i.loadPodsNamespace(ctx, f, callback)
+		return c.streamPodsNamespace(ctx, fp, ingestor)
 	})
 
+	if err != nil {
+		return fmt.Errorf("file collector stream pods: %w", err)
+	}
+
+	return ingestor.Complete(ctx)
+}
+
+func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ingestor RoleIngestor) error {
+	list, err := readList[rbacv1.RoleList](ctx, fp)
 	if err != nil {
 		return err
 	}
 
-	return complete(ctx)
+	for _, item := range list.Items {
+		i := types.RoleType(&item)
+		err = ingestor.IngestRole(ctx, i)
+		if err != nil {
+			return fmt.Errorf("processing K8s role %s: %w", i.Name, err)
+		}
+	}
+
+	return nil
 }
 
-func (c *FileCollector) StreamRoles(ctx context.Context, callback RoleProcessor, complete Complete) error {
-	err := filepath.WalkDir(i.basePath, func(path string, d fs.DirEntry, err error) error {
-		if path == i.basePath || !d.IsDir() {
+func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
+	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil
 		}
 
 		f := filepath.Join(path, rolesPath)
-		log.I.Debugf("Ingesting roles from file %s", f)
+		c.log.Debugf("Streaming roles from file %s", f)
 
-		return i.loadRolesNamespace(ctx, f, callback)
+		return c.streamRolesNamespace(ctx, f, ingestor)
 	})
 
+	if err != nil {
+		return fmt.Errorf("file collector stream roles: %w", err)
+	}
+
+	return ingestor.Complete(ctx)
+}
+
+func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp string, ingestor RoleBindingIngestor) error {
+	list, err := readList[rbacv1.RoleBindingList](ctx, fp)
 	if err != nil {
 		return err
 	}
 
-	return complete(ctx)
-}
-
-func (c *FileCollector) loadRolesNamespace(ctx context.Context, fp string, callback RoleProcessor) error {
-	bytes, err := os.ReadFile(fp)
-	if err != nil {
-		return fmt.Errorf("error reading file %s: %v", fp, err)
-	}
-
-	if len(bytes) == 0 {
-		return nil
-	}
-
-	var roleList rbacv1.RoleList
-	err = json.Unmarshal(bytes, &roleList)
-	if err != nil {
-		return fmt.Errorf("error unmarshalling RoleList JSON: %v", err)
-	}
-
-	for _, r := range roleList.Items {
-		err = callback(ctx, &r)
+	for _, item := range list.Items {
+		i := types.RoleBindingType(&item)
+		err = ingestor.IngestRoleBinding(ctx, i)
 		if err != nil {
-			return fmt.Errorf("error processing Role %s::%s: %w", r.Namespace, r.Name, err)
+			return fmt.Errorf("processing K8s role binding %s: %w", i.Name, err)
 		}
 	}
 
 	return nil
 }
 
-func (c *FileCollector) loadRoleBindingsNamespace(ctx context.Context, fp string, callback RoleBindingProcessor) error {
-	bytes, err := os.ReadFile(fp)
-	if err != nil {
-		return fmt.Errorf("error reading file %s: %v", fp, err)
-	}
-
-	if len(bytes) == 0 {
-		return nil
-	}
-
-	var roleBindingList rbacv1.RoleBindingList
-	err = json.Unmarshal(bytes, &roleBindingList)
-	if err != nil {
-		return fmt.Errorf("error unmarshalling RoleBindingList JSON: %v", err)
-	}
-
-	for _, r := range roleBindingList.Items {
-		err = callback(ctx, &r)
-		if err != nil {
-			return fmt.Errorf("error processing Rolebinding %s::%s: %w", r.Namespace, r.Name, err)
-		}
-	}
-
-	return nil
-}
-
-func (c *FileCollector) StreamRoleBindings(ctx context.Context, callback RoleBindingProcessor, complete Complete) error {
-	err := filepath.WalkDir(c.basePath, func(path string, d fs.DirEntry, err error) error {
-		if path == c.basePath || !d.IsDir() {
+func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
+	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil
 		}
 
-		f := filepath.Join(path, roleBindingsPath)
-		log.I.Debugf("Collecting rolebindings from file %s", f)
+		fp := filepath.Join(path, roleBindingsPath)
+		c.log.Debugf("Streaming role bindings from file %s", fp)
 
-		return c.loadRoleBindingsNamespace(ctx, f, callback)
+		return c.streamRoleBindingsNamespace(ctx, fp, ingestor)
 	})
 
+	if err != nil {
+		return fmt.Errorf("file collector stream role bindings: %w", err)
+	}
+
+	return ingestor.Complete(ctx)
+}
+
+func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
+	fp := filepath.Join(c.cfg.Directory, nodePath)
+	c.log.Debugf("Streaming nodes from file %s", fp)
+
+	list, err := readList[corev1.NodeList](ctx, fp)
 	if err != nil {
 		return err
 	}
 
-	return complete(ctx)
-}
-
-func (c *FileCollector) StreamNodes(ctx context.Context, callback NodeProcessor, complete Complete) error {
-	path := filepath.Join(c.basePath, nodePath)
-	list, err := readList[corev1.NodeList](ctx, path)
-
 	for _, item := range list.Items {
 		i := types.NodeType(&item)
-		err = callback(ctx, &i)
+		err = ingestor.IngestNode(ctx, i)
 		if err != nil {
 			return fmt.Errorf("processing K8s node %s::%s: %w", i.Namespace, i.Name, err)
 		}
 	}
 
-	return complete(ctx)
+	return ingestor.Complete(ctx)
 }
 
-func (c *FileCollector) StreamClusterRoles(ctx context.Context, callback ClusterRoleProcessor, complete Complete) error {
-	path := filepath.Join(c.basePath, clusterRolesPath)
-	list, err := readList[rbacv1.ClusterRoleList](ctx, path)
+func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
+	fp := filepath.Join(c.cfg.Directory, clusterRolesPath)
+	c.log.Debugf("Streaming cluster roles from file %s", fp)
+
+	list, err := readList[rbacv1.ClusterRoleList](ctx, fp)
+	if err != nil {
+		return err
+	}
 
 	for _, item := range list.Items {
 		i := types.ClusterRoleType(&item)
-		err = callback(ctx, &i)
+		err = ingestor.IngestClusterRole(ctx, i)
 		if err != nil {
 			return fmt.Errorf("processing k8s cluster role %s: %w", i.Name, err)
 		}
 	}
 
-	return complete(ctx)
+	return ingestor.Complete(ctx)
 }
 
-func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, callback ClusterRoleBindingProcessor, complete Complete) error {
-	path := filepath.Join(c.basePath, clusterRoleBindingsPath)
-	list, err := readList[rbacv1.ClusterRoleBindingList](ctx, path)
+func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
+	fp := filepath.Join(c.cfg.Directory, clusterRoleBindingsPath)
+	c.log.Debugf("Streaming cluster role bindings from file %s", fp)
 
-	for _, item := range list.Items {
-		i := types.ClusterRoleBindingType(&item)
-		err = callback(ctx, &i)
-		if err != nil {
-			return fmt.Errorf("processing K8s cluster role binding %s: %w", i.Name, err)
-		}
-	}
-
-	return complete(ctx)
-}
-
-list, err := readList[rbacv1.ClusterRoleBindingList](ctx, path)
-
-	for _, item := range list.Items {
-		i := types.ClusterRoleBindingType(&item)
-		err = callback(ctx, &i)
-		if err != nil {
-			return fmt.Errorf("processing K8s cluster role binding %s: %w", i.Name, err)
-		}
-	}
-
-func streamObjectsNamespace[] {
-	list, err := readList[rbacv1.ClusterRoleBindingList](ctx, path)
-
-	for _, item := range list.Items {
-		i := types.ClusterRoleBindingType(&item)
-		err = callback(ctx, &i)
-		if err != nil {
-			return fmt.Errorf("processing K8s cluster role binding %s: %w", i.Name, err)
-		}
-	}
-
-
-}
-
-func (c *FileCollector) streamDir(ctx context.Context, callback RoleProcessor, complete Complete) error {
-	err := filepath.WalkDir(c.basePath, func(path string, d fs.DirEntry, err error) error {
-		if path == c.basePath || !d.IsDir() {
-			// Skip files
-			return nil
-		}
-
-		f := filepath.Join(path, podPath)
-		log.I.Debugf("Collecting pods from file %s", f)
-
-		return .loadPodsNamespace(ctx, f, callback)
-	})
-
+	list, err := readList[rbacv1.ClusterRoleBindingList](ctx, fp)
 	if err != nil {
 		return err
 	}
 
-	return complete(ctx)
+	for _, item := range list.Items {
+		i := types.ClusterRoleBindingType(&item)
+		err = ingestor.IngestClusterRoleBinding(ctx, i)
+		if err != nil {
+			return fmt.Errorf("processing K8s cluster role binding %s: %w", i.Name, err)
+		}
+	}
+
+	return ingestor.Complete(ctx)
 }
 
 // This implementation reads the entire array into memory at once.
@@ -323,7 +270,7 @@ func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl
 
 	err = json.Unmarshal(bytes, &inputList)
 	if err != nil {
-		return inputList, fmt.Errorf("unmarshalling %T JSON: %w", inputList, err)
+		return inputList, fmt.Errorf("unmarshalling %T json: %w", inputList, err)
 	}
 
 	return inputList, nil

@@ -9,36 +9,48 @@ import (
 )
 
 // NodeIngestor defines the interface to allow an ingestor to consume node inputs from a collector.
+//
+//go:generate mockery --name NodeIngestor --output mocks --case underscore --filename node_ingestor.go --with-expecter
 type NodeIngestor interface {
 	IngestNode(context.Context, types.NodeType) error
 	Complete(context.Context) error
 }
 
 // PodIngestor defines the interface to allow an ingestor to consume pod inputs from a collector.
+//
+//go:generate mockery --name PodIngestor --output mocks --case underscore --filename pod_ingestor.go --with-expecter
 type PodIngestor interface {
 	IngestPod(context.Context, types.PodType) error
 	Complete(context.Context) error
 }
 
 // RoleIngestor defines the interface to allow an ingestor to consume role inputs from a collector.
+//
+//go:generate mockery --name RoleIngestor --output mocks --case underscore --filename role_ingestor.go --with-expecter
 type RoleIngestor interface {
 	IngestRole(context.Context, types.RoleType) error
 	Complete(context.Context) error
 }
 
 // ClusterRoleIngestor defines the interface to allow an ingestor to consume cluster role inputs from a collector.
+//
+//go:generate mockery --name ClusterRoleIngestor --output mocks --case underscore --filename cluster_role_ingestor.go --with-expecter
 type ClusterRoleIngestor interface {
 	IngestClusterRole(context.Context, types.ClusterRoleType) error
 	Complete(context.Context) error
 }
 
 // RoleBindingIngestor defines the interface to allow an ingestor to consume role binding inputs from a collector.
+//
+//go:generate mockery --name RoleBindingIngestor --output mocks --case underscore --filename role_binding_ingestor.go --with-expecter
 type RoleBindingIngestor interface {
 	IngestRoleBinding(context.Context, types.RoleBindingType) error
 	Complete(context.Context) error
 }
 
 // ClusterRoleBindingIngestor defines the interface to allow an ingestor to consume cluster role binding inputs from a collector.
+//
+//go:generate mockery --name ClusterRoleBindingIngestor --output mocks --case underscore --filename cluster_role_binding_ingestor.go --with-expecter
 type ClusterRoleBindingIngestor interface {
 	IngestClusterRoleBinding(context.Context, types.ClusterRoleBindingType) error
 	Complete(context.Context) error
@@ -78,5 +90,5 @@ type CollectorClient interface {
 
 // ClientFactory creates an initialized instance of a collector client based on the provided application configuration.
 func ClientFactory(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	return NewFile(cfg)
+	return NewFile(ctx, cfg)
 }
