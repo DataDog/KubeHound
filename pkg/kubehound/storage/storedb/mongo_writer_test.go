@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// We need a "complex" object to store in MongoDB
 type FakeElement struct {
 	FieldA int
 	FieldB string
@@ -138,6 +139,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 	if err != nil {
 		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
 	}
+
 	tests := []struct {
 		name      string
 		fields    fields
@@ -237,15 +239,13 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 					t.Errorf("MongoAsyncWriter.Queue() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
-			var waiting chan struct{}
-			var err error
-			// non blocking
-			waiting, err = maw.Flush(tt.argsFlush.ctx)
+			// non blocking function
+			waiting, err := maw.Flush(tt.argsFlush.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MongoAsyncWriter.Flush() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			//
+			// For our test case we want to wait that the flush as done everything it was required to do
 			<-waiting
 
 			// Should now be reset to 0
