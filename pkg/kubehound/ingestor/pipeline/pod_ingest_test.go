@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
-	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mocks"
+	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
@@ -25,15 +25,15 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
-	client.EXPECT().StreamPods(ctx, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, process collector.PodProcessor, complete collector.Complete) error {
+	client.EXPECT().StreamPods(ctx, pi).
+		RunAndReturn(func(ctx context.Context, i collector.PodIngestor) error {
 			// Fake the stream of a single pod from the collector client
-			err := process(ctx, fakePod)
+			err := i.IngestPod(ctx, fakePod)
 			if err != nil {
 				return err
 			}
 
-			return complete(ctx)
+			return i.Complete(ctx)
 		})
 
 	// Cache setup

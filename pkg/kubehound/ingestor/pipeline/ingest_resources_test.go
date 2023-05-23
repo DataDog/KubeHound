@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	collector "github.com/DataDog/KubeHound/pkg/collector/mocks"
+	collector "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"

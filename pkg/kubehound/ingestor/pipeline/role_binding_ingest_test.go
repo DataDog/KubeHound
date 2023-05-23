@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
-	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mocks"
+	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
@@ -25,15 +25,15 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
-	client.EXPECT().StreamRoleBindings(ctx, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, process collector.RoleBindingProcessor, complete collector.Complete) error {
+	client.EXPECT().StreamRoleBindings(ctx, ri).
+		RunAndReturn(func(ctx context.Context, i collector.RoleBindingIngestor) error {
 			// Fake the stream of a single role binding from the collector client
-			err := process(ctx, fakeRb)
+			err := i.IngestRoleBinding(ctx, fakeRb)
 			if err != nil {
 				return err
 			}
 
-			return complete(ctx)
+			return i.Complete(ctx)
 		})
 
 	// Cache setup

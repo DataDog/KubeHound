@@ -1,0 +1,45 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Node",
+            "metadata": {
+              "name": "node-1",
+              "labels": {
+                "env": "production",
+                "nodegroups.datadoghq.com/local-storage": "true",
+                "nodegroups.datadoghq.com/name": "node-1",
+                "nodegroups.datadoghq.com/namespace": "internal-test-1"
+              }
+            },
+            "status": {
+              "capacity": {
+                "cpu": "4",
+                "memory": "16Gi"
+              },
+              "conditions": [
+                {
+                  "type": "Ready",
+                  "status": "True",
+                  "lastHeartbeatTime": "2023-05-15T10:30:00Z"
+                }
+              ],
+              "addresses": [
+                {
+                  "type": "InternalIP",
+                  "address": "192.168.1.10"
+                },
+                {
+                  "type": "Hostname",
+                  "address": "node-1.example.com"
+                }
+              ]
+            }
+          }          
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}
