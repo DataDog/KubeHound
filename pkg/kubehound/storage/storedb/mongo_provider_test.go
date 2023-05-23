@@ -42,7 +42,7 @@ func TestMongoProvider_BulkWriter(t *testing.T) {
 				db:     provider.db,
 			},
 			args: args{
-				ctx:        context.TODO(),
+				ctx:        context.Background(),
 				collection: fakeCollection,
 			},
 			wantErr: false,
