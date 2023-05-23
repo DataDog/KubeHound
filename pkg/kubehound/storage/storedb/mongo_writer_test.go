@@ -1,0 +1,228 @@
+package storedb
+
+import (
+	"context"
+	"testing"
+
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type FakeElement struct {
+	FieldA int
+	FieldB string
+}
+
+func TestMongoAsyncWriter_Queue(t *testing.T) {
+
+	fakeElem := FakeElement{
+		FieldA: 123,
+		FieldB: "lol",
+	}
+
+	mongoProvider, err := NewMongoProvider(MongoDatabaseURL)
+	// TODO: add another check (env var maybe?)
+	// "integration test checks"
+	if err != nil {
+		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
+	}
+
+	type fields struct {
+		mongodb    *MongoProvider
+		collection *mongo.Collection
+		ops        []mongo.WriteModel
+	}
+	type args struct {
+		ctx   context.Context
+		model any
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      []args
+		wantErr   bool
+		queueSize int
+	}{
+		{
+			name: "test adding one item in mongo db queue",
+			fields: fields{
+				mongodb: mongoProvider,
+				ops:     make([]mongo.WriteModel, 0),
+			},
+			args:      []args{},
+			wantErr:   false,
+			queueSize: 0,
+		},
+		{
+			name: "test adding one item in mongo db queue",
+			fields: fields{
+				mongodb:    mongoProvider,
+				collection: &mongo.Collection{},
+				ops:        make([]mongo.WriteModel, 0),
+			},
+			args: []args{
+				{
+					ctx:   context.TODO(),
+					model: fakeElem,
+				},
+			},
+			wantErr:   false,
+			queueSize: 1,
+		},
+		{
+			name: "test adding multiple items in mongo db queue",
+			fields: fields{
+				mongodb:    mongoProvider,
+				collection: &mongo.Collection{},
+				ops:        make([]mongo.WriteModel, 0),
+			},
+			args: []args{
+				{
+					ctx:   context.TODO(),
+					model: fakeElem,
+				},
+				{
+					ctx:   context.TODO(),
+					model: "test random string insert 2",
+				},
+			},
+			wantErr:   false,
+			queueSize: 2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			maw := &MongoAsyncWriter{
+				mongodb: tt.fields.mongodb,
+				ops:     tt.fields.ops,
+			}
+			// insert multiple times if needed
+			for _, args := range tt.args {
+				if err := maw.Queue(args.ctx, args.model); (err != nil) != tt.wantErr {
+					t.Errorf("MongoAsyncWriter.Queue() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			}
+
+			gotSize := len(maw.ops)
+			if gotSize != tt.queueSize {
+				t.Errorf("MongoAsyncWriter.Queue() didn't inserted items, got size: %d, wanted: %d", gotSize, tt.queueSize)
+			}
+		})
+	}
+}
+
+func TestMongoAsyncWriter_Flush(t *testing.T) {
+
+	fakeElem := FakeElement{
+		FieldA: 123,
+		FieldB: "lol",
+	}
+
+	type fields struct {
+		mongodb *MongoProvider
+		ops     []mongo.WriteModel
+	}
+	type argsQueue struct {
+		ctx   context.Context
+		model any
+	}
+	type argsFlush struct {
+		ctx context.Context
+	}
+
+	mongoProvider, err := NewMongoProvider(MongoDatabaseURL)
+	// TODO: add another check (env var maybe?)
+	// "integration test checks"
+	if err != nil {
+		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
+	}
+
+	tests := []struct {
+		name      string
+		fields    fields
+		argsQueue []argsQueue
+		argsFlush argsFlush
+		want      chan struct{}
+		queueSize int
+		wantErr   bool
+	}{
+		{
+			name: "test flushing multiple items from mongo db queue",
+			fields: fields{
+				mongodb: mongoProvider,
+				ops:     make([]mongo.WriteModel, 0),
+			},
+			argsQueue: []argsQueue{
+				{
+					ctx:   context.TODO(),
+					model: fakeElem,
+				},
+				{
+					ctx:   context.TODO(),
+					model: fakeElem,
+				},
+			},
+			argsFlush: argsFlush{
+				ctx: context.TODO(),
+			},
+			queueSize: 0,
+			wantErr:   false,
+		},
+		{
+			name: "test flushing 0 items from mongo db queue",
+			fields: fields{
+				mongodb: mongoProvider,
+				ops:     make([]mongo.WriteModel, 0),
+			},
+			argsQueue: []argsQueue{},
+			argsFlush: argsFlush{
+				ctx: context.TODO(),
+			},
+			queueSize: 0,
+			wantErr:   false,
+		},
+		{
+			name: "test flushing 6 items from mongo db queue (with TestBatchSize = 5)",
+			fields: fields{
+				mongodb: mongoProvider,
+				ops:     make([]mongo.WriteModel, 0),
+			},
+			argsQueue: []argsQueue{},
+			argsFlush: argsFlush{
+				ctx: context.TODO(),
+			},
+			queueSize: 0,
+			wantErr:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			maw := &MongoAsyncWriter{
+				mongodb: tt.fields.mongodb,
+				ops:     tt.fields.ops,
+			}
+			maw.collection = tt.fields.mongodb.db.Collection("test-collection")
+			// insert multiple times if needed
+			for _, args := range tt.argsQueue {
+				if err := maw.Queue(args.ctx, args.model); (err != nil) != tt.wantErr {
+					t.Errorf("MongoAsyncWriter.Queue() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			}
+			var waiting chan struct{}
+			var err error
+			go func() {
+				waiting, err = maw.Flush(tt.argsFlush.ctx)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("MongoAsyncWriter.Flush() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+			}()
+			<-waiting
+			// Should now be reset to 0
+			gotSize := len(maw.ops)
+			if gotSize != tt.queueSize {
+				t.Errorf("MongoAsyncWriter.Queue() didn't inserted items, got size: %d, wanted: %d", gotSize, tt.queueSize)
+			}
+		})
+	}
+}
