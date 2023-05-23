@@ -24,13 +24,8 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
-<<<<<<< HEAD
-	client.EXPECT().StreamNodes(ctx, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, np collector.NodeProcessor, c collector.Complete) error {
-=======
 	client.EXPECT().StreamNodes(ctx, ni).
 		RunAndReturn(func(ctx context.Context, i collector.NodeIngestor) error {
->>>>>>> jeremy/refactor
 			// Fake the stream of a single node from the collector client
 			err := i.IngestNode(ctx, fakeNode)
 			if err != nil {
@@ -44,11 +39,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
 	cwDone := make(chan struct{})
-<<<<<<< HEAD
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.nodeCacheKey"), mock.AnythingOfType("primitive.ObjectID")).Return(nil).Once()
-=======
 	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.nodeCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
->>>>>>> jeremy/refactor
 	cw.EXPECT().Flush(ctx).Return(cwDone, nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
