@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
-	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mocks"
+	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
@@ -18,22 +18,22 @@ import (
 )
 
 func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
-	ri := &ClusterRoleBindingIngest{}
+	crbi := &ClusterRoleBindingIngest{}
 
 	ctx := context.Background()
 	fakeCrb, err := loadTestObject[types.ClusterRoleBindingType]("testdata/clusterrolebinding.json")
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
-	client.EXPECT().StreamClusterRoleBindings(ctx, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, process collector.ClusterRoleBindingProcessor, complete collector.Complete) error {
+	client.EXPECT().StreamClusterRoleBindings(ctx, crbi).
+		RunAndReturn(func(ctx context.Context, i collector.ClusterRoleBindingIngestor) error {
 			// Fake the stream of a single cluster role binding from the collector client
-			err := process(ctx, fakeCrb)
+			err := i.IngestClusterRoleBinding(ctx, fakeCrb)
 			if err != nil {
 				return err
 			}
 
-			return complete(ctx)
+			return i.Complete(ctx)
 		})
 
 	// Cache setup
@@ -76,7 +76,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	}
 
 	// Initialize
-	err = ri.Initialize(ctx, deps)
+	err = crbi.Initialize(ctx, deps)
 	assert.NoError(t, err)
 
 	go func() {
@@ -88,10 +88,10 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	}()
 
 	// Run
-	err = ri.Run(ctx)
+	err = crbi.Run(ctx)
 	assert.NoError(t, err)
 
 	// Close
-	err = ri.Close(ctx)
+	err = crbi.Close(ctx)
 	assert.NoError(t, err)
 }

@@ -11,6 +11,7 @@ func ProdEnv() bool {
 }
 
 const (
-	IngestorComponent = "pipeline-ingestor"
-	BuilderComponent  = "graph-builder"
+	FileCollectorComponent = "file-collector"
+	IngestorComponent      = "pipeline-ingestor"
+	BuilderComponent       = "graph-builder"
 )

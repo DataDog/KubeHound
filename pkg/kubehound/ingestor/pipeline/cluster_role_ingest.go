@@ -44,7 +44,7 @@ func (i *ClusterRoleIngest) Initialize(ctx context.Context, deps *Dependencies) 
 
 // streamCallback is invoked by the collector for each cluster role collected.
 // The function ingests an input cluster role into the cache/store/graph databases asynchronously.
-func (i *ClusterRoleIngest) streamCallback(ctx context.Context, role types.ClusterRoleType) error {
+func (i *ClusterRoleIngest) IngestClusterRole(ctx context.Context, role types.ClusterRoleType) error {
 	// Normalize K8s cluster role to store object format. Cluster roles are treated as
 	// role within our model (with IsNamespaced flag set to false).
 	o, err := i.r.storeConvert.ClusterRole(ctx, role)
@@ -78,12 +78,12 @@ func (i *ClusterRoleIngest) streamCallback(ctx context.Context, role types.Clust
 
 // completeCallback is invoked by the collector when all cluster roles have been streamed.
 // The function flushes all writers and waits for completion.
-func (i *ClusterRoleIngest) completeCallback(ctx context.Context) error {
+func (i *ClusterRoleIngest) Complete(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }
 
 func (i *ClusterRoleIngest) Run(ctx context.Context) error {
-	return i.r.collect.StreamClusterRoles(ctx, i.streamCallback, i.completeCallback)
+	return i.r.collect.StreamClusterRoles(ctx, i)
 }
 
 func (i *ClusterRoleIngest) Close(ctx context.Context) error {
