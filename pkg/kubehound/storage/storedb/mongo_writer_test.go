@@ -13,7 +13,7 @@ type FakeElement struct {
 }
 
 func TestMongoAsyncWriter_Queue(t *testing.T) {
-
+	t.Parallel()
 	fakeElem := FakeElement{
 		FieldA: 123,
 		FieldB: "lol",
@@ -91,7 +91,9 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			maw := &MongoAsyncWriter{
 				mongodb: tt.fields.mongodb,
 				ops:     tt.fields.ops,
@@ -112,7 +114,7 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 }
 
 func TestMongoAsyncWriter_Flush(t *testing.T) {
-
+	t.Parallel()
 	fakeElem := FakeElement{
 		FieldA: 123,
 		FieldB: "lol",
@@ -136,7 +138,6 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 	if err != nil {
 		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
 	}
-
 	tests := []struct {
 		name      string
 		fields    fields
@@ -150,20 +151,20 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 			name: "test flushing multiple items from mongo db queue",
 			fields: fields{
 				mongodb: mongoProvider,
-				ops:     make([]mongo.WriteModel, 0),
+				ops:     []mongo.WriteModel{},
 			},
 			argsQueue: []argsQueue{
 				{
-					ctx:   context.TODO(),
+					ctx:   context.Background(),
 					model: fakeElem,
 				},
 				{
-					ctx:   context.TODO(),
+					ctx:   context.Background(),
 					model: fakeElem,
 				},
 			},
 			argsFlush: argsFlush{
-				ctx: context.TODO(),
+				ctx: context.Background(),
 			},
 			queueSize: 0,
 			wantErr:   false,
@@ -176,7 +177,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 			},
 			argsQueue: []argsQueue{},
 			argsFlush: argsFlush{
-				ctx: context.TODO(),
+				ctx: context.Background(),
 			},
 			queueSize: 0,
 			wantErr:   false,
@@ -187,16 +188,44 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 				mongodb: mongoProvider,
 				ops:     make([]mongo.WriteModel, 0),
 			},
-			argsQueue: []argsQueue{},
+			argsQueue: []argsQueue{
+				{
+					ctx:   context.Background(),
+					model: fakeElem,
+				},
+				{
+					ctx:   context.Background(),
+					model: fakeElem,
+				},
+				{
+					ctx:   context.Background(),
+					model: fakeElem,
+				},
+				{
+					ctx:   context.Background(),
+					model: fakeElem,
+				},
+				{
+					ctx:   context.Background(),
+					model: fakeElem,
+				},
+				{
+					ctx:   context.Background(),
+					model: fakeElem,
+				},
+			},
 			argsFlush: argsFlush{
-				ctx: context.TODO(),
+				ctx: context.Background(),
 			},
 			queueSize: 0,
 			wantErr:   false,
 		},
 	}
+
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			maw := &MongoAsyncWriter{
 				mongodb: tt.fields.mongodb,
 				ops:     tt.fields.ops,
@@ -210,18 +239,19 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 			}
 			var waiting chan struct{}
 			var err error
-			go func() {
-				waiting, err = maw.Flush(tt.argsFlush.ctx)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("MongoAsyncWriter.Flush() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-			}()
+			// non blocking
+			waiting, err = maw.Flush(tt.argsFlush.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MongoAsyncWriter.Flush() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			//
 			<-waiting
+
 			// Should now be reset to 0
 			gotSize := len(maw.ops)
 			if gotSize != tt.queueSize {
-				t.Errorf("MongoAsyncWriter.Queue() didn't inserted items, got size: %d, wanted: %d", gotSize, tt.queueSize)
+				t.Errorf("MongoAsyncWriter.Flush() didn't flushed all items, got size: %d, wanted: %d", gotSize, tt.queueSize)
 			}
 		})
 	}
