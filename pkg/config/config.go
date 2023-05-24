@@ -19,7 +19,12 @@ type KubehoundConfig struct {
 
 // MustLoadDefaultConfig loads the default application configuration, treating all errors as fatal.
 func MustLoadDefaultConfig() *KubehoundConfig {
-	cfg, err := NewConfig(DefaultConfigPath)
+	return MustLoadConfig(DefaultConfigPath)
+}
+
+// MustLoadtConfig loads the application configuration from the provided path, treating all errors as fatal.
+func MustLoadConfig(configPath string) *KubehoundConfig {
+	cfg, err := NewConfig(configPath)
 	if err != nil {
 		log.I.Fatalf("config load: %w", err)
 	}

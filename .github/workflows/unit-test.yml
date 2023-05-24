@@ -1,4 +1,4 @@
-name: kubehound-unit-tests
+name: KubeHound Unit Tests
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - name: harden-runner
+      - name: Harden Runner
         uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3
         with:
           egress-policy: block
@@ -25,13 +25,13 @@ jobs:
             go.dev:443
             storage.googleapis.com:443
             
-      - name: setup-golang
+      - name: Setup Golang
         uses: actions/setup-go@v4
         with:
           go-version: 1.20.0
        
-      - name: git-repo-checkout
+      - name: Checkout Git Repo
         uses: actions/checkout@v3
 
-      - name: pkg-unit-test
+      - name: Run Unit Tests
         run: make test
