@@ -14,7 +14,7 @@ import (
 // before running the collector and staring the test suite
 
 func TestMain(m *testing.M) {
-	// Verify kind is running
+	// Run the kind-collect.sh script
 	// TODO
 
 	// Configuration file path pointing to the collected kind K8s data

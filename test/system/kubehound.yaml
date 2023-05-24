@@ -1,4 +1,4 @@
 collector:
   type: file-collector
   file:
-    directory: ../kind-collect/
+    directory: kind-collect/
