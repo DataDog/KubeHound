@@ -12,3 +12,7 @@ build:
 .PHONY: test
 test:
 	cd pkg && go test ./... -v
+
+.PHONY: system-test
+system-test:
+	cd test/system && go test ./... -v
