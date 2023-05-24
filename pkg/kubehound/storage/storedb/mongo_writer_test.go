@@ -3,7 +3,9 @@ package storedb
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -20,46 +22,33 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 		FieldB: "lol",
 	}
 
+	ctx := context.Background()
 	mongoProvider, err := NewMongoProvider(MongoDatabaseURL)
+
 	// TODO: add another check (env var maybe?)
 	// "integration test checks"
 	if err != nil {
 		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
 	}
 
-	type fields struct {
-		mongodb    *MongoProvider
-		collection *mongo.Collection
-		ops        []mongo.WriteModel
-	}
 	type args struct {
 		ctx   context.Context
 		model any
 	}
 	tests := []struct {
 		name      string
-		fields    fields
 		args      []args
 		wantErr   bool
 		queueSize int
 	}{
 		{
-			name: "test adding one item in mongo db queue",
-			fields: fields{
-				mongodb: mongoProvider,
-				ops:     make([]mongo.WriteModel, 0),
-			},
+			name:      "test adding one item in mongo db queue",
 			args:      []args{},
 			wantErr:   false,
 			queueSize: 0,
 		},
 		{
 			name: "test adding one item in mongo db queue",
-			fields: fields{
-				mongodb:    mongoProvider,
-				collection: &mongo.Collection{},
-				ops:        make([]mongo.WriteModel, 0),
-			},
 			args: []args{
 				{
 					ctx:   context.TODO(),
@@ -71,11 +60,6 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 		},
 		{
 			name: "test adding multiple items in mongo db queue",
-			fields: fields{
-				mongodb:    mongoProvider,
-				collection: &mongo.Collection{},
-				ops:        make([]mongo.WriteModel, 0),
-			},
 			args: []args{
 				{
 					ctx:   context.TODO(),
@@ -95,18 +79,20 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			maw := &MongoAsyncWriter{
-				mongodb: tt.fields.mongodb,
-				ops:     tt.fields.ops,
-			}
+			writer := NewMongoAsyncWriter(ctx, mongoProvider, collections.FakeCollection{})
 			// insert multiple times if needed
 			for _, args := range tt.args {
-				if err := maw.Queue(args.ctx, args.model); (err != nil) != tt.wantErr {
+				if err := writer.Queue(args.ctx, args.model); (err != nil) != tt.wantErr {
 					t.Errorf("MongoAsyncWriter.Queue() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
+			// We can't really know when the queue as effectively enqueued all the items
+			// 100 ms should be a very large buffer
+			// all these tests are running in parallel, so it should be mostly always end in ~100ms
+			// (depending on the core count / parallel count)
+			time.Sleep(100 * time.Millisecond)
 
-			gotSize := len(maw.ops)
+			gotSize := len(writer.ops)
 			if gotSize != tt.queueSize {
 				t.Errorf("MongoAsyncWriter.Queue() didn't inserted items, got size: %d, wanted: %d", gotSize, tt.queueSize)
 			}

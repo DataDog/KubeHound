@@ -60,6 +60,7 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 	if len(maw.ops) > maw.batchSize {
 		maw.consummerChan <- maw.ops
+		maw.ops = nil
 	}
 	maw.ops = append(maw.ops, mongo.NewInsertOneModel().SetDocument(model))
 	return nil
