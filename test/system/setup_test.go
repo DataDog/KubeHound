@@ -28,6 +28,8 @@ func TestMain(m *testing.M) {
 	// Run the kind-collect.sh script. NOTE: this is a temporary solution until the K8s API collector is
 	// completed, at which point it should be invoked here.
 	cmd := exec.CommandContext(cmdCtx, CollectorScriptPath, CollectorOutputDir)
+
+	// TODO output stdout
 	if err := cmd.Run(); err != nil {
 		log.I.Fatalf("Collector script execution: %v", err)
 	}

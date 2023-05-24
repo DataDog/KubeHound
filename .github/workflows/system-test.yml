@@ -14,11 +14,11 @@ jobs:
         uses: helm/kind-action@v1.4.0
         with:
           cluster_name: kubehound.test.local
-          config: ./test/setup/test-cluster/cluster.yaml
+          config: test/setup/test-cluster/cluster.yaml
           wait: 5m
         
       - name: Create K8s resources
-        run: ./test/setup/create-cluster-resources.sh
+        run: bash test/setup/create-cluster-resources.sh
       
       - name: Setup Golang
         uses: actions/setup-go@v4
