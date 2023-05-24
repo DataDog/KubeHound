@@ -6,24 +6,24 @@ jobs:
   system-test:
     runs-on: ubuntu-latest
 
-    steps:
+    steps:       
+      - name: Checkout Git Repo
+        uses: actions/checkout@v3
+
       - name: Create K8s Kind Cluster
         uses: helm/kind-action@v1.4.0
         with:
           cluster_name: kubehound.test.local
-          config: test/setup/test-cluster/cluster.yaml
+          config: ./test/setup/test-cluster/cluster.yaml
           wait: 5m
         
       - name: Create K8s resources
-        run: test/setup/create-cluster-resources.sh
-            
+        run: ./test/setup/create-cluster-resources.sh
+      
       - name: Setup Golang
         uses: actions/setup-go@v4
         with:
           go-version: 1.20.0
-       
-      - name: Checkout Git Repo
-        uses: actions/checkout@v3
 
       - name: Run integration Tests
         run: make system-test
