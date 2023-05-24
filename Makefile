@@ -11,11 +11,11 @@ build:
 
 .PHONY: test
 test:
-	cd pkg && go test ./... -v
+	cd pkg && go test ./...
 
 .PHONY: system-test
 system-test:
-	cd test/system && go test ./... -v
+	cd test/system && go test ./... 
 
 .PHONY: local-cluster-create
 local-cluster-setup:
