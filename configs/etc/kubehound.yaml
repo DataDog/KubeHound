@@ -2,7 +2,3 @@ collector:
   type: file-collector
   file:
     directory: cluster-data/
-
-provider:
-  stporer:
-  
