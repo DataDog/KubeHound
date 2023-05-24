@@ -46,7 +46,7 @@ type AsyncWriter interface {
 
 // Factory returns an initialized instance of a storedb provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
-	provider, err := NewMongoProvider(MongoDatabaseURL)
+	provider, err := NewMongoProvider(ctx, MongoDatabaseURL)
 	if err != nil {
 		return nil, err
 	}

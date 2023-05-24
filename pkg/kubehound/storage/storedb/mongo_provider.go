@@ -16,12 +16,12 @@ type MongoProvider struct {
 	db     *mongo.Database
 }
 
-func NewMongoProvider(url string) (*MongoProvider, error) {
+func NewMongoProvider(ctx context.Context, url string) (*MongoProvider, error) {
 	opts := options.Client()
 	opts.Monitor = otelmongo.NewMonitor()
 	opts.ApplyURI(url)
 
-	client, err := mongo.Connect(context.Background(), opts)
+	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
 		return nil, err
 	}

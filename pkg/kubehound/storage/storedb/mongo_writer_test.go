@@ -23,7 +23,7 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	mongoProvider, err := NewMongoProvider(MongoDatabaseURL)
+	mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL)
 
 	// TODO: add another check (env var maybe?)
 	// "integration test checks"
@@ -119,7 +119,8 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 		ctx context.Context
 	}
 
-	mongoProvider, err := NewMongoProvider(MongoDatabaseURL)
+	ctx := context.Background()
+	mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL)
 	// TODO: add another check (env var maybe?)
 	// "integration test checks"
 	if err != nil {
