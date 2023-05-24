@@ -26,7 +26,8 @@ func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection coll
 		collection: mp.db.Collection(collection.Name()),
 		batchSize:  collection.BatchSize(),
 	}
-	maw.consummerChan = make(chan []mongo.WriteModel)
+	// creating an buffered channel of size one.
+	maw.consummerChan = make(chan []mongo.WriteModel, 1)
 	maw.backgroundWriter(ctx)
 	return &maw
 }
@@ -60,6 +61,7 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 	if len(maw.ops) > maw.batchSize {
 		maw.consummerChan <- maw.ops
+		// cleanup the ops array after we have copied it to the channel
 		maw.ops = nil
 	}
 	maw.ops = append(maw.ops, mongo.NewInsertOneModel().SetDocument(model))
@@ -89,23 +91,13 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) (chan struct{}, error) {
 		return ch, nil
 	}
 
-	// for start := 0; start < len(maw.ops); start += maw.batchSize {
-	// 	end := start + maw.batchSize
-	// 	// Avoid overflow
-	// 	end = int(math.Min(float64(end), float64(len(maw.ops))))
-	// 	// Nothing left in the queue, don't send it through mongodb driver!
-	// 	if start == end {
-	// 		break
-	// 	}
-	// }
-	// // we only clear the ops slice after we have finished all bulk writes
-	// maw.ops = nil
 	go func(chan struct{}) {
 		err := maw.batchWrite(ctx, maw.ops)
 		if err != nil {
 			log.I.Error(err)
 		}
 		ch <- struct{}{}
+		maw.ops = nil
 	}(ch)
 	return ch, nil
 }
@@ -116,7 +108,7 @@ func (maw *MongoAsyncWriter) Close(ctx context.Context) error {
 		return nil
 	}
 
-	err := maw.mongodb.client.Disconnect(ctx)
+	err := maw.mongodb.Close(ctx)
 	if err != nil {
 		return err
 	}

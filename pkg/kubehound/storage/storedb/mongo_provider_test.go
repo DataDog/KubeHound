@@ -9,7 +9,8 @@ import (
 )
 
 func TestMongoProvider_BulkWriter(t *testing.T) {
-	provider, err := NewMongoProvider(MongoDatabaseURL)
+	ctx := context.Background()
+	provider, err := NewMongoProvider(ctx, MongoDatabaseURL)
 	// TODO: add another check (env var maybe?)
 	// "integration test checks"
 	if err != nil {
