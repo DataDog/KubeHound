@@ -1,0 +1,524 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"kubehound-edge-test\"},\"name\":\"hostpath-pod\",\"namespace\":\"default\"},\"spec\":{\"containers\":[{\"args\":[\"while true; do sleep 30; done;\"],\"command\":[\"/bin/sh\",\"-c\",\"--\"],\"image\":\"ubuntu\",\"name\":\"hostpath-pod\",\"volumeMounts\":[{\"mountPath\":\"/host\",\"name\":\"noderoot\"}]}],\"volumes\":[{\"hostPath\":{\"path\":\"/\"},\"name\":\"noderoot\"}]}}\n"
+                },
+                "creationTimestamp": "2023-05-24T09:31:28Z",
+                "labels": {
+                    "app": "kubehound-edge-test"
+                },
+                "name": "hostpath-pod",
+                "namespace": "default",
+                "resourceVersion": "577",
+                "uid": "ab672ea2-8386-4be9-a719-ddcce584f85c"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "while true; do sleep 30; done;"
+                        ],
+                        "command": [
+                            "/bin/sh",
+                            "-c",
+                            "--"
+                        ],
+                        "image": "ubuntu",
+                        "imagePullPolicy": "Always",
+                        "name": "hostpath-pod",
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/host",
+                                "name": "noderoot"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-rrl6c",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "kubehound.test.local-worker",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "hostPath": {
+                            "path": "/",
+                            "type": ""
+                        },
+                        "name": "noderoot"
+                    },
+                    {
+                        "name": "kube-api-access-rrl6c",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:28Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:37Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:37Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:28Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://4dfa225b8341dd0dbe9ae2e1e883ee48e35435c9d1075f603a6283ef10547eea",
+                        "image": "docker.io/library/ubuntu:latest",
+                        "imageID": "docker.io/library/ubuntu@sha256:dfd64a3b4296d8c9b62aa3309984f8620b98d87e47492599ee20739e8eb54fbf",
+                        "lastState": {},
+                        "name": "hostpath-pod",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-05-24T09:31:37Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "172.18.0.3",
+                "phase": "Running",
+                "podIP": "10.244.1.4",
+                "podIPs": [
+                    {
+                        "ip": "10.244.1.4"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "startTime": "2023-05-24T09:31:28Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"kubehound-edge-test\"},\"name\":\"priv-hostpid-pod\",\"namespace\":\"default\"},\"spec\":{\"containers\":[{\"command\":[\"nsenter\",\"--target\",\"1\",\"--mount\",\"--uts\",\"--ipc\",\"--net\",\"--pid\",\"--\",\"bash\"],\"image\":\"ubuntu\",\"name\":\"priv-hostpid-pod\",\"securityContext\":{\"privileged\":true},\"tty\":true}],\"hostPID\":true}}\n"
+                },
+                "creationTimestamp": "2023-05-24T09:31:28Z",
+                "labels": {
+                    "app": "kubehound-edge-test"
+                },
+                "name": "priv-hostpid-pod",
+                "namespace": "default",
+                "resourceVersion": "578",
+                "uid": "ac403c11-a636-4e0f-b349-2c44fc85e89c"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "command": [
+                            "nsenter",
+                            "--target",
+                            "1",
+                            "--mount",
+                            "--uts",
+                            "--ipc",
+                            "--net",
+                            "--pid",
+                            "--",
+                            "bash"
+                        ],
+                        "image": "ubuntu",
+                        "imagePullPolicy": "Always",
+                        "name": "priv-hostpid-pod",
+                        "resources": {},
+                        "securityContext": {
+                            "privileged": true
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "tty": true,
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-wtgh4",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "hostPID": true,
+                "nodeName": "kubehound.test.local-worker",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-wtgh4",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:28Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:37Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:37Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:28Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://732bef3f5edb6690c5aa0e7b81f9f5ace9d68daf0f83d8b7c15637d944eeb5bf",
+                        "image": "docker.io/library/ubuntu:latest",
+                        "imageID": "docker.io/library/ubuntu@sha256:dfd64a3b4296d8c9b62aa3309984f8620b98d87e47492599ee20739e8eb54fbf",
+                        "lastState": {},
+                        "name": "priv-hostpid-pod",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-05-24T09:31:36Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "172.18.0.3",
+                "phase": "Running",
+                "podIP": "10.244.1.3",
+                "podIPs": [
+                    {
+                        "ip": "10.244.1.3"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "startTime": "2023-05-24T09:31:28Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"kubehound-edge-test\"},\"name\":\"priv-pod\",\"namespace\":\"default\"},\"spec\":{\"containers\":[{\"args\":[\"while true; do sleep 30; done;\"],\"command\":[\"/bin/sh\",\"-c\",\"--\"],\"image\":\"ubuntu\",\"name\":\"priv-pod\",\"securityContext\":{\"privileged\":true}}]}}\n"
+                },
+                "creationTimestamp": "2023-05-24T09:31:28Z",
+                "labels": {
+                    "app": "kubehound-edge-test"
+                },
+                "name": "priv-pod",
+                "namespace": "default",
+                "resourceVersion": "567",
+                "uid": "ffd63004-d1cd-428d-92a9-4500954952c1"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "while true; do sleep 30; done;"
+                        ],
+                        "command": [
+                            "/bin/sh",
+                            "-c",
+                            "--"
+                        ],
+                        "image": "ubuntu",
+                        "imagePullPolicy": "Always",
+                        "name": "priv-pod",
+                        "resources": {},
+                        "securityContext": {
+                            "privileged": true
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-ghjcx",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "kubehound.test.local-worker",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-ghjcx",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:28Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:36Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:36Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-05-24T09:31:28Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "containerd://5c4e3481549770349a1ee7980346ce424bb5235b81a6e7ca3c03749d26362336",
+                        "image": "docker.io/library/ubuntu:latest",
+                        "imageID": "docker.io/library/ubuntu@sha256:dfd64a3b4296d8c9b62aa3309984f8620b98d87e47492599ee20739e8eb54fbf",
+                        "lastState": {},
+                        "name": "priv-pod",
+                        "ready": true,
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2023-05-24T09:31:35Z"
+                            }
+                        }
+                    }
+                ],
+                "hostIP": "172.18.0.3",
+                "phase": "Running",
+                "podIP": "10.244.1.2",
+                "podIPs": [
+                    {
+                        "ip": "10.244.1.2"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "startTime": "2023-05-24T09:31:28Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}

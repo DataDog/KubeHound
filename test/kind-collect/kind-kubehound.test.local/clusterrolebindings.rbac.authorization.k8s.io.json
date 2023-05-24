@@ -1,0 +1,1390 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "cluster-admin",
+                "resourceVersion": "135",
+                "uid": "c7ee941f-6889-4066-8a01-955a9af28f92"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "cluster-admin"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:masters"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "creationTimestamp": "2023-05-24T09:31:06Z",
+                "name": "kindnet",
+                "resourceVersion": "246",
+                "uid": "6c6a34d5-fbed-4a23-8a24-57d577b7d1bf"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "kindnet"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "kindnet",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "creationTimestamp": "2023-05-24T09:31:04Z",
+                "name": "kubeadm:get-nodes",
+                "resourceVersion": "208",
+                "uid": "985d4557-2b0a-439c-bc8d-7dc1942448b4"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "kubeadm:get-nodes"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:bootstrappers:kubeadm:default-node-token"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "creationTimestamp": "2023-05-24T09:31:04Z",
+                "name": "kubeadm:kubelet-bootstrap",
+                "resourceVersion": "209",
+                "uid": "fe7f7fc2-be74-435a-b32d-cd8ef9585dd3"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:node-bootstrapper"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:bootstrappers:kubeadm:default-node-token"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "creationTimestamp": "2023-05-24T09:31:04Z",
+                "name": "kubeadm:node-autoapprove-bootstrap",
+                "resourceVersion": "210",
+                "uid": "326bbefc-efc5-489c-95a6-f854cb6a909c"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:certificates.k8s.io:certificatesigningrequests:nodeclient"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:bootstrappers:kubeadm:default-node-token"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "creationTimestamp": "2023-05-24T09:31:04Z",
+                "name": "kubeadm:node-autoapprove-certificate-rotation",
+                "resourceVersion": "211",
+                "uid": "52232811-1dc7-4f48-86ec-4c87d6d862bb"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:certificates.k8s.io:certificatesigningrequests:selfnodeclient"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:nodes"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "creationTimestamp": "2023-05-24T09:31:04Z",
+                "name": "kubeadm:node-proxier",
+                "resourceVersion": "225",
+                "uid": "4ff369f2-941f-4ade-af93-c968dac7c137"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:node-proxier"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "kube-proxy",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"rbac.authorization.k8s.io/v1\",\"kind\":\"ClusterRoleBinding\",\"metadata\":{\"annotations\":{},\"name\":\"local-path-provisioner-bind\"},\"roleRef\":{\"apiGroup\":\"rbac.authorization.k8s.io\",\"kind\":\"ClusterRole\",\"name\":\"local-path-provisioner-role\"},\"subjects\":[{\"kind\":\"ServiceAccount\",\"name\":\"local-path-provisioner-service-account\",\"namespace\":\"local-path-storage\"}]}\n"
+                },
+                "creationTimestamp": "2023-05-24T09:31:07Z",
+                "name": "local-path-provisioner-bind",
+                "resourceVersion": "268",
+                "uid": "d80ce695-3216-4528-b441-64d82e622c42"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "local-path-provisioner-role"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "local-path-provisioner-service-account",
+                    "namespace": "local-path-storage"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:basic-user",
+                "resourceVersion": "138",
+                "uid": "cc5ba970-7e33-4524-952f-5a76227e74e3"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:basic-user"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:authenticated"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:attachdetach-controller",
+                "resourceVersion": "147",
+                "uid": "3160c256-29d5-40f4-8289-4c9c68747acc"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:attachdetach-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "attachdetach-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:certificate-controller",
+                "resourceVersion": "173",
+                "uid": "518116b5-111f-4266-8395-e8a866521f04"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:certificate-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "certificate-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:clusterrole-aggregation-controller",
+                "resourceVersion": "148",
+                "uid": "d3dd43f1-3b95-4569-9058-7bdd69bf6dd3"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:clusterrole-aggregation-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "clusterrole-aggregation-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:cronjob-controller",
+                "resourceVersion": "149",
+                "uid": "6a9a76bf-58f6-4153-91d1-ddd2d0b79305"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:cronjob-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "cronjob-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:daemon-set-controller",
+                "resourceVersion": "150",
+                "uid": "45f2779a-d787-4963-9569-40e14c06dc5a"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:daemon-set-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "daemon-set-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:deployment-controller",
+                "resourceVersion": "151",
+                "uid": "61016134-74d2-451f-adb5-1cda0483e199"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:deployment-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "deployment-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:disruption-controller",
+                "resourceVersion": "152",
+                "uid": "2574f8f1-66a0-4519-8a38-3c82a647fcc7"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:disruption-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "disruption-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:endpoint-controller",
+                "resourceVersion": "153",
+                "uid": "c3c88e30-32ac-4f2d-84b2-a137534fefee"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:endpoint-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "endpoint-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:endpointslice-controller",
+                "resourceVersion": "154",
+                "uid": "f4cca348-1e05-41b0-a1f2-3ae323743b48"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:endpointslice-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "endpointslice-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:endpointslicemirroring-controller",
+                "resourceVersion": "155",
+                "uid": "7f0eca56-3b06-4906-86c9-84852599bd30"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:endpointslicemirroring-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "endpointslicemirroring-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:ephemeral-volume-controller",
+                "resourceVersion": "157",
+                "uid": "fa01bcff-b90c-4cf7-8d2e-556efba045d0"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:ephemeral-volume-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "ephemeral-volume-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:expand-controller",
+                "resourceVersion": "156",
+                "uid": "9c6bc1a9-79ac-4c15-9e00-e871d52f75b0"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:expand-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "expand-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:generic-garbage-collector",
+                "resourceVersion": "158",
+                "uid": "e676a8c5-dad5-4d9a-9cd6-335bf1d9db64"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:generic-garbage-collector"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "generic-garbage-collector",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:horizontal-pod-autoscaler",
+                "resourceVersion": "159",
+                "uid": "39c60de8-2f3e-4925-acf6-1b1fa2781152"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:horizontal-pod-autoscaler"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "horizontal-pod-autoscaler",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:job-controller",
+                "resourceVersion": "160",
+                "uid": "6711c67e-313f-4414-bb2f-3187c00f729e"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:job-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "job-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:namespace-controller",
+                "resourceVersion": "161",
+                "uid": "0d87dc4f-1af4-4ef0-b397-41c31263fde4"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:namespace-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "namespace-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:node-controller",
+                "resourceVersion": "162",
+                "uid": "9d0c546c-7100-43da-b97f-b63e9cc34ff1"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:node-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "node-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:persistent-volume-binder",
+                "resourceVersion": "163",
+                "uid": "f4b316a0-4c18-4689-848d-05d17c7aa7d2"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:persistent-volume-binder"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "persistent-volume-binder",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:pod-garbage-collector",
+                "resourceVersion": "164",
+                "uid": "33d3a871-59db-40b7-b26a-1bfa848bcb5b"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:pod-garbage-collector"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "pod-garbage-collector",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:pv-protection-controller",
+                "resourceVersion": "175",
+                "uid": "d63546c6-d307-4fc6-a074-da888c10e5ca"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:pv-protection-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "pv-protection-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:pvc-protection-controller",
+                "resourceVersion": "174",
+                "uid": "1ffa954d-3ee3-4adb-86fd-dcf432da2404"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:pvc-protection-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "pvc-protection-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:replicaset-controller",
+                "resourceVersion": "165",
+                "uid": "f0bbf447-e0c5-4255-aa6d-1a9a23ce077f"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:replicaset-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "replicaset-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:replication-controller",
+                "resourceVersion": "166",
+                "uid": "9bc727fc-1d5e-4b2e-a05d-8863dfcc1c18"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:replication-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "replication-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:resourcequota-controller",
+                "resourceVersion": "167",
+                "uid": "6b96e222-06a3-4f80-bf89-256fd899bec2"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:resourcequota-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "resourcequota-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:root-ca-cert-publisher",
+                "resourceVersion": "177",
+                "uid": "181eb55c-cd7d-413d-99a0-1cfbab33a523"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:root-ca-cert-publisher"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "root-ca-cert-publisher",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:route-controller",
+                "resourceVersion": "168",
+                "uid": "aa8023ab-21cb-4987-9bc7-6c3793bfeb58"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:route-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "route-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:service-account-controller",
+                "resourceVersion": "169",
+                "uid": "bd5aea71-3cd8-4807-be66-cba1dd5601a1"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:service-account-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "service-account-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:service-controller",
+                "resourceVersion": "170",
+                "uid": "817ddc2a-0c94-4c83-9aee-1227423ab751"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:service-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "service-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:statefulset-controller",
+                "resourceVersion": "171",
+                "uid": "4b0a8186-2e9f-4fdb-b655-61d7d4ab72d1"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:statefulset-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "statefulset-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:ttl-after-finished-controller",
+                "resourceVersion": "176",
+                "uid": "89b1b128-9cf4-4287-a417-78b80c620de4"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:ttl-after-finished-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "ttl-after-finished-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:controller:ttl-controller",
+                "resourceVersion": "172",
+                "uid": "b3164d5d-9143-4912-a261-3ada030585d4"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:controller:ttl-controller"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "ttl-controller",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "creationTimestamp": "2023-05-24T09:31:04Z",
+                "name": "system:coredns",
+                "resourceVersion": "217",
+                "uid": "30018b12-755e-41c3-ab52-4cf924523ea8"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:coredns"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "coredns",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:discovery",
+                "resourceVersion": "137",
+                "uid": "bcc16448-1021-4a13-8562-df428f11d5a7"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:discovery"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:authenticated"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:kube-controller-manager",
+                "resourceVersion": "141",
+                "uid": "a361f1f2-e136-4723-aefe-a69c8eff77dd"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:kube-controller-manager"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "User",
+                    "name": "system:kube-controller-manager"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:kube-dns",
+                "resourceVersion": "142",
+                "uid": "74a78007-01a8-4326-bffd-fd17d6713dbd"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:kube-dns"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "kube-dns",
+                    "namespace": "kube-system"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:kube-scheduler",
+                "resourceVersion": "143",
+                "uid": "9866b0e8-40a5-4db2-964e-c61c8df568dc"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:kube-scheduler"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "User",
+                    "name": "system:kube-scheduler"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:monitoring",
+                "resourceVersion": "136",
+                "uid": "95322656-4337-48ea-a214-afb2e41a59f0"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:monitoring"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:monitoring"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:node",
+                "resourceVersion": "145",
+                "uid": "83d85e28-4031-486e-b432-c634e5fe1a2c"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:node"
+            }
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:node-proxier",
+                "resourceVersion": "140",
+                "uid": "e5023a9e-0673-4114-b2c2-8acfb375fac0"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:node-proxier"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "User",
+                    "name": "system:kube-proxy"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:public-info-viewer",
+                "resourceVersion": "139",
+                "uid": "afdc4b61-5238-4937-a238-79204e599636"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:public-info-viewer"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:authenticated"
+                },
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:unauthenticated"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:service-account-issuer-discovery",
+                "resourceVersion": "146",
+                "uid": "6acea95a-c26e-49a7-961e-84d8639fcb1c"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:service-account-issuer-discovery"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "Group",
+                    "name": "system:serviceaccounts"
+                }
+            ]
+        },
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRoleBinding",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2023-05-24T09:31:03Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "system:volume-scheduler",
+                "resourceVersion": "144",
+                "uid": "565248f5-bb17-4dcc-9231-0bece65c4d3d"
+            },
+            "roleRef": {
+                "apiGroup": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "system:volume-scheduler"
+            },
+            "subjects": [
+                {
+                    "apiGroup": "rbac.authorization.k8s.io",
+                    "kind": "User",
+                    "name": "system:kube-scheduler"
+                }
+            ]
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}

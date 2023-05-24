@@ -1,0 +1,24 @@
+name: KubeHound System Tests
+
+on: pull_request
+
+jobs:
+  system-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create K8s Kind Cluster
+        uses: helm/kind-action@v1.4.0
+        with:
+          name: kubehound.test.local
+          config: test/test-cluster/cluster.yaml
+        
+      - name: Create K8s resources
+        run: TODO
+
+      - name: Run file collector script
+        run: TODO
+
+      # TODO setup go etc, build integration tests, run integration tests
+      - name: Run integration Tests
+        run: TODO
