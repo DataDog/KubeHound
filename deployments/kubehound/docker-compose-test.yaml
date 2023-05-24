@@ -5,7 +5,7 @@ services:
     image: mongo
     container_name: storedb
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - ./data/mongodb:/data/db
 
@@ -15,7 +15,7 @@ services:
     depends_on:
       - mongodb
     ports:
-      - 8081:8081
+      - "127.0.0.1:8081:8081"
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
 
@@ -23,6 +23,6 @@ services:
     image: janusgraph/janusgraph:latest
     container_name: graphdb-ng
     ports:
-      - "8182:8182"
+      - "127.0.0.1:8182:8182"
     volumes:
       - ./data/janus:/data

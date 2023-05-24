@@ -36,8 +36,8 @@ type AsyncWriter interface {
 	// Queue add a model to an asynchronous write queue. Non-blocking.
 	Queue(ctx context.Context, model any) error
 
-	// Flush triggers writes of any remaining items in the queue.
-	// Blocks until operation completes. Wait on the returned channel which will be signaled when the flush operation completes.
+	// Flush triggers writes of any remaining items in the queue. It is called only once at the end
+	// It is non blocking. You need to wait on the returned channel which will be signaled when the flush operation completes.
 	Flush(ctx context.Context) (chan struct{}, error)
 
 	// Close cleans up any resources used by the AsyncWriter implementation. Writer cannot be reused after this call.
