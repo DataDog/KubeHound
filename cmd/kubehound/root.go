@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// TODO config file path
+
 var (
 	rootCmd = &cobra.Command{
 		Use:   "kubehound-local",
