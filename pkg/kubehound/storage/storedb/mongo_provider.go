@@ -54,9 +54,6 @@ func (mp *MongoProvider) Close(ctx context.Context) error {
 }
 
 func (mp *MongoProvider) BulkWriter(ctx context.Context, collection collections.Collection, opts ...WriterOption) (AsyncWriter, error) {
-	mCollection := collection.Name()
-	writer := MongoAsyncWriter{
-		collection: mp.db.Collection(mCollection),
-	}
+	writer := NewMongoAsyncWriter(ctx, mp, collection.Name())
 	return &writer, nil
 }
