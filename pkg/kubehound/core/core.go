@@ -77,6 +77,7 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 
 // Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context, opts ...LaunchOption) error {
+	log.I.Info("Starting KubeHound")
 	log.I.Info("Initializing launch options")
 	lOpts := &launchConfig{}
 	for _, opt := range opts {
