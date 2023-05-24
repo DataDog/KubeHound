@@ -11,14 +11,18 @@ jobs:
         uses: helm/kind-action@v1.4.0
         with:
           name: kubehound.test.local
-          config: test/test-cluster/cluster.yaml
+          config: test/setup/test-cluster/cluster.yaml
         
       - name: Create K8s resources
-        run: TODO
+        run: test/setup/create-cluster-resources.sh
+            
+      - name: Setup Golang
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20.0
+       
+      - name: Checkout Git Repo
+        uses: actions/checkout@v3
 
-      - name: Run file collector script
-        run: TODO
-
-      # TODO setup go etc, build integration tests, run integration tests
       - name: Run integration Tests
-        run: TODO
+        run: make system-test
