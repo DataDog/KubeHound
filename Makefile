@@ -16,3 +16,11 @@ test:
 .PHONY: system-test
 system-test:
 	cd test/system && go test ./... -v
+
+.PHONY: local-cluster-create
+local-cluster-setup:
+	cd test/setup && bash setup-cluster.sh && bash create-cluster-resources.sh
+
+.PHONY: local-cluster-destroy
+local-cluster-destroy:
+	cd test/setup && bash destroy-cluster.sh

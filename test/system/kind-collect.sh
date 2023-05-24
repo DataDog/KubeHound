@@ -38,14 +38,14 @@ ALLOWLIST_MODE=1
 # fetch only missing resources if 1
 UPDATE=0
 # how long should the script wait between 2 calls to "kubectl get <resource> -n <namespace> -o json"
-DELAY=1
+DELAY=0
 #
 
 #
 # INTERNAL VARIABLES
 #
 # how long should the script wait before starting the extraction
-STARTUP_DELAY=5
+STARTUP_DELAY=0
 # temporary file for storing kubectl errors
 ERRFILE="/tmp/get-cluster-data-errors.log"
 # patterns matching resources we don't want to collect (yet?)
