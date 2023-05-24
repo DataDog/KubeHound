@@ -18,7 +18,8 @@ jobs:
           wait: 5m
         
       - name: Create K8s resources
-        run: bash test/setup/create-cluster-resources.sh
+        working-directory: test/setup/
+        run: bash create-cluster-resources.sh
       
       - name: Setup Golang
         uses: actions/setup-go@v4

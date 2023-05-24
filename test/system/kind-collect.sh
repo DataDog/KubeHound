@@ -38,7 +38,7 @@ ALLOWLIST_MODE=1
 # fetch only missing resources if 1
 UPDATE=0
 # how long should the script wait between 2 calls to "kubectl get <resource> -n <namespace> -o json"
-DELAY=2
+DELAY=1
 #
 
 #

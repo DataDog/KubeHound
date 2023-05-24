@@ -21,6 +21,7 @@ const (
 	CollectorOutputDir  = "kind-collect"
 )
 
+TODO remove script sleeps!!
 func TestMain(m *testing.M) {
 	cmdCtx, cmdCancel := context.WithTimeout(context.Background(), CollectorTimeout)
 	defer cmdCancel()
