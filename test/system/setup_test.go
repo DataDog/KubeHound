@@ -3,27 +3,39 @@ package system
 import (
 	"context"
 	"os"
+	"os/exec"
 	"testing"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
-// Create the pods here??
-// Init pattern to create a list of resources? Then this consumes and creates all the resources,
-// before running the collector and staring the test suite
+const (
+	CollectorTimeout = 5 * time.Minute
+)
+
+const (
+	KubeHoundConfigPath = "kubehound.yaml"
+	CollectorScriptPath = "./kind-collect.sh"
+	CollectorOutputDir  = "kind-collect"
+)
 
 func TestMain(m *testing.M) {
-	// Run the kind-collect.sh script
-	// TODO
+	cmdCtx, cmdCancel := context.WithTimeout(context.Background(), CollectorTimeout)
+	defer cmdCancel()
 
-	// Configuration file path pointing to the collected kind K8s data
-	testConfig := "kubehound.yaml"
+	// Run the kind-collect.sh script. NOTE: this is a temporary solution until the K8s API collector is
+	// completed, at which point it should be invoked here.
+	cmd := exec.CommandContext(cmdCtx, CollectorScriptPath, CollectorOutputDir)
+	if err := cmd.Run(); err != nil {
+		log.I.Fatalf("Collector script execution: %v", err)
+	}
 
 	// Run the ingest
-	err := core.Launch(context.Background(), core.WithConfigPath(testConfig))
+	err := core.Launch(context.Background(), core.WithConfigPath(KubeHoundConfigPath))
 	if err != nil {
-		log.I.Fatalf("KubeHound core: %w", err)
+		log.I.Fatalf("KubeHound core: %v", err)
 	}
 
 	// Run the test suite

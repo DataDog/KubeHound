@@ -75,18 +75,6 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 	return nil
 }
 
-type launchConfig struct {
-	ConfigPath string
-}
-
-type LaunchOption func(*launchConfig)
-
-func WithConfigPath(configPath string) LaunchOption {
-	return func(lc *launchConfig) {
-		lc.ConfigPath = configPath
-	}
-}
-
 // Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context, opts ...LaunchOption) error {
 	log.I.Info("Initializing launch options")
