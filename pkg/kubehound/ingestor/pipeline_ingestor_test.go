@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	collector "github.com/DataDog/KubeHound/pkg/collector/mocks"
+	collector "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/pipeline"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/pipeline/mocks"

@@ -25,19 +25,18 @@ type Provider interface {
 	Raw() any
 
 	// VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
-	VertexWriter(ctx context.Context, g vertex.VertexTraversal, opts ...WriterOption) (AsyncVertexWriter, error)
+	VertexWriter(ctx context.Context, v vertex.Vertex, opts ...WriterOption) (AsyncVertexWriter, error)
 
 	// EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
-	EdgeWriter(ctx context.Context, g edge.EdgeTraversal, opts ...WriterOption) (AsyncEdgeWriter, error)
+	EdgeWriter(ctx context.Context, e edge.Edge, opts ...WriterOption) (AsyncEdgeWriter, error)
 
 	// Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.
 	Close(ctx context.Context) error
 }
 
 type WriterBase interface {
-	// Flush triggers writes of any remaining items in the queue.
-	// Blocks until operation completes. Wait on the returned channel which will be signaled when the flush operation completes.
-	Flush(ctx context.Context) (chan struct{}, error)
+	// Flush triggers writes of any remaining items in the queue. Blocks until operation completes.
+	Flush(ctx context.Context) error
 
 	// Close cleans up any resources used by the writer implementation. Writer cannot be reused after this call.
 	Close(ctx context.Context) error

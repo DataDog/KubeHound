@@ -2,7 +2,6 @@ package pipeline
 
 import (
 	"context"
-	"reflect"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -15,7 +14,7 @@ import (
 )
 
 // FlushFunc is a callback to be registered in the flush array.
-type FlushFunc func(ctx context.Context) (chan struct{}, error)
+type FlushFunc func(ctx context.Context) error
 
 // CleanupFunc is a callback to be registered in the cleanup array.
 type CleanupFunc func(ctx context.Context) error
@@ -87,7 +86,7 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 // To access the writer use the graphWriter(v vertex.Vertex) function.
 func WithGraphWriter[T vertex.Vertex](v T) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		w, err := deps.GraphDB.VertexWriter(ctx, v.Traversal())
+		w, err := deps.GraphDB.VertexWriter(ctx, v)
 		if err != nil {
 			return err
 		}
@@ -135,6 +134,13 @@ func CreateResources(ctx context.Context, deps *Dependencies, opts ...IngestReso
 		},
 	}
 
+	// Do a cleanup of whatever has been registered in the case of a partial success
+	defer func() {
+		if err != nil {
+			i.cleanupAll(ctx)
+		}
+	}()
+
 	for _, o := range opts {
 		err = o(ctx, &i.resourceOptions, deps)
 		if err != nil {
@@ -157,6 +163,9 @@ func (i *IngestResources) cleanupAll(ctx context.Context) error {
 		}
 	}
 
+	// Empty the cleanup to ensure it is only called once
+	i.cleanup = make([]CleanupFunc, 0)
+
 	return res.ErrorOrNil()
 }
 
@@ -165,46 +174,11 @@ func (i *IngestResources) cleanupAll(ctx context.Context) error {
 func (i *IngestResources) flushWriters(ctx context.Context) error {
 	var res *multierror.Error
 
-	waits := make([]chan struct{}, 0)
 	for _, flush := range i.flush {
-		done, err := flush(ctx)
-		if err != nil {
+		if err := flush(ctx); err != nil {
 			res = multierror.Append(res, err)
 		}
-
-		waits = append(waits, done)
 	}
-
-	waitForCompletionMultiple(waits)
 
 	return res.ErrorOrNil()
-}
-
-// WaitForCompletionMultiple is a helper function which automatically waits on all the channels and returns the response
-// as a slice from each channel. This method is useful to kick off a set of tasks using the WorkerPool and wait for all
-// of them to complete before processing each tasks result.
-func waitForCompletionMultiple[TOut any](channels []chan TOut) []TOut {
-	allResp := make([]TOut, 0, len(channels))
-	cases := make([]reflect.SelectCase, len(channels))
-	for i, ch := range channels {
-		// SelectCase allows us to collect the channel and apply it a specific select case. Therefore, allowing to wait
-		// on all these cases simultaneously in the loop below.
-		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
-	}
-
-	remaining := len(cases)
-	for remaining > 0 {
-		chosen, value, ok := reflect.Select(cases)
-		if !ok {
-			// The select channel has been closed so zero out the channel to disable the case.
-			cases[chosen].Chan = reflect.ValueOf(nil)
-			remaining -= 1
-			continue
-		}
-
-		resp := value.Interface().(TOut)
-		allResp = append(allResp, resp)
-	}
-
-	return allResp
 }

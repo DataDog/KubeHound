@@ -21,9 +21,32 @@ type NodeIngest struct {
 
 var _ ObjectIngest = (*NodeIngest)(nil)
 
-func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) error {
+func (i *NodeIngest) Name() string {
+	return NodeIngestName
+}
+
+func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
+	var err error
+
+	i.vertex = vertex.Node{}
+	i.collection = collections.Node{}
+
+	i.r, err = CreateResources(ctx, deps,
+		WithCacheWriter(),
+		WithStoreWriter(i.collection),
+		WithGraphWriter(i.vertex))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// streamCallback is invoked by the collector for each node collected.
+// The function ingests an input node into the cache/store/graph databases asynchronously.
+func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error {
 	// Normalize node to store object format
-	o, err := i.r.storeConvert.Node(ctx, *node)
+	o, err := i.r.storeConvert.Node(ctx, node)
 	if err != nil {
 		return err
 	}
@@ -34,7 +57,7 @@ func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) e
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cache.NodeKey(o.K8.Name), o.Id); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cache.NodeKey(o.K8.Name), o.Id.Hex()); err != nil {
 		return err
 	}
 
@@ -52,34 +75,14 @@ func (i *NodeIngest) streamCallback(ctx context.Context, node *types.NodeType) e
 	return nil
 }
 
-func (i *NodeIngest) completeCallback(ctx context.Context) error {
+// completeCallback is invoked by the collector when all nodes have been streamed.
+// The function flushes all writers and waits for completion.
+func (i *NodeIngest) Complete(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }
 
-func (i *NodeIngest) Name() string {
-	return NodeIngestName
-}
-
-func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
-	var err error
-	defer func() {
-		if err != nil {
-			i.r.cleanupAll(ctx)
-		}
-	}()
-
-	i.vertex = vertex.Node{}
-	i.collection = collections.Node{}
-	i.r, err = CreateResources(ctx, deps,
-		WithCacheWriter(),
-		WithStoreWriter(i.collection),
-		WithGraphWriter(i.vertex))
-
-	return err
-}
-
 func (i *NodeIngest) Run(ctx context.Context) error {
-	return i.r.collect.StreamNodes(ctx, i.streamCallback, i.completeCallback)
+	return i.r.collect.StreamNodes(ctx, i)
 }
 
 func (i *NodeIngest) Close(ctx context.Context) error {
