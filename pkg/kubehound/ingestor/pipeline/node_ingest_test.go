@@ -3,7 +3,6 @@ package pipeline
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
@@ -38,9 +37,8 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	// Cache setup
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
-	cwDone := make(chan struct{})
 	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.nodeCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
-	cw.EXPECT().Flush(ctx).Return(cwDone, nil)
+	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
 
@@ -48,18 +46,16 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
 	nodes := collections.Node{}
-	swDone := make(chan struct{})
 	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Node")).Return(nil).Once()
-	sw.EXPECT().Flush(ctx).Return(swDone, nil)
+	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, nodes).Return(sw, nil)
 
 	// Graph setup
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
-	gwDone := make(chan struct{})
 	gw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Node")).Return(nil).Once()
-	gw.EXPECT().Flush(ctx).Return(gwDone, nil)
+	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
 	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Node")).Return(gw, nil)
 
@@ -73,14 +69,6 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	// Initialize
 	err = ni.Initialize(ctx, deps)
 	assert.NoError(t, err)
-
-	go func() {
-		// Simulate a delayed flush completion
-		time.Sleep(time.Second)
-		close(cwDone)
-		close(swDone)
-		close(gwDone)
-	}()
 
 	// Run
 	err = ni.Run(ctx)
