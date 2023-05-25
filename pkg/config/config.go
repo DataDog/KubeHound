@@ -26,7 +26,7 @@ func MustLoadDefaultConfig() *KubehoundConfig {
 func MustLoadConfig(configPath string) *KubehoundConfig {
 	cfg, err := NewConfig(configPath)
 	if err != nil {
-		log.I.Fatalf("config load: %w", err)
+		log.I.Fatalf("config load: %v", err)
 	}
 
 	return cfg
