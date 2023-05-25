@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // We need a "complex" object to store in MongoDB
@@ -108,10 +107,6 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 		FieldB: "lol",
 	}
 
-	type fields struct {
-		mongodb *MongoProvider
-		ops     []mongo.WriteModel
-	}
 	type argsQueue struct {
 		ctx   context.Context
 		model any
@@ -120,18 +115,8 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 		ctx context.Context
 	}
 
-	ctx := context.Background()
-	mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)
-	// TODO: add another check (env var maybe?)
-	// "integration test checks"
-	if err != nil {
-		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
-		return
-	}
-
 	tests := []struct {
 		name      string
-		fields    fields
 		argsQueue []argsQueue
 		argsFlush argsFlush
 		want      chan struct{}
@@ -140,10 +125,6 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 	}{
 		{
 			name: "test flushing multiple items from mongo db queue",
-			fields: fields{
-				mongodb: mongoProvider,
-				ops:     []mongo.WriteModel{},
-			},
 			argsQueue: []argsQueue{
 				{
 					ctx:   context.Background(),
@@ -161,11 +142,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 			wantErr:   false,
 		},
 		{
-			name: "test flushing 0 items from mongo db queue",
-			fields: fields{
-				mongodb: mongoProvider,
-				ops:     make([]mongo.WriteModel, 0),
-			},
+			name:      "test flushing 0 items from mongo db queue",
 			argsQueue: []argsQueue{},
 			argsFlush: argsFlush{
 				ctx: context.Background(),
@@ -175,10 +152,6 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 		},
 		{
 			name: "test flushing 6 items from mongo db queue (with TestBatchSize = 5)",
-			fields: fields{
-				mongodb: mongoProvider,
-				ops:     make([]mongo.WriteModel, 0),
-			},
 			argsQueue: []argsQueue{
 				{
 					ctx:   context.Background(),
@@ -217,8 +190,18 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			ctx := context.Background()
-			maw := NewMongoAsyncWriter(ctx, tt.fields.mongodb, collections.FakeCollection{})
+			mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)
+			defer mongoProvider.Close(ctx)
+			// TODO: add another check (env var maybe?)
+			// "integration test checks"
+			if err != nil {
+				t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
+				return
+			}
+
+			maw := NewMongoAsyncWriter(ctx, mongoProvider, collections.FakeCollection{})
 			// insert multiple times if needed
 			for _, args := range tt.argsQueue {
 				if err := maw.Queue(args.ctx, args.model); (err != nil) != tt.wantErr {
