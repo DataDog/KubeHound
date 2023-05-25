@@ -25,11 +25,19 @@ func (mp *MemCacheProvider) Name() string {
 	return "MemCacheProvider"
 }
 
+func (m *MemCacheProvider) Close(ctx context.Context) error {
+	return nil
+}
+
+func (m *MemCacheProvider) HealthCheck(ctx context.Context) (bool, error) {
+	return true, nil
+}
+
 func (m *MemCacheProvider) GetKeyName(cacheKey CacheKey) string {
 	return fmt.Sprintf("%s##%s", cacheKey.Namespace(), cacheKey.Key())
 }
 
-func (m *MemCacheProvider) Get(key CacheKey) (string, error) {
+func (m *MemCacheProvider) Get(ctx context.Context, key CacheKey) (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
