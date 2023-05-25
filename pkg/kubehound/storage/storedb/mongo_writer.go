@@ -26,7 +26,7 @@ func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection coll
 		collection: mp.db.Collection(collection.Name()),
 		batchSize:  collection.BatchSize(),
 	}
-	// creating an buffered channel of size one.
+	// creating a buffered channel of size one.
 	maw.consummerChan = make(chan []mongo.WriteModel, 1)
 	maw.backgroundWriter(ctx)
 	return &maw
@@ -69,7 +69,7 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 }
 
 // Flush triggers writes of any remaining items in the queue.
-// This
+// This is blocking
 func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 	if maw.mongodb.client == nil {
 		return fmt.Errorf("mongodb client is not initialized")
