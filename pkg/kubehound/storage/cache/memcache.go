@@ -9,12 +9,12 @@ import (
 
 type MemCacheProvider struct {
 	data map[string]string
-	mu   *sync.RWMutex
+	mu   sync.RWMutex
 }
 
-func NewCacheProvider(ctx context.Context) (MemCacheProvider, error) {
+func NewCacheProvider(ctx context.Context) (*MemCacheProvider, error) {
 
-	cacheProvider := MemCacheProvider{
+	cacheProvider := &MemCacheProvider{
 		data: make(map[string]string),
 	}
 
