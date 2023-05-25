@@ -2,6 +2,7 @@
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
 # Binaries for programs and plugins
+bin/
 *.exe
 *.exe~
 *.dll
@@ -29,3 +30,5 @@ bin/
 cmd/kubehound
 deployments/kubehound/data
 deployments/kubehound/data/*
+# System test json files
+test/**/*.json

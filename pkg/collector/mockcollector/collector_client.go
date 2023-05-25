@@ -158,13 +158,13 @@ func (_c *CollectorClient_Name_Call) RunAndReturn(run func() string) *CollectorC
 	return _c
 }
 
-// StreamClusterRoleBindings provides a mock function with given fields: ctx, callback, complete
-func (_m *CollectorClient) StreamClusterRoleBindings(ctx context.Context, callback collector.ClusterRoleBindingProcessor, complete collector.Complete) error {
-	ret := _m.Called(ctx, callback, complete)
+// StreamClusterRoleBindings provides a mock function with given fields: ctx, ingestor
+func (_m *CollectorClient) StreamClusterRoleBindings(ctx context.Context, ingestor collector.ClusterRoleBindingIngestor) error {
+	ret := _m.Called(ctx, ingestor)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, collector.ClusterRoleBindingProcessor, collector.Complete) error); ok {
-		r0 = rf(ctx, callback, complete)
+	if rf, ok := ret.Get(0).(func(context.Context, collector.ClusterRoleBindingIngestor) error); ok {
+		r0 = rf(ctx, ingestor)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -179,15 +179,14 @@ type CollectorClient_StreamClusterRoleBindings_Call struct {
 
 // StreamClusterRoleBindings is a helper method to define mock.On call
 //   - ctx context.Context
-//   - callback collector.ClusterRoleBindingProcessor
-//   - complete collector.Complete
-func (_e *CollectorClient_Expecter) StreamClusterRoleBindings(ctx interface{}, callback interface{}, complete interface{}) *CollectorClient_StreamClusterRoleBindings_Call {
-	return &CollectorClient_StreamClusterRoleBindings_Call{Call: _e.mock.On("StreamClusterRoleBindings", ctx, callback, complete)}
+//   - ingestor collector.ClusterRoleBindingIngestor
+func (_e *CollectorClient_Expecter) StreamClusterRoleBindings(ctx interface{}, ingestor interface{}) *CollectorClient_StreamClusterRoleBindings_Call {
+	return &CollectorClient_StreamClusterRoleBindings_Call{Call: _e.mock.On("StreamClusterRoleBindings", ctx, ingestor)}
 }
 
-func (_c *CollectorClient_StreamClusterRoleBindings_Call) Run(run func(ctx context.Context, callback collector.ClusterRoleBindingProcessor, complete collector.Complete)) *CollectorClient_StreamClusterRoleBindings_Call {
+func (_c *CollectorClient_StreamClusterRoleBindings_Call) Run(run func(ctx context.Context, ingestor collector.ClusterRoleBindingIngestor)) *CollectorClient_StreamClusterRoleBindings_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(collector.ClusterRoleBindingProcessor), args[2].(collector.Complete))
+		run(args[0].(context.Context), args[1].(collector.ClusterRoleBindingIngestor))
 	})
 	return _c
 }
@@ -197,18 +196,18 @@ func (_c *CollectorClient_StreamClusterRoleBindings_Call) Return(_a0 error) *Col
 	return _c
 }
 
-func (_c *CollectorClient_StreamClusterRoleBindings_Call) RunAndReturn(run func(context.Context, collector.ClusterRoleBindingProcessor, collector.Complete) error) *CollectorClient_StreamClusterRoleBindings_Call {
+func (_c *CollectorClient_StreamClusterRoleBindings_Call) RunAndReturn(run func(context.Context, collector.ClusterRoleBindingIngestor) error) *CollectorClient_StreamClusterRoleBindings_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// StreamClusterRoles provides a mock function with given fields: ctx, callback, complete
-func (_m *CollectorClient) StreamClusterRoles(ctx context.Context, callback collector.ClusterRoleProcessor, complete collector.Complete) error {
-	ret := _m.Called(ctx, callback, complete)
+// StreamClusterRoles provides a mock function with given fields: ctx, ingestor
+func (_m *CollectorClient) StreamClusterRoles(ctx context.Context, ingestor collector.ClusterRoleIngestor) error {
+	ret := _m.Called(ctx, ingestor)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, collector.ClusterRoleProcessor, collector.Complete) error); ok {
-		r0 = rf(ctx, callback, complete)
+	if rf, ok := ret.Get(0).(func(context.Context, collector.ClusterRoleIngestor) error); ok {
+		r0 = rf(ctx, ingestor)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -223,15 +222,14 @@ type CollectorClient_StreamClusterRoles_Call struct {
 
 // StreamClusterRoles is a helper method to define mock.On call
 //   - ctx context.Context
-//   - callback collector.ClusterRoleProcessor
-//   - complete collector.Complete
-func (_e *CollectorClient_Expecter) StreamClusterRoles(ctx interface{}, callback interface{}, complete interface{}) *CollectorClient_StreamClusterRoles_Call {
-	return &CollectorClient_StreamClusterRoles_Call{Call: _e.mock.On("StreamClusterRoles", ctx, callback, complete)}
+//   - ingestor collector.ClusterRoleIngestor
+func (_e *CollectorClient_Expecter) StreamClusterRoles(ctx interface{}, ingestor interface{}) *CollectorClient_StreamClusterRoles_Call {
+	return &CollectorClient_StreamClusterRoles_Call{Call: _e.mock.On("StreamClusterRoles", ctx, ingestor)}
 }
 
-func (_c *CollectorClient_StreamClusterRoles_Call) Run(run func(ctx context.Context, callback collector.ClusterRoleProcessor, complete collector.Complete)) *CollectorClient_StreamClusterRoles_Call {
+func (_c *CollectorClient_StreamClusterRoles_Call) Run(run func(ctx context.Context, ingestor collector.ClusterRoleIngestor)) *CollectorClient_StreamClusterRoles_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(collector.ClusterRoleProcessor), args[2].(collector.Complete))
+		run(args[0].(context.Context), args[1].(collector.ClusterRoleIngestor))
 	})
 	return _c
 }
@@ -241,18 +239,18 @@ func (_c *CollectorClient_StreamClusterRoles_Call) Return(_a0 error) *CollectorC
 	return _c
 }
 
-func (_c *CollectorClient_StreamClusterRoles_Call) RunAndReturn(run func(context.Context, collector.ClusterRoleProcessor, collector.Complete) error) *CollectorClient_StreamClusterRoles_Call {
+func (_c *CollectorClient_StreamClusterRoles_Call) RunAndReturn(run func(context.Context, collector.ClusterRoleIngestor) error) *CollectorClient_StreamClusterRoles_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// StreamNodes provides a mock function with given fields: ctx, callback, complete
-func (_m *CollectorClient) StreamNodes(ctx context.Context, callback collector.NodeProcessor, complete collector.Complete) error {
-	ret := _m.Called(ctx, callback, complete)
+// StreamNodes provides a mock function with given fields: ctx, ingestor
+func (_m *CollectorClient) StreamNodes(ctx context.Context, ingestor collector.NodeIngestor) error {
+	ret := _m.Called(ctx, ingestor)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, collector.NodeProcessor, collector.Complete) error); ok {
-		r0 = rf(ctx, callback, complete)
+	if rf, ok := ret.Get(0).(func(context.Context, collector.NodeIngestor) error); ok {
+		r0 = rf(ctx, ingestor)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -267,15 +265,14 @@ type CollectorClient_StreamNodes_Call struct {
 
 // StreamNodes is a helper method to define mock.On call
 //   - ctx context.Context
-//   - callback collector.NodeProcessor
-//   - complete collector.Complete
-func (_e *CollectorClient_Expecter) StreamNodes(ctx interface{}, callback interface{}, complete interface{}) *CollectorClient_StreamNodes_Call {
-	return &CollectorClient_StreamNodes_Call{Call: _e.mock.On("StreamNodes", ctx, callback, complete)}
+//   - ingestor collector.NodeIngestor
+func (_e *CollectorClient_Expecter) StreamNodes(ctx interface{}, ingestor interface{}) *CollectorClient_StreamNodes_Call {
+	return &CollectorClient_StreamNodes_Call{Call: _e.mock.On("StreamNodes", ctx, ingestor)}
 }
 
-func (_c *CollectorClient_StreamNodes_Call) Run(run func(ctx context.Context, callback collector.NodeProcessor, complete collector.Complete)) *CollectorClient_StreamNodes_Call {
+func (_c *CollectorClient_StreamNodes_Call) Run(run func(ctx context.Context, ingestor collector.NodeIngestor)) *CollectorClient_StreamNodes_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(collector.NodeProcessor), args[2].(collector.Complete))
+		run(args[0].(context.Context), args[1].(collector.NodeIngestor))
 	})
 	return _c
 }
@@ -285,18 +282,18 @@ func (_c *CollectorClient_StreamNodes_Call) Return(_a0 error) *CollectorClient_S
 	return _c
 }
 
-func (_c *CollectorClient_StreamNodes_Call) RunAndReturn(run func(context.Context, collector.NodeProcessor, collector.Complete) error) *CollectorClient_StreamNodes_Call {
+func (_c *CollectorClient_StreamNodes_Call) RunAndReturn(run func(context.Context, collector.NodeIngestor) error) *CollectorClient_StreamNodes_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// StreamPods provides a mock function with given fields: ctx, callback, complete
-func (_m *CollectorClient) StreamPods(ctx context.Context, callback collector.PodProcessor, complete collector.Complete) error {
-	ret := _m.Called(ctx, callback, complete)
+// StreamPods provides a mock function with given fields: ctx, ingestor
+func (_m *CollectorClient) StreamPods(ctx context.Context, ingestor collector.PodIngestor) error {
+	ret := _m.Called(ctx, ingestor)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, collector.PodProcessor, collector.Complete) error); ok {
-		r0 = rf(ctx, callback, complete)
+	if rf, ok := ret.Get(0).(func(context.Context, collector.PodIngestor) error); ok {
+		r0 = rf(ctx, ingestor)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -311,15 +308,14 @@ type CollectorClient_StreamPods_Call struct {
 
 // StreamPods is a helper method to define mock.On call
 //   - ctx context.Context
-//   - callback collector.PodProcessor
-//   - complete collector.Complete
-func (_e *CollectorClient_Expecter) StreamPods(ctx interface{}, callback interface{}, complete interface{}) *CollectorClient_StreamPods_Call {
-	return &CollectorClient_StreamPods_Call{Call: _e.mock.On("StreamPods", ctx, callback, complete)}
+//   - ingestor collector.PodIngestor
+func (_e *CollectorClient_Expecter) StreamPods(ctx interface{}, ingestor interface{}) *CollectorClient_StreamPods_Call {
+	return &CollectorClient_StreamPods_Call{Call: _e.mock.On("StreamPods", ctx, ingestor)}
 }
 
-func (_c *CollectorClient_StreamPods_Call) Run(run func(ctx context.Context, callback collector.PodProcessor, complete collector.Complete)) *CollectorClient_StreamPods_Call {
+func (_c *CollectorClient_StreamPods_Call) Run(run func(ctx context.Context, ingestor collector.PodIngestor)) *CollectorClient_StreamPods_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(collector.PodProcessor), args[2].(collector.Complete))
+		run(args[0].(context.Context), args[1].(collector.PodIngestor))
 	})
 	return _c
 }
@@ -329,18 +325,18 @@ func (_c *CollectorClient_StreamPods_Call) Return(_a0 error) *CollectorClient_St
 	return _c
 }
 
-func (_c *CollectorClient_StreamPods_Call) RunAndReturn(run func(context.Context, collector.PodProcessor, collector.Complete) error) *CollectorClient_StreamPods_Call {
+func (_c *CollectorClient_StreamPods_Call) RunAndReturn(run func(context.Context, collector.PodIngestor) error) *CollectorClient_StreamPods_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// StreamRoleBindings provides a mock function with given fields: ctx, callback, complete
-func (_m *CollectorClient) StreamRoleBindings(ctx context.Context, callback collector.RoleBindingProcessor, complete collector.Complete) error {
-	ret := _m.Called(ctx, callback, complete)
+// StreamRoleBindings provides a mock function with given fields: ctx, ingestor
+func (_m *CollectorClient) StreamRoleBindings(ctx context.Context, ingestor collector.RoleBindingIngestor) error {
+	ret := _m.Called(ctx, ingestor)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, collector.RoleBindingProcessor, collector.Complete) error); ok {
-		r0 = rf(ctx, callback, complete)
+	if rf, ok := ret.Get(0).(func(context.Context, collector.RoleBindingIngestor) error); ok {
+		r0 = rf(ctx, ingestor)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -355,15 +351,14 @@ type CollectorClient_StreamRoleBindings_Call struct {
 
 // StreamRoleBindings is a helper method to define mock.On call
 //   - ctx context.Context
-//   - callback collector.RoleBindingProcessor
-//   - complete collector.Complete
-func (_e *CollectorClient_Expecter) StreamRoleBindings(ctx interface{}, callback interface{}, complete interface{}) *CollectorClient_StreamRoleBindings_Call {
-	return &CollectorClient_StreamRoleBindings_Call{Call: _e.mock.On("StreamRoleBindings", ctx, callback, complete)}
+//   - ingestor collector.RoleBindingIngestor
+func (_e *CollectorClient_Expecter) StreamRoleBindings(ctx interface{}, ingestor interface{}) *CollectorClient_StreamRoleBindings_Call {
+	return &CollectorClient_StreamRoleBindings_Call{Call: _e.mock.On("StreamRoleBindings", ctx, ingestor)}
 }
 
-func (_c *CollectorClient_StreamRoleBindings_Call) Run(run func(ctx context.Context, callback collector.RoleBindingProcessor, complete collector.Complete)) *CollectorClient_StreamRoleBindings_Call {
+func (_c *CollectorClient_StreamRoleBindings_Call) Run(run func(ctx context.Context, ingestor collector.RoleBindingIngestor)) *CollectorClient_StreamRoleBindings_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(collector.RoleBindingProcessor), args[2].(collector.Complete))
+		run(args[0].(context.Context), args[1].(collector.RoleBindingIngestor))
 	})
 	return _c
 }
@@ -373,18 +368,18 @@ func (_c *CollectorClient_StreamRoleBindings_Call) Return(_a0 error) *CollectorC
 	return _c
 }
 
-func (_c *CollectorClient_StreamRoleBindings_Call) RunAndReturn(run func(context.Context, collector.RoleBindingProcessor, collector.Complete) error) *CollectorClient_StreamRoleBindings_Call {
+func (_c *CollectorClient_StreamRoleBindings_Call) RunAndReturn(run func(context.Context, collector.RoleBindingIngestor) error) *CollectorClient_StreamRoleBindings_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// StreamRoles provides a mock function with given fields: ctx, callback, complete
-func (_m *CollectorClient) StreamRoles(ctx context.Context, callback collector.RoleProcessor, complete collector.Complete) error {
-	ret := _m.Called(ctx, callback, complete)
+// StreamRoles provides a mock function with given fields: ctx, ingestor
+func (_m *CollectorClient) StreamRoles(ctx context.Context, ingestor collector.RoleIngestor) error {
+	ret := _m.Called(ctx, ingestor)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, collector.RoleProcessor, collector.Complete) error); ok {
-		r0 = rf(ctx, callback, complete)
+	if rf, ok := ret.Get(0).(func(context.Context, collector.RoleIngestor) error); ok {
+		r0 = rf(ctx, ingestor)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -399,15 +394,14 @@ type CollectorClient_StreamRoles_Call struct {
 
 // StreamRoles is a helper method to define mock.On call
 //   - ctx context.Context
-//   - callback collector.RoleProcessor
-//   - complete collector.Complete
-func (_e *CollectorClient_Expecter) StreamRoles(ctx interface{}, callback interface{}, complete interface{}) *CollectorClient_StreamRoles_Call {
-	return &CollectorClient_StreamRoles_Call{Call: _e.mock.On("StreamRoles", ctx, callback, complete)}
+//   - ingestor collector.RoleIngestor
+func (_e *CollectorClient_Expecter) StreamRoles(ctx interface{}, ingestor interface{}) *CollectorClient_StreamRoles_Call {
+	return &CollectorClient_StreamRoles_Call{Call: _e.mock.On("StreamRoles", ctx, ingestor)}
 }
 
-func (_c *CollectorClient_StreamRoles_Call) Run(run func(ctx context.Context, callback collector.RoleProcessor, complete collector.Complete)) *CollectorClient_StreamRoles_Call {
+func (_c *CollectorClient_StreamRoles_Call) Run(run func(ctx context.Context, ingestor collector.RoleIngestor)) *CollectorClient_StreamRoles_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(collector.RoleProcessor), args[2].(collector.Complete))
+		run(args[0].(context.Context), args[1].(collector.RoleIngestor))
 	})
 	return _c
 }
@@ -417,7 +411,7 @@ func (_c *CollectorClient_StreamRoles_Call) Return(_a0 error) *CollectorClient_S
 	return _c
 }
 
-func (_c *CollectorClient_StreamRoles_Call) RunAndReturn(run func(context.Context, collector.RoleProcessor, collector.Complete) error) *CollectorClient_StreamRoles_Call {
+func (_c *CollectorClient_StreamRoles_Call) RunAndReturn(run func(context.Context, collector.RoleIngestor) error) *CollectorClient_StreamRoles_Call {
 	_c.Call.Return(run)
 	return _c
 }

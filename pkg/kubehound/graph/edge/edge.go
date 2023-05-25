@@ -23,7 +23,7 @@ type ProcessEntryCallback func(ctx context.Context, model DataContainer) error
 type CompleteQueryCallback func(ctx context.Context) error
 
 // EdgeTraversal returns the function to create a graph database edge insert from an array of input objects.
-type EdgeTraversal func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal
+type EdgeTraversal func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal
 
 // Edge interface defines objects used to construct edges within our graph database through processing data from the intermediate store.
 

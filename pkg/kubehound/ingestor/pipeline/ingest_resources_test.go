@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	collector "github.com/DataDog/KubeHound/pkg/collector/mocks"
+	collector "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -67,50 +67,44 @@ func TestIngestResources_Initializer(t *testing.T) {
 	// Test cache writer mechanics
 	oi = &IngestResources{}
 	cw := cache.NewAsyncWriter(t)
-	cwDone := make(chan struct{})
-	cw.EXPECT().Flush(mock.Anything).Return(cwDone, nil)
-	cw.EXPECT().Close(mock.Anything).Return(nil)
+	cw.EXPECT().Flush(ctx).Return(nil)
+	cw.EXPECT().Close(ctx).Return(nil)
 
-	c.EXPECT().BulkWriter(mock.Anything).Return(cw, nil)
+	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
 
 	oi, err = CreateResources(ctx, deps, WithCacheWriter())
 	assert.NoError(t, err)
 
-	close(cwDone)
 	assert.NoError(t, oi.flushWriters(ctx))
 	assert.NoError(t, oi.cleanupAll(ctx))
 
 	// Test store writer mechanics
 	oi = &IngestResources{}
 	sw := storedb.NewAsyncWriter(t)
-	swDone := make(chan struct{})
-	sw.EXPECT().Flush(mock.Anything).Return(swDone, nil)
-	sw.EXPECT().Close(mock.Anything).Return(nil)
+	sw.EXPECT().Flush(ctx).Return(nil)
+	sw.EXPECT().Close(ctx).Return(nil)
 
 	collection := collections.Node{}
-	sdb.EXPECT().BulkWriter(mock.Anything, collection).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, collection).Return(sw, nil)
 
 	oi, err = CreateResources(ctx, deps, WithStoreWriter(collection))
 	assert.NoError(t, err)
 
-	close(swDone)
 	assert.NoError(t, oi.flushWriters(ctx))
 	assert.NoError(t, oi.cleanupAll(ctx))
 
 	// Test graph writer mechanics
 	oi = &IngestResources{}
 	gw := graphdb.NewAsyncVertexWriter(t)
-	gwDone := make(chan struct{})
-	gw.EXPECT().Flush(mock.Anything).Return(gwDone, nil)
-	gw.EXPECT().Close(mock.Anything).Return(nil)
+	gw.EXPECT().Flush(ctx).Return(nil)
+	gw.EXPECT().Close(ctx).Return(nil)
 
 	vtx := vertex.Node{}
-	gdb.EXPECT().VertexWriter(mock.Anything, mock.AnythingOfType("vertex.VertexTraversal")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Node")).Return(gw, nil)
 
 	oi, err = CreateResources(ctx, deps, WithGraphWriter(vtx))
 	assert.NoError(t, err)
 
-	close(gwDone)
 	assert.NoError(t, oi.flushWriters(ctx))
 	assert.NoError(t, oi.cleanupAll(ctx))
 }
@@ -135,21 +129,17 @@ func TestIngestResources_FlushErrors(t *testing.T) {
 
 	// Set cache to succeed
 	cw := cache.NewAsyncWriter(t)
-	cwDone := make(chan struct{})
-	cw.EXPECT().Flush(mock.Anything).Return(cwDone, nil)
-	c.EXPECT().BulkWriter(mock.Anything).Return(cw, nil)
+	cw.EXPECT().Flush(ctx).Return(nil)
+	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
 
 	// Set store to fail
 	sw := storedb.NewAsyncWriter(t)
-	swDone := make(chan struct{})
-	sw.EXPECT().Flush(mock.Anything).Return(swDone, errors.New("test error"))
-	sdb.EXPECT().BulkWriter(mock.Anything, mock.Anything).Return(sw, nil)
+	sw.EXPECT().Flush(ctx).Return(errors.New("test error"))
+	sdb.EXPECT().BulkWriter(ctx, mock.Anything).Return(sw, nil)
 
 	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
 	assert.NoError(t, err)
 
-	close(cwDone)
-	close(swDone)
 	assert.ErrorContains(t, oi.flushWriters(ctx), "test error")
 }
 
@@ -173,16 +163,49 @@ func TestIngestResources_CloseErrors(t *testing.T) {
 
 	// Set cache to succeed
 	cw := cache.NewAsyncWriter(t)
-	cw.EXPECT().Close(mock.Anything).Return(nil)
-	c.EXPECT().BulkWriter(mock.Anything).Return(cw, nil)
+	cw.EXPECT().Close(ctx).Return(nil)
+	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
 
 	// Set store to fail
 	sw := storedb.NewAsyncWriter(t)
-	sw.EXPECT().Close(mock.Anything).Return(errors.New("test error"))
-	sdb.EXPECT().BulkWriter(mock.Anything, mock.Anything).Return(sw, nil)
+	sw.EXPECT().Close(ctx).Return(errors.New("test error"))
+	sdb.EXPECT().BulkWriter(ctx, mock.Anything).Return(sw, nil)
 
 	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
 	assert.NoError(t, err)
 
 	assert.ErrorContains(t, oi.cleanupAll(ctx), "test error")
+}
+
+func TestIngestResources_CloseIdempotent(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	oi := &IngestResources{}
+
+	client := collector.NewCollectorClient(t)
+	c := cache.NewCacheProvider(t)
+	gdb := graphdb.NewProvider(t)
+	sdb := storedb.NewProvider(t)
+
+	deps := &Dependencies{
+		Collector: client,
+		Cache:     c,
+		GraphDB:   gdb,
+		StoreDB:   sdb,
+	}
+
+	cw := cache.NewAsyncWriter(t)
+	cw.EXPECT().Close(ctx).Return(nil).Once()
+	c.EXPECT().BulkWriter(ctx).Return(cw, nil).Once()
+
+	sw := storedb.NewAsyncWriter(t)
+	sw.EXPECT().Close(ctx).Return(nil).Once()
+	sdb.EXPECT().BulkWriter(ctx, mock.Anything).Return(sw, nil).Once()
+
+	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
+	assert.NoError(t, err)
+
+	assert.NoError(t, oi.cleanupAll(ctx))
+	assert.NoError(t, oi.cleanupAll(ctx))
 }

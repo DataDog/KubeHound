@@ -8,7 +8,7 @@ import (
 type TraversalInput any
 
 // VertexTraversal returns the function to create a graph database vertex insert from an array of input objects.
-type VertexTraversal func(g *gremlin.GraphTraversal, insert TraversalInput) *gremlin.GraphTraversal
+type VertexTraversal func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal
 
 // Vertex interface defines objects used to construct vertices within our graph database through processing data from an ingestion pipeline.
 type Vertex interface {
