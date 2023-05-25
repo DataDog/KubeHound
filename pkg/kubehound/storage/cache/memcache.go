@@ -9,7 +9,7 @@ import (
 
 type MemCacheProvider struct {
 	data map[string]string
-	mu   sync.RWMutex
+	mu   *sync.RWMutex
 }
 
 func NewCacheProvider(ctx context.Context) (*MemCacheProvider, error) {
@@ -45,6 +45,7 @@ func (m *MemCacheProvider) Get(key CacheKey) (string, error) {
 func (m *MemCacheProvider) BulkWriter(ctx context.Context) (AsyncWriter, error) {
 	memCacheWriter := &MemCacheAsyncWriter{}
 	memCacheWriter.data = m.data
+	memCacheWriter.mu = m.mu
 	return memCacheWriter, nil
 }
 
