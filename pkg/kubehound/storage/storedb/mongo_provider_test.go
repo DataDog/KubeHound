@@ -3,18 +3,21 @@ package storedb
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func TestMongoProvider_BulkWriter(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
-	provider, err := NewMongoProvider(ctx, MongoDatabaseURL)
+	provider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)
 	// TODO: add another check (env var maybe?)
 	// "integration test checks"
 	if err != nil {
 		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
+		return
 	}
 
 	fakeCollection := collections.FakeCollection{}
@@ -50,7 +53,9 @@ func TestMongoProvider_BulkWriter(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mp := &MongoProvider{
 				client: tt.fields.client,
 				db:     tt.fields.db,

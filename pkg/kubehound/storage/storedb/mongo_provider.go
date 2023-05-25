@@ -2,6 +2,8 @@ package storedb
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,10 +18,13 @@ type MongoProvider struct {
 	db     *mongo.Database
 }
 
-func NewMongoProvider(ctx context.Context, url string) (*MongoProvider, error) {
+func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
 	opts := options.Client()
 	opts.Monitor = otelmongo.NewMonitor()
-	opts.ApplyURI(url)
+	// opts.SetConnectTimeout(connectionTimeout)
+	// opts.SetHosts([]string{url})
+	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", connectionTimeout))
+	// opts.ApplyURI(url)
 
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
