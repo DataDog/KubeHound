@@ -189,7 +189,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 
 			ctx := context.Background()
 			mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)
@@ -200,6 +200,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 				t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
 				return
 			}
+
 			maw := NewMongoAsyncWriter(ctx, mongoProvider, collections.FakeCollection{})
 			// insert multiple times if needed
 			for _, args := range tt.argsQueue {
