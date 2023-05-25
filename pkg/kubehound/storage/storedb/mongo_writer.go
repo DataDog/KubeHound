@@ -3,6 +3,7 @@ package storedb
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -13,11 +14,12 @@ import (
 var _ AsyncWriter = (*MongoAsyncWriter)(nil)
 
 type MongoAsyncWriter struct {
-	mongodb       *MongoProvider
-	ops           []mongo.WriteModel
-	collection    *mongo.Collection
-	batchSize     int
-	consummerChan chan []mongo.WriteModel
+	mongodb         *MongoProvider
+	ops             []mongo.WriteModel
+	collection      *mongo.Collection
+	batchSize       int
+	consummerChan   chan []mongo.WriteModel
+	writingInFligth sync.WaitGroup
 }
 
 func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection collections.Collection) *MongoAsyncWriter {
@@ -53,8 +55,9 @@ func (maw *MongoAsyncWriter) backgroundWriter(ctx context.Context) {
 
 // batchWrite blocks until the write is complete
 func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteModel) error {
+	maw.writingInFligth.Add(1)
 	bulkWriteOpts := options.BulkWrite().SetOrdered(false)
-	defer ctx.Done()
+	defer maw.writingInFligth.Done()
 	_, err := maw.collection.BulkWrite(ctx, ops, bulkWriteOpts)
 	if err != nil {
 		return fmt.Errorf("could not write in bulk to mongo: %w", err)
@@ -89,13 +92,16 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 		// we need to send something to the channel from this function whenever we don't return an error
 		// we cannot defer it because the go routine may last longer than the current function
 		// the defer is going to be executed at the return time, whetever or not the inner go routine is processing data
+		maw.writingInFligth.Wait()
 		return nil
 	}
 
 	err := maw.batchWrite(ctx, maw.ops)
 	if err != nil {
+		maw.writingInFligth.Wait()
 		return err
 	}
+
 	maw.ops = nil
 	return nil
 }
