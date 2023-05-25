@@ -64,29 +64,17 @@ func (_c *AsyncEdgeWriter_Close_Call) RunAndReturn(run func(context.Context) err
 }
 
 // Flush provides a mock function with given fields: ctx
-func (_m *AsyncEdgeWriter) Flush(ctx context.Context) (chan struct{}, error) {
+func (_m *AsyncEdgeWriter) Flush(ctx context.Context) error {
 	ret := _m.Called(ctx)
 
-	var r0 chan struct{}
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (chan struct{}, error)); ok {
-		return rf(ctx)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context) chan struct{}); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
 		r0 = rf(ctx)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(chan struct{})
-		}
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // AsyncEdgeWriter_Flush_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Flush'
@@ -107,12 +95,12 @@ func (_c *AsyncEdgeWriter_Flush_Call) Run(run func(ctx context.Context)) *AsyncE
 	return _c
 }
 
-func (_c *AsyncEdgeWriter_Flush_Call) Return(_a0 chan struct{}, _a1 error) *AsyncEdgeWriter_Flush_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *AsyncEdgeWriter_Flush_Call) Return(_a0 error) *AsyncEdgeWriter_Flush_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *AsyncEdgeWriter_Flush_Call) RunAndReturn(run func(context.Context) (chan struct{}, error)) *AsyncEdgeWriter_Flush_Call {
+func (_c *AsyncEdgeWriter_Flush_Call) RunAndReturn(run func(context.Context) error) *AsyncEdgeWriter_Flush_Call {
 	_c.Call.Return(run)
 	return _c
 }
