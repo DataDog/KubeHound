@@ -23,12 +23,13 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL)
+	mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)
 
 	// TODO: add another check (env var maybe?)
 	// "integration test checks"
 	if err != nil {
 		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
+		return
 	}
 
 	type args struct {
@@ -120,11 +121,12 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL)
+	mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)
 	// TODO: add another check (env var maybe?)
 	// "integration test checks"
 	if err != nil {
 		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
+		return
 	}
 
 	tests := []struct {
@@ -215,11 +217,8 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			maw := &MongoAsyncWriter{
-				mongodb: tt.fields.mongodb,
-				ops:     tt.fields.ops,
-			}
-			maw.collection = tt.fields.mongodb.db.Collection("test-collection")
+			ctx := context.Background()
+			maw := NewMongoAsyncWriter(ctx, tt.fields.mongodb, collections.FakeCollection{})
 			// insert multiple times if needed
 			for _, args := range tt.argsQueue {
 				if err := maw.Queue(args.ctx, args.model); (err != nil) != tt.wantErr {
