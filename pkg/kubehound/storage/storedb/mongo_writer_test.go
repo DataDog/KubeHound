@@ -124,7 +124,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name: "test flushing multiple items from mongo db queue",
+			name: "test flushing 2 items from mongo db queue",
 			argsQueue: []argsQueue{
 				{
 					ctx:   context.Background(),
@@ -189,7 +189,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 
 			ctx := context.Background()
 			mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)
@@ -200,7 +200,6 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 				t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
 				return
 			}
-
 			maw := NewMongoAsyncWriter(ctx, mongoProvider, collections.FakeCollection{})
 			// insert multiple times if needed
 			for _, args := range tt.argsQueue {
@@ -208,14 +207,12 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 					t.Errorf("MongoAsyncWriter.Queue() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
-			// non blocking function
-			waiting, err := maw.Flush(tt.argsFlush.ctx)
+			// blocking function
+			err = maw.Flush(tt.argsFlush.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MongoAsyncWriter.Flush() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			// For our test case we want to wait that the flush as done everything it was required to do
-			<-waiting
 
 			// Should now be reset to 0
 			gotSize := len(maw.ops)
