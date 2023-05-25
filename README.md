@@ -8,8 +8,8 @@ Full documentation available on confluence: https://datadoghq.atlassian.net/wiki
 
 Build the application via:
 
-```
-$ make build
+```bash
+make build
 ```
 
 All binaries will be output to the [bin](./bin/) folder
@@ -18,8 +18,8 @@ All binaries will be output to the [bin](./bin/) folder
 
 The full suite of unit tests can be run locally via:
 
-```
-$ make test
+```bash
+make test
 ```
 
 ## System Testing
@@ -41,20 +41,20 @@ The cluster setup and running instances can be found under [test/setup](./test/s
 
 Setup the test kind cluster (you only need to do this once!) via:
 
-```
-$ make local-cluster-setup
+```bash
+make local-cluster-setup
 ```
 
 Then run the system tests via:
 
-```
-$ make system-test
+```bash
+make system-test
 ```
 
 To cleanup the environment you can destroy the cluster via:
 
-```
-$ make local-cluster-destroy
+```bash
+make local-cluster-destroy
 ```
 
 ### CI Testing
