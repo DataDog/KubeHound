@@ -44,9 +44,12 @@ func (maw *MongoAsyncWriter) backgroundWriter(ctx context.Context) {
 				if data == nil {
 					return
 				}
-				maw.batchWrite(ctx, data)
+				err := maw.batchWrite(ctx, data)
+				if err != nil {
+					log.I.Errorf("failed to write data in background batch writer: %w", err)
+				}
 			case <-ctx.Done():
-				fmt.Println("Closed background mongodb worker")
+				log.I.Info("Closed background mongodb worker")
 				return
 			}
 		}
@@ -56,8 +59,8 @@ func (maw *MongoAsyncWriter) backgroundWriter(ctx context.Context) {
 // batchWrite blocks until the write is complete
 func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteModel) error {
 	maw.writingInFligth.Add(1)
-	bulkWriteOpts := options.BulkWrite().SetOrdered(false)
 	defer maw.writingInFligth.Done()
+	bulkWriteOpts := options.BulkWrite().SetOrdered(false)
 	_, err := maw.collection.BulkWrite(ctx, ops, bulkWriteOpts)
 	if err != nil {
 		return fmt.Errorf("could not write in bulk to mongo: %w", err)
