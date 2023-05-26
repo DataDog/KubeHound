@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/spf13/viper"
@@ -49,4 +50,8 @@ func NewConfig(configPath string) (*KubehoundConfig, error) {
 	}
 
 	return &kc, nil
+}
+
+func IsCI() bool {
+	return os.Getenv("CI") != ""
 }

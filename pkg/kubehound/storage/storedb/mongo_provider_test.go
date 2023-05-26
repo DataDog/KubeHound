@@ -5,11 +5,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func TestMongoProvider_BulkWriter(t *testing.T) {
+	// FIXME: we should probably setup a mongodb test server in CI for the system tests
+	if config.IsCI() {
+		t.Skip("Skip mongo tests in CI")
+	}
 	t.Parallel()
 	ctx := context.Background()
 	provider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)

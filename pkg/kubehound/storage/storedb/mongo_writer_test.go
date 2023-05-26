@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
@@ -15,6 +16,11 @@ type FakeElement struct {
 }
 
 func TestMongoAsyncWriter_Queue(t *testing.T) {
+	// FIXME: we should probably setup a mongodb test server in CI for the system tests
+	if config.IsCI() {
+		t.Skip("Skip mongo tests in CI")
+	}
+
 	t.Parallel()
 	fakeElem := FakeElement{
 		FieldA: 123,
@@ -101,6 +107,10 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 }
 
 func TestMongoAsyncWriter_Flush(t *testing.T) {
+	// FIXME: we should probably setup a mongodb test server in CI for the system tests
+	if config.IsCI() {
+		t.Skip("Skip mongo tests in CI")
+	}
 	t.Parallel()
 	fakeElem := FakeElement{
 		FieldA: 123,
