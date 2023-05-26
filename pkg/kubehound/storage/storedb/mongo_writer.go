@@ -11,6 +11,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const (
+	// TODO: this might need to be adjusted in the future, potentially per type of collections
+	// We don't have the data yet, so lets just hardcode a small-ish value for now
+	consumerChanSize = 10
+)
+
 var _ AsyncWriter = (*MongoAsyncWriter)(nil)
 
 type MongoAsyncWriter struct {
@@ -18,7 +24,7 @@ type MongoAsyncWriter struct {
 	ops             []mongo.WriteModel
 	collection      *mongo.Collection
 	batchSize       int
-	consummerChan   chan []mongo.WriteModel
+	consumerChan    chan []mongo.WriteModel
 	writingInFligth sync.WaitGroup
 }
 
@@ -28,8 +34,7 @@ func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection coll
 		collection: mp.db.Collection(collection.Name()),
 		batchSize:  collection.BatchSize(),
 	}
-	// creating a buffered channel of size one.
-	maw.consummerChan = make(chan []mongo.WriteModel, 1)
+	maw.consumerChan = make(chan []mongo.WriteModel, consumerChanSize)
 	maw.backgroundWriter(ctx)
 	return &maw
 }
@@ -39,7 +44,7 @@ func (maw *MongoAsyncWriter) backgroundWriter(ctx context.Context) {
 	go func() {
 		for {
 			select {
-			case data := <-maw.consummerChan:
+			case data := <-maw.consumerChan:
 				// closing the channel shoud stop the go routine
 				if data == nil {
 					return
@@ -71,7 +76,7 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 // Queue add a model to an asynchronous write queue. Non-blocking.
 func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 	if len(maw.ops) > maw.batchSize {
-		maw.consummerChan <- maw.ops
+		maw.consumerChan <- maw.ops
 		// cleanup the ops array after we have copied it to the channel
 		maw.ops = nil
 	}
