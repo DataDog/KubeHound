@@ -26,7 +26,7 @@ func fakeCacheBuilder(ctx context.Context) (*MemCacheProvider, map[CacheKey]stri
 func TestMemCacheProvider_Get(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	fakeProvider, fakeCache := fakeCacheBuilder(ctx)
 
 	type fields struct {
@@ -82,7 +82,7 @@ func TestMemCacheProvider_Get(t *testing.T) {
 func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	// Standard write
 	fakeProvider1, _ := NewCacheProvider(ctx)
