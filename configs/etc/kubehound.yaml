@@ -3,4 +3,4 @@ collector:
   file:
     directory: cluster-data/
 mongodb:
-  
+  url: "mongodb://localhost:27017"

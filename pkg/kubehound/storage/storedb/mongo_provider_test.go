@@ -17,7 +17,7 @@ func TestMongoProvider_BulkWriter(t *testing.T) {
 	}
 	t.Parallel()
 	ctx := context.Background()
-	provider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)
+	provider, err := NewMongoProvider(ctx, MongoLocalDatabaseURL, 1*time.Second)
 	// TODO: add another check (env var maybe?)
 	// "integration test checks"
 	if err != nil {

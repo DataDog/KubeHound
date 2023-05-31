@@ -28,7 +28,7 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)
+	mongoProvider, err := NewMongoProvider(ctx, MongoLocalDatabaseURL, 1*time.Second)
 
 	// TODO: add another check (env var maybe?)
 	// "integration test checks"
@@ -202,7 +202,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			mongoProvider, err := NewMongoProvider(ctx, MongoDatabaseURL, 1*time.Second)
+			mongoProvider, err := NewMongoProvider(ctx, MongoLocalDatabaseURL, 1*time.Second)
 			defer mongoProvider.Close(ctx)
 			// TODO: add another check (env var maybe?)
 			// "integration test checks"
