@@ -21,10 +21,7 @@ type MongoProvider struct {
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
 	opts := options.Client()
 	opts.Monitor = otelmongo.NewMonitor()
-	// opts.SetConnectTimeout(connectionTimeout)
-	// opts.SetHosts([]string{url})
 	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", connectionTimeout))
-	// opts.ApplyURI(url)
 
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
