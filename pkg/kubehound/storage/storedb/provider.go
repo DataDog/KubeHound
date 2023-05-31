@@ -2,11 +2,15 @@ package storedb
 
 import (
 	"context"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+)
+
+const (
+	connectionTimeout = 5 * time.Second
 )
 
 type writerOptions struct {
@@ -37,7 +41,7 @@ type AsyncWriter interface {
 	// Queue add a model to an asynchronous write queue. Non-blocking.
 	Queue(ctx context.Context, model any) error
 
-	// Flush triggers writes of any remaining items in the queue. Blocks until operation completes. 
+	// Flush triggers writes of any remaining items in the queue. Blocks until operation completes.
 	Flush(ctx context.Context) error
 
 	// Close cleans up any resources used by the AsyncWriter implementation. Writer cannot be reused after this call.
@@ -46,5 +50,9 @@ type AsyncWriter interface {
 
 // Factory returns an initialized instance of a storedb provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
-	return nil, globals.ErrNotImplemented
+	provider, err := NewMongoProvider(ctx, cfg.MongoDB.URL, connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	return provider, nil
 }
