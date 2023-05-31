@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 type MemCacheProvider struct {
@@ -71,7 +73,7 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key CacheKey, value str
 	keyId := m.GetKeyName(key)
 	_, ok := m.data[keyId]
 	if ok {
-		return errors.New("entry already present in cache")
+		log.I.Warnf("overwriting cache entry: [key]%s - [value] old:%s / new:%s", keyId, m.data[keyId], value)
 	}
 	m.data[keyId] = value
 	return nil

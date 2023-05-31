@@ -129,7 +129,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 				fakeCache: fakeCache2,
 				ctx:       ctx,
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
