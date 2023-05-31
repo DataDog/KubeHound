@@ -59,7 +59,6 @@ func TestMemCacheProvider_Get(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
 			m := &MemCacheProvider{
 				data: tt.fields.data,
@@ -140,7 +139,6 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 			}
 
 			for key, val := range tt.args.fakeCache {
-
 				if err := m.Queue(tt.args.ctx, key, val); (err != nil) != tt.wantErr {
 					t.Errorf("MemCacheAsyncWriter.Queue() error = %v, wantErr %v", err, tt.wantErr)
 				}
