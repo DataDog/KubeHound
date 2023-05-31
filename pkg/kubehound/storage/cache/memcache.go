@@ -14,8 +14,10 @@ type MemCacheProvider struct {
 
 func NewCacheProvider(ctx context.Context) (*MemCacheProvider, error) {
 
+	var mu sync.RWMutex
 	cacheProvider := &MemCacheProvider{
 		data: make(map[string]string),
+		mu:   &mu,
 	}
 
 	return cacheProvider, nil
