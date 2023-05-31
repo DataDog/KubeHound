@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/spf13/viper"
@@ -15,6 +16,7 @@ const (
 // KubehoundConfig defines the top-level application configuration for KubeHound.
 type KubehoundConfig struct {
 	Collector CollectorConfig `mapstructure:"collector"` // Collector configuration
+	MongoDB   MongoDBConfig   `mapstructure:"mongodb"`   // MongoDB configuration
 }
 
 // MustLoadDefaultConfig loads the default application configuration, treating all errors as fatal.
@@ -48,4 +50,8 @@ func NewConfig(configPath string) (*KubehoundConfig, error) {
 	}
 
 	return &kc, nil
+}
+
+func IsCI() bool {
+	return os.Getenv("CI") != ""
 }
