@@ -28,6 +28,7 @@ func (mp *MemCacheProvider) Name() string {
 }
 
 func (m *MemCacheProvider) Close(ctx context.Context) error {
+	m.data = make(map[string]string)
 	return nil
 }
 
@@ -77,9 +78,11 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key CacheKey, value str
 }
 
 func (m *MemCacheAsyncWriter) Flush(ctx context.Context) error {
+	m.Close(ctx)
 	return nil
 }
 
 func (m *MemCacheAsyncWriter) Close(ctx context.Context) error {
+	m.MemCacheProvider.Close(ctx)
 	return nil
 }
