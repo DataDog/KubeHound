@@ -2,17 +2,18 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"testing"
 )
 
-func fakeCacheBuilder(ctx context.Context) (*MemCacheProvider, map[CacheKey]string) {
+func fakeCacheBuilder(ctx context.Context, cacheSize int) (*MemCacheProvider, map[CacheKey]string) {
 	fakeProvider, _ := NewCacheProvider(ctx)
 
-	fakeCache := map[CacheKey]string{
-		ContainerKey("testPod1", "container1"): "qwerty",
-		ContainerKey("testPod2", "container2"): "asdfgh",
-		ContainerKey("testPod3", "container3"): "zxcvb",
+	fakeCache := map[CacheKey]string{}
+
+	for i := 1; i <= cacheSize; i++ {
+		fakeCache[ContainerKey(fmt.Sprintf("Pod%d", i), fmt.Sprintf("container%d", i))] = fmt.Sprintf("value%d", i)
 	}
 
 	fakeCacheWriter, _ := fakeProvider.BulkWriter(ctx)
@@ -27,7 +28,7 @@ func TestMemCacheProvider_Get(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	fakeProvider, fakeCache := fakeCacheBuilder(ctx)
+	fakeProvider, fakeCache := fakeCacheBuilder(ctx, 3)
 
 	type fields struct {
 		data map[string]string
@@ -93,7 +94,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 	}
 
 	// Testing for collision in cache
-	fakeProvider2, fakeCache2 := fakeCacheBuilder(ctx)
+	fakeProvider2, fakeCache2 := fakeCacheBuilder(ctx, 3)
 
 	type fields struct {
 		MemCacheProvider MemCacheProvider
