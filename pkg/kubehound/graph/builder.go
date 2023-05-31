@@ -66,13 +66,7 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Edge) error {
 
 		},
 		func(ctx context.Context) error {
-			complete, err := w.Flush(ctx)
-			if err != nil {
-				return err
-			}
-
-			<-complete
-			return nil
+			return w.Flush(ctx)
 		})
 
 	w.Close(ctx)

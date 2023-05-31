@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	collector "github.com/DataDog/KubeHound/pkg/collector/mocks"
+	collector "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -67,8 +67,7 @@ func TestIngestResources_Initializer(t *testing.T) {
 	// Test cache writer mechanics
 	oi = &IngestResources{}
 	cw := cache.NewAsyncWriter(t)
-	cwDone := make(chan struct{})
-	cw.EXPECT().Flush(ctx).Return(cwDone, nil)
+	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
@@ -76,15 +75,13 @@ func TestIngestResources_Initializer(t *testing.T) {
 	oi, err = CreateResources(ctx, deps, WithCacheWriter())
 	assert.NoError(t, err)
 
-	close(cwDone)
 	assert.NoError(t, oi.flushWriters(ctx))
 	assert.NoError(t, oi.cleanupAll(ctx))
 
 	// Test store writer mechanics
 	oi = &IngestResources{}
 	sw := storedb.NewAsyncWriter(t)
-	swDone := make(chan struct{})
-	sw.EXPECT().Flush(ctx).Return(swDone, nil)
+	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
 
 	collection := collections.Node{}
@@ -93,15 +90,13 @@ func TestIngestResources_Initializer(t *testing.T) {
 	oi, err = CreateResources(ctx, deps, WithStoreWriter(collection))
 	assert.NoError(t, err)
 
-	close(swDone)
 	assert.NoError(t, oi.flushWriters(ctx))
 	assert.NoError(t, oi.cleanupAll(ctx))
 
 	// Test graph writer mechanics
 	oi = &IngestResources{}
 	gw := graphdb.NewAsyncVertexWriter(t)
-	gwDone := make(chan struct{})
-	gw.EXPECT().Flush(ctx).Return(gwDone, nil)
+	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
 
 	vtx := vertex.Node{}
@@ -110,7 +105,6 @@ func TestIngestResources_Initializer(t *testing.T) {
 	oi, err = CreateResources(ctx, deps, WithGraphWriter(vtx))
 	assert.NoError(t, err)
 
-	close(gwDone)
 	assert.NoError(t, oi.flushWriters(ctx))
 	assert.NoError(t, oi.cleanupAll(ctx))
 }
@@ -135,21 +129,17 @@ func TestIngestResources_FlushErrors(t *testing.T) {
 
 	// Set cache to succeed
 	cw := cache.NewAsyncWriter(t)
-	cwDone := make(chan struct{})
-	cw.EXPECT().Flush(ctx).Return(cwDone, nil)
+	cw.EXPECT().Flush(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
 
 	// Set store to fail
 	sw := storedb.NewAsyncWriter(t)
-	swDone := make(chan struct{})
-	sw.EXPECT().Flush(ctx).Return(swDone, errors.New("test error"))
+	sw.EXPECT().Flush(ctx).Return(errors.New("test error"))
 	sdb.EXPECT().BulkWriter(ctx, mock.Anything).Return(sw, nil)
 
 	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
 	assert.NoError(t, err)
 
-	close(cwDone)
-	close(swDone)
 	assert.ErrorContains(t, oi.flushWriters(ctx), "test error")
 }
 
