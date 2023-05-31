@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hostpath-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+  - name: hostpath-pod
+    image: ubuntu
+    volumeMounts:
+    - mountPath: /host
+      name: noderoot
+    command: [ "/bin/sh", "-c", "--" ]
+    args: [ "while true; do sleep 30; done;" ]
+  volumes:
+  - name: noderoot
+    hostPath:
+      path: /

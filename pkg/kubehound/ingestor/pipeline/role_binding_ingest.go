@@ -75,7 +75,7 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 // streamCallback is invoked by the collector for each role binding collected.
 // The function ingests an input role binding object into the store/graph and then ingests
 // all child objects (identites, etc) through their own ingestion pipeline.
-func (i *RoleBindingIngest) streamCallback(ctx context.Context, rb types.RoleBindingType) error {
+func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.RoleBindingType) error {
 	// Normalize K8s role binding to store object format
 	o, err := i.r.storeConvert.RoleBinding(ctx, rb)
 	if err != nil {
@@ -102,12 +102,12 @@ func (i *RoleBindingIngest) streamCallback(ctx context.Context, rb types.RoleBin
 
 // completeCallback is invoked by the collector when all roles have been streamed.
 // The function flushes all writers and waits for completion.
-func (i *RoleBindingIngest) completeCallback(ctx context.Context) error {
+func (i *RoleBindingIngest) Complete(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }
 
 func (i *RoleBindingIngest) Run(ctx context.Context) error {
-	return i.r.collect.StreamRoleBindings(ctx, i.streamCallback, i.completeCallback)
+	return i.r.collect.StreamRoleBindings(ctx, i)
 }
 
 func (i *RoleBindingIngest) Close(ctx context.Context) error {

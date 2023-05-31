@@ -1,0 +1,210 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2023-04-05T19:38:08Z",
+                "generateName": "app-monitors-client-78cb6d7899-",
+                "name": "app-monitors-client-78cb6d7899-j2rjp",
+                "namespace": "test-app"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "POD_NAMESPACE",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "metadata.namespace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "POD_SERVICE_ACCOUNT",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "spec.serviceAccountName"
+                                    }
+                                }
+                            }
+                        ],
+                        "image": "dockerhub.com/elasticsearch:latest",
+                        "imagePullPolicy": "Always",
+                        "name": "elasticsearch",
+                        "ports": [
+                            {
+                                "containerPort": 9200,
+                                "hostPort": 9200,
+                                "name": "http",
+                                "protocol": "TCP"
+                            },
+                            {
+                                "containerPort": 9300,
+                                "hostPort": 9300,
+                                "name": "transport",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 20,
+                            "httpGet": {
+                                "path": "/_cluster/health?",
+                                "port": 9200,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "0",
+                                "memory": "13G"
+                            },
+                            "requests": {
+                                "cpu": "0",
+                                "memory": "13G"
+                            }
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-4x9fz",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsConfig": {
+                    "nameservers": [
+                        "8.8.8.8"
+                    ],
+                    "options": [
+                        {
+                            "name": "ndots",
+                            "value": "5"
+                        },
+                        {
+                            "name": "timeout",
+                            "value": "1"
+                        }
+                    ]
+                },
+                "dnsPolicy": "None",
+                "enableServiceLinks": true,
+                "hostAliases": [
+                    {
+                        "hostnames": [
+                            "metadata.google.internal"
+                        ],
+                        "ip": "169.254.169.254"
+                    }
+                ],
+                "initContainers": [
+                ],
+                "nodeName": "test-node.ec2.internal",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "fsGroup": 1000,
+                    "runAsUser": 1000
+                },
+                "serviceAccount": "app-monitors",
+                "serviceAccountName": "app-monitors",
+                "terminationGracePeriodSeconds": 300,
+                "volumes": [
+                    {
+                        "name": "kube-api-access-4x9fz",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-04-05T19:38:26Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-04-05T19:39:08Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-04-05T19:39:08Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2023-04-05T19:38:08Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "hostIP": "10.1.1.1",
+                "phase": "Running",
+                "podIP": "10.1.1.2",
+                "podIPs": [
+                    {
+                        "ip": "10.1.1.2"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2023-04-05T19:38:08Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}

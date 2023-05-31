@@ -133,7 +133,7 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 // streamCallback is invoked by the collector for each pod collected.
 // The function ingests an input pod object into the cache/store/graph and then ingests
 // all child objects (containers, volumes, etc) through their own ingestion pipeline.
-func (i *PodIngest) streamCallback(ctx context.Context, pod types.PodType) error {
+func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	// Normalize pod to store object format
 	sp, err := i.r.storeConvert.Pod(ctx, pod)
 	if err != nil {
@@ -180,12 +180,12 @@ func (i *PodIngest) streamCallback(ctx context.Context, pod types.PodType) error
 
 // completeCallback is invoked by the collector when all pods have been streamed.
 // The function flushes all writers and waits for completion.
-func (i *PodIngest) completeCallback(ctx context.Context) error {
+func (i *PodIngest) Complete(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }
 
 func (i *PodIngest) Run(ctx context.Context) error {
-	return i.r.collect.StreamPods(ctx, i.streamCallback, i.completeCallback)
+	return i.r.collect.StreamPods(ctx, i)
 }
 
 func (i *PodIngest) Close(ctx context.Context) error {

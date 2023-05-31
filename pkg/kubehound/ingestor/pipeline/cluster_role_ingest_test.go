@@ -3,10 +3,9 @@ package pipeline
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
-	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mocks"
+	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
@@ -17,30 +16,29 @@ import (
 )
 
 func TestClusterRoleIngest_Pipeline(t *testing.T) {
-	ri := &ClusterRoleIngest{}
+	cri := &ClusterRoleIngest{}
 
 	ctx := context.Background()
 	fakeRole, err := loadTestObject[types.ClusterRoleType]("testdata/clusterrole.json")
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
-	client.EXPECT().StreamClusterRoles(ctx, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, process collector.ClusterRoleProcessor, complete collector.Complete) error {
+	client.EXPECT().StreamClusterRoles(ctx, cri).
+		RunAndReturn(func(ctx context.Context, i collector.ClusterRoleIngestor) error {
 			// Fake the stream of a single cluster role from the collector client
-			err := process(ctx, fakeRole)
+			err := i.IngestClusterRole(ctx, fakeRole)
 			if err != nil {
 				return err
 			}
 
-			return complete(ctx)
+			return i.Complete(ctx)
 		})
 
 	// Cache setup
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
-	cwDone := make(chan struct{})
 	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.roleCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
-	cw.EXPECT().Flush(ctx).Return(cwDone, nil)
+	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
 
@@ -48,18 +46,16 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
 	roles := collections.Role{}
-	swDone := make(chan struct{})
 	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).Return(nil).Once()
-	sw.EXPECT().Flush(ctx).Return(swDone, nil)
+	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, roles).Return(sw, nil)
 
 	// Graph setup
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
-	gwDone := make(chan struct{})
 	gw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Role")).Return(nil).Once()
-	gw.EXPECT().Flush(ctx).Return(gwDone, nil)
+	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
 	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Role")).Return(gw, nil)
 
@@ -71,22 +67,14 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 	}
 
 	// Initialize
-	err = ri.Initialize(ctx, deps)
+	err = cri.Initialize(ctx, deps)
 	assert.NoError(t, err)
 
-	go func() {
-		// Simulate a delayed flush completion
-		time.Sleep(time.Second)
-		close(cwDone)
-		close(swDone)
-		close(gwDone)
-	}()
-
 	// Run
-	err = ri.Run(ctx)
+	err = cri.Run(ctx)
 	assert.NoError(t, err)
 
 	// Close
-	err = ri.Close(ctx)
+	err = cri.Close(ctx)
 	assert.NoError(t, err)
 }
