@@ -10,7 +10,7 @@ import (
 func fakeCacheBuilder(ctx context.Context, cacheSize int) (*MemCacheProvider, map[CacheKey]string) {
 	fakeProvider, _ := NewCacheProvider(ctx)
 
-	fakeCache := map[CacheKey]string{}
+	fakeCache := make(map[CacheKey]string, cacheSize)
 
 	for i := 1; i <= cacheSize; i++ {
 		fakeCache[ContainerKey(fmt.Sprintf("Pod%d", i), fmt.Sprintf("container%d", i))] = fmt.Sprintf("value%d", i)
