@@ -73,7 +73,7 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key CacheKey, value str
 	keyId := m.GetKeyName(key)
 	_, ok := m.data[keyId]
 	if ok {
-		log.I.Warnf("overwriting cache entry: [key]%s - [value] old:%s / new:%s", keyId, m.data[keyId], value)
+		log.I.Warnf("overwriting cache entry: [key]%s", keyId)
 	}
 	m.data[keyId] = value
 	return nil
