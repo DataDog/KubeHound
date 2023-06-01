@@ -7,7 +7,7 @@ all: build
 
 .PHONEY: build
 build:
-	cd cmd && go build -ldflags="-X main.BuildVersion=$(BUILD_VERSION)" -o ../bin/kubehound kubehound/*.go
+	cd cmd && go build -ldflags="-X pkg/config.BuildVersion=$(BUILD_VERSION)" -o ../bin/kubehound kubehound/*.go
 
 .PHONY: test
 test:
