@@ -15,7 +15,7 @@ type JanusGraphProvider struct {
 	client *gremlingo.DriverRemoteConnection
 }
 
-func NewGraphDriver(dbHost string) (*JanusGraphProvider, error) {
+func NewGraphDriver(ctx context.Context, dbHost string) (*JanusGraphProvider, error) {
 	driver, err := gremlingo.NewDriverRemoteConnection(dbHost)
 	if err != nil {
 		return nil, err
@@ -53,5 +53,7 @@ func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Edge, opts
 
 // Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.
 func (jgp *JanusGraphProvider) Close(ctx context.Context) error {
-	return globals.ErrNotImplemented
+	// This only logs errors
+	jgp.client.Close()
+	return nil
 }

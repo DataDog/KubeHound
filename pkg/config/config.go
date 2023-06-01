@@ -15,8 +15,9 @@ const (
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
 type KubehoundConfig struct {
-	Collector CollectorConfig `mapstructure:"collector"` // Collector configuration
-	MongoDB   MongoDBConfig   `mapstructure:"mongodb"`   // MongoDB configuration
+	Collector  CollectorConfig  `mapstructure:"collector"`  // Collector configuration
+	MongoDB    MongoDBConfig    `mapstructure:"mongodb"`    // MongoDB configuration
+	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // MongoDB configuration
 }
 
 // MustLoadDefaultConfig loads the default application configuration, treating all errors as fatal.
