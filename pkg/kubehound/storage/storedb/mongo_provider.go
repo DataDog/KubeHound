@@ -8,7 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo"
+	mongotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go.mongodb.org/mongo-driver/mongo"
 )
 
 var _ Provider = (*MongoProvider)(nil)
@@ -20,7 +20,7 @@ type MongoProvider struct {
 
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
 	opts := options.Client()
-	opts.Monitor = otelmongo.NewMonitor()
+	opts.Monitor = mongotrace.NewMonitor()
 	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", connectionTimeout))
 
 	client, err := mongo.Connect(ctx, opts)

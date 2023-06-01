@@ -8,6 +8,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	BuildVersion string // This should be overwritten by the go build -X flags
+)
+
 const (
 	DefaultConfigType = "yaml"
 	DefaultConfigPath = "etc/kubehound.yaml"
@@ -17,6 +21,7 @@ const (
 type KubehoundConfig struct {
 	Collector CollectorConfig `mapstructure:"collector"` // Collector configuration
 	MongoDB   MongoDBConfig   `mapstructure:"mongodb"`   // MongoDB configuration
+	Tracer    TracerConfig    `mapstructure:"tracer"`    // (Datadog) Tracer configuration
 }
 
 // MustLoadDefaultConfig loads the default application configuration, treating all errors as fatal.
