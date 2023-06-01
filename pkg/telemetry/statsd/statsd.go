@@ -2,11 +2,12 @@
 // telemetry.Gauge() instead of telemetry.statsd.Gauge()
 // It does NOT implement all the function from the statsd.ClientInterface interface
 // because some of these are never going to be used in this application
-package telemetry
+package statsd
 
 import (
 	"time"
 
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/datadog-go/v5/statsd"
 )
 
@@ -14,6 +15,25 @@ var (
 	// statsdClient is the global statsd statsdClient.
 	statsdClient statsd.ClientInterface
 )
+
+// just to make sure we have a client that does nothing by default
+func init() {
+	statsdClient = &NoopClient{}
+}
+
+func Setup(statsdURL string) error {
+	var err error
+	// In case we don't have a statsd url set, we just want to continue, but log that we aren't going to submit metrics.
+	if statsdURL == "" {
+		log.I.Warn("No metrics collector has been setup. All metrics submission are going to be NOOP.")
+		return nil
+	}
+	statsdClient, err = statsd.New(statsdURL)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // Count tracks how many times something happened per second.
 func Count(name string, value int64, tags []string, rate float64) error {
@@ -109,4 +129,29 @@ func Distribution(name string, value float64, tags []string, rate float64) error
 		return nil
 	}
 	return statsdClient.Distribution(name, value, tags, rate)
+}
+
+// Flush flushes any pending stats in the statsd client.
+func Flush() error {
+	if statsdClient == nil {
+		return nil
+	}
+
+	return statsdClient.Flush()
+}
+
+func IsClosed() bool {
+	if statsdClient == nil {
+		return false
+	}
+
+	return statsdClient.IsClosed()
+}
+
+func Close() error {
+	if statsdClient == nil {
+		return nil
+	}
+
+	return statsdClient.Close()
 }
