@@ -17,6 +17,7 @@ const (
 type KubehoundConfig struct {
 	Collector CollectorConfig `mapstructure:"collector"` // Collector configuration
 	MongoDB   MongoDBConfig   `mapstructure:"mongodb"`   // MongoDB configuration
+	Statsd    StatsdConfig    `mapstructure:"statsd"`
 }
 
 // MustLoadDefaultConfig loads the default application configuration, treating all errors as fatal.

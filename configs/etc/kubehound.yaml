@@ -4,3 +4,5 @@ collector:
     directory: cluster-data/
 mongodb:
   url: "mongodb://localhost:27017"
+statsd:
+  url: "127.0.0.1:8125"
