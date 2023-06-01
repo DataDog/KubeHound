@@ -7,20 +7,21 @@ import (
 	"testing"
 )
 
+// go test -bench=. -benchmem
 // Chip: Apple M1 Max
 // Total Number of Cores: 10 (8 performance and 2 efficiency)
 // Memory: 64 GB
-// BenchmarkWrite/1024-10              1270           1100644 ns/op
-// BenchmarkWrite/2048-10               613           2237067 ns/op
-// BenchmarkWrite/4096-10               253           4609347 ns/op
-// BenchmarkWrite/8192-10               148           8639079 ns/op
-// BenchmarkWrite/16384-10               82          16947682 ns/op
-// BenchmarkWrite/32768-10               39          34710559 ns/op
-// BenchmarkWrite/65536-10               19          68294311 ns/op
-// BenchmarkWrite/131072-10               9         138663819 ns/op
-// BenchmarkWrite/262144-10               4         277446823 ns/op
-// BenchmarkWrite/524288-10               2         552829500 ns/op
-// BenchmarkWrite/1048576-10              1        1098627292 ns/op
+// BenchmarkWrite/1024-10              1081           1457681 ns/op          502334 B/op      14370 allocs/op
+// BenchmarkWrite/2048-10               609           2168746 ns/op          970973 B/op      28733 allocs/op
+// BenchmarkWrite/4096-10               292           4378407 ns/op         1965000 B/op      57473 allocs/op
+// BenchmarkWrite/8192-10               142           8629822 ns/op         3960456 B/op     114951 allocs/op
+// BenchmarkWrite/16384-10               82          21557271 ns/op         7627943 B/op     229879 allocs/op
+// BenchmarkWrite/32768-10               28          42693875 ns/op        17067977 B/op     460096 allocs/op
+// BenchmarkWrite/65536-10               14          87483321 ns/op        34138948 B/op     920203 allocs/op
+// BenchmarkWrite/131072-10               8         159673495 ns/op        65375701 B/op    1839719 allocs/op
+// BenchmarkWrite/262144-10               4         300941146 ns/op        130748070 B/op   3679430 allocs/op
+// BenchmarkWrite/524288-10               2         583498562 ns/op        261488468 B/op   7358834 allocs/op
+// BenchmarkWrite/1048576-10              1        1194777000 ns/op        522988328 B/op  14717714 allocs/op
 func BenchmarkWrite(b *testing.B) {
 	ctx := context.Background()
 
@@ -39,20 +40,21 @@ func BenchmarkWrite(b *testing.B) {
 	}
 }
 
+// go test -bench=. -benchmem
 // Chip: Apple M1 Max
 // Total Number of Cores: 10 (8 performance and 2 efficiency)
 // Memory: 64 GB
-// BenchmarkRead/1024-10           1000000000               0.0002529 ns/op
-// BenchmarkRead/2048-10           1000000000               0.0003826 ns/op
-// BenchmarkRead/4096-10           1000000000               0.0008309 ns/op
-// BenchmarkRead/8192-10           1000000000               0.001593 ns/op
-// BenchmarkRead/16384-10          1000000000               0.003414 ns/op
-// BenchmarkRead/32768-10          1000000000               0.007371 ns/op
-// BenchmarkRead/65536-10          1000000000               0.01987 ns/op
-// BenchmarkRead/131072-10         1000000000               0.03713 ns/op
-// BenchmarkRead/262144-10         1000000000               0.07691 ns/op
-// BenchmarkRead/524288-10         1000000000               0.1851 ns/op
-// BenchmarkRead/1048576-10        1000000000               0.3632 ns/op
+// BenchmarkRead/1024-10           1000000000               0.0002132 ns/op       0 B/op          0 allocs/op
+// BenchmarkRead/2048-10           1000000000               0.0004069 ns/op       0 B/op          0 allocs/op
+// BenchmarkRead/4096-10           1000000000               0.0009266 ns/op       0 B/op          0 allocs/op
+// BenchmarkRead/8192-10           1000000000               0.001837 ns/op        0 B/op          0 allocs/op
+// BenchmarkRead/16384-10          1000000000               0.003899 ns/op        0 B/op          0 allocs/op
+// BenchmarkRead/32768-10          1000000000               0.009364 ns/op        0 B/op          0 allocs/op
+// BenchmarkRead/65536-10          1000000000               0.01708 ns/op         0 B/op          0 allocs/op
+// BenchmarkRead/131072-10         1000000000               0.04346 ns/op         0 B/op          0 allocs/op
+// BenchmarkRead/262144-10         1000000000               0.08424 ns/op         0 B/op          0 allocs/op
+// BenchmarkRead/524288-10         1000000000               0.1908 ns/op          0 B/op          0 allocs/op
+// BenchmarkRead/1048576-10        1000000000               0.3739 ns/op          0 B/op          0 allocs/op
 func BenchmarkRead(b *testing.B) {
 	ctx := context.Background()
 
