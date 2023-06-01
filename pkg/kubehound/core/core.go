@@ -93,7 +93,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	}
 
 	log.I.Info("Initializing application telemetry")
-	err := telemetry.Initialize(cfg.Statsd.URL)
+	err := telemetry.Initialize(cfg)
 	if err != nil {
 		log.I.Warnf("failed telemetry initialization: %v", err)
 	}
