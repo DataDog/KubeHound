@@ -1,5 +1,10 @@
 package vertex
 
+import (
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
+)
+
 const (
 	roleLabel = "Role"
 )
@@ -14,5 +19,19 @@ func (v Role) Label() string {
 }
 
 func (v Role) Traversal() VertexTraversal {
-	return nil
+	return func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
+		g := source.GetGraphTraversal()
+
+		for _, insert := range inserts {
+			i := insert.(*graph.Role)
+			g = g.AddV(v.Label()).
+				Property("id", i.StoreId).
+				Property("name", i.Name).
+				Property("is_namespaced", i.IsNamespaced).
+				Property("namespace", i.Namespace).
+				Property("rules", i.Rules)
+		}
+
+		return g
+	}
 }
