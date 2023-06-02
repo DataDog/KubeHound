@@ -21,6 +21,9 @@ jobs:
       - name: Checkout Git Repo
         uses: actions/checkout@v3
 
+      - name: Build & regenerate
+        run: go build && go generate ./...
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
