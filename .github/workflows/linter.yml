@@ -21,10 +21,6 @@ jobs:
       - name: Checkout Git Repo
         uses: actions/checkout@v3
 
-      - name: Build
-        run: go build
-        working-directory: cmd/kubehound/
-
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
