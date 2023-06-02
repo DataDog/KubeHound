@@ -1,3 +1,6 @@
+run:
+  # Default: 1m
+  timeout: 5m
 linters:
   disable-all: true
   # Enable specific linter
