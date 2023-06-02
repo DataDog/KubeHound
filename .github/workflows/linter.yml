@@ -21,8 +21,11 @@ jobs:
       - name: Checkout Git Repo
         uses: actions/checkout@v3
 
-      - name: Build & regenerate
-        run: go generate ./... && go build
+      - name: Regenerate
+        run: go generate ./...
+
+      - name: Build
+        run: go build
         working-directory: cmd/kubehound/
 
       - name: golangci-lint
