@@ -23,6 +23,7 @@ jobs:
 
       - name: Build & regenerate
         run: go build && go generate ./...
+        working-directory: cmd/kubehound/
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
