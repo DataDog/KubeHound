@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  unit-test:
+  linter:
     runs-on: ubuntu-latest
     steps:      
       - name: Setup Golang
