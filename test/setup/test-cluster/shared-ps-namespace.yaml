@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: shared-ps-namespace
+  labels:
+    app: kubehound-edge-test
+spec:
+  shareProcessNamespace: true
+  containers:
+  - name: shared-ps-namespace-container-a
+    image: ubuntu
+    tty: true
+    command: [ "sleep", "3600" ]
+  - name: shared-ps-namespace-container-b
+    image: ubuntu
+    tty: true
+    command: [ "sleep", "3600" ]
