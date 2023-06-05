@@ -1,5 +1,7 @@
 package vertex
 
+import "github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+
 const (
 	containerLabel = "Container"
 )
@@ -7,6 +9,7 @@ const (
 var _ Vertex = (*Container)(nil)
 
 type Container struct {
+	graph.Container
 }
 
 func (v Container) Label() string {

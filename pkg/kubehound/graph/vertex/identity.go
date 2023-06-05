@@ -1,5 +1,7 @@
 package vertex
 
+import "github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+
 const (
 	identityLabel = "Identity"
 )
@@ -7,6 +9,7 @@ const (
 var _ Vertex = (*Identity)(nil)
 
 type Identity struct {
+	graph.Identity
 }
 
 func (v Identity) Label() string {

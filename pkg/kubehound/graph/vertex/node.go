@@ -12,6 +12,7 @@ const (
 var _ Vertex = (*Node)(nil)
 
 type Node struct {
+	graph.Node
 }
 
 func (v Node) Label() string {

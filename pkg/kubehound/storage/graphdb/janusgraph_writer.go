@@ -2,7 +2,7 @@ package graphdb
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
@@ -20,10 +20,10 @@ type JanusGraphAsyncVertexWriter struct {
 	gremlin         GremlinTraversalVertex
 	transaction     *gremlingo.Transaction
 	traversalSource *gremlingo.GraphTraversalSource
-	inserts         []gremlingo.Vertex // Should this be gremlingo.Edge or something custom?
+	inserts         []gremlingo.Vertex // Should this be gremlingo.Edge or vertex.Vertex?
 	consumerChan    chan []gremlingo.Vertex
 	writingInFligth sync.WaitGroup
-	batchSize       int
+	batchSize       int // Shouldn't this be "per vertex types" ?
 }
 
 var _ AsyncEdgeWriter = (*JanusGraphAsyncEdgeWriter)(nil)
@@ -35,10 +35,15 @@ type JanusGraphAsyncEdgeWriter struct {
 	inserts         []gremlingo.Edge // Should this be gremlingo.Edge or edge.Edge?
 	consumerChan    chan []gremlingo.Edge
 	writingInFligth sync.WaitGroup
-	batchSize       int
+	batchSize       int // Shouldn't this be "per edge types" ?
 }
 
-func NewJanusGraphAsyncEdgeWriter(drc *gremlingo.DriverRemoteConnection) (*JanusGraphAsyncEdgeWriter, error) {
+func NewJanusGraphAsyncEdgeWriter(drc *gremlingo.DriverRemoteConnection, opts ...WriterOption) (*JanusGraphAsyncEdgeWriter, error) {
+	options := &writerOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	traversal := gremlingo.Traversal_().WithRemote(drc)
 	tx := traversal.Tx()
 	gtx, err := tx.Begin()
@@ -55,7 +60,12 @@ func NewJanusGraphAsyncEdgeWriter(drc *gremlingo.DriverRemoteConnection) (*Janus
 	return &jw, nil
 }
 
-func NewJanusGraphAsyncVertexWriter(drc *gremlingo.DriverRemoteConnection) (*JanusGraphAsyncVertexWriter, error) {
+func NewJanusGraphAsyncVertexWriter(drc *gremlingo.DriverRemoteConnection, opts ...WriterOption) (*JanusGraphAsyncVertexWriter, error) {
+	options := &writerOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	traversal := gremlingo.Traversal_().WithRemote(drc)
 	tx := traversal.Tx()
 	gtx, err := tx.Begin()
@@ -113,7 +123,7 @@ func (jgv *JanusGraphAsyncVertexWriter) backgroundWriter(ctx context.Context) {
 				}
 				err := jgv.batchWrite(ctx, data)
 				if err != nil {
-					log.I.Errorf("failed to write data in background batch writer: %w", err)
+					log.I.Errorf("failed to write data in background batch writer: %v", err)
 				}
 			case <-ctx.Done():
 				log.I.Info("Closed background Janus Graph worker (vertex)")
@@ -133,7 +143,7 @@ func (e *JanusGraphAsyncEdgeWriter) Close(ctx context.Context) error {
 
 func (v *JanusGraphAsyncVertexWriter) Flush(ctx context.Context) error {
 	if v.traversalSource == nil {
-		return fmt.Errorf("JanusGraph traversalSource is not initialized")
+		return errors.New("JanusGraph traversalSource is not initialized")
 	}
 
 	if len(v.inserts) == 0 {
@@ -150,7 +160,6 @@ func (v *JanusGraphAsyncVertexWriter) Flush(ctx context.Context) error {
 		v.writingInFligth.Wait()
 		return err
 	}
-
 	v.inserts = nil
 
 	return nil
@@ -158,7 +167,7 @@ func (v *JanusGraphAsyncVertexWriter) Flush(ctx context.Context) error {
 
 func (e *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
 	if e.traversalSource == nil {
-		return fmt.Errorf("JanusGraph traversalSource is not initialized")
+		return errors.New("JanusGraph traversalSource is not initialized")
 	}
 
 	if len(e.inserts) == 0 {
@@ -188,6 +197,7 @@ func (v *JanusGraphAsyncVertexWriter) Queue(ctx context.Context, vertex vertex.V
 	}
 	converted := gremlingo.Vertex{
 		Element: gremlingo.Element{
+			Id:    vertex.Label(), //FIXME, not sure what should be added here
 			Label: vertex.Label(),
 		},
 	}
@@ -203,6 +213,7 @@ func (e *JanusGraphAsyncEdgeWriter) Queue(ctx context.Context, edge edge.Edge) e
 	}
 	converted := gremlingo.Edge{
 		Element: gremlingo.Element{
+			Id:    edge.Label(), //FIXME, not sure what should be added here
 			Label: edge.Label(),
 		},
 	}
