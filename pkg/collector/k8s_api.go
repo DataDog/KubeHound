@@ -141,11 +141,11 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 	opts := metav1.ListOptions{}
 
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
-		pods, err := c.clientset.CoreV1().Pods(namespace).List(ctx, opts)
+		entries, err := c.clientset.CoreV1().Pods(namespace).List(ctx, opts)
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s pods for namespace %s: %v", namespace, err)
 		}
-		return pods, err
+		return entries, err
 	}))
 
 	c.setPagerConfig(pager)
@@ -180,11 +180,11 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 	opts := metav1.ListOptions{}
 
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
-		pods, err := c.clientset.RbacV1().Roles(namespace).List(ctx, opts)
+		entries, err := c.clientset.RbacV1().Roles(namespace).List(ctx, opts)
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s roles for namespace %s: %v", namespace, err)
 		}
-		return pods, err
+		return entries, err
 	}))
 
 	c.setPagerConfig(pager)
@@ -219,11 +219,11 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 	opts := metav1.ListOptions{}
 
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
-		pods, err := c.clientset.RbacV1().RoleBindings(namespace).List(ctx, opts)
+		entries, err := c.clientset.RbacV1().RoleBindings(namespace).List(ctx, opts)
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s rolebinding for namespace %s: %v", namespace, err)
 		}
-		return pods, err
+		return entries, err
 	}))
 
 	c.setPagerConfig(pager)
@@ -252,11 +252,11 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	opts := metav1.ListOptions{}
 
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
-		pods, err := c.clientset.CoreV1().Nodes().List(ctx, opts)
+		entries, err := c.clientset.CoreV1().Nodes().List(ctx, opts)
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s nodes: %v", err)
 		}
-		return pods, err
+		return entries, err
 	}))
 
 	c.setPagerConfig(pager)
@@ -280,11 +280,11 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	opts := metav1.ListOptions{}
 
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
-		pods, err := c.clientset.RbacV1().ClusterRoles().List(ctx, opts)
+		entries, err := c.clientset.RbacV1().ClusterRoles().List(ctx, opts)
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s cluster roles: %v", err)
 		}
-		return pods, err
+		return entries, err
 	}))
 
 	c.setPagerConfig(pager)
@@ -308,11 +308,11 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	opts := metav1.ListOptions{}
 
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
-		pods, err := c.clientset.RbacV1().ClusterRoleBindings().List(ctx, opts)
+		entries, err := c.clientset.RbacV1().ClusterRoleBindings().List(ctx, opts)
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s cluster roles: %v", err)
 		}
-		return pods, err
+		return entries, err
 	}))
 
 	c.setPagerConfig(pager)
