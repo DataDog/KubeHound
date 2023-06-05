@@ -71,12 +71,12 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 
 	kubeConfig, err := ctrl.GetConfig()
 	if err != nil {
-		return nil, fmt.Errorf("building kubernetes config: %v", err)
+		return nil, fmt.Errorf("building kubernetes config: %w", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
-		return nil, fmt.Errorf("getting kubernetes config: %v", err)
+		return nil, fmt.Errorf("getting kubernetes config: %w", err)
 	}
 
 	return &k8sAPICollector{
@@ -123,7 +123,7 @@ func (c *k8sAPICollector) checkNamespaceExists(ctx context.Context, namespace st
 		return fmt.Errorf("namespace %s does not exist", namespace)
 	}
 
-	return fmt.Errorf("checking namespace %s: %v", namespace, err)
+	return fmt.Errorf("checking namespace %s: %w", namespace, err)
 }
 
 func (c *k8sAPICollector) setPagerConfig(pager *pager.ListPager) {
@@ -143,7 +143,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.CoreV1().Pods(namespace).List(ctx, opts)
 		if err != nil {
-			return nil, fmt.Errorf("getting K8s pods for namespace %s: %v", namespace, err)
+			return nil, fmt.Errorf("getting K8s pods for namespace %s: %w", namespace, err)
 		}
 		return entries, err
 	}))
