@@ -75,7 +75,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		cfg:       cfg.Collector.Live,
 		clientset: clientset,
 		log:       l,
-		rl:        ratelimit.New(K8sAPIRateLimitPerSecond), // per second
+		rl:        ratelimit.New(*cfg.Collector.Live.RateLimitPerSecond), // per second
 	}, nil
 }
 
