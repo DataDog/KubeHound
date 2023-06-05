@@ -43,12 +43,20 @@ func (jgp *JanusGraphProvider) Raw() any {
 
 // VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
 func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Vertex, opts ...WriterOption) (AsyncVertexWriter, error) {
-	return nil, globals.ErrNotImplemented
+	writer, err := NewJanusGraphAsyncVertexWriter(jgp.client, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return writer, nil
 }
 
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
 func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Edge, opts ...WriterOption) (AsyncEdgeWriter, error) {
-	return nil, globals.ErrNotImplemented
+	writer, err := NewJanusGraphAsyncEdgeWriter(jgp.client)
+	if err != nil {
+		return nil, err
+	}
+	return writer, nil
 }
 
 // Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.
