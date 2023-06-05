@@ -34,7 +34,7 @@ func NewTestK8sAPICollector(ctx context.Context, clientset *fake.Clientset) Coll
 	}
 }
 
-func TestNewK8sAPICollector(t *testing.T) {
+func TestNewK8sAPICollectorConfig(t *testing.T) {
 	ctx := context.Background()
 	t.Parallel()
 
@@ -94,7 +94,12 @@ func TestNewK8sAPICollector(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg, err := config.NewConfig(tt.args.path)
 			assert.NoError(t, err)
-			_, err = NewK8sAPICollector(tt.args.ctx, cfg)
+			l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
+			err = NewK8sAPICollectorConfig(cfg, l)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewK8sAPICollectorConfig() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 
 			for key, value := range tt.args.values {
 				rCfg := reflect.ValueOf(cfg.Collector.Live).Elem()
@@ -118,10 +123,6 @@ func TestNewK8sAPICollector(t *testing.T) {
 				default:
 					t.Errorf("type not supported: %s", rCfgFieldType)
 				}
-			}
-			if (err != nil) != tt.wantErr {
-				t.Errorf("NewK8sAPICollector() error = %v, wantErr %v", err, tt.wantErr)
-				return
 			}
 		})
 	}

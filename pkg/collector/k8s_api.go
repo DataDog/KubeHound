@@ -34,12 +34,9 @@ const (
 	K8sAPIRateLimitPerSecond    int   = 100
 )
 
-// NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
-func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
-
+func NewK8sAPICollectorConfig(cfg *config.KubehoundConfig, l *log.KubehoundLogger) error {
 	if cfg.Collector.Type != config.CollectorTypeK8sAPI {
-		return nil, fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
+		return fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
 	}
 
 	if cfg.Collector.Live == nil {
@@ -59,6 +56,17 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	if cfg.Collector.Live.RateLimitPerSecond == nil {
 		cfg.Collector.Live.RateLimitPerSecond = globals.Ptr(K8sAPIRateLimitPerSecond)
 		l.Warnf("setting RateLimitPerSecond with default value: %d", K8sAPIRateLimitPerSecond)
+	}
+	return nil
+}
+
+// NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
+func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
+	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
+
+	err := NewK8sAPICollectorConfig(cfg, l)
+	if err != nil {
+		return nil, err
 	}
 
 	kubeConfig, err := ctrl.GetConfig()
