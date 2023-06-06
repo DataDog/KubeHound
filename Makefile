@@ -11,11 +11,11 @@ build:
 
 .PHONY: test
 test:
-	cd pkg && go test ./...
+	cd pkg && go test -race ./...
 
 .PHONY: system-test
 system-test:
-	cd test/system && go test ./... 
+	cd test/system && go test -race ./... 
 
 .PHONY: local-cluster-create
 local-cluster-setup:
@@ -24,3 +24,10 @@ local-cluster-setup:
 .PHONY: local-cluster-destroy
 local-cluster-destroy:
 	cd test/setup && bash destroy-cluster.sh
+
+.PHONY: clean
+clean:
+	go clean
+	rm -f bin/*
+	rm -f cmd/kubehound/kubehound
+	cd deployments/kubehound && ./wipe-data.sh

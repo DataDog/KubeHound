@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
 
-rm -r ./data/mongodb/
-rm -r ./data/neo4j/
-rm -r ./data/janus/
+rm -rf ./data/mongodb/
+rm -rf ./data/neo4j/
+rm -rf ./data/janus/
