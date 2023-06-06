@@ -101,6 +101,7 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cfg, err := config.NewConfig(tt.args.path)
 			assert.NoError(t, err)
 			l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
@@ -202,6 +203,7 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			clientset, mock := tt.testfct(t)
 			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamPods(tt.args.ctx, mock); (err != nil) != tt.wantErr {
@@ -282,6 +284,7 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			clientset, mock := tt.testfct(t)
 			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamRoles(tt.args.ctx, mock); (err != nil) != tt.wantErr {
@@ -367,6 +370,7 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			clientset, mock := tt.testfct(t)
 			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamRoleBindings(tt.args.ctx, mock); (err != nil) != tt.wantErr {
@@ -377,7 +381,6 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 }
 
 func fakeNode(name string, providerID string) *corev1.Node {
-
 	return &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
@@ -443,6 +446,7 @@ func Test_k8sAPICollector_StreamNodes(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			clientset, mock := tt.testfct(t)
 			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamNodes(tt.args.ctx, mock); (err != nil) != tt.wantErr {
@@ -522,6 +526,7 @@ func Test_k8sAPICollector_StreamClusterRoles(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			clientset, mock := tt.testfct(t)
 			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamClusterRoles(tt.args.ctx, mock); (err != nil) != tt.wantErr {
@@ -605,6 +610,7 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			clientset, mock := tt.testfct(t)
 			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamClusterRoleBindings(tt.args.ctx, mock); (err != nil) != tt.wantErr {
