@@ -9,7 +9,7 @@ const (
 	nodeLabel = "Node"
 )
 
-var _ Vertex = (*Node)(nil)
+var _ Builder = (*Node)(nil)
 
 type Node struct {
 	graph.Node
@@ -17,6 +17,10 @@ type Node struct {
 
 func (v Node) Label() string {
 	return nodeLabel
+}
+
+func (v Node) BatchSize() int {
+	return DefaultBatchSize
 }
 
 func (v Node) Traversal() VertexTraversal {

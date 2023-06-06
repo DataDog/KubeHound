@@ -27,6 +27,10 @@ func (e ContainerAttach) Label() string {
 	return "CONTAINER_ATTACH"
 }
 
+func (e ContainerAttach) BatchSize() int {
+	return DefaultBatchSize
+}
+
 func (e ContainerAttach) Traversal() EdgeTraversal {
 	return func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
 		return g.Inject(inserts).Unfold().As("ca").
