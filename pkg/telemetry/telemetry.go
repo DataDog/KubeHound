@@ -19,7 +19,11 @@ func Initialize(cfg *config.KubehoundConfig) error {
 func Shutdown() {
 	// Metrics
 	err := statsd.Flush()
-	log.I.Warnf("Failed to flush statsd client: %v", err)
-	statsd.Close()
-	log.I.Warnf("Failed to close statsd client: %v", err)
+	if err != nil {
+		log.I.Warnf("Failed to flush statsd client: %v", err)
+	}
+	err = statsd.Close()
+	if err != nil {
+		log.I.Warnf("Failed to close statsd client: %v", err)
+	}
 }
