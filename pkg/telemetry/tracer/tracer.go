@@ -8,7 +8,7 @@ import (
 
 func Initialize(cfg *config.KubehoundConfig) {
 	tracer.Start(
-		tracer.WithEnv("prod"),
+		tracer.WithEnv(globals.DDEnv),
 		tracer.WithService(globals.DDServiceName),
 		tracer.WithServiceVersion(config.BuildVersion),
 		tracer.WithAgentAddr(cfg.Tracer.URL),
