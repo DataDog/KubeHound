@@ -1,6 +1,6 @@
 module github.com/DataDog/KubeHound
 
-go 1.19
+go 1.20
 
 require (
 	github.com/alitto/pond v1.8.3

@@ -2,3 +2,6 @@ collector:
   type: file-collector
   file:
     directory: kind-collect/
+
+mongodb:
+  url: "mongodb://localhost:27017"
