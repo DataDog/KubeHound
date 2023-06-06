@@ -96,7 +96,7 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 
 	rawRes, err := c.clientset.Discovery().RESTClient().Get().AbsPath("/healthz").DoRaw(ctx)
 	if err != nil {
-		return false, fmt.Errorf("/healthz bad request: %s", err.Error())
+		return false, fmt.Errorf("/healthz bad request: %w", err)
 	}
 
 	res := string(rawRes)
@@ -182,7 +182,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.RbacV1().Roles(namespace).List(ctx, opts)
 		if err != nil {
-			return nil, fmt.Errorf("getting K8s roles for namespace %s: %v", namespace, err)
+			return nil, fmt.Errorf("getting K8s roles for namespace %s: %w", namespace, err)
 		}
 		return entries, err
 	}))
@@ -221,7 +221,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.RbacV1().RoleBindings(namespace).List(ctx, opts)
 		if err != nil {
-			return nil, fmt.Errorf("getting K8s rolebinding for namespace %s: %v", namespace, err)
+			return nil, fmt.Errorf("getting K8s rolebinding for namespace %s: %w", namespace, err)
 		}
 		return entries, err
 	}))
@@ -254,7 +254,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.CoreV1().Nodes().List(ctx, opts)
 		if err != nil {
-			return nil, fmt.Errorf("getting K8s nodes: %v", err)
+			return nil, fmt.Errorf("getting K8s nodes: %w", err)
 		}
 		return entries, err
 	}))
@@ -282,7 +282,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.RbacV1().ClusterRoles().List(ctx, opts)
 		if err != nil {
-			return nil, fmt.Errorf("getting K8s cluster roles: %v", err)
+			return nil, fmt.Errorf("getting K8s cluster roles: %w", err)
 		}
 		return entries, err
 	}))
@@ -310,7 +310,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.RbacV1().ClusterRoleBindings().List(ctx, opts)
 		if err != nil {
-			return nil, fmt.Errorf("getting K8s cluster roles: %v", err)
+			return nil, fmt.Errorf("getting K8s cluster roles: %w", err)
 		}
 		return entries, err
 	}))
