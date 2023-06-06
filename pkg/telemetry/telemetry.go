@@ -8,7 +8,7 @@ import (
 
 func Initialize(cfg *config.KubehoundConfig) error {
 	// Metrics
-	err := statsd.Setup(cfg.Statsd.URL)
+	err := statsd.Setup(cfg.Telemetry.Statsd.URL)
 	if err != nil {
 		return err
 	}
