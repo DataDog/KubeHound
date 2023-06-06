@@ -102,8 +102,7 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 			t.Parallel()
 			cfg, err := config.NewConfig(tt.args.path)
 			assert.NoError(t, err)
-			l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
-			err = NewK8sAPICollectorConfig(cfg, l)
+			err = checkK8sAPICollectorConfig(cfg.Collector.Type)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewK8sAPICollectorConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return

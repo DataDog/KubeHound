@@ -30,10 +30,10 @@ const (
 	K8sAPICollectorName = "k8s-api-collector"
 )
 
-// NewK8sAPICollectorConfig made for unit testing to avoid using NewK8sAPICollector that is bind to a kubernetes config file
-func NewK8sAPICollectorConfig(cfg *config.KubehoundConfig, l *log.KubehoundLogger) error {
-	if cfg.Collector.Type != config.CollectorTypeK8sAPI {
-		return fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
+// checkK8sAPICollectorConfig made for unit testing to avoid using NewK8sAPICollector that is bind to a kubernetes config file
+func checkK8sAPICollectorConfig(collectorType string) error {
+	if collectorType != config.CollectorTypeK8sAPI {
+		return fmt.Errorf("invalid collector type in config: %s", collectorType)
 	}
 	return nil
 }
@@ -42,7 +42,7 @@ func NewK8sAPICollectorConfig(cfg *config.KubehoundConfig, l *log.KubehoundLogge
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
 	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
 
-	err := NewK8sAPICollectorConfig(cfg, l)
+	err := checkK8sAPICollectorConfig(cfg.Collector.Type)
 	if err != nil {
 		return nil, err
 	}
