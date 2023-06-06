@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
@@ -90,5 +91,12 @@ type CollectorClient interface {
 
 // ClientFactory creates an initialized instance of a collector client based on the provided application configuration.
 func ClientFactory(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	return NewK8sAPICollector(ctx, cfg)
+	switch {
+	case cfg.Collector.Type == config.CollectorTypeK8sAPI:
+		return NewK8sAPICollector(ctx, cfg)
+	case cfg.Collector.Type == config.CollectorTypeK8sAPI:
+		return NewFileCollector(ctx, cfg)
+	default:
+		return nil, fmt.Errorf("collector type not supported: %s", cfg.Collector.Type)
+	}
 }
