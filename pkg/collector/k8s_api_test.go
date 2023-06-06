@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -41,7 +42,7 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 	type args struct {
 		ctx    context.Context
 		path   string
-		values map[string]interface{}
+		values config.K8SAPICollectorConfig
 	}
 	tests := []struct {
 		name    string
@@ -54,10 +55,10 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 			args: args{
 				ctx:  ctx,
 				path: "testdata/kubehound-test-live-default.yaml",
-				values: map[string]any{
-					"PageSize":           K8sAPIDefaultPageSize,
-					"PageBufferSize":     K8sAPIDefaultPageBufferSize,
-					"RateLimitPerSecond": K8sAPIRateLimitPerSecond,
+				values: config.K8SAPICollectorConfig{
+					PageSize:           globals.Ptr(K8sAPIDefaultPageSize),
+					PageBufferSize:     globals.Ptr(K8sAPIDefaultPageBufferSize),
+					RateLimitPerSecond: globals.Ptr(K8sAPIRateLimitPerSecond),
 				},
 			},
 			wantErr: false,
@@ -67,10 +68,10 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 			args: args{
 				ctx:  ctx,
 				path: "testdata/kubehound-test-live-full-spec.yaml",
-				values: map[string]any{
-					"PageSize":           int64(123),
-					"PageBufferSize":     int32(456),
-					"RateLimitPerSecond": int(789),
+				values: config.K8SAPICollectorConfig{
+					PageSize:           globals.Ptr(int64(123)),
+					PageBufferSize:     globals.Ptr(int32(456)),
+					RateLimitPerSecond: globals.Ptr(int(789)),
 				},
 			},
 			wantErr: false,
@@ -80,13 +81,21 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 			args: args{
 				ctx:  ctx,
 				path: "testdata/kubehound-test-live-mixed-spec.yaml",
-				values: map[string]any{
-					"PageSize":           int64(123),
-					"PageBufferSize":     int32(456),
-					"RateLimitPerSecond": K8sAPIRateLimitPerSecond,
+				values: config.K8SAPICollectorConfig{
+					PageSize:           globals.Ptr(int64(123)),
+					PageBufferSize:     globals.Ptr(int32(456)),
+					RateLimitPerSecond: globals.Ptr(K8sAPIRateLimitPerSecond),
 				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "wrong file settings",
+			args: args{
+				ctx:  ctx,
+				path: "testdata/kubehound-test.yaml",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -101,28 +110,21 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 				return
 			}
 
-			for key, value := range tt.args.values {
-				rCfg := reflect.ValueOf(cfg.Collector.Live).Elem()
-				rCfgField := rCfg.FieldByName(key).Elem()
-				rCfgFieldType := rCfgField.Kind().String()
+			if tt.wantErr && err != nil {
+				return
+			}
 
-				switch rCfgFieldType {
-				case "int64":
-					if !reflect.DeepEqual(rCfgField.Interface().(int64), value) {
-						t.Errorf(" mismatch - value: %s != default: %d", rCfgField, value)
-					}
-				case "int32":
-					if !reflect.DeepEqual(rCfgField.Interface().(int32), value) {
-						t.Errorf(" mismatch - value: %s != default: %d", rCfgField, value)
-					}
-				case "int":
-					if !reflect.DeepEqual(rCfgField.Interface().(int), value) {
-						t.Errorf(" mismatch - value: %s != default: %d", rCfgField, value)
-					}
-
-				default:
-					t.Errorf("type not supported: %s", rCfgFieldType)
+			if !reflect.DeepEqual(*cfg.Collector.Live, tt.args.values) {
+				out, err := json.Marshal(cfg.Collector.Live)
+				if err != nil {
+					t.Error("marshalling *cfg.Collector.Live (out)")
 				}
+				in, err := json.Marshal(tt.args.values)
+				if err != nil {
+					t.Error("marshalling tt.args.values (in)")
+				}
+				t.Errorf(" mismatch - value: %s != default: %s", out, in)
+				return
 			}
 		})
 	}
