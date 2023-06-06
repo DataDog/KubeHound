@@ -20,16 +20,16 @@ import (
 
 func NewTestK8sAPICollector(ctx context.Context, clientset *fake.Clientset) CollectorClient {
 	cfg := &config.K8SAPICollectorConfig{
-		PageSize:           globals.K8sAPIDefaultPageSize,
-		PageBufferSize:     globals.K8sAPIDefaultPageBufferSize,
-		RateLimitPerSecond: globals.K8sAPIRateLimitPerSecond,
+		PageSize:           globals.DefaultK8sAPIPageSize,
+		PageBufferSize:     globals.DefaultK8sAPIPageBufferSize,
+		RateLimitPerSecond: globals.DefaultK8sAPIRateLimitPerSecond,
 	}
 
 	return &k8sAPICollector{
 		cfg:       cfg,
 		clientset: clientset,
 		log:       log.Trace(ctx, log.WithComponent(K8sAPICollectorName)),
-		rl:        ratelimit.New(globals.K8sAPIRateLimitPerSecond), // per second
+		rl:        ratelimit.New(globals.DefaultK8sAPIRateLimitPerSecond), // per second
 	}
 }
 
@@ -54,9 +54,9 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 				ctx:  ctx,
 				path: "testdata/kubehound-test-live-default.yaml",
 				values: config.K8SAPICollectorConfig{
-					PageSize:           globals.K8sAPIDefaultPageSize,
-					PageBufferSize:     globals.K8sAPIDefaultPageBufferSize,
-					RateLimitPerSecond: globals.K8sAPIRateLimitPerSecond,
+					PageSize:           globals.DefaultK8sAPIPageSize,
+					PageBufferSize:     globals.DefaultK8sAPIPageBufferSize,
+					RateLimitPerSecond: globals.DefaultK8sAPIRateLimitPerSecond,
 				},
 			},
 			wantErr: false,
@@ -82,7 +82,7 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 				values: config.K8SAPICollectorConfig{
 					PageSize:           int64(123),
 					PageBufferSize:     int32(456),
-					RateLimitPerSecond: globals.K8sAPIRateLimitPerSecond,
+					RateLimitPerSecond: globals.DefaultK8sAPIRateLimitPerSecond,
 				},
 			},
 			wantErr: false,

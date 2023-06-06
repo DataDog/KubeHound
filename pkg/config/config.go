@@ -38,9 +38,9 @@ func MustLoadConfig(configPath string) *KubehoundConfig {
 // SetDefaultValues loads the default value from the different modules
 func SetDefaultValues(c *viper.Viper) {
 	// K8s Live collector module
-	c.SetDefault("collector.live.page_size", globals.K8sAPIDefaultPageSize)
-	c.SetDefault("collector.live.page_buffer_size", globals.K8sAPIDefaultPageBufferSize)
-	c.SetDefault("collector.live.rate_limit_per_second", globals.K8sAPIRateLimitPerSecond)
+	c.SetDefault("collector.live.page_size", globals.DefaultK8sAPIPageSize)
+	c.SetDefault("collector.live.page_buffer_size", globals.DefaultK8sAPIPageBufferSize)
+	c.SetDefault("collector.live.rate_limit_per_second", globals.DefaultK8sAPIRateLimitPerSecond)
 }
 
 // NewConfig creates a new config instance from the provided file using viper.

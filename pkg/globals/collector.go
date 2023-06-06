@@ -1,7 +1,7 @@
 package globals
 
 const (
-	K8sAPIDefaultPageSize       int64 = 5000
-	K8sAPIDefaultPageBufferSize int32 = 10
-	K8sAPIRateLimitPerSecond    int   = 100
+	DefaultK8sAPIPageSize           int64 = 5000
+	DefaultK8sAPIPageBufferSize     int32 = 10
+	DefaultK8sAPIRateLimitPerSecond int   = 100
 )
