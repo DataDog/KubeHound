@@ -48,7 +48,7 @@ type AsyncVertexWriter interface {
 	WriterBase
 
 	// Queue add a vertex model to an asynchronous write queue. Non-blocking.
-	Queue(ctx context.Context, v vertex.Vertex) error
+	Queue(ctx context.Context, v any) error
 }
 
 // AsyncEdgeWriter defines the interface for writer clients to queue aysnchronous, batched writes of edges to the graphdb.
@@ -58,7 +58,7 @@ type AsyncEdgeWriter interface {
 	WriterBase
 
 	// Queue add an edge model to an asynchronous write queue. Non-blocking.
-	Queue(ctx context.Context, e edge.Edge) error
+	Queue(ctx context.Context, e any) error
 }
 
 // Factory returns an initialized instance of a graphdb provider from the provided application config.

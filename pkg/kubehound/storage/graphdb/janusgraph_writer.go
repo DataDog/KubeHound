@@ -5,8 +5,6 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 )
@@ -189,7 +187,7 @@ func (e *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
 	return nil
 }
 
-func (v *JanusGraphAsyncVertexWriter) Queue(ctx context.Context, vertex vertex.Vertex) error {
+func (v *JanusGraphAsyncVertexWriter) Queue(ctx context.Context, vertex any) error {
 	if len(v.inserts) > v.batchSize {
 		v.consumerChan <- v.inserts
 		// cleanup the ops array after we have copied it to the channel
@@ -205,7 +203,7 @@ func (v *JanusGraphAsyncVertexWriter) Queue(ctx context.Context, vertex vertex.V
 	return nil
 }
 
-func (e *JanusGraphAsyncEdgeWriter) Queue(ctx context.Context, edge edge.Edge) error {
+func (e *JanusGraphAsyncEdgeWriter) Queue(ctx context.Context, edge any) error {
 	if len(e.inserts) > e.batchSize {
 		e.consumerChan <- e.inserts
 		// cleanup the ops array after we have copied it to the channel
