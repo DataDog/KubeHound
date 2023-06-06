@@ -1,0 +1,28 @@
+name: KubeHound Linter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:      
+      - name: Setup Golang
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+
+      - name: Checkout Git Repo
+        uses: actions/checkout@v3
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.53.1
+          args: ./...

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 )
 
@@ -52,5 +51,9 @@ type AsyncWriter interface {
 
 // Factory returns an initialized instance of a cache provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (CacheProvider, error) {
-	return nil, globals.ErrNotImplemented
+	provider, err := NewCacheProvider(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return provider, nil
 }

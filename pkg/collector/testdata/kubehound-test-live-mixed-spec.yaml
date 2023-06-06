@@ -1,0 +1,5 @@
+collector:
+  type: live-k8s-api-collector
+  live:
+    page_size: 123
+    page_buffer_size: 456
