@@ -91,20 +91,19 @@ func (b *Builder) Run(ctx context.Context) error {
 
 	l.Info("Starting edge construction")
 	for label, e := range b.registry {
-		e := e
-		label := label
+		func(e edge.Builder, label string) {
+			wp.Submit(func() error {
+				l.Infof("Building edge %s", label)
 
-		wp.Submit(func() error {
-			l.Infof("Building edge %s", label)
+				err := b.buildEdge(workCtx, e)
+				if err != nil {
+					l.Errorf("building edge %s: %v", label, err)
+					return err
+				}
 
-			err := b.buildEdge(workCtx, e)
-			if err != nil {
-				l.Errorf("building edge %s: %v", label, err)
-				return err
-			}
-
-			return nil
-		})
+				return nil
+			})
+		}(e, label)
 	}
 
 	err = wp.WaitForComplete()
