@@ -3,6 +3,7 @@ package globals
 const (
 	DDServiceName = "kubehound"
 	DDTeamName    = "ase"
+	DDEnv         = "prod"
 )
 
 func ProdEnv() bool {
