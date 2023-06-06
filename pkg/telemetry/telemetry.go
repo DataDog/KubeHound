@@ -1,19 +1,29 @@
 package telemetry
 
 import (
-	"github.com/DataDog/KubeHound/pkg/globals"
+	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 )
 
-type TelemetryClient struct {
+func Initialize(cfg *config.KubehoundConfig) error {
+	// Metrics
+	err := statsd.Setup(cfg.Telemetry.Statsd.URL)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func Initialize() (*TelemetryClient, error) {
-	// Initialize all telemetry required
-	// return client to enable clean shutdown
-	return nil, globals.ErrNotImplemented
-}
-
-func (t *TelemetryClient) Shutdown() {
-	// Flush telemtry
-	// Close clients
+func Shutdown() {
+	// Metrics
+	err := statsd.Flush()
+	if err != nil {
+		log.I.Warnf("Failed to flush statsd client: %v", err)
+	}
+	err = statsd.Close()
+	if err != nil {
+		log.I.Warnf("Failed to close statsd client: %v", err)
+	}
 }

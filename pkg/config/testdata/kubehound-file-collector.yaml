@@ -1,0 +1,9 @@
+collector:
+  type: file-collector
+  file:
+    directory: cluster-data/
+mongodb:
+  url: "mongodb://localhost:27017"
+telemetry:
+  statsd:
+    url: "127.0.0.1:8125"
