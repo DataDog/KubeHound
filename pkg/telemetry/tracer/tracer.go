@@ -14,3 +14,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 		tracer.WithAgentAddr(cfg.Tracer.URL),
 	)
 }
+
+func Shutdown() {
+	tracer.Stop()
+}
