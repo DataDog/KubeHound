@@ -34,7 +34,7 @@ func TestGraphBuilder_Success(t *testing.T) {
 	const numTestEdges = 30
 	reg := make(e.EdgeRegistry)
 	for i := 0; i < numTestEdges; i++ {
-		e := edge.NewEdge(t)
+		e := edge.NewBuilder(t)
 
 		e.EXPECT().Stream(mock.Anything, sdb, mock.AnythingOfType("edge.ProcessEntryCallback"), mock.AnythingOfType("edge.CompleteQueryCallback")).Return(nil)
 		reg["EDGE_"+strconv.Itoa(i)] = e
@@ -100,7 +100,7 @@ func TestGraphBuilder_EdgeErrorCancelsAll(t *testing.T) {
 	const numTestEdges = 30
 	reg := make(e.EdgeRegistry)
 	for i := 0; i < numTestEdges; i++ {
-		e := edge.NewEdge(t)
+		e := edge.NewBuilder(t)
 
 		switch {
 		case i == 5:

@@ -46,7 +46,7 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 
 // buildEdge inserts a class of edges into the graph database.
 // NOTE: function is blocking and expected to be called from within a goroutine.
-func (b *Builder) buildEdge(ctx context.Context, e edge.Edge) error {
+func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 	w, err := b.graphdb.EdgeWriter(ctx, e)
 	if err != nil {
 		return err
