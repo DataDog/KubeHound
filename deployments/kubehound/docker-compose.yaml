@@ -21,5 +21,16 @@ services:
     networks:
       - kubenet
 
+  datadog:
+    image: gcr.io/datadoghq/agent:7
+    container_name: datadog-agent
+    ports:
+      - "8125:8125"
+    environment:
+     - DD_API_KEY=${DD_API_KEY}
+     - DD_SITE=datadoghq.com
+    networks:
+      - kubenet
+
 networks:
   kubenet:
