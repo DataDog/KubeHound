@@ -151,7 +151,7 @@ func TestPipelineIngestor_RunInitError(t *testing.T) {
 	// Expect calls to each object respecting the order/parallel logic of the pipeline
 	roleRun := ingests["roles"].EXPECT().Run(mock.Anything).Return(nil).Maybe()
 	croleRun := ingests["croles"].EXPECT().Run(mock.Anything).Return(nil).Maybe()
-	ingests["rolebindings"].EXPECT().Run(mock.Anything).Maybe().NotBefore(roleRun).NotBefore(croleRun)
+	ingests["rolebindings"].EXPECT().Run(mock.Anything).Return(nil).Maybe().NotBefore(roleRun).NotBefore(croleRun)
 	ingests["crolebindings"].EXPECT().Run(mock.Anything).Return(nil).Maybe().NotBefore(roleRun).NotBefore(croleRun)
 
 	err := pi.Run(context.Background())

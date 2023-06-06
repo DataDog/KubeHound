@@ -9,6 +9,10 @@ import (
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 )
 
+const (
+	DefaultBatchSize = 200
+)
+
 // An object to encapsulate the raw data required to create one or more edges. For example a pod id and a node id.
 type DataContainer any
 
@@ -27,10 +31,13 @@ type EdgeTraversal func(source *gremlin.GraphTraversalSource, inserts []Traversa
 
 // Edge interface defines objects used to construct edges within our graph database through processing data from the intermediate store.
 
-//go:generate mockery --name Edge --output mocks --case underscore --filename edge.go --with-expecter
-type Edge interface {
+//go:generate mockery --name Builder --output mocks --case underscore --filename edge.go --with-expecter
+type Builder interface {
 	// Label returns the label for the edge (convention is all uppercase i.e EDGE_NAME)
 	Label() string
+
+	// BatchSize returns the batch size of bulk inserts (and threshold for triggering a flush).
+	BatchSize() int
 
 	// Traversal returns a graph traversal function that enables creating edges from an input array of TraversalInput objects.
 	Traversal() EdgeTraversal
@@ -45,7 +52,7 @@ type Edge interface {
 }
 
 // EdgeRegistry holds details of edges (i.e attacks) registered in KubeHound.
-type EdgeRegistry map[string]Edge
+type EdgeRegistry map[string]Builder
 
 // EdgeRegistry singleton support
 var registryInstance EdgeRegistry
@@ -61,7 +68,7 @@ func Registry() EdgeRegistry {
 }
 
 // Register loads the provided edge into the registry.
-func Register(edge Edge) {
+func Register(edge Builder) {
 	log.I.Infof("Registering edge %s", edge.Label())
 	Registry()[edge.Label()] = edge
 }

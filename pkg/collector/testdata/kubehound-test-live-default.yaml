@@ -1,0 +1,2 @@
+collector:
+  type: live-k8s-api-collector
