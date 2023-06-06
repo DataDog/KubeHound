@@ -70,7 +70,7 @@ func (c *k8sAPICollector) Name() string {
 }
 
 func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
-	c.log.Debugf("Requestin /healthz endpoint")
+	c.log.Debugf("Requesting /healthz endpoint")
 
 	rawRes, err := c.clientset.Discovery().RESTClient().Get().AbsPath("/healthz").DoRaw(ctx)
 	if err != nil {
