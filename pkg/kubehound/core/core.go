@@ -84,13 +84,6 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 		opt(lOpts)
 	}
 
-	log.I.Info("Initializing application telemetry")
-	tc, err := telemetry.Initialize()
-	if err != nil {
-		log.I.Warnf("failed telemetry initialization: %v", err)
-	}
-	defer tc.Shutdown()
-
 	log.I.Info("Loading application configuration")
 	var cfg *config.KubehoundConfig
 	if len(lOpts.ConfigPath) != 0 {
@@ -98,6 +91,13 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	} else {
 		cfg = config.MustLoadDefaultConfig()
 	}
+
+	log.I.Info("Initializing application telemetry")
+	tc, err := telemetry.Initialize(cfg)
+	if err != nil {
+		log.I.Warnf("failed telemetry initialization: %v", err)
+	}
+	defer tc.Shutdown()
 
 	log.I.Info("Loading cache provider")
 	cp, err := cache.Factory(ctx, cfg)

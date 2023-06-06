@@ -1,19 +1,20 @@
 package telemetry
 
 import (
-	"github.com/DataDog/KubeHound/pkg/globals"
+	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tracer"
 )
 
 type TelemetryClient struct {
 }
 
-func Initialize() (*TelemetryClient, error) {
-	// Initialize all telemetry required
-	// return client to enable clean shutdown
-	return nil, globals.ErrNotImplemented
+// Initialize all telemetry required
+// return client to enable clean shutdown
+func Initialize(cfg *config.KubehoundConfig) (*TelemetryClient, error) {
+	tracer.Initialize(cfg)
+	return nil, nil
 }
 
 func (t *TelemetryClient) Shutdown() {
-	// Flush telemtry
-	// Close clients
+	tracer.Shutdown()
 }
