@@ -1,0 +1,11 @@
+collector:
+  type: live-k8s-api-collector
+  live:
+    page_size: 5000
+    page_buffer_size: 10
+    rate_limit_per_second: 100
+mongodb:
+  url: "mongodb://localhost:27017"
+telemetry:
+  statsd:
+    url: "127.0.0.1:8125"

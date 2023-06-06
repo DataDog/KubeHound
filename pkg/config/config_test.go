@@ -18,15 +18,46 @@ func TestMustLoadConfig(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Setup correct config",
+			name: "Setup correct config for file collector",
 			args: args{
-				configPath: "./testdata/kubehound.yaml",
+				configPath: "./testdata/kubehound-file-collector.yaml",
 			},
 			want: &KubehoundConfig{
 				Collector: CollectorConfig{
 					Type: CollectorTypeFile,
 					File: &FileCollectorConfig{
 						Directory: "cluster-data/",
+					},
+					// This is always set as the default value
+					Live: &K8SAPICollectorConfig{
+						PageSize:           5000,
+						PageBufferSize:     10,
+						RateLimitPerSecond: 100,
+					},
+				},
+				MongoDB: MongoDBConfig{
+					URL: "mongodb://localhost:27017",
+				},
+				Telemetry: TelemetryConfig{
+					Statsd: StatsdConfig{
+						URL: "127.0.0.1:8125",
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Setup correct config for k8s collector",
+			args: args{
+				configPath: "./testdata/kubehound-k8s-collector.yaml",
+			},
+			want: &KubehoundConfig{
+				Collector: CollectorConfig{
+					Type: CollectorTypeK8sAPI,
+					Live: &K8SAPICollectorConfig{
+						PageSize:           5000,
+						PageBufferSize:     10,
+						RateLimitPerSecond: 100,
 					},
 				},
 				MongoDB: MongoDBConfig{
