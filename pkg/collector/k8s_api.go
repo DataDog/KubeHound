@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -28,34 +27,13 @@ type k8sAPICollector struct {
 }
 
 const (
-	K8sAPICollectorName               = "k8s-api-collector"
-	K8sAPIDefaultPageSize       int64 = 5000
-	K8sAPIDefaultPageBufferSize int32 = 10
-	K8sAPIRateLimitPerSecond    int   = 100
+	K8sAPICollectorName = "k8s-api-collector"
 )
 
+// NewK8sAPICollectorConfig made for unit testing to avoid using NewK8sAPICollector that is bind to a kubernetes config file
 func NewK8sAPICollectorConfig(cfg *config.KubehoundConfig, l *log.KubehoundLogger) error {
 	if cfg.Collector.Type != config.CollectorTypeK8sAPI {
 		return fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
-	}
-
-	if cfg.Collector.Live == nil {
-		cfg.Collector.Live = &config.K8SAPICollectorConfig{}
-	}
-
-	if cfg.Collector.Live.PageSize == nil {
-		cfg.Collector.Live.PageSize = globals.Ptr(K8sAPIDefaultPageSize)
-		l.Warnf("setting PageSize with default value: %d", K8sAPIDefaultPageSize)
-	}
-
-	if cfg.Collector.Live.PageBufferSize == nil {
-		cfg.Collector.Live.PageBufferSize = globals.Ptr(K8sAPIDefaultPageBufferSize)
-		l.Warnf("setting PageBufferSize with default value: %d", K8sAPIDefaultPageBufferSize)
-	}
-
-	if cfg.Collector.Live.RateLimitPerSecond == nil {
-		cfg.Collector.Live.RateLimitPerSecond = globals.Ptr(K8sAPIRateLimitPerSecond)
-		l.Warnf("setting RateLimitPerSecond with default value: %d", K8sAPIRateLimitPerSecond)
 	}
 	return nil
 }
@@ -83,7 +61,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		cfg:       cfg.Collector.Live,
 		clientset: clientset,
 		log:       l,
-		rl:        ratelimit.New(*cfg.Collector.Live.RateLimitPerSecond), // per second
+		rl:        ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
 	}, nil
 }
 
@@ -127,8 +105,8 @@ func (c *k8sAPICollector) checkNamespaceExists(ctx context.Context, namespace st
 }
 
 func (c *k8sAPICollector) setPagerConfig(pager *pager.ListPager) {
-	pager.PageSize = *c.cfg.PageSize
-	pager.PageBufferSize = *c.cfg.PageBufferSize
+	pager.PageSize = c.cfg.PageSize
+	pager.PageBufferSize = c.cfg.PageBufferSize
 }
 
 // streamPodsNamespace streams the pod objects corresponding to a cluster namespace.
