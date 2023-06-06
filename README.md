@@ -37,6 +37,9 @@ The cluster setup and running instances can be found under [test/setup](./test/s
 + Kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager
 + Kubectl: https://kubernetes.io/docs/tasks/tools/
 
+#### Environment variable:
+- `DD_API_KEY` (optional): set to the datadog API key used to submit metrics and other observability data.
+
 ### Setup
 
 Setup the test kind cluster (you only need to do this once!) via:

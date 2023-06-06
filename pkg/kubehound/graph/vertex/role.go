@@ -6,7 +6,7 @@ const (
 	roleLabel = "Role"
 )
 
-var _ Vertex = (*Role)(nil)
+var _ Builder = (*Role)(nil)
 
 type Role struct {
 	graph.Role
@@ -14,6 +14,10 @@ type Role struct {
 
 func (v Role) Label() string {
 	return roleLabel
+}
+
+func (v Role) BatchSize() int {
+	return DefaultBatchSize
 }
 
 func (v Role) Traversal() VertexTraversal {
