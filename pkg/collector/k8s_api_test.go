@@ -2,8 +2,6 @@ package collector
 
 import (
 	"context"
-	"encoding/json"
-	"reflect"
 	"testing"
 
 	mocks "github.com/DataDog/KubeHound/pkg/collector/mockingest"
@@ -115,18 +113,7 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 				return
 			}
 
-			if !reflect.DeepEqual(*cfg.Collector.Live, tt.args.values) {
-				out, err := json.Marshal(cfg.Collector.Live)
-				if err != nil {
-					t.Error("marshalling *cfg.Collector.Live (out)")
-				}
-				in, err := json.Marshal(tt.args.values)
-				if err != nil {
-					t.Error("marshalling tt.args.values (in)")
-				}
-				t.Errorf(" mismatch - value: %s != default: %s", out, in)
-				return
-			}
+			assert.Equal(t, *cfg.Collector.Live, tt.args.values)
 		})
 	}
 }
