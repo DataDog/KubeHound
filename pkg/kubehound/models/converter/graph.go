@@ -181,8 +181,9 @@ func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error
 	}, nil
 }
 
-// TokenSA returns the graph representation of a service account token vertex from a store projected volume model input.
-func (c *GraphConverter) Token(identityName string, identityId string, volume *store.Volume) (*graph.Token, error) {
+// Token returns the graph representation of a service account token vertex from a store projected volume model input.
+// NOTE: this currently only supports service account tokens from projected volumes.
+func (c *GraphConverter) Token(identityName string, volume *store.Volume) (*graph.Token, error) {
 	if volume.Type != shared.VolumeTypeProjected {
 		return nil, fmt.Errorf("invalid volume type for service account token: %s", volume.Type)
 	}
@@ -192,9 +193,9 @@ func (c *GraphConverter) Token(identityName string, identityId string, volume *s
 	}
 
 	return &graph.Token{
-		IdentityStoreId: identityId,
-		Name:            volume.Name,
-		Type:            shared.TokenTypeSA,
-		Identity:        identityName,
+		StoreId:  store.ObjectID().Hex(),
+		Name:     volume.Name,
+		Type:     shared.TokenTypeSA,
+		Identity: identityName,
 	}, nil
 }

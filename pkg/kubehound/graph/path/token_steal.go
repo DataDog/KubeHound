@@ -6,12 +6,14 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -24,7 +26,9 @@ func init() {
 }
 
 type TokenStealPath struct {
-	token
+	Vertex     *graph.Token `bson:"vertex" json:"vertex"`
+	VolumeId   string       `bson:"volume" json:"volume"`
+	IdentityId string       `bson:"identity" json:"identity"`
 }
 
 type TokenSteal struct {
@@ -39,7 +43,12 @@ func (v TokenSteal) BatchSize() int {
 }
 
 func (v TokenSteal) Traversal() PathTraversal {
-	return nil
+	return func(g *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+		// TODO create the token vertex
+		// TODO create a TOKEN_STEAL edge between the volume and the new token
+		// TODO create an IDENTITY_ASSUME edge between the token and the associated identity
+		return nil
+	}
 }
 
 func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cache.CacheReader,
@@ -60,17 +69,17 @@ func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 	defer cur.Close(ctx)
 
 	convert := converter.NewGraph()
-	var entry store.Volume
+	var vol store.Volume
 	for cur.Next(ctx) {
-		err := cur.Decode(&entry)
+		err := cur.Decode(&vol)
 		if err != nil {
 			return err
 		}
 
 		// Retrieve the service account name for the pod from the cache
-		sa, err := cache.Get(ctx, cachekey.PodIdentity(entry.PodId.Hex()))
+		sa, err := cache.Get(ctx, cachekey.PodIdentity(vol.PodId.Hex()))
 		if err != nil {
-			log.Trace(ctx).Errorf("cache miss pod identity: %w", err)
+			log.Trace(ctx).Errorf("cache miss pod identity: %v", err)
 			continue
 		}
 
@@ -82,13 +91,18 @@ func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 			continue
 		}
 
-		// Convert to our graph representation
-		v, err := convert.Token(sa, said, &entry)
+		// Convert to our graph vertex representation
+		v, err := convert.Token(sa, &vol)
 		if err != nil {
 			return err
 		}
 
-		err = process(ctx, v)
+		// Create the container that holds all the data required by the traversal function
+		err = process(ctx, &TokenStealPath{
+			Vertex:     v,
+			VolumeId:   vol.Id.Hex(),
+			IdentityId: said,
+		})
 		if err != nil {
 			return err
 		}
