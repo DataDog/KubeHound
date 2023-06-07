@@ -1,6 +1,7 @@
 package vertex
 
 import (
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 )
@@ -9,7 +10,7 @@ const (
 	nodeLabel = "Node"
 )
 
-var _ Builder = (*Node)(nil)
+var _ PipelineBuilder = (*Node)(nil)
 
 type Node struct {
 }
@@ -23,7 +24,7 @@ func (v Node) BatchSize() int {
 }
 
 func (v Node) Traversal() VertexTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal()
 
 		for _, insert := range inserts {

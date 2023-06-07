@@ -4,7 +4,7 @@ const (
 	roleLabel = "Role"
 )
 
-var _ Builder = (*Role)(nil)
+var _ PipelineBuilder = (*Role)(nil)
 
 type Role struct {
 }

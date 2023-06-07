@@ -107,9 +107,7 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 	// Only a subset of volumes are currently supported
 	switch {
 	case input.HostPath != nil:
-		break
 	case input.Projected != nil:
-		break
 	default:
 		return nil, ErrUnsupportedVolume
 	}
@@ -120,11 +118,9 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 		NodeId: parent.NodeId,
 		Name:   input.Name,
 		Source: corev1.Volume(*input),
-		Mounts: make([]store.VolumeMount, 0),
 	}
 
-	// TODO this is not quite right, we need to have a volume that is unique per node and append mounts to the same entry
-	// For now this is ok but make data volumes larger than needed
+	// A volume may be mounted by multiple containers in the same pod.
 	for _, container := range parent.K8.Spec.Containers {
 		for _, mount := range container.VolumeMounts {
 			if mount.Name == output.Source.Name {

@@ -73,6 +73,10 @@
                 "terminationMessagePolicy": "File",
                 "volumeMounts": [
                     {
+                        "mountPath": "/var/run/datadog-agent",
+                        "name": "auto-datadog-agent-socket"
+                    },
+                    {
                         "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
                         "name": "kube-api-access-4x9fz",
                         "readOnly": true
@@ -157,6 +161,13 @@
                         }
                     ]
                 }
+            },
+            {
+                "hostPath": {
+                    "path": "/var/run/datadog-agent",
+                    "type": "DirectoryOrCreate"
+                },
+                "name": "auto-datadog-agent-socket"
             }
         ]
     },

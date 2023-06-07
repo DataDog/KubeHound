@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
@@ -55,7 +55,7 @@ func TestConverter_NodePipeline(t *testing.T) {
 	assert.False(t, storeNode.IsNamespaced)
 	assert.Equal(t, storeNode.K8.Namespace, graphNode.Namespace)
 	assert.False(t, graphNode.Critical)
-	assert.Equal(t, graph.CompromiseNone, graphNode.Compromised)
+	assert.Equal(t, shared.CompromiseNone, graphNode.Compromised)
 }
 
 func TestConverter_RolePipeline(t *testing.T) {
@@ -260,7 +260,7 @@ func TestConverter_PodPipeline(t *testing.T) {
 	assert.Equal(t, storePod.K8.Spec.ServiceAccountName, graphPod.ServiceAccount)
 	assert.Equal(t, storePod.K8.Spec.NodeName, graphPod.Node)
 	assert.False(t, graphPod.Critical)
-	assert.Equal(t, graph.CompromiseNone, graphPod.Compromised)
+	assert.Equal(t, shared.CompromiseNone, graphPod.Compromised)
 }
 
 func TestConverter_PodChildPipeline(t *testing.T) {
@@ -306,28 +306,45 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, storeContainer.Inherited.PodName, graphContainer.Pod)
 	assert.Equal(t, storeContainer.Inherited.NodeName, graphContainer.Node)
 	assert.Equal(t, []int{9200, 9300}, graphContainer.Ports)
-	assert.Equal(t, graph.CompromiseNone, graphContainer.Compromised)
+	assert.Equal(t, shared.CompromiseNone, graphContainer.Compromised)
 	assert.False(t, graphContainer.Critical)
 
 	// Collector volume -> store volume
-	assert.Equal(t, 1, len(input.Spec.Volumes))
-	inVolume := input.Spec.Volumes[0]
-	storeVolume, err := NewStoreWithCache(c).Volume(context.TODO(), &inVolume, storePod)
+	assert.Equal(t, 2, len(input.Spec.Volumes))
+	inVolume0 := input.Spec.Volumes[0]
+	storeVolume0, err := NewStoreWithCache(c).Volume(context.TODO(), &inVolume0, storePod)
 	assert.NoError(t, err, "store volume convert error")
 
-	assert.Equal(t, storeVolume.NodeId.Hex(), nid)
-	assert.Equal(t, storeVolume.PodId.Hex(), storePod.Id.Hex())
-	assert.Equal(t, storeVolume.Name, inVolume.Name)
-	assert.Equal(t, storeVolume.Source, inVolume)
+	assert.Equal(t, storeVolume0.NodeId.Hex(), nid)
+	assert.Equal(t, storeVolume0.PodId.Hex(), storePod.Id.Hex())
+	assert.Equal(t, storeVolume0.Name, inVolume0.Name)
+	assert.Equal(t, storeVolume0.Source, inVolume0)
+
+	inVolume1 := input.Spec.Volumes[1]
+	storeVolume1, err := NewStoreWithCache(c).Volume(context.TODO(), &inVolume1, storePod)
+	assert.NoError(t, err, "store volume convert error")
+
+	assert.Equal(t, storeVolume1.NodeId.Hex(), nid)
+	assert.Equal(t, storeVolume1.PodId.Hex(), storePod.Id.Hex())
+	assert.Equal(t, storeVolume1.Name, inVolume1.Name)
+	assert.Equal(t, storeVolume1.Source, inVolume1)
 
 	// Store container -> graph container
-	graphVolume, err := NewGraph().Volume(storeVolume)
+	graphVolume, err := NewGraph().Volume(storeVolume0)
 	assert.NoError(t, err, "graph volume convert error")
 
-	assert.Equal(t, storeVolume.Id.Hex(), graphVolume.StoreId)
-	assert.Equal(t, storeVolume.Name, graphVolume.Name)
-	assert.Equal(t, graph.VolumeTypeProjected, graphVolume.Type)
-	assert.Equal(t, "token", graphVolume.Path)
+	assert.Equal(t, storeVolume0.Id.Hex(), graphVolume.StoreId)
+	assert.Equal(t, storeVolume0.Name, graphVolume.Name)
+	assert.Equal(t, shared.VolumeTypeProjected, graphVolume.Type)
+	assert.Equal(t, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token", graphVolume.NodePath)
+
+	graphVolume, err = NewGraph().Volume(storeVolume1)
+	assert.NoError(t, err, "graph volume convert error")
+
+	assert.Equal(t, storeVolume1.Id.Hex(), graphVolume.StoreId)
+	assert.Equal(t, storeVolume1.Name, graphVolume.Name)
+	assert.Equal(t, shared.VolumeTypeHost, graphVolume.Type)
+	assert.Equal(t, "/var/run/datadog-agent", graphVolume.NodePath)
 }
 
 func TestConverter_PodCacheFailure(t *testing.T) {

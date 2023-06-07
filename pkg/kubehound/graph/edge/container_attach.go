@@ -3,6 +3,9 @@ package edge
 import (
 	"context"
 
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
@@ -32,7 +35,7 @@ func (e ContainerAttach) BatchSize() int {
 }
 
 func (e ContainerAttach) Traversal() EdgeTraversal {
-	return func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
+	return func(g *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		return g.Inject(inserts).Unfold().As("ca").
 			V().HasLabel("Pod").Has("storeId", gremlin.T__.Select("ca").Select("pod")).As("pod").
 			V().HasLabel("Container").Has("storeId", gremlin.T__.Select("ca").Select("container")).As("container").
@@ -40,14 +43,14 @@ func (e ContainerAttach) Traversal() EdgeTraversal {
 	}
 }
 
-func (e ContainerAttach) Processor(ctx context.Context, entry DataContainer) (TraversalInput, error) {
-	return MongoProcessor[*ContainerAttachGroup](ctx, entry)
+func (e ContainerAttach) Processor(ctx context.Context, entry types.DataContainer) (types.TraversalInput, error) {
+	return adapter.MongoProcessor[*ContainerAttachGroup](ctx, entry)
 }
 
-func (e ContainerAttach) Stream(ctx context.Context, store storedb.Provider,
-	callback ProcessEntryCallback, complete CompleteQueryCallback) error {
+func (e ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
 	pipeline := []bson.M{
 		{"$group": bson.M{
 			"_id": "$pod_id",
@@ -64,5 +67,5 @@ func (e ContainerAttach) Stream(ctx context.Context, store storedb.Provider,
 	}
 	defer cur.Close(ctx)
 
-	return MongoCursorHandler[ContainerAttachGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[ContainerAttachGroup](ctx, cur, callback, complete)
 }

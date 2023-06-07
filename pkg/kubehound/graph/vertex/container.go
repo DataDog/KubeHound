@@ -4,7 +4,7 @@ const (
 	containerLabel = "Container"
 )
 
-var _ Builder = (*Container)(nil)
+var _ PipelineBuilder = (*Container)(nil)
 
 type Container struct {
 }

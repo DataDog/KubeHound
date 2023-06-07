@@ -6,6 +6,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 )
 
@@ -108,15 +109,15 @@ func (c *GraphConverter) Volume(input *store.Volume) (*graph.Volume, error) {
 
 	switch {
 	case input.Source.HostPath != nil:
-		output.Type = graph.VolumeTypeHost
-		output.Path = input.Source.HostPath.Path
+		output.Type = shared.VolumeTypeHost
+		output.NodePath = input.Source.HostPath.Path
 	case input.Source.Projected != nil:
-		output.Type = graph.VolumeTypeProjected
+		output.Type = shared.VolumeTypeProjected
 
 		// Loop through looking for the service account token
 		for _, proj := range input.Source.Projected.Sources {
 			if proj.ServiceAccountToken != nil {
-				output.Path = proj.ServiceAccountToken.Path
+				output.NodePath = proj.ServiceAccountToken.Path
 				break // assume only 1 entry
 			}
 		}

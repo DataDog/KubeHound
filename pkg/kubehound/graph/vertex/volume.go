@@ -4,7 +4,7 @@ const (
 	volumeLabel = "Volume"
 )
 
-var _ Builder = (*Volume)(nil)
+var _ PipelineBuilder = (*Volume)(nil)
 
 type Volume struct {
 }

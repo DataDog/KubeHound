@@ -16,9 +16,9 @@ import (
 
 func NewTestBuilder(t *testing.T, mockRegistry e.EdgeRegistry, gdb *graphdb.Provider, sdb *storedb.Provider) *Builder {
 	builder := &Builder{
-		storedb:  sdb,
-		graphdb:  gdb,
-		registry: mockRegistry,
+		storedb: sdb,
+		graphdb: gdb,
+		edges:   mockRegistry,
 	}
 
 	return builder

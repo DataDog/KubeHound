@@ -46,12 +46,14 @@ type VolumeMount struct {
 }
 
 type Volume struct {
-	Id     primitive.ObjectID `bson:"_id"`
-	NodeId primitive.ObjectID `bson:"node_id"`
-	PodId  primitive.ObjectID `bson:"pod_id"`
-	Name   string             `bson:"name"`
-	Source corev1.Volume      `bson:"source"`
-	Mounts []VolumeMount      `bson:"mounts"`
+	Id       primitive.ObjectID `bson:"_id"`
+	NodeId   primitive.ObjectID `bson:"node_id"`
+	PodId    primitive.ObjectID `bson:"pod_id"`
+	Name     string             `bson:"name"`
+	Type     string             `bson:"type"`
+	Source   corev1.Volume      `bson:"source"`
+	Mounts   []VolumeMount      `bson:"mounts"`
+	ReadOnly bool               `bson:"readonly"`
 }
 
 type Role struct {
