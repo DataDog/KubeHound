@@ -6,7 +6,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
@@ -101,8 +100,4 @@ func (v Token) Stream(ctx context.Context, sdb storedb.Provider, cache cache.Cac
 	}
 
 	return complete(ctx)
-}
-
-func (v Token) Processor(ctx context.Context, entry types.DataContainer) (types.TraversalInput, error) {
-	return adapter.GremlinProcessor[*graph.Token](ctx, entry)
 }

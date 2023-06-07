@@ -43,10 +43,6 @@ func (e ContainerAttach) Traversal() EdgeTraversal {
 	}
 }
 
-func (e ContainerAttach) Processor(ctx context.Context, entry types.DataContainer) (types.TraversalInput, error) {
-	return adapter.GremlinProcessor[*ContainerAttachGroup](ctx, entry)
-}
-
 func (e ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 

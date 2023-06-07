@@ -1,22 +1,15 @@
 package adapter
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 )
 
 // GremlinProcessor is the default processor implementation to process data container object returned from a
 // store query and transform them into TraversalInput objects for JanusGraph/Gremlin.
-func GremlinProcessor[T any](_ context.Context, entry types.DataContainer) (map[string]any, error) {
-	typed, ok := entry.(T)
-	if !ok {
-		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
-	}
-
-	processed, err := structToMap(typed)
+func GremlinProcessor(entry types.DataContainer) (map[string]any, error) {
+	processed, err := structToMap(entry)
 	if err != nil {
 		return nil, err
 	}

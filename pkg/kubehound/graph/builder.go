@@ -6,6 +6,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -60,7 +61,7 @@ func (b *Builder) buildVertex(ctx context.Context, v vertex.QueryBuilder) error 
 
 	err = v.Stream(ctx, b.storedb, b.cache,
 		func(ctx context.Context, entry types.DataContainer) error {
-			processed, err := v.Processor(ctx, entry)
+			processed, err := adapter.GremlinProcessor(entry)
 			// TODO option for skip write if signalled by processor
 
 			if err != nil {
@@ -90,7 +91,7 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 
 	err = e.Stream(ctx, b.storedb, b.cache,
 		func(ctx context.Context, entry types.DataContainer) error {
-			processed, err := e.Processor(ctx, entry)
+			processed, err := adapter.GremlinProcessor(entry)
 			// TODO option for skip write if signalled by processor
 
 			if err != nil {

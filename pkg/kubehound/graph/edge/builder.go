@@ -34,7 +34,4 @@ type Builder interface {
 	// the edge's Processor function. Invoking the complete callback signals the end of the stream.
 	Stream(ctx context.Context, store storedb.Provider, cache cache.CacheReader,
 		process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error
-
-	// Processor translates an DataContainer retrieved from the data store into a TraversalInput to pass to the traversal.
-	Processor(ctx context.Context, model types.DataContainer) (types.TraversalInput, error)
 }
