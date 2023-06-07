@@ -1,6 +1,7 @@
 package converter
 
 import (
+	"fmt"
 	"strings"
 
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -177,5 +178,23 @@ func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Type:      input.Type,
+	}, nil
+}
+
+// TokenSA returns the graph representation of a service account token vertex from a store projected volume model input.
+func (c *GraphConverter) Token(identityName string, identityId string, volume *store.Volume) (*graph.Token, error) {
+	if volume.Type != shared.VolumeTypeProjected {
+		return nil, fmt.Errorf("invalid volume type for service account token: %s", volume.Type)
+	}
+
+	if volume.Source.VolumeSource.Projected == nil {
+		return nil, fmt.Errorf("missing projected volume data: %#v", volume.Source)
+	}
+
+	return &graph.Token{
+		IdentityStoreId: identityId,
+		Name:            volume.Name,
+		Type:            shared.TokenTypeSA,
+		Identity:        identityName,
 	}, nil
 }

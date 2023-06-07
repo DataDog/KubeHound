@@ -44,7 +44,7 @@ func (e ContainerAttach) Traversal() EdgeTraversal {
 }
 
 func (e ContainerAttach) Processor(ctx context.Context, entry types.DataContainer) (types.TraversalInput, error) {
-	return adapter.MongoProcessor[*ContainerAttachGroup](ctx, entry)
+	return adapter.GremlinProcessor[*ContainerAttachGroup](ctx, entry)
 }
 
 func (e ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

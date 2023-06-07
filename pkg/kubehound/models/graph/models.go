@@ -66,12 +66,12 @@ type Role struct {
 }
 
 type Token struct {
-	StoreId     string                `json:"store_id"`
-	Name        string                `json:"name"`
-	Type        string                `json:"type"`
-	Identity    string                `json:"identity"`
-	Compromised shared.CompromiseType `json:"compromised,omitempty"`
-	Critical    bool                  `json:"critical,omitempty"`
+	IdentityStoreId string                `json:"identity_id"`
+	Name            string                `json:"name"`
+	Type            string                `json:"type"`
+	Identity        string                `json:"identity"`
+	Compromised     shared.CompromiseType `json:"compromised,omitempty"`
+	Critical        bool                  `json:"critical,omitempty"`
 }
 
 type Volume struct {
