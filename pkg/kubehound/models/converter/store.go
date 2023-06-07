@@ -8,6 +8,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
@@ -106,9 +107,12 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 	}
 
 	// Only a subset of volumes are currently supported
+	var vtype string
 	switch {
 	case input.HostPath != nil:
+		vtype = shared.VolumeTypeHost
 	case input.Projected != nil:
+		vtype = shared.VolumeTypeProjected
 	default:
 		return nil, ErrUnsupportedVolume
 	}
@@ -118,6 +122,7 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 		PodId:  parent.Id,
 		NodeId: parent.NodeId,
 		Name:   input.Name,
+		Type:   vtype,
 		Source: corev1.Volume(*input),
 	}
 

@@ -8,8 +8,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
@@ -20,25 +20,25 @@ import (
 
 // Builder handles the construction of the graph edges once vertices have been ingested via the ingestion pipeline.
 type Builder struct {
-	cfg      *config.KubehoundConfig
-	storedb  storedb.Provider
-	graphdb  graphdb.Provider
-	cache    cache.CacheReader
-	edges    edge.EdgeRegistry
-	vertices vertex.VertexRegistry
+	cfg     *config.KubehoundConfig
+	storedb storedb.Provider
+	graphdb graphdb.Provider
+	cache   cache.CacheReader
+	edges   edge.EdgeRegistry
+	paths   path.PathRegistry
 }
 
 // NewBuilder returns a new builder instance from the provided application config and service dependencies.
 func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider, graph graphdb.Provider,
-	cache cache.CacheReader, edges edge.EdgeRegistry, vertices vertex.VertexRegistry) (*Builder, error) {
+	cache cache.CacheReader, edges edge.EdgeRegistry, paths path.PathRegistry) (*Builder, error) {
 
 	n := &Builder{
-		cfg:      cfg,
-		storedb:  store,
-		graphdb:  graph,
-		cache:    cache,
-		edges:    edges,
-		vertices: vertices,
+		cfg:     cfg,
+		storedb: store,
+		graphdb: graph,
+		cache:   cache,
+		edges:   edges,
+		paths:   paths,
 	}
 
 	return n, nil
@@ -52,14 +52,14 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 	})
 }
 
-// buildVertex inserts a class of vertices into the graph database.
-func (b *Builder) buildVertex(ctx context.Context, v vertex.QueryBuilder) error {
-	w, err := b.graphdb.VertexWriter(ctx, v)
+// buildPath inserts a class of paths (combination of new vertices and edges) into the graph database.
+func (b *Builder) buildPath(ctx context.Context, p path.Builder) error {
+	w, err := b.graphdb.PathWriter(ctx, p)
 	if err != nil {
 		return err
 	}
 
-	err = v.Stream(ctx, b.storedb, b.cache,
+	err = p.Stream(ctx, b.storedb, b.cache,
 		func(ctx context.Context, entry types.DataContainer) error {
 			processed, err := adapter.GremlinProcessor(entry)
 			// TODO option for skip write if signalled by processor
@@ -116,14 +116,14 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 func (b *Builder) Run(ctx context.Context) error {
 	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
 
-	// Vertices can have dependencies so must be built in sequence
-	l.Info("Starting vertex construction")
-	for label, v := range b.vertices {
-		l.Infof("Building vertex %s", label)
+	// Paths can have dependencies so must be built in sequence
+	l.Info("Starting path construction")
+	for label, p := range b.paths {
+		l.Infof("Building path %s", label)
 
-		err := b.buildVertex(ctx, v)
+		err := b.buildPath(ctx, p)
 		if err != nil {
-			l.Errorf("building verrtex %s: %v", label, err)
+			l.Errorf("building path %s: %v", label, err)
 			return err
 		}
 

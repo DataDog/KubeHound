@@ -1,4 +1,4 @@
-package vertex
+package path
 
 import (
 	"context"
@@ -16,49 +16,44 @@ import (
 )
 
 const (
-	tokenLabel = "Token"
+	tokenStealLabel = "TOKEN_STEAL"
 )
 
 func init() {
-	Register(Token{})
+	Register(TokenSteal{})
 }
 
-type Token struct {
+type TokenStealPath struct {
+	token
 }
 
-func (v Token) Label() string {
-	return tokenLabel
+type TokenSteal struct {
 }
 
-func (v Token) BatchSize() int {
+func (v TokenSteal) Label() string {
+	return tokenStealLabel
+}
+
+func (v TokenSteal) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (v Token) Traversal() VertexTraversal {
+func (v TokenSteal) Traversal() PathTraversal {
 	return nil
 }
 
-func (v Token) Stream(ctx context.Context, sdb storedb.Provider, cache cache.CacheReader,
+func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cache.CacheReader,
 	process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-	// All volumes
-	// wehere source.porojected != nil
-	// AND source.projected.sources.seriveAccountToken  != nil
-	// AND return
-	// pod id
-	// _id
 
+	// Find all volumes with projected service account tokens. The mounts and source fields we need to match on a projected
+	// service account token are all deeply nested arrays so matching on the naming convention is the simplest/fastest match
 	volumes := adapter.MongoDB(sdb).Collection(collections.VolumeName)
-	pipeline := []bson.M{
-		{"$group": bson.M{
-			"_id": "$pod_id",
-			"containers": bson.M{
-				"$push": "$_id",
-			},
-		},
-		},
+	filter := bson.M{
+		"source.volumesource.projected": bson.M{"$exists": true, "$ne": "null"},
+		"source.name":                   bson.M{"$regex": "/^kube-api-access/"},
 	}
 
-	cur, err := volumes.Aggregate(context.Background(), pipeline)
+	cur, err := volumes.Find(ctx, filter)
 	if err != nil {
 		return err
 	}
