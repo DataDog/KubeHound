@@ -10,7 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -129,7 +129,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.NoError(t, err, "role binding load error")
 
 	c := mocks.NewCacheReader(t)
-	k := cache.RoleKey("test-reader")
+	k := cachekey.Role("test-reader")
 	id := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
 
@@ -173,7 +173,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.NoError(t, err, "cluster role binding load error")
 
 	c := mocks.NewCacheReader(t)
-	k := cache.RoleKey("test-reader")
+	k := cachekey.Role("test-reader")
 	id := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
 
@@ -236,7 +236,7 @@ func TestConverter_PodPipeline(t *testing.T) {
 	assert.NoError(t, err, "pod load error")
 
 	c := mocks.NewCacheReader(t)
-	k := cache.NodeKey("test-node.ec2.internal")
+	k := cachekey.Node("test-node.ec2.internal")
 	id := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
 
@@ -270,11 +270,11 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.NoError(t, err, "pod load error")
 
 	c := mocks.NewCacheReader(t)
-	nk := cache.NodeKey("test-node.ec2.internal")
+	nk := cachekey.Node("test-node.ec2.internal")
 	nid := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, nk).Return(nid, nil)
 
-	ck := cache.ContainerKey("app-monitors-client-78cb6d7899-j2rjp", "elasticsearch")
+	ck := cachekey.Container("app-monitors-client-78cb6d7899-j2rjp", "elasticsearch")
 	cid := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, ck).Return(cid, nil)
 

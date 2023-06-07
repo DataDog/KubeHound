@@ -6,6 +6,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
@@ -34,6 +35,7 @@ func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) 
 	i.rolebinding = collections.RoleBinding{}
 
 	i.r, err = CreateResources(ctx, deps,
+		WithCacheWriter(),
 		WithConverterCache(),
 		WithStoreWriter(i.identity),
 		WithStoreWriter(i.rolebinding),
@@ -55,6 +57,11 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 
 	// Async write identity to store
 	if err := i.r.storeWriter(i.identity).Queue(ctx, sid); err != nil {
+		return err
+	}
+
+	// Async write to cache
+	if err := i.r.cacheWriter.Queue(ctx, cachekey.Identity(sid.Name), sid.Id.Hex()); err != nil {
 		return err
 	}
 

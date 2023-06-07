@@ -1,4 +1,4 @@
-package cache
+package cachekey
 
 const (
 	containerCacheName = "k8s-container"
@@ -11,7 +11,7 @@ type containerCacheKey struct {
 
 var _ CacheKey = (*containerCacheKey)(nil) // Ensure interface compliance
 
-func ContainerKey(podName string, containerName string) *containerCacheKey {
+func Container(podName string, containerName string) *containerCacheKey {
 	return &containerCacheKey{
 		podName:       podName,
 		containerName: containerName,

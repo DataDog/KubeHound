@@ -3,9 +3,10 @@
 package mocks
 
 import (
-	context "context"
-
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	cachekey "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
+
+	context "context"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -120,21 +121,21 @@ func (_c *CacheProvider_Close_Call) RunAndReturn(run func(context.Context) error
 }
 
 // Get provides a mock function with given fields: ctx, key
-func (_m *CacheProvider) Get(ctx context.Context, key cache.CacheKey) (string, error) {
+func (_m *CacheProvider) Get(ctx context.Context, key cachekey.CacheKey) (string, error) {
 	ret := _m.Called(ctx, key)
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, cache.CacheKey) (string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, cachekey.CacheKey) (string, error)); ok {
 		return rf(ctx, key)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, cache.CacheKey) string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, cachekey.CacheKey) string); ok {
 		r0 = rf(ctx, key)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, cache.CacheKey) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, cachekey.CacheKey) error); ok {
 		r1 = rf(ctx, key)
 	} else {
 		r1 = ret.Error(1)
@@ -150,14 +151,14 @@ type CacheProvider_Get_Call struct {
 
 // Get is a helper method to define mock.On call
 //   - ctx context.Context
-//   - key cache.CacheKey
+//   - key cachekey.CacheKey
 func (_e *CacheProvider_Expecter) Get(ctx interface{}, key interface{}) *CacheProvider_Get_Call {
 	return &CacheProvider_Get_Call{Call: _e.mock.On("Get", ctx, key)}
 }
 
-func (_c *CacheProvider_Get_Call) Run(run func(ctx context.Context, key cache.CacheKey)) *CacheProvider_Get_Call {
+func (_c *CacheProvider_Get_Call) Run(run func(ctx context.Context, key cachekey.CacheKey)) *CacheProvider_Get_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(cache.CacheKey))
+		run(args[0].(context.Context), args[1].(cachekey.CacheKey))
 	})
 	return _c
 }
@@ -167,7 +168,7 @@ func (_c *CacheProvider_Get_Call) Return(_a0 string, _a1 error) *CacheProvider_G
 	return _c
 }
 
-func (_c *CacheProvider_Get_Call) RunAndReturn(run func(context.Context, cache.CacheKey) (string, error)) *CacheProvider_Get_Call {
+func (_c *CacheProvider_Get_Call) RunAndReturn(run func(context.Context, cachekey.CacheKey) (string, error)) *CacheProvider_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }

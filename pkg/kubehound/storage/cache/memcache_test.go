@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 )
 
-func fakeCacheBuilder(ctx context.Context, cacheSize int) (*MemCacheProvider, map[CacheKey]string) {
+func fakeCacheBuilder(ctx context.Context, cacheSize int) (*MemCacheProvider, map[cachekey.CacheKey]string) {
 	fakeProvider, _ := NewCacheProvider(ctx)
 
-	fakeCache := make(map[CacheKey]string, cacheSize)
+	fakeCache := make(map[cachekey.CacheKey]string, cacheSize)
 
 	for i := 1; i <= cacheSize; i++ {
-		fakeCache[ContainerKey(fmt.Sprintf("Pod%d", i), fmt.Sprintf("container%d", i))] = fmt.Sprintf("value%d", i)
+		fakeCache[cachekey.Container(fmt.Sprintf("Pod%d", i), fmt.Sprintf("container%d", i))] = fmt.Sprintf("value%d", i)
 	}
 
 	fakeCacheWriter, _ := fakeProvider.BulkWriter(ctx)
@@ -36,7 +38,7 @@ func TestMemCacheProvider_Get(t *testing.T) {
 	}
 	type args struct {
 		ctx       context.Context
-		fakeCache map[CacheKey]string
+		fakeCache map[cachekey.CacheKey]string
 	}
 	tests := []struct {
 		name    string
@@ -86,10 +88,10 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 
 	// Standard write
 	fakeProvider1, _ := NewCacheProvider(ctx)
-	fakeCache1 := map[CacheKey]string{
-		ContainerKey("testPod1", "container1"): "qwerty",
-		ContainerKey("testPod2", "container2"): "asdfgh",
-		ContainerKey("testPod3", "container3"): "zxcvb",
+	fakeCache1 := map[cachekey.CacheKey]string{
+		cachekey.Container("testPod1", "container1"): "qwerty",
+		cachekey.Container("testPod2", "container2"): "asdfgh",
+		cachekey.Container("testPod3", "container3"): "zxcvb",
 	}
 
 	// Testing for collision in cache
@@ -100,7 +102,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 	}
 	type args struct {
 		ctx       context.Context
-		fakeCache map[CacheKey]string
+		fakeCache map[cachekey.CacheKey]string
 	}
 	tests := []struct {
 		name    string

@@ -19,8 +19,6 @@ func init() {
 	Register(Token{})
 }
 
-type TokenQueryGroup struct {
-}
 
 type Token struct {
 }
@@ -47,8 +45,10 @@ func (v Token) Stream(ctx context.Context, store storedb.Provider, cache cache.C
 	All volumes
 	wehere source.porojected != nil 
 	AND source.projected.sources.seriveAccountToken  != nil
-	AND lookup pod with pod_id == volume.pod id
-	
+	AND return
+	pod id
+	_id
+
 
 
 	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)
@@ -75,8 +75,7 @@ func (v Token) Stream(ctx context.Context, store storedb.Provider, cache cache.C
 			return err
 		}
 
-		// 	THen lookup pod_id -> identity_id cache for an entry
-	    // if something then create a token!
+		// Retrieve the 
 
 		err = callback(ctx, &entry)
 		if err != nil {

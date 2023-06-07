@@ -1,4 +1,4 @@
-package cache
+package cachekey
 
 // CacheKey defines a generic, provider agnostic abstraction of a cache key.
 type CacheKey interface {

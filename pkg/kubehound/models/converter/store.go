@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 )
 
 var (
@@ -74,7 +75,7 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 		return nil, ErrNoCacheInitialized
 	}
 
-	nid, err := c.cache.Get(ctx, cache.NodeKey(input.Spec.NodeName))
+	nid, err := c.cache.Get(ctx, cachekey.Node(input.Spec.NodeName))
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +125,7 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 	for _, container := range parent.K8.Spec.Containers {
 		for _, mount := range container.VolumeMounts {
 			if mount.Name == output.Source.Name {
-				cid, err := c.cache.Get(ctx, cache.ContainerKey(parent.K8.Name, container.Name))
+				cid, err := c.cache.Get(ctx, cachekey.Container(parent.K8.Name, container.Name))
 				if err != nil {
 					return nil, err
 				}
@@ -176,7 +177,7 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 
 	var output *store.RoleBinding
 
-	rid, err := c.cache.Get(ctx, cache.RoleKey(input.RoleRef.Name))
+	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name))
 	if err != nil {
 		// We can get cache misses here if bindings remain with no corresponding role.
 		return nil, ErrDanglingRoleBinding
@@ -216,7 +217,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 	var output *store.RoleBinding
 
-	rid, err := c.cache.Get(ctx, cache.RoleKey(input.RoleRef.Name))
+	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name))
 	if err != nil {
 		// We can get cache misses here if bindings remain with no corresponding role.
 		return nil, ErrDanglingRoleBinding
