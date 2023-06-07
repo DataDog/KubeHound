@@ -18,7 +18,7 @@ const (
 type KubehoundConfig struct {
 	Collector  CollectorConfig  `mapstructure:"collector"`  // Collector configuration
 	MongoDB    MongoDBConfig    `mapstructure:"mongodb"`    // MongoDB configuration
-	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // MongoDB configuration
+	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // JanusGraph configuration
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 }
 

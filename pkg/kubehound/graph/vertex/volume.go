@@ -1,7 +1,5 @@
 package vertex
 
-import "github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-
 const (
 	volumeLabel = "Volume"
 )
@@ -9,7 +7,6 @@ const (
 var _ Builder = (*Volume)(nil)
 
 type Volume struct {
-	graph.Volume
 }
 
 func (v Volume) Label() string {

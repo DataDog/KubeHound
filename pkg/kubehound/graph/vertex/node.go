@@ -12,7 +12,6 @@ const (
 var _ Builder = (*Node)(nil)
 
 type Node struct {
-	graph.Node
 }
 
 func (v Node) Label() string {
