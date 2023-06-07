@@ -1,6 +1,8 @@
 package vertex
 
-import gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
+import (
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
+)
 
 const (
 	containerLabel = "Container"
@@ -21,6 +23,16 @@ func (v Container) BatchSize() int {
 
 func (v Container) Traversal() VertexTraversal {
 	return func(g *gremlingo.GraphTraversalSource, inserts []TraversalInput) *gremlingo.GraphTraversal {
+		// g = g.GetGraphTraversal()
+
+		// for _, insert := range inserts {
+		// 	i := insert.(graph.Container)
+		// 	g.AddV(v.Label()).
+		// 		Property("id", i.StoreId).
+		// 		Property("name", i.Name)
+		// }
+
+		// return g.GetGraphTraversal()
 		return g.Inject(inserts).Unfold().As("c").
 			AddV("Container").
 			Property("storeId", gremlingo.T__.Select("c").Select("store_id")).
