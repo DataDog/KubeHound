@@ -2,9 +2,11 @@ package path
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
@@ -18,7 +20,19 @@ import (
 )
 
 const (
+	// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891284481/TOKEN+STEAL
 	tokenStealLabel = "TOKEN_STEAL"
+
+	// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880373371/IDENTITY+ASSUME
+	identityAssumeLabel = "IDENTITY_ASSUME"
+)
+
+var (
+	tokenVertexLabel    = vertex.Token{}.Label()
+	volumeVertexLabel   = vertex.Volume{}.Label()
+	identityVertexLabel = vertex.Identity{}.Label()
+	tokenStealPathLabel = fmt.Sprintf("(%s)-[%s]->(%s)-[%s]->(%s)",
+		volumeVertexLabel, tokenStealLabel, tokenVertexLabel, identityAssumeLabel, identityVertexLabel)
 )
 
 func init() {
@@ -45,6 +59,11 @@ func (v TokenSteal) BatchSize() int {
 func (v TokenSteal) Traversal() PathTraversal {
 	return func(g *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		// TODO create the token vertex
+
+		g.Inject(inserts).Unfold().As("ts").
+			AddV().As("tk").
+			Property("storeId", ts.)
+		MergeE(e.Label()).From("pod").To("container")
 		// TODO create a TOKEN_STEAL edge between the volume and the new token
 		// TODO create an IDENTITY_ASSUME edge between the token and the associated identity
 		return nil

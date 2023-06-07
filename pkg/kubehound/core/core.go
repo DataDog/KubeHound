@@ -8,7 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
@@ -55,10 +55,12 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 
 	log.I.Info("Loading graph edge definitions")
 	edges := edge.Registry()
-	vertices := vertex.Registry()
+
+	log.I.Info("Loading graph path definitions")
+	paths := path.Registry()
 
 	log.I.Info("Loading graph builder")
-	builder, err := graph.NewBuilder(cfg, storedb, graphdb, cache, edges, vertices)
+	builder, err := graph.NewBuilder(cfg, storedb, graphdb, cache, edges, paths)
 	if err != nil {
 		return fmt.Errorf("graph builder creation: %w", err)
 	}
