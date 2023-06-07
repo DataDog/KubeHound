@@ -1,7 +1,5 @@
 package vertex
 
-import "github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-
 const (
 	roleLabel = "Role"
 )
@@ -9,7 +7,6 @@ const (
 var _ Builder = (*Role)(nil)
 
 type Role struct {
-	graph.Role
 }
 
 func (v Role) Label() string {
