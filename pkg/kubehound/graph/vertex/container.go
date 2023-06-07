@@ -20,7 +20,7 @@ func (v Container) BatchSize() int {
 }
 
 func (v Container) Traversal() VertexTraversal {
-	return (func(g *gremlingo.GraphTraversalSource, inserts []TraversalInput) *gremlingo.GraphTraversal {
+	return func(g *gremlingo.GraphTraversalSource, inserts []TraversalInput) *gremlingo.GraphTraversal {
 		return g.Inject(inserts).Unfold().As("c").
 			AddV("Container").
 			Property("storeId", gremlingo.T__.Select("c").Select("store_id")).
@@ -40,5 +40,5 @@ func (v Container) Traversal() VertexTraversal {
 			Property("node", gremlingo.T__.Select("c").Select("node")).
 			Property("compromised", gremlingo.T__.Select("c").Select("compromised")).
 			Property("critical", gremlingo.T__.Select("c").Select("critical"))
-	})
+	}
 }
