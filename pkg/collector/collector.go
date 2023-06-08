@@ -94,7 +94,7 @@ func ClientFactory(ctx context.Context, cfg *config.KubehoundConfig) (CollectorC
 	switch {
 	case cfg.Collector.Type == config.CollectorTypeK8sAPI:
 		return NewK8sAPICollector(ctx, cfg)
-	case cfg.Collector.Type == config.CollectorTypeK8sAPI:
+	case cfg.Collector.Type == config.CollectorTypeFile:
 		return NewFileCollector(ctx, cfg)
 	default:
 		return nil, fmt.Errorf("collector type not supported: %s", cfg.Collector.Type)
