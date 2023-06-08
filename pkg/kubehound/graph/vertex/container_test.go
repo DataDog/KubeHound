@@ -28,7 +28,7 @@ func TestContainer_Traversal(t *testing.T) {
 				Image:        "image",
 				Command:      []string{"/usr/bin/sleep"},
 				Args:         []string{"600"},
-				Capabilities: []string{"NET_CAP_ADMIN", "NET_RAW_ADMINaa"},
+				Capabilities: []string{"NET_CAP_ADMIN", "NET_RAW_ADMIN"},
 				Privileged:   true,
 				PrivEsc:      true,
 				HostPID:      true,
@@ -50,13 +50,7 @@ func TestContainer_Traversal(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			v := Container{}
 
-			dbHost := "ws://localhost:8182/gremlin"
-			driver, err := gremlingo.NewDriverRemoteConnection(dbHost)
-			assert.NoError(t, err)
-
-			g := gremlingo.Traversal_().WithRemote(driver)
-			assert.NoError(t, err)
-
+			g := gremlingo.GraphTraversalSource{}
 			insert, err := utils.StructToMap(tt.data)
 			assert.NoError(t, err)
 
@@ -64,32 +58,13 @@ func TestContainer_Traversal(t *testing.T) {
 			inserts := []TraversalInput{insert}
 
 			fmt.Printf("inserts: %v\n", inserts)
-			traversal := vertexTraversal(g, inserts)
-
-			// Write to db
-			promise := traversal.Iterate()
-			err = <-promise
-			assert.NoError(t, err)
-
-			// NO IDEA
-			// driver, err = gremlingo.NewDriverRemoteConnection(dbHost)
-			// assert.NoError(t, err)
-			// g = gremlingo.Traversal_().WithRemote(driver)
-			// // tx = traversal.Tx()
-			// // g, err = tx.Begin()
-
-			// assert.NoError(t, err)
-			// test := g.V().HasLabel(v.Label()).ValueMap()
-			// res, err := test.Traversal.GetResultSet()
-			// assert.NoError(t, err)
-			// data, err := res.All()
-			// for _, d := range data {
-			// 	gotInterface := d.GetInterface().(map[any]any)
-			// 	t.Errorf("gotInterface:  %+v", gotInterface)
-			// 	container := graph.Container{}
-			// 	mapstructure.Decode(gotInterface, &container)
-			// 	t.Errorf("container:  %+v", container)
-			// }
+			traversal := vertexTraversal(&g, inserts)
+			// This is ugly but doesn't need to write to the DB
+			// This just makes sure the traversal is correctly returned with the correct values
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "test id")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "test name")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "/usr/bin/sleep")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "1337")
 		})
 	}
 }
