@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
@@ -37,7 +36,10 @@ func (jgp *JanusGraphProvider) Name() string {
 }
 
 func (jgp *JanusGraphProvider) HealthCheck(ctx context.Context) (bool, error) {
-	return true, globals.ErrNotImplemented
+	if jgp.client != nil {
+		return true, nil
+	}
+	return false, errors.New("failed to get janus graph client")
 }
 
 // Raw returns a handle to the underlying provider to allow implementation specific operations e.g graph queries.
