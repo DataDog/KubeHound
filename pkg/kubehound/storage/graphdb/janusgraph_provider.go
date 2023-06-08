@@ -42,7 +42,7 @@ func (jgp *JanusGraphProvider) Raw() any {
 }
 
 // VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
-func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Vertex, opts ...WriterOption) (AsyncVertexWriter, error) {
+func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builder, opts ...WriterOption) (AsyncVertexWriter, error) {
 	writer, err := NewJanusGraphAsyncVertexWriter(jgp.client, opts...)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Vertex
 }
 
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
-func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Edge, opts ...WriterOption) (AsyncEdgeWriter, error) {
+func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error) {
 	writer, err := NewJanusGraphAsyncEdgeWriter(jgp.client)
 	if err != nil {
 		return nil, err

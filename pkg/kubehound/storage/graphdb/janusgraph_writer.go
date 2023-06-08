@@ -11,15 +11,15 @@ import (
 
 var _ AsyncVertexWriter = (*JanusGraphAsyncVertexWriter)(nil)
 
-type GremlinTraversalVertex func(*gremlingo.GraphTraversalSource, []gremlingo.Vertex) *gremlingo.GraphTraversal
-type GremlinTraversalEdge func(*gremlingo.GraphTraversalSource, []gremlingo.Edge) *gremlingo.GraphTraversal
+type GremlinTraversalVertex func(*gremlingo.GraphTraversalSource, []any) *gremlingo.GraphTraversal
+type GremlinTraversalEdge func(*gremlingo.GraphTraversalSource, []any) *gremlingo.GraphTraversal
 
 type JanusGraphAsyncVertexWriter struct {
 	gremlin         GremlinTraversalVertex
 	transaction     *gremlingo.Transaction
 	traversalSource *gremlingo.GraphTraversalSource
-	inserts         []gremlingo.Vertex // Should this be gremlingo.Edge or vertex.Vertex?
-	consumerChan    chan []gremlingo.Vertex
+	inserts         []any
+	consumerChan    chan []any
 	writingInFligth sync.WaitGroup
 	batchSize       int // Shouldn't this be "per vertex types" ?
 }
@@ -30,8 +30,8 @@ type JanusGraphAsyncEdgeWriter struct {
 	gremlin         GremlinTraversalEdge
 	transaction     *gremlingo.Transaction
 	traversalSource *gremlingo.GraphTraversalSource
-	inserts         []gremlingo.Edge // Should this be gremlingo.Edge or edge.Edge?
-	consumerChan    chan []gremlingo.Edge
+	inserts         []any
+	consumerChan    chan []any
 	writingInFligth sync.WaitGroup
 	batchSize       int // Shouldn't this be "per edge types" ?
 }
@@ -49,7 +49,7 @@ func NewJanusGraphAsyncEdgeWriter(drc *gremlingo.DriverRemoteConnection, opts ..
 		return nil, err
 	}
 	jw := JanusGraphAsyncEdgeWriter{
-		inserts:         make([]gremlingo.Edge, 0),
+		inserts:         make([]interface{}, 0),
 		transaction:     tx,
 		traversalSource: gtx,
 		batchSize:       1,
@@ -71,7 +71,7 @@ func NewJanusGraphAsyncVertexWriter(drc *gremlingo.DriverRemoteConnection, opts 
 		return nil, err
 	}
 	jw := JanusGraphAsyncVertexWriter{
-		inserts:         make([]gremlingo.Vertex, 0),
+		inserts:         make([]interface{}, 0),
 		transaction:     tx,
 		traversalSource: gtx,
 	}
@@ -79,7 +79,7 @@ func NewJanusGraphAsyncVertexWriter(drc *gremlingo.DriverRemoteConnection, opts 
 	return &jw, nil
 }
 
-func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []gremlingo.Vertex) error {
+func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []any) error {
 	jgv.writingInFligth.Add(1)
 	defer jgv.writingInFligth.Done()
 
@@ -94,7 +94,7 @@ func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []g
 	return nil
 }
 
-func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []gremlingo.Edge) error {
+func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []any) error {
 	jge.writingInFligth.Add(1)
 	defer jge.writingInFligth.Done()
 
@@ -187,19 +187,13 @@ func (e *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
 	return nil
 }
 
-func (v *JanusGraphAsyncVertexWriter) Queue(ctx context.Context, vertex any) error {
-	if len(v.inserts) > v.batchSize {
-		v.consumerChan <- v.inserts
+func (vw *JanusGraphAsyncVertexWriter) Queue(ctx context.Context, vertex any) error {
+	if len(vw.inserts) > vw.batchSize {
+		vw.consumerChan <- vw.inserts
 		// cleanup the ops array after we have copied it to the channel
-		v.inserts = nil
+		vw.inserts = nil
 	}
-	converted := gremlingo.Vertex{
-		Element: gremlingo.Element{
-			Id:    vertex.Label(), //FIXME, not sure what should be added here
-			Label: vertex.Label(),
-		},
-	}
-	v.inserts = append(v.inserts, converted)
+	vw.inserts = append(vw.inserts, vertex)
 	return nil
 }
 
@@ -209,12 +203,6 @@ func (e *JanusGraphAsyncEdgeWriter) Queue(ctx context.Context, edge any) error {
 		// cleanup the ops array after we have copied it to the channel
 		e.inserts = nil
 	}
-	converted := gremlingo.Edge{
-		Element: gremlingo.Element{
-			Id:    edge.Label(), //FIXME, not sure what should be added here
-			Label: edge.Label(),
-		},
-	}
-	e.inserts = append(e.inserts, converted)
+	e.inserts = append(e.inserts, edge)
 	return nil
 }
