@@ -2,6 +2,7 @@ package graphdb
 
 import (
 	"context"
+	"errors"
 
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
@@ -16,6 +17,9 @@ type JanusGraphProvider struct {
 }
 
 func NewGraphDriver(ctx context.Context, dbHost string) (*JanusGraphProvider, error) {
+	if dbHost == "" {
+		return nil, errors.New("JanusGraph DB URL is not set")
+	}
 	driver, err := gremlingo.NewDriverRemoteConnection(dbHost)
 	if err != nil {
 		return nil, err

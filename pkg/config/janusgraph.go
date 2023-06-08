@@ -2,8 +2,8 @@ package config
 
 import "time"
 
-// MongoDBConfig configures mongodb specific parameters.
+// JanusGraphConfig configures JanusGraph specific parameters.
 type JanusGraphConfig struct {
-	URL               string        `mapstructure:"url"` // Mongodb specific configuration
+	URL               string        `mapstructure:"url"` // JanusGraph specific configuration
 	ConnectionTimeout time.Duration `mapstructure:"connection_timeout"`
 }
