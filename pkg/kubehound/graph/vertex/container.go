@@ -1,6 +1,9 @@
 package vertex
 
 import (
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/utils"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 )
 
@@ -61,9 +64,10 @@ func (v Container) Traversal() VertexTraversal {
 		// }
 
 		// return g.GetGraphTraversal()
-
 		// I have no idea how I can convert the arrays in the inserts to multiple values with cardinality set....
-		traversal := g.Inject(inserts).Unfold().As("c").
+		insertsConverted := utils.ConvertSliceAnyToTyped[graph.Container, TraversalInput](inserts)
+		log.I.Infof(" ============== INSERTS Containers ====== %+v", insertsConverted)
+		traversal := g.Inject(insertsConverted).Unfold().As("c").
 			AddV(v.Label()).
 			Property("storeId", gremlingo.T__.Select("c").Select("store_id")).
 			Property("name", gremlingo.T__.Select("c").Select("name")).

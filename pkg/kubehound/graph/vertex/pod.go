@@ -1,6 +1,9 @@
 package vertex
 
 import (
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/utils"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 )
@@ -24,6 +27,8 @@ func (v Pod) BatchSize() int {
 
 func (v Pod) Traversal() VertexTraversal {
 	return func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
+		insertsConverted := utils.ConvertSliceAnyToTyped[graph.Pod, TraversalInput](inserts)
+		log.I.Infof(" ============== INSERTS Pods ====== %+v", insertsConverted)
 		traversal := g.Inject(inserts).Unfold().As("c").
 			AddV(v.Label()).
 			Property("store_id", gremlingo.T__.Select("c").Select("store_id")).

@@ -1,6 +1,8 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // func AnySliceToStringSlice(in []any) []string {
 // 	s := make([]string, len(in))
@@ -23,4 +25,12 @@ func ToSliceOfAny[Tin any](s []Tin) []string {
 		result[i] = fmt.Sprint(v)
 	}
 	return result
+}
+
+func ConvertSliceAnyToTyped[T any, Tin any](data []Tin) []T {
+	converted := make([]T, len(data))
+	for _, d := range converted {
+		converted = append(converted, d)
+	}
+	return converted
 }
