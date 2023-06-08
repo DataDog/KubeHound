@@ -1,8 +1,8 @@
 package vertex
 
 import (
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 )
 
 const (
@@ -23,16 +23,15 @@ func (v Node) BatchSize() int {
 }
 
 func (v Node) Traversal() VertexTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal()
-
-		for _, insert := range inserts {
-			i := insert.(*graph.Node)
-			g = g.AddV(v.Label()).
-				Property("id", i.StoreId).
-				Property("name", i.Name)
-		}
-
-		return g
+	return func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
+		traversal := g.Inject(inserts).Unfold().As("c").
+			AddV(v.Label()).
+			Property("store_id", gremlingo.T__.Select("c").Select("store_id")).
+			Property("name", gremlingo.T__.Select("c").Select("name")).
+			Property("is_namespaced", gremlingo.T__.Select("c").Select("is_namespaced")).
+			Property("namespace", gremlingo.T__.Select("c").Select("namespace")).
+			Property("compromised", gremlingo.T__.Select("c").Select("compromised")).
+			Property("critical", gremlingo.T__.Select("c").Select("critical"))
+		return traversal
 	}
 }

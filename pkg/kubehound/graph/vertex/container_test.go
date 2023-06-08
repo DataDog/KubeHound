@@ -1,41 +1,28 @@
 package vertex
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/utils"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
-	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestContainer_Traversal(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
-		v    Container
 		want VertexTraversal
+		data graph.Container
 	}{
 		{
 			name: "Add containers in JanusGraph",
-			v:    Container{},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dbHost := "ws://localhost:8182/gremlin"
-			driver, err := gremlingo.NewDriverRemoteConnection(dbHost)
-			assert.NoError(t, err)
-
-			g := gremlingo.Traversal_().WithRemote(driver)
-			// tx := traversal.Tx()
-			// g, err := tx.Begin()
-			assert.NoError(t, err)
-
-			v := Container{}
-			// We set the values to all field with non default values so we are sure all are correctly propagated.
-			insert, err := utils.StructToMap(graph.Container{
+			// We set the values to all field with non default values
+			// so we are sure all are correctly propagated.
+			data: graph.Container{
 				StoreId:      "test id",
 				Name:         "test name",
 				Image:        "image",
@@ -54,38 +41,55 @@ func TestContainer_Traversal(t *testing.T) {
 				Node:         "test node",
 				Compromised:  1,
 				Critical:     true,
-			})
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			v := Container{}
+
+			dbHost := "ws://localhost:8182/gremlin"
+			driver, err := gremlingo.NewDriverRemoteConnection(dbHost)
+			assert.NoError(t, err)
+
+			g := gremlingo.Traversal_().WithRemote(driver)
+			assert.NoError(t, err)
+
+			insert, err := utils.StructToMap(tt.data)
 			assert.NoError(t, err)
 
 			vertexTraversal := v.Traversal()
 			inserts := []TraversalInput{insert}
-			t.Errorf("inserts: %v", inserts)
-			_ = vertexTraversal(g, inserts)
 
-			// err = tx.Commit()
+			fmt.Printf("inserts: %v\n", inserts)
+			traversal := vertexTraversal(g, inserts)
+
+			// Write to db
+			promise := traversal.Iterate()
+			err = <-promise
+			assert.NoError(t, err)
+
+			// NO IDEA
+			// driver, err = gremlingo.NewDriverRemoteConnection(dbHost)
 			// assert.NoError(t, err)
-			// err = tx.Close()
+			// g = gremlingo.Traversal_().WithRemote(driver)
+			// // tx = traversal.Tx()
+			// // g, err = tx.Begin()
+
 			// assert.NoError(t, err)
-
-			driver, err = gremlingo.NewDriverRemoteConnection(dbHost)
-			assert.NoError(t, err)
-
-			g = gremlingo.Traversal_().WithRemote(driver)
-			// tx = traversal.Tx()
-			// g, err = tx.Begin()
-
-			assert.NoError(t, err)
-			test := g.V().HasLabel(v.Label()).ValueMap()
-			res, err := test.Traversal.GetResultSet()
-			assert.NoError(t, err)
-			data, err := res.All()
-			for _, d := range data {
-				thefuck := d.GetInterface()
-				t.Errorf("thefuck:  %+v", thefuck)
-				container := graph.Container{}
-				mapstructure.Decode(thefuck, &container)
-				t.Errorf("container:  %+v", container)
-			}
+			// test := g.V().HasLabel(v.Label()).ValueMap()
+			// res, err := test.Traversal.GetResultSet()
+			// assert.NoError(t, err)
+			// data, err := res.All()
+			// for _, d := range data {
+			// 	gotInterface := d.GetInterface().(map[any]any)
+			// 	t.Errorf("gotInterface:  %+v", gotInterface)
+			// 	container := graph.Container{}
+			// 	mapstructure.Decode(gotInterface, &container)
+			// 	t.Errorf("container:  %+v", container)
+			// }
 		})
 	}
 }
