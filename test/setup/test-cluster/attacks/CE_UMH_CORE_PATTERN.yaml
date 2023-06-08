@@ -15,7 +15,7 @@ spec:
         name: nodeproc
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
-      volumes:
-        - name: nodeproc
-          hostPath:
-            path: /proc/sys/kernel
+  volumes:
+    - name: nodeproc
+      hostPath:
+        path: /proc/sys/kernel

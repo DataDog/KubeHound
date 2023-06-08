@@ -15,7 +15,7 @@ spec:
         name: nodelog
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
-      volumes:
-        - name: nodelog
-          hostPath:
-            path: /var/log
+  volumes:
+    - name: nodelog
+      hostPath:
+        path: /var/log
