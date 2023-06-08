@@ -1,0 +1,21 @@
+# CE_UMH_CORE_PATTERN edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2889843064/CE+UMH+CORE+PATTERN
+apiVersion: v1
+kind: Pod
+metadata:
+  name: umh-core-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+    - name: umh-core-pod
+      image: ubuntu
+      volumeMounts:
+      - mountPath: /sysproc
+        name: nodeproc
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+      volumes:
+        - name: nodeproc
+          hostPath:
+            path: /proc/sys/kernel

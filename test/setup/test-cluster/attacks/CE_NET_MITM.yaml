@@ -1,0 +1,17 @@
+# CE_NET_ADMIN edge
+# @@DOCLINK: TODO TODO
+apiVersion: v1
+kind: Pod
+metadata:
+  name: netadmin-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+    - name: netadmin-pod
+      image: ubuntu
+      securityContext:
+        capabilities:
+          add: ["NET_ADMIN"]
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

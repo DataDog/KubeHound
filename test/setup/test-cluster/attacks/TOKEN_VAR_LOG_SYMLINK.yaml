@@ -1,0 +1,21 @@
+# TOKEN_VAR_LOG_SYMLINK edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2895282182/TOKEN+VAR+LOG+SYMLINK
+apiVersion: v1
+kind: Pod
+metadata:
+  name: varlog-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+    - name: varlog-pod
+      image: ubuntu
+      volumeMounts:
+      - mountPath: /host/var/log
+        name: nodelog
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+      volumes:
+        - name: nodelog
+          hostPath:
+            path: /var/log
