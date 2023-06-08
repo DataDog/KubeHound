@@ -53,7 +53,7 @@ func NewJanusGraphAsyncEdgeWriter(drc *gremlingo.DriverRemoteConnection, opts ..
 		transaction:     tx,
 		traversalSource: gtx,
 		batchSize:       1,
-		consumerChan:    make(chan []any, 0),
+		consumerChan:    make(chan []any, 10),
 	}
 
 	return &jw, nil
@@ -76,7 +76,7 @@ func NewJanusGraphAsyncVertexWriter(drc *gremlingo.DriverRemoteConnection, opts 
 		transaction:     tx,
 		traversalSource: gtx,
 		batchSize:       1,
-		consumerChan:    make(chan []any, 0),
+		consumerChan:    make(chan []any, 10),
 	}
 
 	return &jw, nil
