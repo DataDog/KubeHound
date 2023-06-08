@@ -347,7 +347,7 @@ func (_c *Provider_Raw_Call) RunAndReturn(run func() interface{}) *Provider_Raw_
 }
 
 // VertexWriter provides a mock function with given fields: ctx, v, opts
-func (_m *Provider) VertexWriter(ctx context.Context, v vertex.PipelineBuilder, opts ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error) {
+func (_m *Provider) VertexWriter(ctx context.Context, v vertex.Builder, opts ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -359,10 +359,10 @@ func (_m *Provider) VertexWriter(ctx context.Context, v vertex.PipelineBuilder, 
 
 	var r0 graphdb.AsyncVertexWriter
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, vertex.PipelineBuilder, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, vertex.Builder, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)); ok {
 		return rf(ctx, v, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, vertex.PipelineBuilder, ...graphdb.WriterOption) graphdb.AsyncVertexWriter); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, vertex.Builder, ...graphdb.WriterOption) graphdb.AsyncVertexWriter); ok {
 		r0 = rf(ctx, v, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -370,7 +370,7 @@ func (_m *Provider) VertexWriter(ctx context.Context, v vertex.PipelineBuilder, 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, vertex.PipelineBuilder, ...graphdb.WriterOption) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, vertex.Builder, ...graphdb.WriterOption) error); ok {
 		r1 = rf(ctx, v, opts...)
 	} else {
 		r1 = ret.Error(1)
@@ -393,7 +393,7 @@ func (_e *Provider_Expecter) VertexWriter(ctx interface{}, v interface{}, opts .
 		append([]interface{}{ctx, v}, opts...)...)}
 }
 
-func (_c *Provider_VertexWriter_Call) Run(run func(ctx context.Context, v vertex.PipelineBuilder, opts ...graphdb.WriterOption)) *Provider_VertexWriter_Call {
+func (_c *Provider_VertexWriter_Call) Run(run func(ctx context.Context, v vertex.Builder, opts ...graphdb.WriterOption)) *Provider_VertexWriter_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		variadicArgs := make([]graphdb.WriterOption, len(args)-2)
 		for i, a := range args[2:] {
@@ -401,7 +401,7 @@ func (_c *Provider_VertexWriter_Call) Run(run func(ctx context.Context, v vertex
 				variadicArgs[i] = a.(graphdb.WriterOption)
 			}
 		}
-		run(args[0].(context.Context), args[1].(vertex.PipelineBuilder), variadicArgs...)
+		run(args[0].(context.Context), args[1].(vertex.Builder), variadicArgs...)
 	})
 	return _c
 }
@@ -411,7 +411,7 @@ func (_c *Provider_VertexWriter_Call) Return(_a0 graphdb.AsyncVertexWriter, _a1 
 	return _c
 }
 
-func (_c *Provider_VertexWriter_Call) RunAndReturn(run func(context.Context, vertex.PipelineBuilder, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)) *Provider_VertexWriter_Call {
+func (_c *Provider_VertexWriter_Call) RunAndReturn(run func(context.Context, vertex.Builder, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)) *Provider_VertexWriter_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -24,7 +24,7 @@ const (
 )
 
 type PodIngest struct {
-	v []vertex.PipelineBuilder
+	v []vertex.Builder
 	c []collections.Collection
 	r *IngestResources
 }
@@ -43,7 +43,7 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	// from the (container/init container lists). As such we need to intialize a list of the writers we need.
 	//
 
-	i.v = []vertex.PipelineBuilder{
+	i.v = []vertex.Builder{
 		vertex.Pod{},
 		vertex.Container{},
 		vertex.Volume{},

@@ -4,7 +4,7 @@ const (
 	identityLabel = "Identity"
 )
 
-var _ PipelineBuilder = (*Identity)(nil)
+var _ Builder = (*Identity)(nil)
 
 type Identity struct {
 }

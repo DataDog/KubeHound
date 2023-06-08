@@ -4,7 +4,7 @@ const (
 	podLabel = "Pod"
 )
 
-var _ PipelineBuilder = (*Pod)(nil)
+var _ Builder = (*Pod)(nil)
 
 type Pod struct {
 }

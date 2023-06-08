@@ -10,7 +10,7 @@ const (
 	nodeLabel = "Node"
 )
 
-var _ PipelineBuilder = (*Node)(nil)
+var _ Builder = (*Node)(nil)
 
 type Node struct {
 }
