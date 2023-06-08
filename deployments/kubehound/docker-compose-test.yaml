@@ -19,10 +19,10 @@ services:
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
 
-  janusgraph:
-    image: janusgraph/janusgraph:latest
-    container_name: graphdb-ng
-    ports:
-      - "127.0.0.1:8182:8182"
-    volumes:
-      - ./data/janus:/data
+  # janusgraph:
+  #   image: janusgraph/janusgraph:latest
+  #   container_name: graphdb-ng
+  #   ports:
+  #     - "127.0.0.1:8182:8182"
+  #   volumes:
+  #     - ./data/janus:/data

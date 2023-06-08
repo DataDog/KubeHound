@@ -59,11 +59,6 @@ func (v TokenSteal) BatchSize() int {
 func (v TokenSteal) Traversal() PathTraversal {
 	return func(g *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		// TODO create the token vertex
-
-		g.Inject(inserts).Unfold().As("ts").
-			AddV().As("tk").
-			Property("storeId", ts.)
-		MergeE(e.Label()).From("pod").To("container")
 		// TODO create a TOKEN_STEAL edge between the volume and the new token
 		// TODO create an IDENTITY_ASSUME edge between the token and the associated identity
 		return nil

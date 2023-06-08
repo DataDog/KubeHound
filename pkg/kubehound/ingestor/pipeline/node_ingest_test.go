@@ -37,7 +37,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	// Cache setup
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.nodeCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
+	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.nodeCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
 	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)

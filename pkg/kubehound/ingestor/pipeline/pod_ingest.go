@@ -117,7 +117,7 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 	}
 
 	// Transform store model to vertex input
-	vv, err := i.r.graphConvert.Volume(sv)
+	vv, err := i.r.graphConvert.Volume(sv, parent)
 	if err != nil {
 		return err
 	}

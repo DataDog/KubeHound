@@ -66,7 +66,6 @@ type Role struct {
 }
 
 type Token struct {
-	StoreId     string                `json:"store_id"` // The token store ID is synthetic but required for edge creation and to make use of the index
 	Name        string                `json:"name"`
 	Type        string                `json:"type"`
 	Identity    string                `json:"identity"`

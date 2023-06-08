@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DefaultBatchSize = 50
+	DefaultBatchSize = 25
 )
 
 // PathTraversal returns the function to create a graph database path insert from an array of input objects.

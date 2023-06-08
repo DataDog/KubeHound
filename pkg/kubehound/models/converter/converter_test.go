@@ -330,7 +330,7 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, storeVolume1.Source, inVolume1)
 
 	// Store container -> graph container
-	graphVolume, err := NewGraph().Volume(storeVolume0)
+	graphVolume, err := NewGraph().Volume(storeVolume0, storePod)
 	assert.NoError(t, err, "graph volume convert error")
 
 	assert.Equal(t, storeVolume0.Id.Hex(), graphVolume.StoreId)
@@ -338,7 +338,7 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, shared.VolumeTypeProjected, graphVolume.Type)
 	assert.Equal(t, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token", graphVolume.NodePath)
 
-	graphVolume, err = NewGraph().Volume(storeVolume1)
+	graphVolume, err = NewGraph().Volume(storeVolume1, storePod)
 	assert.NoError(t, err, "graph volume convert error")
 
 	assert.Equal(t, storeVolume1.Id.Hex(), graphVolume.StoreId)

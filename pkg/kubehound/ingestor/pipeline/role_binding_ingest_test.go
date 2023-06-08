@@ -37,7 +37,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 
 	// Cache setup
 	c := cache.NewCacheProvider(t)
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cache.roleCacheKey")).Return(store.ObjectID().Hex(), nil)
+	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.roleCacheKey")).Return(store.ObjectID().Hex(), nil)
 
 	// Store setup -  rolebindings
 	sdb := storedb.NewProvider(t)
@@ -50,11 +50,17 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 
 	// Store setup -  identities
 	isw := storedb.NewAsyncWriter(t)
+	csw := cache.NewAsyncWriter(t)
+	csw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.identityCacheKey"), mock.AnythingOfType("string")).Return(nil)
+	csw.EXPECT().Flush(ctx).Return(nil)
+	csw.EXPECT().Close(ctx).Return(nil)
+
 	identities := collections.Identity{}
 	isw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Identity")).Return(nil).Once()
 	isw.EXPECT().Flush(ctx).Return(nil)
 	isw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, identities).Return(isw, nil)
+	c.EXPECT().BulkWriter(ctx).Return(csw, nil)
 
 	// Graph setup
 	gdb := graphdb.NewProvider(t)

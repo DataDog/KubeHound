@@ -6,6 +6,7 @@ import (
 
 	rbacv1 "k8s.io/api/rbac/v1"
 
+	"github.com/DataDog/KubeHound/pkg/kube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
@@ -102,7 +103,7 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 }
 
 // Volume returns the graph representation of a volume vertex from a store volume model input.
-func (c *GraphConverter) Volume(input *store.Volume) (*graph.Volume, error) {
+func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.Volume, error) {
 	output := &graph.Volume{
 		StoreId: input.Id.Hex(),
 		Name:    input.Name,
@@ -118,7 +119,7 @@ func (c *GraphConverter) Volume(input *store.Volume) (*graph.Volume, error) {
 		// Loop through looking for the service account token
 		for _, proj := range input.Source.Projected.Sources {
 			if proj.ServiceAccountToken != nil {
-				output.NodePath = proj.ServiceAccountToken.Path
+				output.NodePath = kube.ServiceAccountTokenPath(string(parent.K8.ObjectMeta.UID), input.Name)
 				break // assume only 1 entry
 			}
 		}
@@ -193,7 +194,6 @@ func (c *GraphConverter) Token(identityName string, volume *store.Volume) (*grap
 	}
 
 	return &graph.Token{
-		StoreId:  store.ObjectID().Hex(),
 		Name:     volume.Name,
 		Type:     shared.TokenTypeSA,
 		Identity: identityName,
