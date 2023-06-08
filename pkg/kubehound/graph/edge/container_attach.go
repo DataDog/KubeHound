@@ -5,6 +5,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,6 +34,7 @@ func (e ContainerAttach) BatchSize() int {
 
 func (e ContainerAttach) Traversal() EdgeTraversal {
 	return func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
+		log.I.Errorf("CONVERT ME TO SOMETHING TYPED OTHERWISE THIS WILL BROKE")
 		return g.Inject(inserts).Unfold().As("ca").
 			V().HasLabel("Pod").Has("storeId", gremlin.T__.Select("ca").Select("pod")).As("pod").
 			V().HasLabel("Container").Has("storeId", gremlin.T__.Select("ca").Select("container")).As("container").
