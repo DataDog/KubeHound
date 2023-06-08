@@ -75,6 +75,7 @@ func NewJanusGraphAsyncVertexWriter(drc *gremlingo.DriverRemoteConnection, opts 
 		inserts:         make([]interface{}, 0),
 		transaction:     tx,
 		traversalSource: gtx,
+		batchSize:       1,
 		consumerChan:    make(chan []any, 0),
 	}
 
