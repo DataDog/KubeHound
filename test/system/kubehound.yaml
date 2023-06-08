@@ -2,6 +2,7 @@ collector:
   type: file-collector
   file:
     directory: kind-collect/
-
+janusgraph:
+  url: "ws://localhost:8182/gremlin"
 mongodb:
   url: "mongodb://localhost:27017"
