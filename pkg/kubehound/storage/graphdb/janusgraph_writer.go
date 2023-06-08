@@ -49,10 +49,11 @@ func NewJanusGraphAsyncEdgeWriter(drc *gremlingo.DriverRemoteConnection, opts ..
 		return nil, err
 	}
 	jw := JanusGraphAsyncEdgeWriter{
-		inserts:         make([]interface{}, 0),
+		inserts:         make([]any, 0),
 		transaction:     tx,
 		traversalSource: gtx,
 		batchSize:       1,
+		consumerChan:    make(chan []any, 0),
 	}
 
 	return &jw, nil
@@ -74,6 +75,7 @@ func NewJanusGraphAsyncVertexWriter(drc *gremlingo.DriverRemoteConnection, opts 
 		inserts:         make([]interface{}, 0),
 		transaction:     tx,
 		traversalSource: gtx,
+		consumerChan:    make(chan []any, 0),
 	}
 
 	return &jw, nil
