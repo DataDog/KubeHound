@@ -1,0 +1,45 @@
+# TOKEN_BRUTEFORCE edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tokenget-sa
+  namespace: default
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: default
+  name: read-secrets
+rules:
+  - apiGroups: ["*"]
+    resources: ["secrets"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-get-secrets
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: read-secrets
+subjects:
+  - kind: ServiceAccount
+    name: tokenget-sa
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tokenget-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: tokenget-sa
+  containers:
+    - name: tokenget-pod
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
