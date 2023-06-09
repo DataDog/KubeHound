@@ -32,11 +32,6 @@ func (v Identity) Traversal() VertexTraversal {
 		log.I.Infof(" ============== toStore Identity ====== %+v", toStore)
 		g := source.GetGraphTraversal()
 		for _, i := range toStore {
-			// i := insert.(map[string]any)
-			// command := utils.ToSliceOfAny(i["command"].([]any))
-			// args := utils.ToSliceOfAny(i["args"].([]any))
-			// capabilities := utils.ToSliceOfAny(i["capabilities"].([]any))
-
 			g = g.AddV(v.Label()).
 				Property("storeId", i["storeId"]).
 				Property("name", i["name"]).

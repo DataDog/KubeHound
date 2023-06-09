@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -85,18 +86,23 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 // WithStoreWriter initializes a bulk graph writer (and registers a cleanup function) for the provided vertex.
 // To access the writer use the graphWriter(v vertex.Vertex) function.
 func WithGraphWriter(v vertex.Builder) IngestResourceOption {
+	log.I.Infof("--- WithGraphWriter: %+v", v)
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
+		log.I.Infof("--- callback func for WithGraphWriter: %+v", v)
 		w, err := deps.GraphDB.VertexWriter(ctx, v)
 		if err != nil {
 			return err
 		}
+		log.I.Infof("--- deps.GraphDB.VertexWriter : %+v", v)
 
 		rOpts.graphWriters[v.Label()] = w
 		rOpts.cleanup = append(rOpts.cleanup, func(ctx context.Context) error {
 			return w.Close(ctx)
 		})
 
+		log.I.Infof("--- append cleanup ok : %+v", v)
 		rOpts.flush = append(rOpts.flush, w.Flush)
+		log.I.Infof("--- all append done : %+v", v)
 
 		return nil
 	}
