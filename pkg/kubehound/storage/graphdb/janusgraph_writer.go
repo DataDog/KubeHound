@@ -110,7 +110,12 @@ func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []a
 		jgv.transaction.Rollback()
 		return err
 	}
-	jgv.transaction.Commit()
+	log.I.Infof("commiting work")
+	err = jgv.transaction.Commit()
+	if err != nil {
+		log.I.Errorf("failed to commit: %+v", err)
+		return err
+	}
 	log.I.Infof("=== DONE == batch write JanusGraphAsyncVertexWriter")
 	return nil
 }
@@ -139,7 +144,11 @@ func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []any
 		jge.transaction.Rollback()
 		return err
 	}
-	jge.transaction.Commit()
+	err = jge.transaction.Commit()
+	if err != nil {
+		log.I.Errorf("failed to commit: %+v", err)
+		return err
+	}
 	log.I.Infof("=== DONE == batch write JanusGraphAsyncEdgeWriter")
 	return nil
 }
