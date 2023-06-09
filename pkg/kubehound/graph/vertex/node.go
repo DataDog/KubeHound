@@ -1,8 +1,6 @@
 package vertex
 
 import (
-	"fmt"
-
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 )
@@ -29,7 +27,6 @@ func (v Node) Traversal() VertexTraversal {
 		g := source.GetGraphTraversal()
 		for _, w := range inserts {
 			data := w.(*graph.Node)
-			fmt.Printf("WHAT THE FUCK IS THIS INSERTS DATA??????????????????? (cast) %+v\n", data)
 			g = g.AddV(v.Label()).
 				Property("storeId", data.StoreId).
 				Property("name", data.Name).
