@@ -14,7 +14,7 @@ import (
 const (
 	// TODO: this might need to be adjusted in the future, potentially per type of collections
 	// We don't have the data yet, so lets just hardcode a small-ish value for now
-	consumerChanSize = 10
+	consumerChanSize = 10000
 )
 
 var _ AsyncWriter = (*MongoAsyncWriter)(nil)
