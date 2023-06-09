@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 // func AnySliceToStringSlice(in []any) []string {
@@ -33,4 +35,16 @@ func ConvertSliceAnyToTyped[T any, Tin any](data []Tin) []T {
 		converted = append(converted, d)
 	}
 	return converted
+}
+
+func ConvertToSliceMapAny[T any](inserts []T) []map[string]any {
+	toStore := make([]map[string]any, len(inserts))
+	for _, currentStruct := range inserts {
+		m, err := StructToMap(currentStruct)
+		if err != nil {
+			log.I.Errorf("Failed to convert struct to map for Nodes: %+v", err)
+		}
+		toStore = append(toStore, m)
+	}
+	return toStore
 }
