@@ -8,6 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 const (
@@ -108,7 +109,8 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 	// Normalize volume to store object format
 	sv, err := i.r.storeConvert.Volume(ctx, volume, parent)
 	if err != nil {
-		return err
+		log.I.Errorf("CHANGEME: failed to process volume type: %v", err)
+		return nil
 	}
 
 	// Async write to store
