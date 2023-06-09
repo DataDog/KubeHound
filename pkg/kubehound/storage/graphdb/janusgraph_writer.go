@@ -105,11 +105,12 @@ func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []a
 	log.I.Infof("BEFORE AFTER ITERATE")
 	log.I.Infof("BEFORE PROMISE")
 	err := <-promise
-	log.I.Infof("AFTER PROMISE: %v, data: %+v", err, data)
+	log.I.Infof("AFTER PROMISE: %v, convertedToTraversalInput: %+v", err, convertedToTraversalInput)
 	if err != nil {
 		jgv.transaction.Rollback()
 		return err
 	}
+	jgv.transaction.Commit()
 	log.I.Infof("=== DONE == batch write JanusGraphAsyncVertexWriter")
 	return nil
 }
@@ -138,7 +139,7 @@ func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []any
 		jge.transaction.Rollback()
 		return err
 	}
-
+	jge.transaction.Commit()
 	log.I.Infof("=== DONE == batch write JanusGraphAsyncEdgeWriter")
 	return nil
 }
