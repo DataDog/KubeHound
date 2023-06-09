@@ -1,9 +1,9 @@
 package vertex
 
 import (
+	"fmt"
+
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
-	"github.com/DataDog/KubeHound/pkg/utils"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 )
 
@@ -26,54 +26,18 @@ func (v Node) BatchSize() int {
 
 func (v Node) Traversal() VertexTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
-		insertsConverted := utils.ConvertSliceAnyToTyped[graph.Node, TraversalInput](inserts)
-		toStore := utils.ConvertToSliceMapAny(insertsConverted)
-		log.I.Infof(" ============== INSERTS Nodes ====== %+v", insertsConverted)
-		log.I.Infof(" ============== toStore Nodes ====== %+v", toStore)
 		g := source.GetGraphTraversal()
-		for _, i := range toStore {
-			// i := insert.(map[string]any)
-			// command := utils.ToSliceOfAny(i["command"].([]any))
-			// args := utils.ToSliceOfAny(i["args"].([]any))
-			// capabilities := utils.ToSliceOfAny(i["capabilities"].([]any))
-
+		for _, w := range inserts {
+			data := w.(*graph.Node)
+			fmt.Printf("WHAT THE FUCK IS THIS INSERTS DATA??????????????????? (cast) %+v\n", data)
 			g = g.AddV(v.Label()).
-				Property("storeId", i["storeId"]).
-				Property("name", i["name"]).
-				Property("image", i["image"]).
-				Property("privileged", i["privileged"]).
-				Property("privesc", i["privesc"]).
-				Property("hostPid", i["hostPid"]).
-				Property("hostPath", i["hostPath"]).
-				Property("hostNetwork", i["hostNetwork"]).
-				Property("runAsUser", i["runAsUser"]).
-				Property("pod", i["pod"]).
-				Property("node", i["node"]).
-				// Property("compromised", i["compromised"]).
-				Property("critical", i["critical"])
-
-			// for _, cmd := range command {
-			// 	traversal = traversal.Property(gremlingo.Cardinality.Set, "command", cmd)
-			// }
-			// for _, arg := range args {
-			// 	traversal = traversal.Property(gremlingo.Cardinality.Set, "args", arg)
-			// }
-			// for _, cap := range capabilities {
-			// 	traversal = traversal.Property(gremlingo.Cardinality.Set, "capabilities", cap)
-			// }
-			// for _, port := range ports {
-			// 	traversal = traversal.Property(gremlingo.Cardinality.Set, "ports", port)
-			// }
+				Property("storeId", data.StoreId).
+				Property("name", data.Name).
+				Property("is_namespaced", data.IsNamespaced).
+				Property("namespace", data.Namespace).
+				Property("compromised", int(data.Compromised)).
+				Property("critical", data.Critical)
 		}
 		return g
-		// return g.Inject(toStore).Unfold().As("c").
-		// 	AddV(v.Label()).
-		// 	Property("store_id", gremlingo.T__.Select("c").Select("store_id")).
-		// 	Property("name", gremlingo.T__.Select("c").Select("name")).
-		// 	Property("is_namespaced", gremlingo.T__.Select("c").Select("is_namespaced")).
-		// 	Property("namespace", gremlingo.T__.Select("c").Select("namespace")).
-		// 	Property("compromised", gremlingo.T__.Select("c").Select("compromised")).
-		// 	Property("critical", gremlingo.T__.Select("c").Select("critical"))
-
 	}
 }

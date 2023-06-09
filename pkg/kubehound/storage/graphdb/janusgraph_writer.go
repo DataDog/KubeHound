@@ -199,9 +199,11 @@ func (v *JanusGraphAsyncVertexWriter) Flush(ctx context.Context) error {
 	log.I.Infof("Flushing remaining of queue for vertices: %+v", v.inserts)
 	err := v.batchWrite(ctx, v.inserts)
 	if err != nil {
+		log.I.Errorf("Failed to batch write vertex: %+v", err)
 		v.writingInFligth.Wait()
 		return err
 	}
+	log.I.Info("Done flushing vertices, clearing the queue")
 	v.inserts = nil
 
 	return nil
@@ -220,12 +222,14 @@ func (e *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
 		e.writingInFligth.Wait()
 		return nil
 	}
-
+	log.I.Infof("Flushing remaining of queue for edges: %+v", e.inserts)
 	err := e.batchWrite(ctx, e.inserts)
 	if err != nil {
+		log.I.Errorf("Failed to batch write edge: %+v", err)
 		e.writingInFligth.Wait()
 		return err
 	}
+	log.I.Info("Done flushing edges, clearing the queue")
 	e.inserts = nil
 
 	return nil
