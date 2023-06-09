@@ -24,6 +24,7 @@ type JanusGraphAsyncVertexWriter struct {
 	consumerChan    chan []any
 	writingInFligth sync.WaitGroup
 	batchSize       int // Shouldn't this be "per vertex types" ?
+	mu              sync.Mutex
 }
 
 var _ AsyncEdgeWriter = (*JanusGraphAsyncEdgeWriter)(nil)
@@ -36,6 +37,7 @@ type JanusGraphAsyncEdgeWriter struct {
 	consumerChan    chan []any
 	writingInFligth sync.WaitGroup
 	batchSize       int // Shouldn't this be "per edge types" ?
+	mu              sync.Mutex
 }
 
 func NewJanusGraphAsyncEdgeWriter(drc *gremlingo.DriverRemoteConnection, e edge.Builder, opts ...WriterOption) (*JanusGraphAsyncEdgeWriter, error) {
@@ -236,21 +238,31 @@ func (e *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
 }
 
 func (vw *JanusGraphAsyncVertexWriter) Queue(ctx context.Context, vertex any) error {
+	vw.mu.Lock()
+	defer vw.mu.Unlock()
 	if len(vw.inserts) > vw.batchSize {
-		vw.consumerChan <- vw.inserts
+		copied := make([]any, len(vw.inserts))
+		copy(copied, vw.inserts)
+		vw.consumerChan <- copied
 		// cleanup the ops array after we have copied it to the channel
 		vw.inserts = nil
 	}
 	vw.inserts = append(vw.inserts, vertex)
+	log.I.Errorf("INSERTS AFTER APPEND: %+v", &vw.inserts)
 	return nil
 }
 
 func (e *JanusGraphAsyncEdgeWriter) Queue(ctx context.Context, edge any) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	if len(e.inserts) > e.batchSize {
-		e.consumerChan <- e.inserts
+		copied := make([]any, len(e.inserts))
+		copy(copied, e.inserts)
+		e.consumerChan <- copied
 		// cleanup the ops array after we have copied it to the channel
 		e.inserts = nil
 	}
 	e.inserts = append(e.inserts, edge)
+	log.I.Errorf("INSERTS AFTER APPEND: %+v", &e.inserts)
 	return nil
 }
