@@ -48,16 +48,16 @@ func NewJanusGraphAsyncEdgeWriter(drc *gremlingo.DriverRemoteConnection, e edge.
 	}
 
 	traversal := gremlingo.Traversal_().WithRemote(drc)
-	tx := traversal.Tx()
-	gtx, err := tx.Begin()
-	if err != nil {
-		return nil, err
-	}
+	// tx := traversal.Tx()
+	// gtx, err := tx.Begin()
+	// if err != nil {
+	// 	return nil, err
+	// }
 	jw := JanusGraphAsyncEdgeWriter{
-		gremlin:         e.Traversal(),
-		inserts:         make([]any, 0),
-		transaction:     tx,
-		traversalSource: gtx,
+		gremlin: e.Traversal(),
+		inserts: make([]any, 0),
+		// transaction:     tx,
+		traversalSource: traversal,
 		batchSize:       1,
 		consumerChan:    make(chan []any, 10000),
 	}
@@ -73,16 +73,16 @@ func NewJanusGraphAsyncVertexWriter(drc *gremlingo.DriverRemoteConnection, v ver
 	}
 
 	source := gremlingo.Traversal_().WithRemote(drc)
-	tx := source.Tx()
-	gtx, err := tx.Begin()
-	if err != nil {
-		return nil, err
-	}
+	// tx := source.Tx()
+	// gtx, err := tx.Begin()
+	// if err != nil {
+	// 	return nil, err
+	// }
 	jw := JanusGraphAsyncVertexWriter{
-		gremlin:         v.Traversal(),
-		inserts:         make([]interface{}, 0),
-		transaction:     tx,
-		traversalSource: gtx,
+		gremlin: v.Traversal(),
+		inserts: make([]interface{}, 0),
+		// transaction:     tx,
+		traversalSource: source,
 		batchSize:       1,
 		consumerChan:    make(chan []any, 10000),
 	}
@@ -109,15 +109,15 @@ func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []a
 	err := <-promise
 	log.I.Infof("AFTER PROMISE: %v, convertedToTraversalInput: %+v", err, convertedToTraversalInput)
 	if err != nil {
-		jgv.transaction.Rollback()
+		// jgv.transaction.Rollback()
 		return err
 	}
-	log.I.Infof("commiting work")
-	err = jgv.transaction.Commit()
-	if err != nil {
-		log.I.Errorf("failed to commit: %+v", err)
-		return err
-	}
+	// log.I.Infof("commiting work")
+	// err = jgv.transaction.Commit()
+	// if err != nil {
+	// 	log.I.Errorf("failed to commit: %+v", err)
+	// 	return err
+	// }
 	log.I.Infof("=== DONE == batch write JanusGraphAsyncVertexWriter")
 	return nil
 }
@@ -143,14 +143,14 @@ func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []any
 	promise := op.Iterate()
 	err := <-promise
 	if err != nil {
-		jge.transaction.Rollback()
+		// jge.transaction.Rollback()
 		return err
 	}
-	err = jge.transaction.Commit()
-	if err != nil {
-		log.I.Errorf("failed to commit: %+v", err)
-		return err
-	}
+	// err = jge.transaction.Commit()
+	// if err != nil {
+	// 	log.I.Errorf("failed to commit: %+v", err)
+	// 	return err
+	// }
 	log.I.Infof("=== DONE == batch write JanusGraphAsyncEdgeWriter")
 	return nil
 }
@@ -178,11 +178,13 @@ func (jgv *JanusGraphAsyncVertexWriter) backgroundWriter(ctx context.Context) {
 }
 
 func (v *JanusGraphAsyncVertexWriter) Close(ctx context.Context) error {
-	return v.transaction.Close()
+	// return v.transaction.Close()
+	return nil
 }
 
 func (e *JanusGraphAsyncEdgeWriter) Close(ctx context.Context) error {
-	return e.transaction.Close()
+	// return e.transaction.Close()
+	return nil
 }
 
 func (v *JanusGraphAsyncVertexWriter) Flush(ctx context.Context) error {
