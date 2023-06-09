@@ -84,7 +84,7 @@ func (v Container) Traversal() VertexTraversal {
 			// Property(gremlingo.Cardinality.Set, "ports", gremlingo.T__.Select("c").Select("ports")).
 			Property("pod", gremlingo.T__.Select("c").Select("pod")).
 			Property("node", gremlingo.T__.Select("c").Select("node")).
-			Property("compromised", gremlingo.T__.Select("c").Select("compromised")).
+			// Property("compromised", gremlingo.T__.Select("c").Select("compromised")).
 			Property("critical", gremlingo.T__.Select("c").Select("critical"))
 
 		return traversal
