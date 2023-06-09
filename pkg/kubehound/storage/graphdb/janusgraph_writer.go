@@ -102,6 +102,7 @@ func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []a
 	op := jgv.gremlin(jgv.traversalSource, convertedToTraversalInput)
 	log.I.Infof("BEFORE ITERATE")
 	promise := op.Iterate()
+	log.I.Infof("BEFORE AFTER ITERATE")
 	log.I.Infof("BEFORE PROMISE")
 	err := <-promise
 	log.I.Infof("AFTER PROMISE: %v, data: %+v", err, data)
