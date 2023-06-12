@@ -17,7 +17,7 @@ type JanusGraphAsyncVertexWriter struct {
 	traversalSource *gremlingo.GraphTraversalSource
 	inserts         []vertex.TraversalInput
 	consumerChan    chan []vertex.TraversalInput
-	writingInFligth sync.WaitGroup
+	writingInFlight sync.WaitGroup
 	batchSize       int
 	mu              sync.Mutex
 }
@@ -65,7 +65,7 @@ func (jgv *JanusGraphAsyncVertexWriter) startBackgroundWriter(ctx context.Contex
 
 func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []vertex.TraversalInput) error {
 	log.I.Debugf("batch write JanusGraphAsyncVertexWriter with %d elements", len(data))
-	defer jgv.writingInFligth.Done()
+	defer jgv.writingInFlight.Done()
 
 	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()
@@ -77,6 +77,7 @@ func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []v
 }
 
 func (jgv *JanusGraphAsyncVertexWriter) Close(ctx context.Context) error {
+	close(jgv.consumerChan)
 	return nil
 }
 
@@ -91,18 +92,18 @@ func (jgv *JanusGraphAsyncVertexWriter) Flush(ctx context.Context) error {
 	}
 
 	if len(jgv.inserts) != 0 {
-		jgv.writingInFligth.Add(1)
+		jgv.writingInFlight.Add(1)
 		err := jgv.batchWrite(ctx, jgv.inserts)
 		if err != nil {
 			log.I.Errorf("Failed to batch write vertex: %+v", err)
-			jgv.writingInFligth.Wait()
+			jgv.writingInFlight.Wait()
 			return err
 		}
 		log.I.Info("Done flushing vertices, clearing the queue")
 		jgv.inserts = nil
 	}
 
-	jgv.writingInFligth.Wait()
+	jgv.writingInFlight.Wait()
 
 	return nil
 }
@@ -115,7 +116,7 @@ func (jgv *JanusGraphAsyncVertexWriter) Queue(ctx context.Context, v any) error 
 	if len(jgv.inserts) > jgv.batchSize {
 		copied := make([]vertex.TraversalInput, len(jgv.inserts))
 		copy(copied, jgv.inserts)
-		jgv.writingInFligth.Add(1)
+		jgv.writingInFlight.Add(1)
 		jgv.consumerChan <- copied
 		// cleanup the ops array after we have copied it to the channel
 		jgv.inserts = nil
