@@ -22,7 +22,7 @@ func TestContainer_Traversal(t *testing.T) {
 			// We set the values to all field with non default values
 			// so we are sure all are correctly propagated.
 			data: graph.Container{
-				StoreId:      "test id",
+				StoreID:      "test id",
 				Name:         "test name",
 				Image:        "image",
 				Command:      []string{"/usr/bin/sleep"},

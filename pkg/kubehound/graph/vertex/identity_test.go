@@ -22,7 +22,7 @@ func TestIdentity_Traversal(t *testing.T) {
 			// We set the values to all field with non default values
 			// so we are sure all are correctly propagated.
 			data: graph.Identity{
-				StoreId:      "test id",
+				StoreID:      "test id",
 				Name:         "test name identity",
 				IsNamespaced: true,
 				Namespace:    "lol namespace",

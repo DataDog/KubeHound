@@ -29,7 +29,7 @@ func (v Container) Traversal() VertexTraversal {
 		for _, insert := range inserts {
 			i := insert.(*graph.Container)
 			g = g.AddV(v.Label()).
-				Property("storeId", i.StoreId).
+				Property("storeId", i.StoreID).
 				Property("name", i.Name).
 				Property("image", i.Image).
 				Property("privileged", i.Privileged).

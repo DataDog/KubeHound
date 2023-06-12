@@ -63,12 +63,3 @@ func TestMain(m *testing.M) {
 	// Run the test suite
 	os.Exit(m.Run())
 }
-
-// func TestDebugE(m *testing.T) {
-// 	if err := runKubeHound(); err != nil {
-// 		log.I.Fatalf(err.Error())
-// 	}
-
-// 	// Run the test suite
-// 	// os.Exit(m.Run())
-// }

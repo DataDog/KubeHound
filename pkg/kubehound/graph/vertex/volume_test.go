@@ -22,7 +22,7 @@ func TestVolume_Traversal(t *testing.T) {
 			// We set the values to all field with non default values
 			// so we are sure all are correctly propagated.
 			data: graph.Volume{
-				StoreId: "test id",
+				StoreID: "test id",
 				Name:    "test name volume",
 				Type:    "test type",
 				Path:    "some path",

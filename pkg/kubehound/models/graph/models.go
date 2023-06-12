@@ -9,7 +9,7 @@ const (
 )
 
 type Container struct {
-	StoreId      string         `json:"store_id" mapstructure:"store_id"`
+	StoreID      string         `json:"store_id" mapstructure:"store_id"`
 	Name         string         `json:"name" mapstructure:"name"`
 	Image        string         `json:"image" mapstructure:"image"`
 	Command      []string       `json:"command" mapstructure:"command"`
@@ -35,7 +35,7 @@ type Group struct {
 }
 
 type Identity struct {
-	StoreId      string `json:"store_id" mapstructure:"store_id"`
+	StoreID      string `json:"store_id" mapstructure:"store_id"`
 	Name         string `json:"name" mapstructure:"name"`
 	IsNamespaced bool   `json:"is_namespaced" mapstructure:"is_namespaced"`
 	Namespace    string `json:"namespace" mapstructure:"namespace"`
@@ -43,7 +43,7 @@ type Identity struct {
 }
 
 type Node struct {
-	StoreId      string         `json:"store_id" mapstructure:"store_id"`
+	StoreID      string         `json:"store_id" mapstructure:"store_id"`
 	Name         string         `json:"name" mapstructure:"name"`
 	IsNamespaced bool           `json:"is_namespaced" mapstructure:"is_namespaced"`
 	Namespace    string         `json:"namespace" mapstructure:"namespace"`
@@ -52,7 +52,7 @@ type Node struct {
 }
 
 type Pod struct {
-	StoreId                string         `json:"store_id" mapstructure:"store_id"`
+	StoreID                string         `json:"store_id" mapstructure:"store_id"`
 	Name                   string         `json:"name" mapstructure:"name"`
 	IsNamespaced           bool           `json:"is_namespaced" mapstructure:"is_namespaced"`
 	Namespace              string         `json:"namespace" mapstructure:"namespace"`
@@ -64,7 +64,7 @@ type Pod struct {
 }
 
 type Role struct {
-	StoreId      string   `json:"store_id" mapstructure:"store_id"`
+	StoreID      string   `json:"store_id" mapstructure:"store_id"`
 	Name         string   `json:"name" mapstructure:"name"`
 	IsNamespaced bool     `json:"is_namespaced" mapstructure:"is_namespaced"`
 	Namespace    string   `json:"namespace" mapstructure:"namespace"`
@@ -72,7 +72,7 @@ type Role struct {
 }
 
 type Token struct {
-	StoreId     string         `json:"store_id" mapstructure:"store_id"`
+	StoreID     string         `json:"store_id" mapstructure:"store_id"`
 	Name        string         `json:"name" mapstructure:"name"`
 	Type        string         `json:"type" mapstructure:"type"`
 	Identity    string         `json:"identity" mapstructure:"identity"`
@@ -87,7 +87,7 @@ const (
 )
 
 type Volume struct {
-	StoreId string `json:"store_id" mapstructure:"store_id"`
+	StoreID string `json:"store_id" mapstructure:"store_id"`
 	Name    string `json:"name" mapstructure:"name"`
 	Type    string `json:"type" mapstructure:"type"`
 	Path    string `json:"path" mapstructure:"path"`
