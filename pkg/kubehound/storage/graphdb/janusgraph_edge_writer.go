@@ -53,7 +53,7 @@ func (jge *JanusGraphAsyncEdgeWriter) startBackgroundWriter(ctx context.Context)
 				}
 				err := jge.batchWrite(ctx, data)
 				if err != nil {
-					log.I.Errorf("failed to write data in background batch writer: %v", err)
+					log.I.Errorf("write data in background batch writer: %v", err)
 				}
 			case <-ctx.Done():
 				log.I.Info("Closed background janusgraph worker")
@@ -94,7 +94,7 @@ func (jge *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
 		jge.writingInFlight.Add(1)
 		err := jge.batchWrite(ctx, jge.inserts)
 		if err != nil {
-			log.I.Errorf("Failed to batch write edge: %+v", err)
+			log.I.Errorf("batch write edge: %+v", err)
 			jge.writingInFlight.Wait()
 			return err
 		}
