@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	DefaultBatchSize = 100
+	DefaultBatchSize = 50
 )
 
 // An object to be consumed by a vertex traversal function to insert a vertex into the graph database.
