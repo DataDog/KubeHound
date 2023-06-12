@@ -127,6 +127,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 
 	log.I.Info("Building attack graph")
 	if err := buildGraph(ctx, cfg, sp, gp); err != nil {
+		log.I.Errorf("!!!!!!!! FAILING TO BUILD GRAPH: %v!!!!!!!!", err)
 		return fmt.Errorf("building attack graph: %w", err)
 	}
 

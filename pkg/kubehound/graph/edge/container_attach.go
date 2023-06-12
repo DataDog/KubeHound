@@ -33,12 +33,34 @@ func (e ContainerAttach) BatchSize() int {
 }
 
 func (e ContainerAttach) Traversal() EdgeTraversal {
-	return func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
-		log.I.Errorf("CONVERT ME TO SOMETHING TYPED OTHERWISE THIS WILL BROKE")
-		return g.Inject(inserts).Unfold().As("ca").
-			V().HasLabel("Pod").Has("storeId", gremlin.T__.Select("ca").Select("pod")).As("pod").
-			V().HasLabel("Container").Has("storeId", gremlin.T__.Select("ca").Select("container")).As("container").
-			MergeE(e.Label()).From("pod").To("container")
+	return func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
+		log.I.Errorf("CONVERT ME TO SOMETHING TYPED OTHERWISE THIS WILL BREAK")
+
+		g := source.GetGraphTraversal()
+		g.AddV("dummy_entry")
+		// for _, i := range inserts {
+		// 	data := i.(*ContainerAttachGroup)
+		// 	podId, err := data.Pod.MarshalJSON()
+		// 	if err != nil {
+		// 		log.I.Errorf("failed to get pod id: %v", err)
+		// 	}
+
+		// 	for _, container := range data.Containers {
+		// 		containerID, err := container.MarshalJSON()
+		// 		if err != nil {
+		// 			log.I.Errorf("failed to get pod id: %v", err)
+		// 		}
+		// 		pod, err := g.V("Pod").Has("store_id", podId).Next()
+		// 		containers, err := g.V("Container").Has("store_id", containerID).Next()
+		// 		clist, err := containers.GetSlice()
+
+		// 		for _, container := range *clist {
+		// 			fmt.Printf("containers edge blabla %+v\n", container)
+		// 			g = g.V(pod).AddE(e.Label()).To(container)
+		// 		}
+		// 	}
+		// }
+		return g
 	}
 }
 

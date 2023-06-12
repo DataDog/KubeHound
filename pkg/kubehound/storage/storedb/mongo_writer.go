@@ -51,7 +51,7 @@ func (maw *MongoAsyncWriter) backgroundWriter(ctx context.Context) {
 				}
 				err := maw.batchWrite(ctx, data)
 				if err != nil {
-					log.I.Errorf("failed to write data in background batch writer: %w", err)
+					log.I.Errorf("failed to write data in background batch writer: %v", err)
 				}
 			case <-ctx.Done():
 				log.I.Info("Closed background mongodb worker")

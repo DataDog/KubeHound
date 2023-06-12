@@ -15,7 +15,7 @@ test:
 
 .PHONY: system-test
 system-test:
-	cd test/system && go test -v -timeout "30s" ./...
+	cd test/system && go test -v -timeout "30s" -race ./...
 
 .PHONY: local-cluster-create
 local-cluster-setup:
