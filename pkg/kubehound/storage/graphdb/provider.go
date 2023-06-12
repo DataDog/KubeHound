@@ -71,5 +71,5 @@ type AsyncEdgeWriter interface {
 
 // Factory returns an initialized instance of a graphdb provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
-	return NewGraphDriver(ctx, cfg.JanusGraph.URL)
+	return NewGraphDriver(ctx, cfg.JanusGraph.URL, cfg.JanusGraph.ConnectionTimeout)
 }
