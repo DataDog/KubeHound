@@ -7,6 +7,9 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/tracer"
 )
 
+type TelemetryClient struct {
+}
+
 // Initialize all telemetry required
 // return client to enable clean shutdown
 func Initialize(cfg *config.KubehoundConfig) (*TelemetryClient, error) {
@@ -15,10 +18,9 @@ func Initialize(cfg *config.KubehoundConfig) (*TelemetryClient, error) {
 	// Metrics
 	err := statsd.Setup(cfg.Telemetry.Statsd.URL)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
 	return nil, nil
 }
 
@@ -30,6 +32,7 @@ func (t *TelemetryClient) Shutdown() {
 	if err != nil {
 		log.I.Warnf("Failed to flush statsd client: %v", err)
 	}
+
 	err = statsd.Close()
 	if err != nil {
 		log.I.Warnf("Failed to close statsd client: %v", err)
