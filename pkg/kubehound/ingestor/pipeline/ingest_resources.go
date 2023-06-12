@@ -86,9 +86,7 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 // To access the writer use the graphWriter(v vertex.Vertex) function.
 func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		opts := []graphdb.WriterOption{
-			// graphdb.WithTransaction(), // disable options for now
-		}
+		opts := []graphdb.WriterOption{}
 
 		w, err := deps.GraphDB.VertexWriter(ctx, v, opts...)
 		if err != nil {

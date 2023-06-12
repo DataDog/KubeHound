@@ -23,7 +23,6 @@ type JanusGraphAsyncVertexWriter struct {
 }
 
 func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRemoteConnection, v vertex.Builder, opts ...WriterOption) (*JanusGraphAsyncVertexWriter, error) {
-	log.I.Infof("Created new JanusGraphAsyncVertexWriter")
 	options := &writerOptions{}
 	for _, opt := range opts {
 		opt(options)
