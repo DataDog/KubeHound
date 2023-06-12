@@ -28,7 +28,7 @@ func (v Volume) Traversal() VertexTraversal {
 		for _, i := range inserts {
 			data := i.(*graph.Volume)
 			g = g.AddV(v.Label()).
-				Property("storeId", data.StoreID).
+				Property("storeID", data.StoreID).
 				Property("name", data.Name).
 				Property("type", data.Type).
 				Property("path", data.Path)
