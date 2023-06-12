@@ -50,7 +50,7 @@ func TestConverter_NodePipeline(t *testing.T) {
 	graphNode, err := NewGraph().Node(storeNode)
 	assert.NoError(t, err, "graph node convert error")
 
-	assert.Equal(t, storeNode.Id.Hex(), graphNode.StoreId)
+	assert.Equal(t, storeNode.Id.Hex(), graphNode.StoreID)
 	assert.Equal(t, storeNode.K8.Name, graphNode.Name)
 	assert.False(t, storeNode.IsNamespaced)
 	assert.Equal(t, storeNode.K8.Namespace, graphNode.Namespace)
@@ -77,7 +77,7 @@ func TestConverter_RolePipeline(t *testing.T) {
 	graphRole, err := NewGraph().Role(storeRole)
 	assert.NoError(t, err, "graph role convert error")
 
-	assert.Equal(t, storeRole.Id.Hex(), graphRole.StoreId)
+	assert.Equal(t, storeRole.Id.Hex(), graphRole.StoreID)
 	assert.Equal(t, storeRole.Name, graphRole.Name)
 	assert.Equal(t, storeRole.Namespace, graphRole.Namespace)
 
@@ -109,7 +109,7 @@ func TestConverter_ClusterRolePipeline(t *testing.T) {
 	graphRole, err := NewGraph().Role(storeRole)
 	assert.NoError(t, err, "graph role convert error")
 
-	assert.Equal(t, storeRole.Id.Hex(), graphRole.StoreId)
+	assert.Equal(t, storeRole.Id.Hex(), graphRole.StoreID)
 	assert.Equal(t, storeRole.Name, graphRole.Name)
 	assert.Equal(t, storeRole.Namespace, graphRole.Namespace)
 
@@ -160,7 +160,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	graphIdentity, err := NewGraph().Identity(storeIdentity)
 	assert.NoError(t, err, "graph role binding convert error")
 
-	assert.Equal(t, storeIdentity.Id.Hex(), graphIdentity.StoreId)
+	assert.Equal(t, storeIdentity.Id.Hex(), graphIdentity.StoreID)
 	assert.Equal(t, storeIdentity.Name, graphIdentity.Name)
 	assert.Equal(t, storeIdentity.Namespace, graphIdentity.Namespace)
 	assert.Equal(t, storeIdentity.Type, graphIdentity.Type)
@@ -204,7 +204,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	graphIdentity, err := NewGraph().Identity(storeIdentity)
 	assert.NoError(t, err, "graph role binding convert error")
 
-	assert.Equal(t, storeIdentity.Id.Hex(), graphIdentity.StoreId)
+	assert.Equal(t, storeIdentity.Id.Hex(), graphIdentity.StoreID)
 	assert.Equal(t, storeIdentity.Name, graphIdentity.Name)
 	assert.Equal(t, storeIdentity.Namespace, graphIdentity.Namespace)
 	assert.Equal(t, storeIdentity.Type, graphIdentity.Type)
@@ -253,7 +253,7 @@ func TestConverter_PodPipeline(t *testing.T) {
 	graphPod, err := NewGraph().Pod(storePod)
 	assert.NoError(t, err, "graph pod convert error")
 
-	assert.Equal(t, storePod.Id.Hex(), graphPod.StoreId)
+	assert.Equal(t, storePod.Id.Hex(), graphPod.StoreID)
 	assert.Equal(t, storePod.K8.Name, graphPod.Name)
 	assert.Equal(t, storePod.K8.Namespace, graphPod.Namespace)
 	assert.False(t, graphPod.SharedProcessNamespace)
@@ -298,7 +298,7 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	graphContainer, err := NewGraph().Container(storeContainer)
 	assert.NoError(t, err, "graph container convert error")
 
-	assert.Equal(t, storeContainer.Id.Hex(), graphContainer.StoreId)
+	assert.Equal(t, storeContainer.Id.Hex(), graphContainer.StoreID)
 	assert.Equal(t, storeContainer.K8.Name, graphContainer.Name)
 	assert.Equal(t, storeContainer.K8.Image, graphContainer.Image)
 	assert.Equal(t, storeContainer.K8.Command, graphContainer.Command)
@@ -333,18 +333,18 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	graphVolume, err := NewGraph().Volume(storeVolume0, storePod)
 	assert.NoError(t, err, "graph volume convert error")
 
-	assert.Equal(t, storeVolume0.Id.Hex(), graphVolume.StoreId)
+	assert.Equal(t, storeVolume0.Id.Hex(), graphVolume.StoreID)
 	assert.Equal(t, storeVolume0.Name, graphVolume.Name)
 	assert.Equal(t, shared.VolumeTypeProjected, graphVolume.Type)
-	assert.Equal(t, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token", graphVolume.NodePath)
+	assert.Equal(t, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token", graphVolume.Path)
 
 	graphVolume, err = NewGraph().Volume(storeVolume1, storePod)
 	assert.NoError(t, err, "graph volume convert error")
 
-	assert.Equal(t, storeVolume1.Id.Hex(), graphVolume.StoreId)
+	assert.Equal(t, storeVolume1.Id.Hex(), graphVolume.StoreID)
 	assert.Equal(t, storeVolume1.Name, graphVolume.Name)
 	assert.Equal(t, shared.VolumeTypeHost, graphVolume.Type)
-	assert.Equal(t, "/var/run/datadog-agent", graphVolume.NodePath)
+	assert.Equal(t, "/var/run/datadog-agent", graphVolume.Path)
 }
 
 func TestConverter_PodCacheFailure(t *testing.T) {

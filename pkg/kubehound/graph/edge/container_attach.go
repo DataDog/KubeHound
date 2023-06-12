@@ -34,7 +34,7 @@ func (e ContainerAttach) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e ContainerAttach) Traversal() EdgeTraversal {
+func (e ContainerAttach) Traversal() Traversal {
 	return func(g *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		return g.Inject(inserts).Unfold().As("ca").
 			V().HasLabel("Pod").Has("storeId", gremlin.T__.Select("ca").Select("pod")).As("pod").

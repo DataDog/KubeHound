@@ -13,8 +13,8 @@ const (
 	DefaultBatchSize = 200
 )
 
-// EdgeTraversal returns the function to create a graph database edge insert from an array of input objects.
-type EdgeTraversal func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal
+// Traversal returns the function to create a graph database edge insert from an array of input objects.
+type Traversal func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal
 
 // Edge interface defines objects used to construct edges within our graph database through processing data from the intermediate store.
 
@@ -27,7 +27,7 @@ type Builder interface {
 	BatchSize() int
 
 	// Traversal returns a graph traversal function that enables creating edges from an input array of TraversalInput objects.
-	Traversal() EdgeTraversal
+	Traversal() Traversal
 
 	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
 	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput via a call to

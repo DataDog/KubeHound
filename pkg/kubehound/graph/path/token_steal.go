@@ -61,7 +61,7 @@ func (v TokenSteal) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (v TokenSteal) Traversal() PathTraversal {
+func (v TokenSteal) Traversal() Traversal {
 	return func(g *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		// TODO create the token vertex
 		// TODO create a TOKEN_STEAL edge between the volume and the new token

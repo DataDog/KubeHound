@@ -1,7 +1,8 @@
 collector:
   type: file-collector
   file:
-    directory: kind-collect/
-
+    directory: kind-collect/kind-kubehound.test.local
+janusgraph:
+  url: "ws://localhost:8182/gremlin"
 mongodb:
   url: "mongodb://localhost:27017"

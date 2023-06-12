@@ -23,17 +23,19 @@ func (v Node) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (v Node) Traversal() VertexTraversal {
+func (v Node) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal()
-
-		for _, insert := range inserts {
-			i := insert.(*graph.Node)
+		for _, w := range inserts {
+			data := w.(*graph.Node)
 			g = g.AddV(v.Label()).
-				Property("id", i.StoreId).
-				Property("name", i.Name)
+				Property("storeID", data.StoreID).
+				Property("name", data.Name).
+				Property("is_namespaced", data.IsNamespaced).
+				Property("namespace", data.Namespace).
+				Property("compromised", int(data.Compromised)).
+				Property("critical", data.Critical)
 		}
-
 		return g
 	}
 }

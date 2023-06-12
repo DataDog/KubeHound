@@ -1,7 +1,7 @@
 package vertex
 
 const (
-	tokenLabel = "Pod"
+	tokenLabel = "Token"
 )
 
 type Token struct {

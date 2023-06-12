@@ -24,7 +24,7 @@ func NewGraph() *GraphConverter {
 // Container returns the graph representation of a container vertex from a store container model input.
 func (c *GraphConverter) Container(input *store.Container) (*graph.Container, error) {
 	output := &graph.Container{
-		StoreId:     input.Id.Hex(),
+		StoreID:     input.Id.Hex(),
 		Name:        input.K8.Name,
 		Image:       input.K8.Image,
 		Command:     input.K8.Command,
@@ -73,7 +73,7 @@ func (c *GraphConverter) Container(input *store.Container) (*graph.Container, er
 // Node returns the graph representation of a node vertex from a store node model input.
 func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 	output := &graph.Node{
-		StoreId: input.Id.Hex(),
+		StoreID: input.Id.Hex(),
 		Name:    input.K8.Name,
 	}
 
@@ -88,7 +88,7 @@ func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 // Pod returns the graph representation of a pod vertex from a store pod model input.
 func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 	output := &graph.Pod{
-		StoreId:        input.Id.Hex(),
+		StoreID:        input.Id.Hex(),
 		Name:           input.K8.Name,
 		Namespace:      input.K8.GetNamespace(),
 		ServiceAccount: input.K8.Spec.ServiceAccountName,
@@ -105,21 +105,21 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 // Volume returns the graph representation of a volume vertex from a store volume model input.
 func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.Volume, error) {
 	output := &graph.Volume{
-		StoreId: input.Id.Hex(),
+		StoreID: input.Id.Hex(),
 		Name:    input.Name,
 	}
 
 	switch {
 	case input.Source.HostPath != nil:
 		output.Type = shared.VolumeTypeHost
-		output.NodePath = input.Source.HostPath.Path
+		output.Path = input.Source.HostPath.Path
 	case input.Source.Projected != nil:
 		output.Type = shared.VolumeTypeProjected
 
 		// Loop through looking for the service account token
 		for _, proj := range input.Source.Projected.Sources {
 			if proj.ServiceAccountToken != nil {
-				output.NodePath = kube.ServiceAccountTokenPath(string(parent.K8.ObjectMeta.UID), input.Name)
+				output.Path = kube.ServiceAccountTokenPath(string(parent.K8.ObjectMeta.UID), input.Name)
 				break // assume only 1 entry
 			}
 		}
@@ -163,7 +163,7 @@ func (c *GraphConverter) flattenPolicyRules(input []rbacv1.PolicyRule) []string 
 // Role returns the graph representation of a role vertex from a store role model input.
 func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
 	output := &graph.Role{
-		StoreId:   input.Id.Hex(),
+		StoreID:   input.Id.Hex(),
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Rules:     c.flattenPolicyRules(input.Rules),
@@ -175,7 +175,7 @@ func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
 // Identity returns the graph representation of an identity vertex from a store identity model input.
 func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error) {
 	return &graph.Identity{
-		StoreId:   input.Id.Hex(),
+		StoreID:   input.Id.Hex(),
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Type:      input.Type,

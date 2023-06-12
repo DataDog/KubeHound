@@ -386,7 +386,7 @@ type Provider_VertexWriter_Call struct {
 
 // VertexWriter is a helper method to define mock.On call
 //   - ctx context.Context
-//   - v vertex.PipelineBuilder
+//   - v vertex.Builder
 //   - opts ...graphdb.WriterOption
 func (_e *Provider_Expecter) VertexWriter(ctx interface{}, v interface{}, opts ...interface{}) *Provider_VertexWriter_Call {
 	return &Provider_VertexWriter_Call{Call: _e.mock.On("VertexWriter",

@@ -13,9 +13,9 @@ const (
 	DefaultBatchSize = 25
 )
 
-// PathTraversal returns the function to create a graph database path insert from an array of input objects.
+// Traversal returns the function to create a graph database path insert from an array of input objects.
 // Paths are edges that result in one or more new vertex creation e.g TOKEN_BRUTEFORCE enables creation of a new Token vertex.
-type PathTraversal func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal
+type Traversal func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal
 
 // Builder interface defines objects used to construct paths within our graph database AFTER the ingestion pipeline has completed.
 type Builder interface {
@@ -26,7 +26,7 @@ type Builder interface {
 	BatchSize() int
 
 	// Traversal returns a graph traversal function that enables creating vertices from an input array of TraversalInput objects.
-	Traversal() PathTraversal
+	Traversal() Traversal
 
 	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
 	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput. Invoking the complete callback signals the end of the stream.
