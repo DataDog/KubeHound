@@ -128,7 +128,7 @@ func (i PipelineIngestor) Run(outer context.Context) error {
 			err := s.Run(ctx, deps)
 			if err != nil {
 				l.Errorf("ingestor sequence %s run: %v", s.Name, err)
-				// cancelAll(err)
+				cancelAll(err)
 			}
 		}()
 	}
