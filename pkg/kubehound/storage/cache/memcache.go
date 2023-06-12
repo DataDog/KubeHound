@@ -40,7 +40,7 @@ func (m *MemCacheProvider) HealthCheck(ctx context.Context) (bool, error) {
 }
 
 func (m *MemCacheProvider) GetKeyName(cacheKey cachekey.CacheKey) string {
-	return fmt.Sprintf("%s##%s", cacheKey.Namespace(), cacheKey.Key())
+	return fmt.Sprintf("%s##%s", cacheKey.Shard(), cacheKey.Key())
 }
 
 func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) (string, error) {

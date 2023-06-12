@@ -67,6 +67,7 @@ type Role struct {
 
 type Token struct {
 	Name        string                `json:"name"`
+	Namespace   string                `json:"namespace"`
 	Type        string                `json:"type"`
 	Identity    string                `json:"identity"`
 	Compromised shared.CompromiseType `json:"compromised,omitempty"`

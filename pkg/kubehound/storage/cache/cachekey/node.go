@@ -16,7 +16,7 @@ func Node(nodeName string) *nodeCacheKey {
 	}
 }
 
-func (k *nodeCacheKey) Namespace() string {
+func (k *nodeCacheKey) Shard() string {
 	return nodeCacheName
 }
 

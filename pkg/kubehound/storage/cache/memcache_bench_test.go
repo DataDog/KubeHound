@@ -34,7 +34,7 @@ func BenchmarkWrite(b *testing.B) {
 			fakeCacheWriter, _ := fakeProvider.BulkWriter(ctx)
 			for i := 0; i < b.N*n; i++ {
 
-				containerKey := cachekey.Container(fmt.Sprintf("%ftestPod%d", k, i), fmt.Sprintf("%ftestContainer%d", k, i))
+				containerKey := cachekey.Container(fmt.Sprintf("%ftestPod%d", k, i), fmt.Sprintf("%ftestContainer%d", k, i), "test")
 				fakeCacheWriter.Queue(ctx, containerKey, fmt.Sprintf("%ftestContainerID%d", k, i))
 			}
 			fakeProvider.Close(ctx)

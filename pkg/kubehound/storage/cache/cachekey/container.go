@@ -7,21 +7,23 @@ const (
 type containerCacheKey struct {
 	podName       string
 	containerName string
+	namespace     string
 }
 
 var _ CacheKey = (*containerCacheKey)(nil) // Ensure interface compliance
 
-func Container(podName string, containerName string) *containerCacheKey {
+func Container(podName string, containerName string, namespace string) *containerCacheKey {
 	return &containerCacheKey{
 		podName:       podName,
 		containerName: containerName,
+		namespace:     namespace,
 	}
 }
 
-func (k *containerCacheKey) Namespace() string {
+func (k *containerCacheKey) Shard() string {
 	return containerCacheName
 }
 
 func (k *containerCacheKey) Key() string {
-	return k.podName + "##" + k.containerName
+	return k.namespace + "##" + k.podName + "##" + k.containerName
 }

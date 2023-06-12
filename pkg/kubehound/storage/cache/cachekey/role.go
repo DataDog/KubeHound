@@ -5,21 +5,23 @@ const (
 )
 
 type roleCacheKey struct {
-	roleName string
+	roleName  string
+	namespace string
 }
 
 var _ CacheKey = (*roleCacheKey)(nil) // Ensure interface compliance
 
-func Role(roleName string) *roleCacheKey {
+func Role(roleName string, namespace string) *roleCacheKey {
 	return &roleCacheKey{
-		roleName: roleName,
+		roleName:  roleName,
+		namespace: namespace,
 	}
 }
 
-func (k *roleCacheKey) Namespace() string {
+func (k *roleCacheKey) Shard() string {
 	return roleCacheName
 }
 
 func (k *roleCacheKey) Key() string {
-	return k.roleName
+	return k.namespace + "##" + k.roleName
 }

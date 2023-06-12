@@ -85,7 +85,8 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cachekey.Container(parent.K8.Name, sc.K8.Name), sc.Id.Hex()); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cachekey.Container(parent.K8.Name, sc.K8.Name, parent.K8.Namespace),
+		sc.Id.Hex()); err != nil {
 		return err
 	}
 
@@ -142,11 +143,6 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 
 	// Async write to store
 	if err := i.r.storeWriter(i.c[podIndex]).Queue(ctx, sp); err != nil {
-		return err
-	}
-
-	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cachekey.PodIdentity(sp.Id.Hex()), sp.K8.Spec.ServiceAccountName); err != nil {
 		return err
 	}
 

@@ -130,7 +130,7 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 	for _, container := range parent.K8.Spec.Containers {
 		for _, mount := range container.VolumeMounts {
 			if mount.Name == output.Source.Name {
-				cid, err := c.cache.Get(ctx, cachekey.Container(parent.K8.Name, container.Name))
+				cid, err := c.cache.Get(ctx, cachekey.Container(parent.K8.Name, container.Name, parent.K8.Namespace))
 				if err != nil {
 					return nil, err
 				}
@@ -182,7 +182,7 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 
 	var output *store.RoleBinding
 
-	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name))
+	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace))
 	if err != nil {
 		// We can get cache misses here if bindings remain with no corresponding role.
 		return nil, ErrDanglingRoleBinding
@@ -222,7 +222,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 	var output *store.RoleBinding
 
-	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name))
+	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace))
 	if err != nil {
 		// We can get cache misses here if bindings remain with no corresponding role.
 		return nil, ErrDanglingRoleBinding
