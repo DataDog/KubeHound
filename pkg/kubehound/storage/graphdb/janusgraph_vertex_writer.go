@@ -35,6 +35,7 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRe
 		inserts:         make([]vertex.TraversalInput, 0, v.BatchSize()),
 		traversalSource: source,
 		batchSize:       v.BatchSize(),
+		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []vertex.TraversalInput, v.BatchSize()*channelSizeBatchFactor),
 	}
 	jw.startBackgroundWriter(ctx)
