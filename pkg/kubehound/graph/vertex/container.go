@@ -1,8 +1,6 @@
 package vertex
 
 import (
-	"fmt"
-
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 )
@@ -45,19 +43,15 @@ func (v Container) Traversal() VertexTraversal {
 				Property("compromised", int(i.Compromised)).
 				Property("critical", i.Critical)
 
-			fmt.Printf("@@@@@@@@ Command for container: %+v\n", i.Command)
 			for _, cmd := range i.Command {
 				g = g.Property(gremlingo.Cardinality.Set, "command", cmd)
 			}
-			fmt.Printf("@@@@@@@@ Args for container: %+v\n", i.Args)
 			for _, arg := range i.Args {
 				g = g.Property(gremlingo.Cardinality.Set, "args", arg)
 			}
-			fmt.Printf("@@@@@@@@ Capabilities for container: %+v\n", i.Capabilities)
 			for _, cap := range i.Capabilities {
 				g = g.Property(gremlingo.Cardinality.Set, "capabilities", cap)
 			}
-			fmt.Printf("@@@@@@@@ Ports for container: %+v\n", i.Ports)
 			for _, port := range i.Ports {
 				g = g.Property(gremlingo.Cardinality.Set, "ports", port)
 			}

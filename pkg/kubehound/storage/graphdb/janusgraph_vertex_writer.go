@@ -16,14 +16,15 @@ var _ AsyncVertexWriter = (*JanusGraphAsyncVertexWriter)(nil)
 // type GremlinTraversalEdge func(*gremlingo.GraphTraversalSource, []any) *gremlingo.GraphTraversal
 
 type JanusGraphAsyncVertexWriter struct {
-	gremlin         vertex.VertexTraversal
-	transaction     *gremlingo.Transaction
-	traversalSource *gremlingo.GraphTraversalSource
-	inserts         []any
-	consumerChan    chan []any
-	writingInFligth sync.WaitGroup
-	batchSize       int // Shouldn't this be "per vertex types" ?
-	mu              sync.Mutex
+	gremlin              vertex.VertexTraversal
+	transaction          *gremlingo.Transaction
+	traversalSource      *gremlingo.GraphTraversalSource
+	inserts              []any
+	consumerChan         chan []any
+	writingInFligth      sync.WaitGroup
+	batchSize            int // Shouldn't this be "per vertex types" ?
+	mu                   sync.Mutex
+	isTransactionEnabled bool
 }
 
 func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRemoteConnection, v vertex.Builder, opts ...WriterOption) (*JanusGraphAsyncVertexWriter, error) {
@@ -34,15 +35,20 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRe
 	}
 
 	source := gremlingo.Traversal_().WithRemote(drc)
-	// tx := source.Tx()
-	// gtx, err := tx.Begin()
-	// if err != nil {
-	// 	return nil, err
-	// }
+	// quick switch to enable / disable transaction
+	if options.isTransactionEnabled {
+		log.I.Info("GraphDB transaction enabled!")
+		tx := source.Tx()
+		var err error
+		source, err = tx.Begin()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	jw := JanusGraphAsyncVertexWriter{
-		gremlin: v.Traversal(),
-		inserts: make([]interface{}, 0),
-		// transaction:     tx,
+		gremlin:         v.Traversal(),
+		inserts:         make([]interface{}, 0),
 		traversalSource: source,
 		batchSize:       1,
 		consumerChan:    make(chan []any, 10000),
@@ -66,7 +72,7 @@ func (jgv *JanusGraphAsyncVertexWriter) backgroundWriter(ctx context.Context) {
 					log.I.Errorf("failed to write data in background batch writer: %v", err)
 				}
 			case <-ctx.Done():
-				log.I.Info("Closed background mongodb worker")
+				log.I.Info("Closed background janusgraph worker")
 				return
 			}
 		}
@@ -74,7 +80,7 @@ func (jgv *JanusGraphAsyncVertexWriter) backgroundWriter(ctx context.Context) {
 }
 
 func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []any) error {
-	log.I.Infof("batch write JanusGraphAsyncVertexWriter")
+	log.I.Debugf("batch write JanusGraphAsyncVertexWriter with %d elements", len(data))
 	jgv.writingInFligth.Add(1)
 	defer jgv.writingInFligth.Done()
 
@@ -82,31 +88,30 @@ func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []a
 	for _, d := range data {
 		convertedToTraversalInput = append(convertedToTraversalInput, d.(vertex.TraversalInput))
 	}
-
-	log.I.Infof("BEFORE gremlin(), traversal input: %+v", &convertedToTraversalInput)
 	op := jgv.gremlin(jgv.traversalSource, convertedToTraversalInput)
-	log.I.Infof("BEFORE ITERATE")
 	promise := op.Iterate()
-	log.I.Infof("BEFORE PROMISE")
 	err := <-promise
-	log.I.Infof("AFTER PROMISE: %v, convertedToTraversalInput: %+v", err, convertedToTraversalInput)
 	if err != nil {
-		log.I.Infof("IS THERE AN ERROR HERE: %+v", err)
-		// jgv.transaction.Rollback()
+		if jgv.isTransactionEnabled {
+			jgv.transaction.Rollback()
+		}
 		return err
 	}
-	// log.I.Infof("commiting work")
-	// err = jgv.transaction.Commit()
-	// if err != nil {
-	// 	log.I.Errorf("failed to commit: %+v", err)
-	// 	return err
-	// }
-	log.I.Infof("=== DONE == batch write JanusGraphAsyncVertexWriter")
+	if jgv.isTransactionEnabled {
+		log.I.Infof("commiting work")
+		err = jgv.transaction.Commit()
+		if err != nil {
+			log.I.Errorf("failed to commit: %+v", err)
+			return err
+		}
+	}
 	return nil
 }
 
 func (v *JanusGraphAsyncVertexWriter) Close(ctx context.Context) error {
-	// return v.transaction.Close()
+	if v.isTransactionEnabled {
+		return v.transaction.Close()
+	}
 	return nil
 }
 
@@ -126,7 +131,7 @@ func (v *JanusGraphAsyncVertexWriter) Flush(ctx context.Context) error {
 		v.writingInFligth.Wait()
 		return nil
 	}
-	log.I.Infof("Flushing remaining of queue for vertices: %+v", v.inserts)
+
 	err := v.batchWrite(ctx, v.inserts)
 	if err != nil {
 		log.I.Errorf("Failed to batch write vertex: %+v", err)

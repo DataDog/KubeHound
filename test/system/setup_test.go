@@ -41,7 +41,7 @@ func runKubeHound() error {
 	cmd := exec.CommandContext(cmdCtx, CollectorScriptPath, CollectorOutputDir)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	// defer cleanupCollected()
+	defer cleanupCollected()
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("collector script execution: %v", err)
 	}

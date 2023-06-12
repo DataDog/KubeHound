@@ -127,7 +127,6 @@ func (i PipelineIngestor) Run(outer context.Context) error {
 
 			err := s.Run(ctx, deps)
 			if err != nil {
-				log.I.Errorf("!!!!!!!!!! failed to run pipeline sequence thing !!!!!!!!: %v", err)
 				l.Errorf("ingestor sequence %s run: %v", s.Name, err)
 				// cancelAll(err)
 			}

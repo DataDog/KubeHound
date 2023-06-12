@@ -54,7 +54,6 @@ func TestContainer_Traversal(t *testing.T) {
 			vertexTraversal := v.Traversal()
 			inserts := []TraversalInput{&tt.data}
 
-			fmt.Printf("inserts: %v\n", inserts)
 			traversal := vertexTraversal(&g, inserts)
 			// This is ugly but doesn't need to write to the DB
 			// This just makes sure the traversal is correctly returned with the correct values
