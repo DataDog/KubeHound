@@ -61,7 +61,7 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cachekey.Identity(sid.Name), sid.Id.Hex()); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cachekey.Identity(sid.Name, sid.Namespace), sid.Id.Hex()); err != nil {
 		return err
 	}
 

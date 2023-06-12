@@ -15,7 +15,7 @@ func fakeCacheBuilder(ctx context.Context, cacheSize int) (*MemCacheProvider, ma
 	fakeCache := make(map[cachekey.CacheKey]string, cacheSize)
 
 	for i := 1; i <= cacheSize; i++ {
-		fakeCache[cachekey.Container(fmt.Sprintf("Pod%d", i), fmt.Sprintf("container%d", i))] = fmt.Sprintf("value%d", i)
+		fakeCache[cachekey.Container(fmt.Sprintf("Pod%d", i), fmt.Sprintf("container%d", i), "test")] = fmt.Sprintf("value%d", i)
 	}
 
 	fakeCacheWriter, _ := fakeProvider.BulkWriter(ctx)
@@ -89,9 +89,9 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 	// Standard write
 	fakeProvider1, _ := NewCacheProvider(ctx)
 	fakeCache1 := map[cachekey.CacheKey]string{
-		cachekey.Container("testPod1", "container1"): "qwerty",
-		cachekey.Container("testPod2", "container2"): "asdfgh",
-		cachekey.Container("testPod3", "container3"): "zxcvb",
+		cachekey.Container("testPod1", "container1", "test"): "qwerty",
+		cachekey.Container("testPod2", "container2", "test"): "asdfgh",
+		cachekey.Container("testPod3", "container3", "test"): "zxcvb",
 	}
 
 	// Testing for collision in cache

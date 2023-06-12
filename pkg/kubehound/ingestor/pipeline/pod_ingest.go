@@ -85,7 +85,8 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cachekey.Container(parent.K8.Name, sc.K8.Name), sc.Id.Hex()); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cachekey.Container(parent.K8.Name, sc.K8.Name, parent.K8.Namespace),
+		sc.Id.Hex()); err != nil {
 		return err
 	}
 

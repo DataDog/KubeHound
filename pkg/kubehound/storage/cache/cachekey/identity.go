@@ -6,20 +6,22 @@ const (
 
 type identityCacheKey struct {
 	identityName string
+	namespace    string
 }
 
 var _ CacheKey = (*identityCacheKey)(nil) // Ensure interface compliance
 
-func Identity(identityName string) *identityCacheKey {
+func Identity(identityName string, namespace string) *identityCacheKey {
 	return &identityCacheKey{
 		identityName: identityName,
+		namespace:    namespace,
 	}
 }
 
-func (k *identityCacheKey) Namespace() string {
+func (k *identityCacheKey) Shard() string {
 	return identityCacheName
 }
 
 func (k *identityCacheKey) Key() string {
-	return k.identityName
+	return k.namespace + "##" + k.identityName
 }

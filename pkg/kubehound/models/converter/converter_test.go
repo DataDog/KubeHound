@@ -129,7 +129,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.NoError(t, err, "role binding load error")
 
 	c := mocks.NewCacheReader(t)
-	k := cachekey.Role("test-reader")
+	k := cachekey.Role("test-reader", "test-app")
 	id := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
 
@@ -173,7 +173,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.NoError(t, err, "cluster role binding load error")
 
 	c := mocks.NewCacheReader(t)
-	k := cachekey.Role("test-reader")
+	k := cachekey.Role("test-reader", "")
 	id := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
 
@@ -274,7 +274,7 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	nid := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, nk).Return(nid, nil)
 
-	ck := cachekey.Container("app-monitors-client-78cb6d7899-j2rjp", "elasticsearch")
+	ck := cachekey.Container("app-monitors-client-78cb6d7899-j2rjp", "elasticsearch", "test-app")
 	cid := store.ObjectID().Hex()
 	c.EXPECT().Get(mock.Anything, ck).Return(cid, nil)
 

@@ -16,7 +16,7 @@ func PodIdentity(podId string) *podIdentityCacheKey {
 	}
 }
 
-func (k *podIdentityCacheKey) Namespace() string {
+func (k *podIdentityCacheKey) Shard() string {
 	return podIdentityCacheName
 }
 
