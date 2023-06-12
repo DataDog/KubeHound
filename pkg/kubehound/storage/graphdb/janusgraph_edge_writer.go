@@ -13,14 +13,15 @@ import (
 var _ AsyncEdgeWriter = (*JanusGraphAsyncEdgeWriter)(nil)
 
 type JanusGraphAsyncEdgeWriter struct {
-	gremlin         edge.EdgeTraversal
-	transaction     *gremlingo.Transaction
-	traversalSource *gremlingo.GraphTraversalSource
-	inserts         []any
-	consumerChan    chan []any
-	writingInFligth sync.WaitGroup
-	batchSize       int // Shouldn't this be "per edge types" ?
-	mu              sync.Mutex
+	gremlin              edge.EdgeTraversal
+	transaction          *gremlingo.Transaction
+	traversalSource      *gremlingo.GraphTraversalSource
+	inserts              []any
+	consumerChan         chan []any
+	writingInFligth      sync.WaitGroup
+	batchSize            int // Shouldn't this be "per edge types" ?
+	mu                   sync.Mutex
+	isTransactionEnabled bool
 }
 
 func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemoteConnection, e edge.Builder, opts ...WriterOption) (*JanusGraphAsyncEdgeWriter, error) {
@@ -30,17 +31,22 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 		opt(options)
 	}
 
-	traversal := gremlingo.Traversal_().WithRemote(drc)
-	// tx := traversal.Tx()
-	// gtx, err := tx.Begin()
-	// if err != nil {
-	// 	return nil, err
-	// }
+	source := gremlingo.Traversal_().WithRemote(drc)
+	// quick switch to enable / disable transaction
+	if options.isTransactionEnabled {
+		log.I.Info("GraphDB transaction enabled!")
+		tx := source.Tx()
+		var err error
+		source, err = tx.Begin()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	jw := JanusGraphAsyncEdgeWriter{
-		gremlin: e.Traversal(),
-		inserts: make([]any, 0),
-		// transaction:     tx,
-		traversalSource: traversal,
+		gremlin:         e.Traversal(),
+		inserts:         make([]any, 0),
+		traversalSource: source,
 		batchSize:       1,
 		consumerChan:    make(chan []any, 10000),
 	}
@@ -63,7 +69,7 @@ func (jge *JanusGraphAsyncEdgeWriter) backgroundWriter(ctx context.Context) {
 					log.I.Errorf("failed to write data in background batch writer: %v", err)
 				}
 			case <-ctx.Done():
-				log.I.Info("Closed background mongodb worker")
+				log.I.Info("Closed background janusgraph worker")
 				return
 			}
 		}
@@ -71,7 +77,7 @@ func (jge *JanusGraphAsyncEdgeWriter) backgroundWriter(ctx context.Context) {
 }
 
 func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []any) error {
-	log.I.Infof("batch write JanusGraphAsyncEdgeWriter")
+	log.I.Debugf("batch write JanusGraphAsyncEdgeWriter with %d elements", len(data))
 	jge.writingInFligth.Add(1)
 	defer jge.writingInFligth.Done()
 
@@ -87,20 +93,26 @@ func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []any
 	promise := op.Iterate()
 	err := <-promise
 	if err != nil {
-		// jge.transaction.Rollback()
+		if jge.isTransactionEnabled {
+			jge.transaction.Rollback()
+		}
 		return err
 	}
-	// err = jge.transaction.Commit()
-	// if err != nil {
-	// 	log.I.Errorf("failed to commit: %+v", err)
-	// 	return err
-	// }
-	log.I.Infof("=== DONE == batch write JanusGraphAsyncEdgeWriter")
+
+	if jge.isTransactionEnabled {
+		err = jge.transaction.Commit()
+		if err != nil {
+			log.I.Errorf("failed to commit: %+v", err)
+			return err
+		}
+	}
 	return nil
 }
 
 func (e *JanusGraphAsyncEdgeWriter) Close(ctx context.Context) error {
-	// return e.transaction.Close()
+	if e.isTransactionEnabled {
+		return e.transaction.Close()
+	}
 	return nil
 }
 
@@ -120,7 +132,7 @@ func (e *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
 		e.writingInFligth.Wait()
 		return nil
 	}
-	log.I.Infof("Flushing remaining of queue for edges: %+v", e.inserts)
+	log.I.Debugf("Flushing remaining of queue for edges: %+v", e.inserts)
 	err := e.batchWrite(ctx, e.inserts)
 	if err != nil {
 		log.I.Errorf("Failed to batch write edge: %+v", err)
@@ -144,6 +156,5 @@ func (e *JanusGraphAsyncEdgeWriter) Queue(ctx context.Context, edge any) error {
 		e.inserts = nil
 	}
 	e.inserts = append(e.inserts, edge)
-	log.I.Errorf("INSERTS AFTER APPEND (edge): %+v", &e.inserts)
 	return nil
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 const (
@@ -46,7 +45,6 @@ func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 // streamCallback is invoked by the collector for each node collected.
 // The function ingests an input node into the cache/store/graph databases asynchronously.
 func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error {
-	log.I.Infof("+++++++ INGEST NODE: (%s) ", node.Name)
 	// Normalize node to store object format
 	o, err := i.r.storeConvert.Node(ctx, node)
 	if err != nil {
@@ -84,7 +82,6 @@ func (i *NodeIngest) Complete(ctx context.Context) error {
 }
 
 func (i *NodeIngest) Run(ctx context.Context) error {
-	log.I.Infof("!!!!!! run NodeIngest !!!!!!!")
 	return i.r.collect.StreamNodes(ctx, i)
 }
 

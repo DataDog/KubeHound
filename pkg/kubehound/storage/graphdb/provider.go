@@ -10,6 +10,7 @@ import (
 )
 
 type writerOptions struct {
+	isTransactionEnabled bool
 }
 
 type WriterOption func(*writerOptions)
