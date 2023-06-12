@@ -30,7 +30,7 @@ func TestMustLoadConfig(t *testing.T) {
 					},
 					// This is always set as the default value
 					Live: &K8SAPICollectorConfig{
-						PageSize:           5000,
+						PageSize:           500,
 						PageBufferSize:     10,
 						RateLimitPerSecond: 100,
 					},
@@ -55,7 +55,7 @@ func TestMustLoadConfig(t *testing.T) {
 				Collector: CollectorConfig{
 					Type: CollectorTypeK8sAPI,
 					Live: &K8SAPICollectorConfig{
-						PageSize:           5000,
+						PageSize:           500,
 						PageBufferSize:     10,
 						RateLimitPerSecond: 100,
 					},
