@@ -146,11 +146,6 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 		return err
 	}
 
-	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cachekey.PodIdentity(sp.Id.Hex()), sp.K8.Spec.ServiceAccountName); err != nil {
-		return err
-	}
-
 	// Transform store model to vertex input
 	vp, err := i.r.graphConvert.Pod(sp)
 	if err != nil {

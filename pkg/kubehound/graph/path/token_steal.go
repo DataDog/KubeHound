@@ -14,7 +14,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -39,7 +38,13 @@ func init() {
 	Register(TokenSteal{})
 }
 
-type TokenStealPath struct {
+type volumeQueryResult struct {
+	Volume            store.Volume `bson:"volume" json:"volume"`
+	PodNamespace      string       `bson:"namespace" json:"namespace"`
+	PodServiceAccount string       `bson:"serviceaccount" json:"serviceaccount"`
+}
+
+type tokenStealPath struct {
 	Vertex     *graph.Token `bson:"vertex" json:"vertex"`
 	VolumeId   string       `bson:"volume" json:"volume"`
 	IdentityId string       `bson:"identity" json:"identity"`
@@ -68,38 +73,63 @@ func (v TokenSteal) Traversal() PathTraversal {
 func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cache.CacheReader,
 	process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
+	volumes := adapter.MongoDB(sdb).Collection(collections.VolumeName)
+
 	// Find all volumes with projected service account tokens. The mounts and source fields we need to match on a projected
 	// service account token are all deeply nested arrays so matching on the naming convention is the simplest/fastest match
-	volumes := adapter.MongoDB(sdb).Collection(collections.VolumeName)
 	filter := bson.M{
 		"source.volumesource.projected": bson.M{"$exists": true, "$ne": "null"},
 		"source.name":                   bson.M{"$regex": "/^kube-api-access/"},
 	}
 
-	cur, err := volumes.Find(ctx, filter)
+	// Find the volume and associated pod namespace and service account.
+	// db.volumes.aggregate([ { $match: { "source.volumesource.projected": { $exists: true, $ne: null }, "source.name": { $regex: /^kube-api-access/ } } }, { $lookup: { from: "pods", localField: "pod_id", foreignField: "_id", as: "pod" } }, { $project: { namespace: { $first: "$pod.k8.objectmeta.namespace" }, serviceaccount: { $first: "$pod.k8.spec.serviceaccountname" }, volume: "$$ROOT" } }, { $project: { "volume.pod":  0 } }] )
+	pipeline := []bson.M{
+		{
+			"$match": filter,
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "pods",
+				"localField":   "pod_id",
+				"foreignField": "_id",
+				"as":           "pod",
+			},
+		},
+		{
+			"$project": bson.M{
+				"namespace": bson.M{
+					"$first": "$pod.k8.objectmeta.namespace",
+				},
+				"serviceaccount": bson.M{
+					"$first": "$pod.k8.spec.serviceaccountname",
+				},
+				"volume": "$$ROOT",
+			},
+		},
+		{
+			"$project": bson.M{
+				"volume.pod": 0,
+			},
+		},
+	}
+
+	cur, err := volumes.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return err
 	}
 	defer cur.Close(ctx)
 
 	convert := converter.NewGraph()
-	var vol store.Volume
+	var res volumeQueryResult
 	for cur.Next(ctx) {
-		err := cur.Decode(&vol)
+		err := cur.Decode(&res)
 		if err != nil {
 			return err
 		}
 
-		// Retrieve the service account name for the pod from the cache
-		sa, err := cache.Get(ctx, cachekey.PodIdentity(vol.PodId.Hex()))
-		if err != nil {
-			log.Trace(ctx).Errorf("cache miss pod identity: %v", err)
-			continue
-		}
-
 		// Retrieve the associated identity store ID from the cache
-		TODO how TF to get the namespc
-		said, err := cache.Get(ctx, cachekey.Identity(sa, vol.Name))
+		said, err := cache.Get(ctx, cachekey.Identity(res.PodServiceAccount, res.PodNamespace))
 		if err != nil {
 			// This is completely fine. Most pods will run under a default account with no permissions which we treat
 			// as having no identity. As such we do not want to create a token vertex here!
@@ -107,15 +137,15 @@ func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 		}
 
 		// Convert to our graph vertex representation
-		v, err := convert.Token(sa, &vol)
+		v, err := convert.Token(res.PodServiceAccount, res.PodNamespace, &res.Volume)
 		if err != nil {
 			return err
 		}
 
 		// Create the container that holds all the data required by the traversal function
-		err = process(ctx, &TokenStealPath{
+		err = process(ctx, &tokenStealPath{
 			Vertex:     v,
-			VolumeId:   vol.Id.Hex(),
+			VolumeId:   res.Volume.Id.Hex(),
 			IdentityId: said,
 		})
 		if err != nil {
@@ -125,3 +155,64 @@ func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 
 	return complete(ctx)
 }
+
+// func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cache.CacheReader,
+// 	process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
+
+// 	// Find all volumes with projected service account tokens. The mounts and source fields we need to match on a projected
+// 	// service account token are all deeply nested arrays so matching on the naming convention is the simplest/fastest match
+// 	volumes := adapter.MongoDB(sdb).Collection(collections.VolumeName)
+// 	filter := bson.M{
+// 		"source.volumesource.projected": bson.M{"$exists": true, "$ne": "null"},
+// 		"source.name":                   bson.M{"$regex": "/^kube-api-access/"},
+// 	}
+
+// 	cur, err := volumes.Find(ctx, filter)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer cur.Close(ctx)
+
+// 	convert := converter.NewGraph()
+// 	var vol store.Volume
+// 	for cur.Next(ctx) {
+// 		err := cur.Decode(&vol)
+// 		if err != nil {
+// 			return err
+// 		}
+
+// 		// TODO change query to do a lookup in podID and return ID/namespace/serviceaccount in
+// 		// Retrieve the service account name for the pod from the cache
+// 		sa, err := cache.Get(ctx, cachekey.PodIdentity(vol.PodId.Hex()))
+// 		if err != nil {
+// 			log.Trace(ctx).Errorf("cache miss pod identity: %v", err)
+// 			continue
+// 		}
+
+// 		// Retrieve the associated identity store ID from the cache
+// 		said, err := cache.Get(ctx, cachekey.Identity(sa, vol.Name))
+// 		if err != nil {
+// 			// This is completely fine. Most pods will run under a default account with no permissions which we treat
+// 			// as having no identity. As such we do not want to create a token vertex here!
+// 			continue
+// 		}
+
+// 		// Convert to our graph vertex representation
+// 		v, err := convert.Token(sa, &vol)
+// 		if err != nil {
+// 			return err
+// 		}
+
+// 		// Create the container that holds all the data required by the traversal function
+// 		err = process(ctx, &TokenStealPath{
+// 			Vertex:     v,
+// 			VolumeId:   vol.Id.Hex(),
+// 			IdentityId: said,
+// 		})
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+
+// 	return complete(ctx)
+// }

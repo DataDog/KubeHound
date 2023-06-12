@@ -39,7 +39,6 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
 	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.containerCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.podIdentityCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
 
 	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
