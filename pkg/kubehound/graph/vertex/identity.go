@@ -28,7 +28,7 @@ func (v Identity) Traversal() VertexTraversal {
 		for _, i := range inserts {
 			data := i.(*graph.Identity)
 			g = g.AddV(v.Label()).
-				Property("storeId", data.StoreID).
+				Property("storeID", data.StoreID).
 				Property("name", data.Name).
 				Property("isNamespaced", data.IsNamespaced).
 				Property("namespace", data.Namespace).
