@@ -98,7 +98,8 @@ func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 		}
 
 		// Retrieve the associated identity store ID from the cache
-		said, err := cache.Get(ctx, cachekey.Identity(sa))
+		TODO how TF to get the namespc
+		said, err := cache.Get(ctx, cachekey.Identity(sa, vol.Name))
 		if err != nil {
 			// This is completely fine. Most pods will run under a default account with no permissions which we treat
 			// as having no identity. As such we do not want to create a token vertex here!
