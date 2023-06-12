@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -20,11 +21,15 @@ type JanusGraphProvider struct {
 	client *gremlingo.DriverRemoteConnection
 }
 
-func NewGraphDriver(ctx context.Context, dbHost string) (*JanusGraphProvider, error) {
+func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (*JanusGraphProvider, error) {
 	if dbHost == "" {
 		return nil, errors.New("JanusGraph DB URL is not set")
 	}
-	driver, err := gremlingo.NewDriverRemoteConnection(dbHost)
+	driver, err := gremlingo.NewDriverRemoteConnection(dbHost,
+		func(settings *gremlingo.DriverRemoteConnectionSettings) {
+			settings.ConnectionTimeout = timeout
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
