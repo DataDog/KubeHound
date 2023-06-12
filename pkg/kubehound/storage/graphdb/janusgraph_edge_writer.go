@@ -23,7 +23,6 @@ type JanusGraphAsyncEdgeWriter struct {
 }
 
 func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemoteConnection, e edge.Builder, opts ...WriterOption) (*JanusGraphAsyncEdgeWriter, error) {
-	log.I.Infof("Created new JanusGraphAsyncEdgeWriter")
 	options := &writerOptions{}
 	for _, opt := range opts {
 		opt(options)

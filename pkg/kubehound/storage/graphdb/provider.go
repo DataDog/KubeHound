@@ -10,17 +10,9 @@ import (
 )
 
 type writerOptions struct {
-	isTransactionEnabled bool
 }
 
 type WriterOption func(*writerOptions)
-
-// WithConfigPath sets the path for the KubeHound config file.
-func WithTransaction() WriterOption {
-	return func(opt *writerOptions) {
-		opt.isTransactionEnabled = true
-	}
-}
 
 // Provider defines the interface for implementations of the graphdb provider for storage of the calculated K8s attack graph.
 //
