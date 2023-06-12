@@ -17,7 +17,7 @@ type JanusGraphAsyncEdgeWriter struct {
 	traversalSource *gremlingo.GraphTraversalSource
 	inserts         []edge.TraversalInput
 	consumerChan    chan []edge.TraversalInput
-	writingInFligth sync.WaitGroup
+	writingInFlight sync.WaitGroup
 	batchSize       int
 	mu              sync.Mutex
 }
@@ -66,7 +66,7 @@ func (jge *JanusGraphAsyncEdgeWriter) startBackgroundWriter(ctx context.Context)
 
 func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []edge.TraversalInput) error {
 	log.I.Debugf("batch write JanusGraphAsyncEdgeWriter with %d elements", len(data))
-	defer jge.writingInFligth.Done()
+	defer jge.writingInFlight.Done()
 
 	op := jge.gremlin(jge.traversalSource, data)
 	promise := op.Iterate()
@@ -79,6 +79,7 @@ func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []edg
 }
 
 func (jge *JanusGraphAsyncEdgeWriter) Close(ctx context.Context) error {
+	close(jge.consumerChan)
 	return nil
 }
 
@@ -91,18 +92,18 @@ func (jge *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
 	}
 
 	if len(jge.inserts) != 0 {
-		jge.writingInFligth.Add(1)
+		jge.writingInFlight.Add(1)
 		err := jge.batchWrite(ctx, jge.inserts)
 		if err != nil {
 			log.I.Errorf("Failed to batch write edge: %+v", err)
-			jge.writingInFligth.Wait()
+			jge.writingInFlight.Wait()
 			return err
 		}
 		log.I.Info("Done flushing edges, clearing the queue")
 		jge.inserts = nil
 	}
 
-	jge.writingInFligth.Wait()
+	jge.writingInFlight.Wait()
 
 	return nil
 }
@@ -115,7 +116,7 @@ func (jge *JanusGraphAsyncEdgeWriter) Queue(ctx context.Context, e any) error {
 	if len(jge.inserts) > jge.batchSize {
 		copied := make([]edge.TraversalInput, len(jge.inserts))
 		copy(copied, jge.inserts)
-		jge.writingInFligth.Add(1)
+		jge.writingInFlight.Add(1)
 		jge.consumerChan <- copied
 		// cleanup the ops array after we have copied it to the channel
 		jge.inserts = nil

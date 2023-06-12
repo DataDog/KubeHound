@@ -25,7 +25,7 @@ type MongoAsyncWriter struct {
 	collection      *mongo.Collection
 	batchSize       int
 	consumerChan    chan []mongo.WriteModel
-	writingInFligth sync.WaitGroup
+	writingInFlight sync.WaitGroup
 }
 
 func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection collections.Collection) *MongoAsyncWriter {
@@ -63,8 +63,8 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 
 // batchWrite blocks until the write is complete
 func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteModel) error {
-	maw.writingInFligth.Add(1)
-	defer maw.writingInFligth.Done()
+	maw.writingInFlight.Add(1)
+	defer maw.writingInFlight.Done()
 	bulkWriteOpts := options.BulkWrite().SetOrdered(false)
 	_, err := maw.collection.BulkWrite(ctx, ops, bulkWriteOpts)
 	if err != nil {
@@ -100,13 +100,13 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 		// we need to send something to the channel from this function whenever we don't return an error
 		// we cannot defer it because the go routine may last longer than the current function
 		// the defer is going to be executed at the return time, whetever or not the inner go routine is processing data
-		maw.writingInFligth.Wait()
+		maw.writingInFlight.Wait()
 		return nil
 	}
 
 	err := maw.batchWrite(ctx, maw.ops)
 	if err != nil {
-		maw.writingInFligth.Wait()
+		maw.writingInFlight.Wait()
 		return err
 	}
 
