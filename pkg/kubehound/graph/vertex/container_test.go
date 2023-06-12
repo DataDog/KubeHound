@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-	"github.com/DataDog/KubeHound/pkg/utils"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,7 +26,7 @@ func TestContainer_Traversal(t *testing.T) {
 				Name:         "test name",
 				Image:        "image",
 				Command:      []string{"/usr/bin/sleep"},
-				Args:         []string{"600"},
+				Args:         []string{"600", "lol2ndarguments"},
 				Capabilities: []string{"NET_CAP_ADMIN", "NET_RAW_ADMIN"},
 				Privileged:   true,
 				PrivEsc:      true,
@@ -51,11 +50,9 @@ func TestContainer_Traversal(t *testing.T) {
 			v := Container{}
 
 			g := gremlingo.GraphTraversalSource{}
-			insert, err := utils.StructToMap(tt.data)
-			assert.NoError(t, err)
 
 			vertexTraversal := v.Traversal()
-			inserts := []TraversalInput{insert}
+			inserts := []TraversalInput{&tt.data}
 
 			fmt.Printf("inserts: %v\n", inserts)
 			traversal := vertexTraversal(&g, inserts)
@@ -64,6 +61,8 @@ func TestContainer_Traversal(t *testing.T) {
 			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "test id")
 			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "test name")
 			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "/usr/bin/sleep")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "600")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "lol2ndarguments")
 			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "1337")
 		})
 	}
