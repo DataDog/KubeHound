@@ -59,10 +59,16 @@ func TestContainer_Traversal(t *testing.T) {
 			// This just makes sure the traversal is correctly returned with the correct values
 			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "test id")
 			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "test name")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "image")
 			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "/usr/bin/sleep")
 			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "600")
 			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "lol2ndarguments")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "1234")
 			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "1337")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "NET_CAP_ADMIN")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "NET_RAW_ADMIN")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "test pod")
+			assert.Contains(t, fmt.Sprintf("%s", traversal.Bytecode), "test node")
 		})
 	}
 }
