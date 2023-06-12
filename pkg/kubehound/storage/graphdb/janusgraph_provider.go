@@ -49,10 +49,9 @@ func (jgp *JanusGraphProvider) Name() string {
 // We choose the value "1" because it's not the default int value in case there's an issue somewhere.
 // from: https://stackoverflow.com/questions/59396980/gremlin-query-to-check-connection-health
 func (jgp *JanusGraphProvider) HealthCheck(ctx context.Context) (bool, error) {
-	fmt.Println("health check start")
 	wantValue := "1"
 	if jgp.client == nil {
-		return false, errors.New("failed to get janus graph client (nil)")
+		return false, errors.New("get janus graph client (nil)")
 	}
 	res, err := jgp.client.Submit(wantValue)
 	if err != nil {
@@ -61,12 +60,12 @@ func (jgp *JanusGraphProvider) HealthCheck(ctx context.Context) (bool, error) {
 
 	one, ok, err := res.One()
 	if !ok || err != nil {
-		return false, fmt.Errorf("failed to get one results from healthcheck, got: %s", one)
+		return false, fmt.Errorf("get one results from healthcheck, got: %s", one)
 	}
 
 	value, err := one.GetInt()
 	if err != nil {
-		return false, fmt.Errorf("failed to get int value from healthcheck: %v", err)
+		return false, fmt.Errorf("get int value from healthcheck: %v", err)
 	}
 
 	if value != 1 {
