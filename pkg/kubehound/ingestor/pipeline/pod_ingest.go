@@ -109,7 +109,7 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 	// Normalize volume to store object format
 	sv, err := i.r.storeConvert.Volume(ctx, volume, parent)
 	if err != nil {
-		log.I.Errorf("failed to process volume type: %v (continuing)", err)
+		log.I.Errorf("process volume type: %v (continuing)", err)
 		return nil
 	}
 

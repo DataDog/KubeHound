@@ -53,7 +53,7 @@ func (jgv *JanusGraphAsyncVertexWriter) startBackgroundWriter(ctx context.Contex
 				}
 				err := jgv.batchWrite(ctx, data)
 				if err != nil {
-					log.I.Errorf("failed to write data in background batch writer: %v", err)
+					log.I.Errorf("write data in background batch writer: %v", err)
 				}
 			case <-ctx.Done():
 				log.I.Info("Closed background janusgraph worker")
@@ -95,7 +95,7 @@ func (jgv *JanusGraphAsyncVertexWriter) Flush(ctx context.Context) error {
 		jgv.writingInFlight.Add(1)
 		err := jgv.batchWrite(ctx, jgv.inserts)
 		if err != nil {
-			log.I.Errorf("Failed to batch write vertex: %+v", err)
+			log.I.Errorf("batch write vertex: %+v", err)
 			jgv.writingInFlight.Wait()
 			return err
 		}
