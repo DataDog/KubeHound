@@ -9,6 +9,9 @@ import (
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 )
 
+// TODO maybe move that into a config file?
+const channelSizeBatchFactor = 4
+
 var _ Provider = (*JanusGraphProvider)(nil)
 
 type JanusGraphProvider struct {
@@ -58,7 +61,7 @@ func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builde
 
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
 func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error) {
-	writer, err := NewJanusGraphAsyncEdgeWriter(ctx, jgp.client, e)
+	writer, err := NewJanusGraphAsyncEdgeWriter(ctx, jgp.client, e, opts...)
 	if err != nil {
 		return nil, err
 	}

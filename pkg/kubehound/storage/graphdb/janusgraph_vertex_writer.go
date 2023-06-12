@@ -22,7 +22,7 @@ type JanusGraphAsyncVertexWriter struct {
 	inserts              []any
 	consumerChan         chan []any
 	writingInFligth      sync.WaitGroup
-	batchSize            int // Shouldn't this be "per vertex types" ?
+	batchSize            int
 	mu                   sync.Mutex
 	isTransactionEnabled bool
 }
@@ -36,9 +36,10 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRe
 
 	source := gremlingo.Traversal_().WithRemote(drc)
 	// quick switch to enable / disable transaction
+	var tx *gremlingo.Transaction
 	if options.isTransactionEnabled {
 		log.I.Info("GraphDB transaction enabled!")
-		tx := source.Tx()
+		tx = source.Tx()
 		var err error
 		source, err = tx.Begin()
 		if err != nil {
@@ -49,9 +50,10 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRe
 	jw := JanusGraphAsyncVertexWriter{
 		gremlin:         v.Traversal(),
 		inserts:         make([]interface{}, 0),
+		transaction:     tx,
 		traversalSource: source,
-		batchSize:       1,
-		consumerChan:    make(chan []any, 10000),
+		batchSize:       v.BatchSize(),
+		consumerChan:    make(chan []any, v.BatchSize()*channelSizeBatchFactor),
 	}
 	jw.backgroundWriter(ctx)
 	return &jw, nil

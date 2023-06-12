@@ -19,7 +19,7 @@ type JanusGraphAsyncEdgeWriter struct {
 	inserts              []any
 	consumerChan         chan []any
 	writingInFligth      sync.WaitGroup
-	batchSize            int // Shouldn't this be "per edge types" ?
+	batchSize            int
 	mu                   sync.Mutex
 	isTransactionEnabled bool
 }
@@ -33,9 +33,10 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 
 	source := gremlingo.Traversal_().WithRemote(drc)
 	// quick switch to enable / disable transaction
+	var tx *gremlingo.Transaction
 	if options.isTransactionEnabled {
 		log.I.Info("GraphDB transaction enabled!")
-		tx := source.Tx()
+		tx = source.Tx()
 		var err error
 		source, err = tx.Begin()
 		if err != nil {
@@ -47,8 +48,9 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 		gremlin:         e.Traversal(),
 		inserts:         make([]any, 0),
 		traversalSource: source,
-		batchSize:       1,
-		consumerChan:    make(chan []any, 10000),
+		transaction:     tx,
+		batchSize:       e.BatchSize(),
+		consumerChan:    make(chan []any, e.BatchSize()*channelSizeBatchFactor),
 	}
 	jw.backgroundWriter(ctx)
 	return &jw, nil
