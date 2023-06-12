@@ -34,10 +34,16 @@ func (e ContainerAttach) BatchSize() int {
 
 func (e ContainerAttach) Traversal() EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
-		log.I.Errorf("CONVERT ME TO SOMETHING TYPED OTHERWISE THIS WILL BREAK")
+		log.I.Errorf("%s edge traversal does not work, inserting dummy input", e.Label())
 
 		g := source.GetGraphTraversal()
+		// return g.Inject(inserts).Unfold().As("ca").
+		// 	V().HasLabel("Pod").Has("storeID", gremlin.T__.Select("ca").Select("pod")).As("pod").
+		// 	V().HasLabel("Container").Has("storeID", gremlin.T__.Select("ca").Select("container")).As("container").
+		// 	MergeE(e.Label()).From("pod").To("container")
+
 		g.AddV("dummy_entry")
+
 		// for _, i := range inserts {
 		// 	data := i.(*ContainerAttachGroup)
 		// 	podId, err := data.Pod.MarshalJSON()
