@@ -30,12 +30,12 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 	}
 
 	source := gremlingo.Traversal_().WithRemote(drc)
-
 	jw := JanusGraphAsyncEdgeWriter{
 		gremlin:         e.Traversal(),
 		inserts:         make([]edge.TraversalInput, 0, e.BatchSize()),
 		traversalSource: source,
 		batchSize:       e.BatchSize(),
+		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []edge.TraversalInput, e.BatchSize()*channelSizeBatchFactor),
 	}
 	jw.startBackgroundWriter(ctx)
