@@ -84,9 +84,11 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 
 // WithStoreWriter initializes a bulk graph writer (and registers a cleanup function) for the provided vertex.
 // To access the writer use the graphWriter(v vertex.Vertex) function.
-func WithGraphWriter[T vertex.Builder](v T) IngestResourceOption {
+func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		w, err := deps.GraphDB.VertexWriter(ctx, v)
+		opts := []graphdb.WriterOption{}
+
+		w, err := deps.GraphDB.VertexWriter(ctx, v, opts...)
 		if err != nil {
 			return err
 		}
@@ -97,7 +99,6 @@ func WithGraphWriter[T vertex.Builder](v T) IngestResourceOption {
 		})
 
 		rOpts.flush = append(rOpts.flush, w.Flush)
-
 		return nil
 	}
 }

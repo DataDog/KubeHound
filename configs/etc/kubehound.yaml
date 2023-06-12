@@ -6,6 +6,8 @@ collector:
     rate_limit_per_second: 100
 mongodb:
   url: "mongodb://localhost:27017"
+janusgraph:
+  url: "ws://localhost:8182/gremlin"
 telemetry:
   statsd:
     url: "127.0.0.1:8125"
