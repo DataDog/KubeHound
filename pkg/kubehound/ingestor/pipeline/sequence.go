@@ -25,6 +25,7 @@ func (s *Sequence) Run(ctx context.Context, deps *Dependencies) error {
 		if err != nil {
 			return fmt.Errorf("group %s ingest: %w", g.Name, err)
 		}
+		l.Infof("Finished running ingest group %s", g.Name)
 	}
 
 	l.Infof("Completed ingest sequence %s", s.Name)

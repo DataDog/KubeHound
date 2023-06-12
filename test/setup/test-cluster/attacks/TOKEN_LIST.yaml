@@ -1,0 +1,45 @@
+# TOKEN_LIST edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2886795639/TOKEN+LIST
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tokenlist-sa
+  namespace: default
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: default
+  name: list-secrets
+rules:
+  - apiGroups: ["*"]
+    resources: ["secrets"]
+    verbs: ["list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-list-secrets
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: list-secrets
+subjects:
+  - kind: ServiceAccount
+    name: tokenlist-sa
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tokenlist-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: tokenlist-sa
+  containers:
+    - name: tokenlist-pod
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

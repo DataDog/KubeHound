@@ -1,0 +1,45 @@
+# IDENTITY_IMPERSONATE edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887123111/IDENTITY+IMPERSONATE
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: impersonate-sa
+  namespace: default
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: default
+  name: impersonate
+rules:
+  - apiGroups: ["*"]
+    resources: ["users", "groups"]
+    verbs: ["impersonate"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-impersonate
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: impersonate
+subjects:
+  - kind: ServiceAccount
+    name: impersonate-sa
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: impersonate-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: impersonate-sa
+  containers:
+    - name: impersonate-pod
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

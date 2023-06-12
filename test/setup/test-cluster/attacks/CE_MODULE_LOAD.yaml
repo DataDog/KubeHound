@@ -1,0 +1,17 @@
+# CE_MODULE_LOAD edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2890006884/CE+MODULE+LOAD
+apiVersion: v1
+kind: Pod
+metadata:
+  name: modload-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+    - name: modload-pod
+      image: ubuntu
+      securityContext:
+        capabilities:
+          add: ["SYS_MODULE"]
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
