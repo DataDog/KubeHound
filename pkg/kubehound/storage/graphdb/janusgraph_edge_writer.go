@@ -132,7 +132,6 @@ func (e *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
 		e.writingInFligth.Wait()
 		return nil
 	}
-	log.I.Debugf("Flushing remaining of queue for edges: %+v", e.inserts)
 	err := e.batchWrite(ctx, e.inserts)
 	if err != nil {
 		log.I.Errorf("Failed to batch write edge: %+v", err)

@@ -3,6 +3,7 @@ package vertex
 import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 )
 
 const (
@@ -32,6 +33,9 @@ func (v Role) Traversal() VertexTraversal {
 				Property("name", data.Name).
 				Property("is_namespaced", data.IsNamespaced).
 				Property("namespace", data.Namespace)
+			for _, rule := range data.Rules {
+				g = g.Property(gremlingo.Cardinality.Set, "rules", rule)
+			}
 		}
 		return g
 	}
