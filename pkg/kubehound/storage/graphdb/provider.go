@@ -15,6 +15,13 @@ type writerOptions struct {
 
 type WriterOption func(*writerOptions)
 
+// WithConfigPath sets the path for the KubeHound config file.
+func WithTransaction() WriterOption {
+	return func(opt *writerOptions) {
+		opt.isTransactionEnabled = true
+	}
+}
+
 // Provider defines the interface for implementations of the graphdb provider for storage of the calculated K8s attack graph.
 //
 //go:generate mockery --name Provider --output mocks --case underscore --filename graph_provider.go --with-expecter
