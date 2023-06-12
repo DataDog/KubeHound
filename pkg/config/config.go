@@ -9,6 +9,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	BuildVersion string // This should be overwritten by the go build -X flags
+)
+
 const (
 	DefaultConfigType = "yaml"
 	DefaultConfigPath = "etc/kubehound.yaml"
