@@ -9,7 +9,7 @@ const (
 )
 
 type Container struct {
-	StoreID      string         `json:"store_id" mapstructure:"store_id"`
+	StoreID      string         `json:"storeID" mapstructure:"storeID"`
 	Name         string         `json:"name" mapstructure:"name"`
 	Image        string         `json:"image" mapstructure:"image"`
 	Command      []string       `json:"command" mapstructure:"command"`
@@ -30,31 +30,31 @@ type Container struct {
 }
 
 type Group struct {
-	StoreId string `json:"store_id" mapstructure:"store_id"`
+	StoreID string `json:"storeID" mapstructure:"storeID"`
 	Name    string `json:"name" mapstructure:"name"`
 }
 
 type Identity struct {
-	StoreID      string `json:"store_id" mapstructure:"store_id"`
+	StoreID      string `json:"storeID" mapstructure:"storeID"`
 	Name         string `json:"name" mapstructure:"name"`
-	IsNamespaced bool   `json:"is_namespaced" mapstructure:"is_namespaced"`
+	IsNamespaced bool   `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string `json:"namespace" mapstructure:"namespace"`
 	Type         string `json:"type" mapstructure:"type"`
 }
 
 type Node struct {
-	StoreID      string         `json:"store_id" mapstructure:"store_id"`
+	StoreID      string         `json:"storeID" mapstructure:"storeID"`
 	Name         string         `json:"name" mapstructure:"name"`
-	IsNamespaced bool           `json:"is_namespaced" mapstructure:"is_namespaced"`
+	IsNamespaced bool           `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string         `json:"namespace" mapstructure:"namespace"`
 	Compromised  CompromiseType `json:"compromised,omitempty" mapstructure:"compromised"`
 	Critical     bool           `json:"critical,omitempty" mapstructure:"critical"`
 }
 
 type Pod struct {
-	StoreID                string         `json:"store_id" mapstructure:"store_id"`
+	StoreID                string         `json:"storeID" mapstructure:"storeID"`
 	Name                   string         `json:"name" mapstructure:"name"`
-	IsNamespaced           bool           `json:"is_namespaced" mapstructure:"is_namespaced"`
+	IsNamespaced           bool           `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace              string         `json:"namespace" mapstructure:"namespace"`
 	SharedProcessNamespace bool           `json:"sharedProcessNamespace" mapstructure:"sharedProcessNamespace"`
 	ServiceAccount         string         `json:"serviceAccount" mapstructure:"serviceAccount"`
@@ -64,15 +64,15 @@ type Pod struct {
 }
 
 type Role struct {
-	StoreID      string   `json:"store_id" mapstructure:"store_id"`
+	StoreID      string   `json:"storeID" mapstructure:"storeID"`
 	Name         string   `json:"name" mapstructure:"name"`
-	IsNamespaced bool     `json:"is_namespaced" mapstructure:"is_namespaced"`
+	IsNamespaced bool     `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string   `json:"namespace" mapstructure:"namespace"`
 	Rules        []string `json:"rules" mapstructure:"rules"`
 }
 
 type Token struct {
-	StoreID     string         `json:"store_id" mapstructure:"store_id"`
+	StoreID     string         `json:"storeID" mapstructure:"storeID"`
 	Name        string         `json:"name" mapstructure:"name"`
 	Type        string         `json:"type" mapstructure:"type"`
 	Identity    string         `json:"identity" mapstructure:"identity"`
@@ -87,7 +87,7 @@ const (
 )
 
 type Volume struct {
-	StoreID string `json:"store_id" mapstructure:"store_id"`
+	StoreID string `json:"storeID" mapstructure:"storeID"`
 	Name    string `json:"name" mapstructure:"name"`
 	Type    string `json:"type" mapstructure:"type"`
 	Path    string `json:"path" mapstructure:"path"`
