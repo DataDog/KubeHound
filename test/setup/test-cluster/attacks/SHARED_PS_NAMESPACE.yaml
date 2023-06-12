@@ -1,0 +1,15 @@
+# SHARED_PS_NAMESPACE edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880275294/SHARED+PS+NAMESPACE
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sharedps-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  shareProcessNamespace: true
+  containers:
+    - name: sharedps-pod
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/spf13/viper"
 )
@@ -19,9 +20,10 @@ const (
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
 type KubehoundConfig struct {
-	Collector CollectorConfig `mapstructure:"collector"` // Collector configuration
-	MongoDB   MongoDBConfig   `mapstructure:"mongodb"`   // MongoDB configuration
-	Tracer    TracerConfig    `mapstructure:"tracer"`    // (Datadog) Tracer configuration
+	Collector  CollectorConfig  `mapstructure:"collector"`  // Collector configuration
+	MongoDB    MongoDBConfig    `mapstructure:"mongodb"`    // MongoDB configuration
+	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // JanusGraph configuration
+	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 }
 
 // MustLoadDefaultConfig loads the default application configuration, treating all errors as fatal.
@@ -39,12 +41,20 @@ func MustLoadConfig(configPath string) *KubehoundConfig {
 	return cfg
 }
 
+// SetDefaultValues loads the default value from the different modules
+func SetDefaultValues(c *viper.Viper) {
+	// K8s Live collector module
+	c.SetDefault("collector.live.page_size", globals.DefaultK8sAPIPageSize)
+	c.SetDefault("collector.live.page_buffer_size", globals.DefaultK8sAPIPageBufferSize)
+	c.SetDefault("collector.live.rate_limit_per_second", globals.DefaultK8sAPIRateLimitPerSecond)
+}
+
 // NewConfig creates a new config instance from the provided file using viper.
 func NewConfig(configPath string) (*KubehoundConfig, error) {
 	c := viper.New()
 	c.SetConfigType(DefaultConfigType)
 	c.SetConfigFile(configPath)
-
+	SetDefaultValues(c)
 	if err := c.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}

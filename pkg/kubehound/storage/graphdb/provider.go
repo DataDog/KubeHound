@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
@@ -25,10 +24,10 @@ type Provider interface {
 	Raw() any
 
 	// VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
-	VertexWriter(ctx context.Context, v vertex.Vertex, opts ...WriterOption) (AsyncVertexWriter, error)
+	VertexWriter(ctx context.Context, v vertex.Builder, opts ...WriterOption) (AsyncVertexWriter, error)
 
 	// EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
-	EdgeWriter(ctx context.Context, e edge.Edge, opts ...WriterOption) (AsyncEdgeWriter, error)
+	EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error)
 
 	// Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.
 	Close(ctx context.Context) error
@@ -64,5 +63,5 @@ type AsyncEdgeWriter interface {
 
 // Factory returns an initialized instance of a graphdb provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
-	return nil, globals.ErrNotImplemented
+	return NewGraphDriver(ctx, cfg.JanusGraph.URL, cfg.JanusGraph.ConnectionTimeout)
 }

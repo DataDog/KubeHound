@@ -8,6 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 const (
@@ -24,7 +25,7 @@ const (
 )
 
 type PodIngest struct {
-	v []vertex.Vertex
+	v []vertex.Builder
 	c []collections.Collection
 	r *IngestResources
 }
@@ -43,7 +44,7 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	// from the (container/init container lists). As such we need to intialize a list of the writers we need.
 	//
 
-	i.v = []vertex.Vertex{
+	i.v = []vertex.Builder{
 		vertex.Pod{},
 		vertex.Container{},
 		vertex.Volume{},
@@ -108,7 +109,8 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 	// Normalize volume to store object format
 	sv, err := i.r.storeConvert.Volume(ctx, volume, parent)
 	if err != nil {
-		return err
+		log.I.Errorf("process volume type: %v (continuing)", err)
+		return nil
 	}
 
 	// Async write to store

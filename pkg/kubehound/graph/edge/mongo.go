@@ -2,11 +2,11 @@ package edge
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -27,7 +27,7 @@ func MongoProcessor[T any](_ context.Context, entry DataContainer) (map[string]a
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	processed, err := structToMap(typed)
+	processed, err := utils.StructToMap(typed)
 	if err != nil {
 		return nil, err
 	}
@@ -53,22 +53,4 @@ func MongoCursorHandler[T any](ctx context.Context, cur *mongo.Cursor,
 	}
 
 	return complete(ctx)
-}
-
-// structToMap transforms a struct to a map to be consumed by a mongoDB AsyncWriter implementation.
-// TODO: review implementation... surely there's a better way?
-func structToMap(in any) (map[string]any, error) {
-	var res map[string]any
-
-	tmp, err := json.Marshal(in)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(tmp, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }
