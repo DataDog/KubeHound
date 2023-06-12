@@ -13,7 +13,7 @@ import (
 
 const (
 	// TODO: this might need to be adjusted in the future, potentially per type of collections
-	// We don't have the data yet, so lets just hardcode a small-ish value for now
+	// We don't have the data yet, so lets just hardcode a relatively high value for now
 	consumerChanSize = 10000
 )
 
@@ -35,12 +35,12 @@ func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection coll
 		batchSize:  collection.BatchSize(),
 	}
 	maw.consumerChan = make(chan []mongo.WriteModel, consumerChanSize)
-	maw.backgroundWriter(ctx)
+	maw.startBackgroundWriter(ctx)
 	return &maw
 }
 
-// backgroundWriter starts a background go routine
-func (maw *MongoAsyncWriter) backgroundWriter(ctx context.Context) {
+// startBackgroundWriter starts a background go routine
+func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 	go func() {
 		for {
 			select {
@@ -75,12 +75,12 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 
 // Queue add a model to an asynchronous write queue. Non-blocking.
 func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
+	maw.ops = append(maw.ops, mongo.NewInsertOneModel().SetDocument(model))
 	if len(maw.ops) > maw.batchSize {
 		maw.consumerChan <- maw.ops
 		// cleanup the ops array after we have copied it to the channel
 		maw.ops = nil
 	}
-	maw.ops = append(maw.ops, mongo.NewInsertOneModel().SetDocument(model))
 	return nil
 }
 

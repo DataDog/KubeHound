@@ -12,15 +12,12 @@ import (
 
 var _ AsyncVertexWriter = (*JanusGraphAsyncVertexWriter)(nil)
 
-// type GremlinTraversalVertex func(*gremlingo.GraphTraversalSource, []any) *gremlingo.GraphTraversal
-// type GremlinTraversalEdge func(*gremlingo.GraphTraversalSource, []any) *gremlingo.GraphTraversal
-
 type JanusGraphAsyncVertexWriter struct {
 	gremlin              vertex.VertexTraversal
 	transaction          *gremlingo.Transaction
 	traversalSource      *gremlingo.GraphTraversalSource
-	inserts              []any
-	consumerChan         chan []any
+	inserts              []vertex.TraversalInput
+	consumerChan         chan []vertex.TraversalInput
 	writingInFligth      sync.WaitGroup
 	batchSize            int
 	mu                   sync.Mutex
@@ -49,18 +46,18 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRe
 
 	jw := JanusGraphAsyncVertexWriter{
 		gremlin:         v.Traversal(),
-		inserts:         make([]interface{}, 0),
+		inserts:         make([]vertex.TraversalInput, 0, v.BatchSize()),
 		transaction:     tx,
 		traversalSource: source,
 		batchSize:       v.BatchSize(),
-		consumerChan:    make(chan []any, v.BatchSize()*channelSizeBatchFactor),
+		consumerChan:    make(chan []vertex.TraversalInput, v.BatchSize()*channelSizeBatchFactor),
 	}
-	jw.backgroundWriter(ctx)
+	jw.startBackgroundWriter(ctx)
 	return &jw, nil
 }
 
-// backgroundWriter starts a background go routine
-func (jgv *JanusGraphAsyncVertexWriter) backgroundWriter(ctx context.Context) {
+// startBackgroundWriter starts a background go routine
+func (jgv *JanusGraphAsyncVertexWriter) startBackgroundWriter(ctx context.Context) {
 	go func() {
 		for {
 			select {
@@ -69,6 +66,7 @@ func (jgv *JanusGraphAsyncVertexWriter) backgroundWriter(ctx context.Context) {
 				if data == nil {
 					return
 				}
+				jgv.writingInFligth.Add(1)
 				err := jgv.batchWrite(ctx, data)
 				if err != nil {
 					log.I.Errorf("failed to write data in background batch writer: %v", err)
@@ -81,16 +79,15 @@ func (jgv *JanusGraphAsyncVertexWriter) backgroundWriter(ctx context.Context) {
 	}()
 }
 
-func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []any) error {
+func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []vertex.TraversalInput) error {
 	log.I.Debugf("batch write JanusGraphAsyncVertexWriter with %d elements", len(data))
-	jgv.writingInFligth.Add(1)
 	defer jgv.writingInFligth.Done()
 
-	convertedToTraversalInput := make([]vertex.TraversalInput, 0)
-	for _, d := range data {
-		convertedToTraversalInput = append(convertedToTraversalInput, d.(vertex.TraversalInput))
-	}
-	op := jgv.gremlin(jgv.traversalSource, convertedToTraversalInput)
+	// convertedToTraversalInput := make([]vertex.TraversalInput, 0)
+	// for _, d := range data {
+	// 	convertedToTraversalInput = append(convertedToTraversalInput, d.(vertex.TraversalInput))
+	// }
+	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()
 	err := <-promise
 	if err != nil {
@@ -110,52 +107,57 @@ func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []a
 	return nil
 }
 
-func (v *JanusGraphAsyncVertexWriter) Close(ctx context.Context) error {
-	if v.isTransactionEnabled {
-		return v.transaction.Close()
+func (jgv *JanusGraphAsyncVertexWriter) Close(ctx context.Context) error {
+	if jgv.isTransactionEnabled {
+		return jgv.transaction.Close()
 	}
 	return nil
 }
 
-func (v *JanusGraphAsyncVertexWriter) Flush(ctx context.Context) error {
-	v.mu.Lock()
-	defer v.mu.Unlock()
+// Flush triggers writes of any remaining items in the queue.
+// This is blocking
+func (jgv *JanusGraphAsyncVertexWriter) Flush(ctx context.Context) error {
+	jgv.mu.Lock()
+	defer jgv.mu.Unlock()
 
-	if v.traversalSource == nil {
+	if jgv.traversalSource == nil {
 		return errors.New("JanusGraph traversalSource is not initialized")
 	}
 
-	if len(v.inserts) == 0 {
+	if len(jgv.inserts) == 0 {
 		log.I.Debugf("Skipping flush on vertex writer as no write operations left")
 		// we need to send something to the channel from this function whenever we don't return an error
 		// we cannot defer it because the go routine may last longer than the current function
 		// the defer is going to be executed at the return time, whetever or not the inner go routine is processing data
-		v.writingInFligth.Wait()
+		jgv.writingInFligth.Wait()
 		return nil
 	}
 
-	err := v.batchWrite(ctx, v.inserts)
+	jgv.writingInFligth.Add(1)
+	err := jgv.batchWrite(ctx, jgv.inserts)
 	if err != nil {
 		log.I.Errorf("Failed to batch write vertex: %+v", err)
-		v.writingInFligth.Wait()
+		jgv.writingInFligth.Wait()
 		return err
 	}
 	log.I.Info("Done flushing vertices, clearing the queue")
-	v.inserts = nil
+	jgv.inserts = nil
 
 	return nil
 }
 
-func (vw *JanusGraphAsyncVertexWriter) Queue(ctx context.Context, vertex any) error {
-	vw.mu.Lock()
-	defer vw.mu.Unlock()
-	if len(vw.inserts) > vw.batchSize {
-		copied := make([]any, len(vw.inserts))
-		copy(copied, vw.inserts)
-		vw.consumerChan <- copied
+func (jgv *JanusGraphAsyncVertexWriter) Queue(ctx context.Context, v any) error {
+	jgv.mu.Lock()
+	defer jgv.mu.Unlock()
+
+	jgv.inserts = append(jgv.inserts, v)
+	if len(jgv.inserts) > jgv.batchSize {
+		var copied []vertex.TraversalInput
+		copied = make([]vertex.TraversalInput, len(jgv.inserts))
+		copy(copied, jgv.inserts)
+		jgv.consumerChan <- copied
 		// cleanup the ops array after we have copied it to the channel
-		vw.inserts = nil
+		jgv.inserts = nil
 	}
-	vw.inserts = append(vw.inserts, vertex)
 	return nil
 }
