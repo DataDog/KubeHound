@@ -13,15 +13,13 @@ import (
 var _ AsyncVertexWriter = (*JanusGraphAsyncVertexWriter)(nil)
 
 type JanusGraphAsyncVertexWriter struct {
-	gremlin              vertex.VertexTraversal
-	transaction          *gremlingo.Transaction
-	traversalSource      *gremlingo.GraphTraversalSource
-	inserts              []vertex.TraversalInput
-	consumerChan         chan []vertex.TraversalInput
-	writingInFligth      sync.WaitGroup
-	batchSize            int
-	mu                   sync.Mutex
-	isTransactionEnabled bool
+	gremlin         vertex.VertexTraversal
+	traversalSource *gremlingo.GraphTraversalSource
+	inserts         []vertex.TraversalInput
+	consumerChan    chan []vertex.TraversalInput
+	writingInFligth sync.WaitGroup
+	batchSize       int
+	mu              sync.Mutex
 }
 
 func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRemoteConnection, v vertex.Builder, opts ...WriterOption) (*JanusGraphAsyncVertexWriter, error) {
@@ -32,22 +30,9 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRe
 	}
 
 	source := gremlingo.Traversal_().WithRemote(drc)
-	// quick switch to enable / disable transaction
-	var tx *gremlingo.Transaction
-	if options.isTransactionEnabled {
-		log.I.Info("GraphDB transaction enabled!")
-		tx = source.Tx()
-		var err error
-		source, err = tx.Begin()
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	jw := JanusGraphAsyncVertexWriter{
 		gremlin:         v.Traversal(),
 		inserts:         make([]vertex.TraversalInput, 0, v.BatchSize()),
-		transaction:     tx,
 		traversalSource: source,
 		batchSize:       v.BatchSize(),
 		consumerChan:    make(chan []vertex.TraversalInput, v.BatchSize()*channelSizeBatchFactor),
@@ -91,26 +76,12 @@ func (jgv *JanusGraphAsyncVertexWriter) batchWrite(ctx context.Context, data []v
 	promise := op.Iterate()
 	err := <-promise
 	if err != nil {
-		if jgv.isTransactionEnabled {
-			jgv.transaction.Rollback()
-		}
 		return err
-	}
-	if jgv.isTransactionEnabled {
-		log.I.Infof("commiting work")
-		err = jgv.transaction.Commit()
-		if err != nil {
-			log.I.Errorf("failed to commit: %+v", err)
-			return err
-		}
 	}
 	return nil
 }
 
 func (jgv *JanusGraphAsyncVertexWriter) Close(ctx context.Context) error {
-	if jgv.isTransactionEnabled {
-		return jgv.transaction.Close()
-	}
 	return nil
 }
 

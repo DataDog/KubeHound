@@ -13,15 +13,13 @@ import (
 var _ AsyncEdgeWriter = (*JanusGraphAsyncEdgeWriter)(nil)
 
 type JanusGraphAsyncEdgeWriter struct {
-	gremlin              edge.EdgeTraversal
-	transaction          *gremlingo.Transaction
-	traversalSource      *gremlingo.GraphTraversalSource
-	inserts              []any
-	consumerChan         chan []any
-	writingInFligth      sync.WaitGroup
-	batchSize            int
-	mu                   sync.Mutex
-	isTransactionEnabled bool
+	gremlin         edge.EdgeTraversal
+	traversalSource *gremlingo.GraphTraversalSource
+	inserts         []any
+	consumerChan    chan []any
+	writingInFligth sync.WaitGroup
+	batchSize       int
+	mu              sync.Mutex
 }
 
 func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemoteConnection, e edge.Builder, opts ...WriterOption) (*JanusGraphAsyncEdgeWriter, error) {
@@ -32,23 +30,11 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 	}
 
 	source := gremlingo.Traversal_().WithRemote(drc)
-	// quick switch to enable / disable transaction
-	var tx *gremlingo.Transaction
-	if options.isTransactionEnabled {
-		log.I.Info("GraphDB transaction enabled!")
-		tx = source.Tx()
-		var err error
-		source, err = tx.Begin()
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	jw := JanusGraphAsyncEdgeWriter{
 		gremlin:         e.Traversal(),
 		inserts:         make([]any, 0, e.BatchSize()),
 		traversalSource: source,
-		transaction:     tx,
 		batchSize:       e.BatchSize(),
 		consumerChan:    make(chan []any, e.BatchSize()*channelSizeBatchFactor),
 	}
@@ -95,26 +81,13 @@ func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []any
 	promise := op.Iterate()
 	err := <-promise
 	if err != nil {
-		if jge.isTransactionEnabled {
-			jge.transaction.Rollback()
-		}
 		return err
 	}
 
-	if jge.isTransactionEnabled {
-		err = jge.transaction.Commit()
-		if err != nil {
-			log.I.Errorf("failed to commit: %+v", err)
-			return err
-		}
-	}
 	return nil
 }
 
 func (jge *JanusGraphAsyncEdgeWriter) Close(ctx context.Context) error {
-	if jge.isTransactionEnabled {
-		return jge.transaction.Close()
-	}
 	return nil
 }
 
