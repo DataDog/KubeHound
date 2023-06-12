@@ -7,24 +7,21 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/tracer"
 )
 
-type TelemetryClient struct {
-}
-
 // Initialize all telemetry required
 // return client to enable clean shutdown
-func Initialize(cfg *config.KubehoundConfig) (*TelemetryClient, error) {
+func Initialize(cfg *config.KubehoundConfig) error {
 	//Tracing
 	tracer.Initialize(cfg)
 	// Metrics
 	err := statsd.Setup(cfg.Telemetry.Statsd.URL)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return nil, nil
+	return nil
 }
 
-func (t *TelemetryClient) Shutdown() {
+func Shutdown() {
 	//Tracing
 	tracer.Shutdown()
 	// Metrics
