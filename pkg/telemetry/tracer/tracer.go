@@ -11,7 +11,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 		tracer.WithEnv(globals.DDEnv),
 		tracer.WithService(globals.DDServiceName),
 		tracer.WithServiceVersion(config.BuildVersion),
-		tracer.WithAgentAddr(cfg.Tracer.URL),
+		tracer.WithAgentAddr(cfg.Telemetry.Tracer.URL),
 	)
 }
 
