@@ -17,7 +17,7 @@ type JanusGraphAsyncVertexWriter struct {
 	traversalSource *gremlingo.GraphTraversalSource
 	inserts         []vertex.TraversalInput
 	consumerChan    chan []vertex.TraversalInput
-	writingInFlight sync.WaitGroup
+	writingInFlight *sync.WaitGroup
 	batchSize       int
 	mu              sync.Mutex
 }

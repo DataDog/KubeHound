@@ -17,7 +17,7 @@ type JanusGraphAsyncEdgeWriter struct {
 	traversalSource *gremlingo.GraphTraversalSource
 	inserts         []edge.TraversalInput
 	consumerChan    chan []edge.TraversalInput
-	writingInFlight sync.WaitGroup
+	writingInFlight *sync.WaitGroup
 	batchSize       int
 	mu              sync.Mutex
 }
