@@ -46,18 +46,18 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 
 	jw := JanusGraphAsyncEdgeWriter{
 		gremlin:         e.Traversal(),
-		inserts:         make([]any, 0),
+		inserts:         make([]any, 0, e.BatchSize()),
 		traversalSource: source,
 		transaction:     tx,
 		batchSize:       e.BatchSize(),
 		consumerChan:    make(chan []any, e.BatchSize()*channelSizeBatchFactor),
 	}
-	jw.backgroundWriter(ctx)
+	jw.startBackgroundWriter(ctx)
 	return &jw, nil
 }
 
-// backgroundWriter starts a background go routine
-func (jge *JanusGraphAsyncEdgeWriter) backgroundWriter(ctx context.Context) {
+// startBackgroundWriter starts a background go routine
+func (jge *JanusGraphAsyncEdgeWriter) startBackgroundWriter(ctx context.Context) {
 	go func() {
 		for {
 			select {
@@ -66,6 +66,7 @@ func (jge *JanusGraphAsyncEdgeWriter) backgroundWriter(ctx context.Context) {
 				if data == nil {
 					return
 				}
+				jge.writingInFligth.Add(1)
 				err := jge.batchWrite(ctx, data)
 				if err != nil {
 					log.I.Errorf("failed to write data in background batch writer: %v", err)
@@ -80,7 +81,6 @@ func (jge *JanusGraphAsyncEdgeWriter) backgroundWriter(ctx context.Context) {
 
 func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []any) error {
 	log.I.Debugf("batch write JanusGraphAsyncEdgeWriter with %d elements", len(data))
-	jge.writingInFligth.Add(1)
 	defer jge.writingInFligth.Done()
 
 	// This seems ~pointless BUT is required to have the ability to use edge.TraversalInput/vertex.TraversalInput
@@ -111,51 +111,54 @@ func (jge *JanusGraphAsyncEdgeWriter) batchWrite(ctx context.Context, data []any
 	return nil
 }
 
-func (e *JanusGraphAsyncEdgeWriter) Close(ctx context.Context) error {
-	if e.isTransactionEnabled {
-		return e.transaction.Close()
+func (jge *JanusGraphAsyncEdgeWriter) Close(ctx context.Context) error {
+	if jge.isTransactionEnabled {
+		return jge.transaction.Close()
 	}
 	return nil
 }
 
-func (e *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
+func (jge *JanusGraphAsyncEdgeWriter) Flush(ctx context.Context) error {
+	jge.mu.Lock()
+	defer jge.mu.Unlock()
 
-	if e.traversalSource == nil {
+	if jge.traversalSource == nil {
 		return errors.New("JanusGraph traversalSource is not initialized")
 	}
 
-	if len(e.inserts) == 0 {
+	if len(jge.inserts) == 0 {
 		log.I.Debugf("Skipping flush on edges writer as no write operations left")
 		// we need to send something to the channel from this function whenever we don't return an error
 		// we cannot defer it because the go routine may last longer than the current function
 		// the defer is going to be executed at the return time, whetever or not the inner go routine is processing data
-		e.writingInFligth.Wait()
+		jge.writingInFligth.Wait()
 		return nil
 	}
-	err := e.batchWrite(ctx, e.inserts)
+
+	jge.writingInFligth.Add(1)
+	err := jge.batchWrite(ctx, jge.inserts)
 	if err != nil {
 		log.I.Errorf("Failed to batch write edge: %+v", err)
-		e.writingInFligth.Wait()
+		jge.writingInFligth.Wait()
 		return err
 	}
 	log.I.Info("Done flushing edges, clearing the queue")
-	e.inserts = nil
+	jge.inserts = nil
 
 	return nil
 }
 
-func (e *JanusGraphAsyncEdgeWriter) Queue(ctx context.Context, edge any) error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	if len(e.inserts) > e.batchSize {
-		copied := make([]any, len(e.inserts))
-		copy(copied, e.inserts)
-		e.consumerChan <- copied
+func (jge *JanusGraphAsyncEdgeWriter) Queue(ctx context.Context, edge any) error {
+	jge.mu.Lock()
+	defer jge.mu.Unlock()
+
+	jge.inserts = append(jge.inserts, edge)
+	if len(jge.inserts) > jge.batchSize {
+		copied := make([]any, len(jge.inserts))
+		copy(copied, jge.inserts)
+		jge.consumerChan <- copied
 		// cleanup the ops array after we have copied it to the channel
-		e.inserts = nil
+		jge.inserts = nil
 	}
-	e.inserts = append(e.inserts, edge)
 	return nil
 }
