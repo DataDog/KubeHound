@@ -14,8 +14,10 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -63,10 +65,15 @@ func (v TokenSteal) BatchSize() int {
 
 func (v TokenSteal) Traversal() Traversal {
 	return func(g *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+		for _, i := range inserts {
+			ts := i.(*tokenStealPath)
+			log.I.Infof("inserting %#v", ts)
+		}
+
 		// TODO create the token vertex
 		// TODO create a TOKEN_STEAL edge between the volume and the new token
 		// TODO create an IDENTITY_ASSUME edge between the token and the associated identity
-		return nil
+		return g.Inject(0)
 	}
 }
 
@@ -79,7 +86,7 @@ func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 	// service account token are all deeply nested arrays so matching on the naming convention is the simplest/fastest match
 	filter := bson.M{
 		"source.volumesource.projected": bson.M{"$exists": true, "$ne": "null"},
-		"source.name":                   bson.M{"$regex": "/^kube-api-access/"},
+		"source.name":                   bson.M{"$regex": primitive.Regex{Pattern: "^kube-api-access"}},
 	}
 
 	// Find the volume and associated pod namespace and service account.
@@ -110,6 +117,7 @@ func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 		{
 			"$project": bson.M{
 				"volume.pod": 0,
+				"_id":        0,
 			},
 		},
 	}

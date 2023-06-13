@@ -54,10 +54,10 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 	graphdb graphdb.Provider, cache cache.CacheReader) error {
 
 	log.I.Info("Loading graph edge definitions")
-	edges := edge.Registry()
+	edges := edge.Registered()
 
 	log.I.Info("Loading graph path definitions")
-	paths := path.Registry()
+	paths := path.Registered()
 
 	log.I.Info("Loading graph builder")
 	builder, err := graph.NewBuilder(cfg, storedb, graphdb, cache, edges, paths)

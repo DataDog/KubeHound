@@ -6,17 +6,17 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
-// EdgeRegistry holds details of edges (i.e attacks) registered in KubeHound.
-type EdgeRegistry map[string]Builder
+// Registry holds details of edges (i.e attacks) registered in KubeHound.
+type Registry map[string]Builder
 
 // EdgeRegistry singleton support
-var registryInstance EdgeRegistry
+var registryInstance Registry
 var erOnce sync.Once
 
-// Registry returns the EdgeRegistry singleton.
-func Registry() EdgeRegistry {
+// Registered returns the edge registry singleton.
+func Registered() Registry {
 	erOnce.Do(func() {
-		registryInstance = make(EdgeRegistry)
+		registryInstance = make(Registry)
 	})
 
 	return registryInstance
@@ -25,5 +25,5 @@ func Registry() EdgeRegistry {
 // Register loads the provided edge into the registry.
 func Register(edge Builder) {
 	log.I.Infof("Registering edge %s", edge.Label())
-	Registry()[edge.Label()] = edge
+	Registered()[edge.Label()] = edge
 }

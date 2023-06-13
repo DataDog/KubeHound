@@ -6,7 +6,6 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -24,13 +23,13 @@ type Builder struct {
 	storedb storedb.Provider
 	graphdb graphdb.Provider
 	cache   cache.CacheReader
-	edges   edge.EdgeRegistry
-	paths   path.PathRegistry
+	edges   edge.Registry
+	paths   path.Registry
 }
 
 // NewBuilder returns a new builder instance from the provided application config and service dependencies.
 func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider, graph graphdb.Provider,
-	cache cache.CacheReader, edges edge.EdgeRegistry, paths path.PathRegistry) (*Builder, error) {
+	cache cache.CacheReader, edges edge.Registry, paths path.Registry) (*Builder, error) {
 
 	n := &Builder{
 		cfg:     cfg,
@@ -61,15 +60,7 @@ func (b *Builder) buildPath(ctx context.Context, p path.Builder) error {
 
 	err = p.Stream(ctx, b.storedb, b.cache,
 		func(ctx context.Context, entry types.DataContainer) error {
-			processed, err := adapter.GremlinProcessor(entry)
-			// TODO option for skip write if signalled by processor
-
-			if err != nil {
-				// TODO tolerate errors
-				return err
-			}
-
-			return w.Queue(ctx, processed)
+			return w.Queue(ctx, entry)
 
 		},
 		func(ctx context.Context) error {
@@ -91,16 +82,7 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 
 	err = e.Stream(ctx, b.storedb, b.cache,
 		func(ctx context.Context, entry types.DataContainer) error {
-			processed, err := adapter.GremlinProcessor(entry)
-			// TODO option for skip write if signalled by processor
-
-			if err != nil {
-				// TODO tolerate errors
-				return err
-			}
-
-			return w.Queue(ctx, processed)
-
+			return w.Queue(ctx, entry)
 		},
 		func(ctx context.Context) error {
 			return w.Flush(ctx)

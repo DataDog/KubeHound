@@ -6,18 +6,18 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
-// PathRegistry holds details of paths registered in KubeHound to be constructed via
+// Registry holds details of paths registered in KubeHound to be constructed via
 // store queries (not directly via pipeline ingest).
-type PathRegistry map[string]Builder
+type Registry map[string]Builder
 
 // PathRegistry singleton support.
-var registryInstance PathRegistry
+var registryInstance Registry
 var erOnce sync.Once
 
-// Registry returns the VertexRegistry singleton.
-func Registry() PathRegistry {
+// Registered returns the path registry singleton.
+func Registered() Registry {
 	erOnce.Do(func() {
-		registryInstance = make(PathRegistry)
+		registryInstance = make(Registry)
 	})
 
 	return registryInstance
@@ -26,5 +26,5 @@ func Registry() PathRegistry {
 // Register loads the provided path into the registry.
 func Register(path Builder) {
 	log.I.Infof("Registering path %s", path.Label())
-	Registry()[path.Label()] = path
+	Registered()[path.Label()] = path
 }
