@@ -14,7 +14,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -64,16 +63,44 @@ func (v TokenSteal) BatchSize() int {
 }
 
 func (v TokenSteal) Traversal() Traversal {
-	return func(g *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+		g := source.GetGraphTraversal()
+
 		for _, i := range inserts {
+			// Create the path from the provided inputs
+			// (Volume)-[TOKEN_STEAL]->(Token)-[IDENTITY_ASSUME]->(Identity)
 			ts := i.(*tokenStealPath)
-			log.I.Infof("inserting %#v", ts)
+
+			// Create a new token vertex
+			g = g.AddV(tokenVertexLabel).
+				Property("name", ts.Vertex.Name).
+				Property("namespace", ts.Vertex.Namespace).
+				Property("type", ts.Vertex.Type).
+				Property("identity", ts.Vertex.Identity).
+				Property("compromised", int(ts.Vertex.Compromised)).
+				Property("critical", ts.Vertex.Critical).
+				As("token")
+
+			// Create the TOKEN_STEAL edge between an existing volume and the new token
+			g = g.V().
+				HasLabel(volumeVertexLabel).
+				Has("storeID", ts.VolumeId).
+				As("volume").
+				AddE(tokenStealLabel).
+				From("volume").
+				To("token")
+
+			// Create the IDENTITY_ASSUME edge between the new token and an existing identity
+			g = g.V().
+				HasLabel(identityVertexLabel).
+				Has("storeID", ts.IdentityId).
+				As("identity").
+				AddE(identityAssumeLabel).
+				From("token").
+				To("identity")
 		}
 
-		// TODO create the token vertex
-		// TODO create a TOKEN_STEAL edge between the volume and the new token
-		// TODO create an IDENTITY_ASSUME edge between the token and the associated identity
-		return g.Inject(0)
+		return g
 	}
 }
 
@@ -90,7 +117,6 @@ func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 	}
 
 	// Find the volume and associated pod namespace and service account.
-	// db.volumes.aggregate([ { $match: { "source.volumesource.projected": { $exists: true, $ne: null }, "source.name": { $regex: /^kube-api-access/ } } }, { $lookup: { from: "pods", localField: "pod_id", foreignField: "_id", as: "pod" } }, { $project: { namespace: { $first: "$pod.k8.objectmeta.namespace" }, serviceaccount: { $first: "$pod.k8.spec.serviceaccountname" }, volume: "$$ROOT" } }, { $project: { "volume.pod":  0 } }] )
 	pipeline := []bson.M{
 		{
 			"$match": filter,
