@@ -1,4 +1,4 @@
-package cache
+package cachekey
 
 const (
 	nodeCacheName = "k8s-node"
@@ -10,13 +10,13 @@ type nodeCacheKey struct {
 
 var _ CacheKey = (*nodeCacheKey)(nil) // Ensure interface compliance
 
-func NodeKey(nodeName string) *nodeCacheKey {
+func Node(nodeName string) *nodeCacheKey {
 	return &nodeCacheKey{
 		nodeName: nodeName,
 	}
 }
 
-func (k *nodeCacheKey) Namespace() string {
+func (k *nodeCacheKey) Shard() string {
 	return nodeCacheName
 }
 

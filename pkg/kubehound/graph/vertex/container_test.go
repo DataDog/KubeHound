@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +15,7 @@ func TestContainer_Traversal(t *testing.T) {
 
 	tests := []struct {
 		name string
-		want VertexTraversal
+		want Traversal
 		data graph.Container
 	}{
 		{
@@ -52,7 +53,7 @@ func TestContainer_Traversal(t *testing.T) {
 			g := gremlingo.GraphTraversalSource{}
 
 			vertexTraversal := v.Traversal()
-			inserts := []TraversalInput{&tt.data}
+			inserts := []types.TraversalInput{&tt.data}
 
 			traversal := vertexTraversal(&g, inserts)
 			// This is ugly but doesn't need to write to the DB

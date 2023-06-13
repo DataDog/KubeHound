@@ -36,10 +36,10 @@ type resourceOptions struct {
 type IngestResourceOption func(ctx context.Context, oic *resourceOptions, deps *Dependencies) error
 
 // WithCacheWriter initializes a cache writer (and registers a cleanup function) for the ingest pipeline.
-func WithCacheWriter() IngestResourceOption {
+func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		var err error
-		rOpts.cacheWriter, err = deps.Cache.BulkWriter(ctx)
+		rOpts.cacheWriter, err = deps.Cache.BulkWriter(ctx, opts...)
 		if err != nil {
 			return err
 		}

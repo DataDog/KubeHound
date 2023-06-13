@@ -37,7 +37,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 
 	// Cache setup
 	c := cache.NewCacheProvider(t)
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cache.roleCacheKey")).Return(store.ObjectID().Hex(), nil)
+	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.roleCacheKey")).Return(store.ObjectID().Hex(), nil)
 
 	// Store setup -  rolebindings
 	sdb := storedb.NewProvider(t)

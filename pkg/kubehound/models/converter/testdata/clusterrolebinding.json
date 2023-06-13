@@ -5,8 +5,7 @@
         "annotations": {
         },
         "creationTimestamp": "2021-06-16T18:30:44Z",
-        "name": "app-monitors-read",
-        "namespace": "test-app"
+        "name": "app-monitors-read"
     },
     "roleRef": {
         "apiGroup": "rbac.authorization.k8s.io",

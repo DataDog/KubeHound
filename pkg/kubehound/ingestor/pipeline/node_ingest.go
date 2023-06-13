@@ -5,7 +5,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
@@ -57,7 +57,7 @@ func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error 
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cache.NodeKey(o.K8.Name), o.Id.Hex()); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cachekey.Node(o.K8.Name), o.Id.Hex()); err != nil {
 		return err
 	}
 

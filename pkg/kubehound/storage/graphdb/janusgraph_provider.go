@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
@@ -89,6 +90,11 @@ func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builde
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
 func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error) {
 	return NewJanusGraphAsyncEdgeWriter(ctx, jgp.client, e, opts...)
+}
+
+// PathWriter creates a new AsyncPathWriter instance to enable asynchronous bulk inserts of paths.
+func (jgp *JanusGraphProvider) PathWriter(ctx context.Context, p path.Builder, opts ...WriterOption) (AsyncPathWriter, error) {
+	return NewJanusGraphAsyncPathWriter(ctx, jgp.client, p, opts...)
 }
 
 // Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.
