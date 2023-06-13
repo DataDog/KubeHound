@@ -10,7 +10,7 @@ import (
 )
 
 func fakeCacheBuilder(ctx context.Context, cacheSize int) (*MemCacheProvider, map[cachekey.CacheKey]string) {
-	fakeProvider, _ := NewCacheProvider(ctx)
+	fakeProvider, _ := NewMemCacheProvider(ctx)
 
 	fakeCache := make(map[cachekey.CacheKey]string, cacheSize)
 
@@ -87,7 +87,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 	ctx := context.Background()
 
 	// Standard write
-	fakeProvider1, _ := NewCacheProvider(ctx)
+	fakeProvider1, _ := NewMemCacheProvider(ctx)
 	fakeCache1 := map[cachekey.CacheKey]string{
 		cachekey.Container("testPod1", "container1", "test"): "qwerty",
 		cachekey.Container("testPod2", "container2", "test"): "asdfgh",
@@ -99,6 +99,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 
 	type fields struct {
 		MemCacheProvider MemCacheProvider
+		Opts             *writerOptions
 	}
 	type args struct {
 		ctx       context.Context
@@ -114,6 +115,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 			name: "Test retrieving element from cache",
 			fields: fields{
 				MemCacheProvider: *fakeProvider1,
+				Opts:             &writerOptions{},
 			},
 			args: args{
 				fakeCache: fakeCache1,
@@ -125,6 +127,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 			name: "Already present in cache",
 			fields: fields{
 				MemCacheProvider: *fakeProvider2,
+				Opts:             &writerOptions{},
 			},
 			args: args{
 				fakeCache: fakeCache2,
@@ -132,12 +135,26 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Already present in cache",
+			fields: fields{
+				MemCacheProvider: *fakeProvider2,
+				Opts:             &writerOptions{Test: true},
+			},
+			args: args{
+				fakeCache: fakeCache2,
+				ctx:       ctx,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			m := &MemCacheAsyncWriter{
-				MemCacheProvider: tt.fields.MemCacheProvider,
+				data: tt.fields.MemCacheProvider.data,
+				mu:   tt.fields.MemCacheProvider.mu,
+				opts: tt.fields.Opts,
 			}
 
 			for key, val := range tt.args.fakeCache {
@@ -145,7 +162,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 					t.Errorf("MemCacheAsyncWriter.Queue() error = %v, wantErr %v", err, tt.wantErr)
 				}
 
-				got, err := m.Get(tt.args.ctx, key)
+				got, err := tt.fields.MemCacheProvider.Get(tt.args.ctx, key)
 				if err != nil {
 					t.Errorf("MemCacheProvider.Get() error = %v", err)
 					return

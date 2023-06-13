@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 type MemCacheProvider struct {
@@ -15,8 +14,8 @@ type MemCacheProvider struct {
 	mu   *sync.RWMutex
 }
 
-func NewCacheProvider(ctx context.Context) (*MemCacheProvider, error) {
-
+// NewMemCacheProvider returns a new cache provider based on a simple in-memory map.
+func NewMemCacheProvider(ctx context.Context) (*MemCacheProvider, error) {
 	var mu sync.RWMutex
 	cacheProvider := &MemCacheProvider{
 		data: make(map[string]string),
@@ -24,6 +23,11 @@ func NewCacheProvider(ctx context.Context) (*MemCacheProvider, error) {
 	}
 
 	return cacheProvider, nil
+}
+
+// computeKey transforms the cachekey input into a string value to use as a key in the underlying map.
+func computeKey(cacheKey cachekey.CacheKey) string {
+	return fmt.Sprintf("%s##%s", cacheKey.Shard(), cacheKey.Key())
 }
 
 func (mp *MemCacheProvider) Name() string {
@@ -39,16 +43,12 @@ func (m *MemCacheProvider) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (m *MemCacheProvider) GetKeyName(cacheKey cachekey.CacheKey) string {
-	return fmt.Sprintf("%s##%s", cacheKey.Shard(), cacheKey.Key())
-}
-
 func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
 	var err error
-	data, ok := m.data[m.GetKeyName(key)]
+	data, ok := m.data[computeKey(key)]
 	if !ok {
 		err = errors.New("entry not found in cache")
 	}
@@ -56,36 +56,17 @@ func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) (stri
 	return data, err
 }
 
-func (m *MemCacheProvider) BulkWriter(ctx context.Context) (AsyncWriter, error) {
+func (m *MemCacheProvider) BulkWriter(ctx context.Context, opts ...WriterOption) (AsyncWriter, error) {
 	memCacheWriter := &MemCacheAsyncWriter{}
 	memCacheWriter.data = m.data
 	memCacheWriter.mu = m.mu
-	return memCacheWriter, nil
-}
 
-type MemCacheAsyncWriter struct {
-	MemCacheProvider
-}
-
-func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, value string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	keyId := m.GetKeyName(key)
-	_, ok := m.data[keyId]
-	if ok {
-		log.I.Warnf("overwriting cache entry: [key]%s", keyId)
+	wOpts := &writerOptions{}
+	for _, o := range opts {
+		o(wOpts)
 	}
-	m.data[keyId] = value
-	return nil
-}
 
-func (m *MemCacheAsyncWriter) Flush(ctx context.Context) error {
-	m.Close(ctx)
-	return nil
-}
+	memCacheWriter.opts = wOpts
 
-func (m *MemCacheAsyncWriter) Close(ctx context.Context) error {
-	m.MemCacheProvider.Close(ctx)
-	return nil
+	return memCacheWriter, nil
 }

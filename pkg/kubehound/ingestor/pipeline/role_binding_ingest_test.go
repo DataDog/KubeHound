@@ -60,7 +60,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	isw.EXPECT().Flush(ctx).Return(nil)
 	isw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, identities).Return(isw, nil)
-	c.EXPECT().BulkWriter(ctx).Return(csw, nil)
+	c.EXPECT().BulkWriter(ctx, mock.AnythingOfType("cache.WriterOption")).Return(csw, nil)
 
 	// Graph setup
 	gdb := graphdb.NewProvider(t)

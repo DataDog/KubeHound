@@ -6,8 +6,10 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 const (
@@ -35,7 +37,7 @@ func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) 
 	i.rolebinding = collections.RoleBinding{}
 
 	i.r, err = CreateResources(ctx, deps,
-		WithCacheWriter(),
+		WithCacheWriter(cache.WithTest()),
 		WithConverterCache(),
 		WithStoreWriter(i.identity),
 		WithStoreWriter(i.rolebinding),
@@ -48,6 +50,10 @@ func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) 
 }
 
 // processSubject will handle the ingestion pipeline for a role binding subject belonging to a processed K8s role binding input.
+// We create identities via indirectly accessing role binding subjects rather than direct access (e.g k get serviceAccounts -A -o json)
+// as this is the only way to discover non-serviceaccount users. However, this can create duplicate entries so lookup in cache before
+// writing to the store via an atomic test and set operation.
+// See reference: https://stackoverflow.com/questions/69932281/kubectl-command-to-return-a-list-of-all-user-accounts-from-kubernetes
 func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.BindSubject) error {
 	// Normalize K8s bind subject to store identity object format
 	sid, err := i.r.storeConvert.Identity(ctx, subj)
@@ -55,13 +61,21 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 		return err
 	}
 
-	// Async write identity to store
-	if err := i.r.storeWriter(i.identity).Queue(ctx, sid); err != nil {
+	// Async write to cache. If entry is already present skip further processing.
+	ck := cachekey.Identity(sid.Name, sid.Namespace)
+	err = i.r.cacheWriter.Queue(ctx, ck, sid.Id.Hex())
+	switch err {
+	case cache.ErrCacheEntryOverwrite:
+		log.I.Debugf("identity cache entry %#v already exists, skipping inserts", ck)
+		return nil
+	case nil:
+		// NOP
+	default:
 		return err
 	}
 
-	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cachekey.Identity(sid.Name, sid.Namespace), sid.Id.Hex()); err != nil {
+	// Async write identity to store
+	if err := i.r.storeWriter(i.identity).Queue(ctx, sid); err != nil {
 		return err
 	}
 

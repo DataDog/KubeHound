@@ -33,7 +33,7 @@ type CacheProvider interface {
 	CacheReader
 
 	// BulkWriter creates a new AsyncWriter instance to enable asynchronous bulk inserts.
-	BulkWriter(ctx context.Context) (AsyncWriter, error)
+	BulkWriter(ctx context.Context, opts ...WriterOption) (AsyncWriter, error)
 }
 
 // AysncWriter defines the interface for writer clients to queue aysnchronous, batched writes to the cache.
@@ -52,7 +52,7 @@ type AsyncWriter interface {
 
 // Factory returns an initialized instance of a cache provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (CacheProvider, error) {
-	provider, err := NewCacheProvider(ctx)
+	provider, err := NewMemCacheProvider(ctx)
 	if err != nil {
 		return nil, err
 	}

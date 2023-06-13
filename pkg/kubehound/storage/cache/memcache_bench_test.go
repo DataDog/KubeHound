@@ -30,7 +30,7 @@ func BenchmarkWrite(b *testing.B) {
 	for k := 10.; k <= 20; k++ {
 		n := int(math.Pow(2, k))
 		b.Run(fmt.Sprintf("%d", n), func(b *testing.B) {
-			fakeProvider, _ := NewCacheProvider(ctx)
+			fakeProvider, _ := NewMemCacheProvider(ctx)
 			fakeCacheWriter, _ := fakeProvider.BulkWriter(ctx)
 			for i := 0; i < b.N*n; i++ {
 

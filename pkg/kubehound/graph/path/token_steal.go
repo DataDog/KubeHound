@@ -56,7 +56,7 @@ type TokenSteal struct {
 }
 
 func (v TokenSteal) Label() string {
-	return tokenStealLabel
+	return tokenStealPathLabel
 }
 
 func (v TokenSteal) BatchSize() int {
