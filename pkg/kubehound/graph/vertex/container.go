@@ -1,6 +1,7 @@
 package vertex
 
 import (
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 )
@@ -22,8 +23,8 @@ func (v Container) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (v Container) Traversal() VertexTraversal {
-	return func(source *gremlingo.GraphTraversalSource, inserts []TraversalInput) *gremlingo.GraphTraversal {
+func (v Container) Traversal() Traversal {
+	return func(source *gremlingo.GraphTraversalSource, inserts []types.TraversalInput) *gremlingo.GraphTraversal {
 		g := source.GetGraphTraversal()
 
 		for _, insert := range inserts {

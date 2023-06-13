@@ -5,7 +5,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
@@ -57,7 +57,7 @@ func (i *RoleIngest) IngestRole(ctx context.Context, role types.RoleType) error 
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cache.RoleKey(o.Name), o.Id.Hex()); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cachekey.Role(o.Name, o.Namespace), o.Id.Hex()); err != nil {
 		return err
 	}
 

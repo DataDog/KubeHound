@@ -1,11 +1,14 @@
 package converter
 
 import (
+	"fmt"
 	"strings"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 
+	"github.com/DataDog/KubeHound/pkg/kube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 )
 
@@ -100,7 +103,7 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 }
 
 // Volume returns the graph representation of a volume vertex from a store volume model input.
-func (c *GraphConverter) Volume(input *store.Volume) (*graph.Volume, error) {
+func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.Volume, error) {
 	output := &graph.Volume{
 		StoreID: input.Id.Hex(),
 		Name:    input.Name,
@@ -108,15 +111,15 @@ func (c *GraphConverter) Volume(input *store.Volume) (*graph.Volume, error) {
 
 	switch {
 	case input.Source.HostPath != nil:
-		output.Type = graph.VolumeTypeHost
+		output.Type = shared.VolumeTypeHost
 		output.Path = input.Source.HostPath.Path
 	case input.Source.Projected != nil:
-		output.Type = graph.VolumeTypeProjected
+		output.Type = shared.VolumeTypeProjected
 
 		// Loop through looking for the service account token
 		for _, proj := range input.Source.Projected.Sources {
 			if proj.ServiceAccountToken != nil {
-				output.Path = proj.ServiceAccountToken.Path
+				output.Path = kube.ServiceAccountTokenPath(string(parent.K8.ObjectMeta.UID), input.Name)
 				break // assume only 1 entry
 			}
 		}
@@ -176,5 +179,24 @@ func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Type:      input.Type,
+	}, nil
+}
+
+// Token returns the graph representation of a service account token vertex from a store projected volume model input.
+// NOTE: this currently only supports service account tokens from projected volumes.
+func (c *GraphConverter) Token(identityName string, identityNamespace string, volume *store.Volume) (*graph.Token, error) {
+	if volume.Type != shared.VolumeTypeProjected {
+		return nil, fmt.Errorf("invalid volume type for service account token: %s", volume.Type)
+	}
+
+	if volume.Source.VolumeSource.Projected == nil {
+		return nil, fmt.Errorf("missing projected volume data: %#v", volume.Source)
+	}
+
+	return &graph.Token{
+		Name:      volume.Name,
+		Namespace: identityNamespace,
+		Type:      shared.TokenTypeSA,
+		Identity:  identityName,
 	}, nil
 }

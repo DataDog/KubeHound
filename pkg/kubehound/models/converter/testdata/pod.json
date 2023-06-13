@@ -5,7 +5,8 @@
         "creationTimestamp": "2023-04-05T19:38:08Z",
         "generateName": "app-monitors-client-78cb6d7899-",
         "name": "app-monitors-client-78cb6d7899-j2rjp",
-        "namespace": "test-app"
+        "namespace": "test-app",
+        "uid": "5a9fc508-8410-444a-bf63-9f11e5979bee"
     },
     "spec": {
         "containers": [
@@ -72,6 +73,10 @@
                 "terminationMessagePath": "/dev/termination-log",
                 "terminationMessagePolicy": "File",
                 "volumeMounts": [
+                    {
+                        "mountPath": "/var/run/datadog-agent",
+                        "name": "auto-datadog-agent-socket"
+                    },
                     {
                         "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
                         "name": "kube-api-access-4x9fz",
@@ -157,6 +162,13 @@
                         }
                     ]
                 }
+            },
+            {
+                "hostPath": {
+                    "path": "/var/run/datadog-agent",
+                    "type": "DirectoryOrCreate"
+                },
+                "name": "auto-datadog-agent-socket"
             }
         ]
     },

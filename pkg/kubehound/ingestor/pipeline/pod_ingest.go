@@ -6,7 +6,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
@@ -86,7 +86,8 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cache.ContainerKey(parent.K8.Name, sc.K8.Name), sc.Id.Hex()); err != nil {
+	if err := i.r.cacheWriter.Queue(ctx, cachekey.Container(parent.K8.Name, sc.K8.Name, parent.K8.Namespace),
+		sc.Id.Hex()); err != nil {
 		return err
 	}
 
@@ -119,7 +120,7 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 	}
 
 	// Transform store model to vertex input
-	vv, err := i.r.graphConvert.Volume(sv)
+	vv, err := i.r.graphConvert.Volume(sv, parent)
 	if err != nil {
 		return err
 	}

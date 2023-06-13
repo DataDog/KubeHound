@@ -8,6 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
@@ -50,13 +51,16 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 // buildGraph will construct the attack graph by calculating and inserting all registered edges in parallel.
 // All I/O operations are performed asynchronously.
 func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
-	graphdb graphdb.Provider) error {
+	graphdb graphdb.Provider, cache cache.CacheReader) error {
 
 	log.I.Info("Loading graph edge definitions")
-	edges := edge.Registry()
+	edges := edge.Registered()
+
+	log.I.Info("Loading graph path definitions")
+	paths := path.Registered()
 
 	log.I.Info("Loading graph builder")
-	builder, err := graph.NewBuilder(cfg, storedb, graphdb, edges)
+	builder, err := graph.NewBuilder(cfg, storedb, graphdb, cache, edges, paths)
 	if err != nil {
 		return fmt.Errorf("graph builder creation: %w", err)
 	}
@@ -126,7 +130,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	}
 
 	log.I.Info("Building attack graph")
-	if err := buildGraph(ctx, cfg, sp, gp); err != nil {
+	if err := buildGraph(ctx, cfg, sp, gp, cp); err != nil {
 		return fmt.Errorf("building attack graph: %w", err)
 	}
 

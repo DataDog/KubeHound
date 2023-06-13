@@ -8,8 +8,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 )
 
 var (
@@ -74,7 +76,7 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 		return nil, ErrNoCacheInitialized
 	}
 
-	nid, err := c.cache.Get(ctx, cache.NodeKey(input.Spec.NodeName))
+	nid, err := c.cache.Get(ctx, cachekey.Node(input.Spec.NodeName))
 	if err != nil {
 		return nil, err
 	}
@@ -105,11 +107,12 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 	}
 
 	// Only a subset of volumes are currently supported
+	var vtype string
 	switch {
 	case input.HostPath != nil:
-		break
+		vtype = shared.VolumeTypeHost
 	case input.Projected != nil:
-		break
+		vtype = shared.VolumeTypeProjected
 	default:
 		return nil, ErrUnsupportedVolume
 	}
@@ -119,16 +122,15 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 		PodId:  parent.Id,
 		NodeId: parent.NodeId,
 		Name:   input.Name,
+		Type:   vtype,
 		Source: corev1.Volume(*input),
-		Mounts: make([]store.VolumeMount, 0),
 	}
 
-	// TODO this is not quite right, we need to have a volume that is unique per node and append mounts to the same entry
-	// For now this is ok but make data volumes larger than needed
+	// A volume may be mounted by multiple containers in the same pod.
 	for _, container := range parent.K8.Spec.Containers {
 		for _, mount := range container.VolumeMounts {
 			if mount.Name == output.Source.Name {
-				cid, err := c.cache.Get(ctx, cache.ContainerKey(parent.K8.Name, container.Name))
+				cid, err := c.cache.Get(ctx, cachekey.Container(parent.K8.Name, container.Name, parent.K8.Namespace))
 				if err != nil {
 					return nil, err
 				}
@@ -180,7 +182,7 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 
 	var output *store.RoleBinding
 
-	rid, err := c.cache.Get(ctx, cache.RoleKey(input.RoleRef.Name))
+	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace))
 	if err != nil {
 		// We can get cache misses here if bindings remain with no corresponding role.
 		return nil, ErrDanglingRoleBinding
@@ -220,7 +222,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 	var output *store.RoleBinding
 
-	rid, err := c.cache.Get(ctx, cache.RoleKey(input.RoleRef.Name))
+	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace))
 	if err != nil {
 		// We can get cache misses here if bindings remain with no corresponding role.
 		return nil, ErrDanglingRoleBinding

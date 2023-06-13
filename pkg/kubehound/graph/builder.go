@@ -7,7 +7,10 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -16,21 +19,25 @@ import (
 
 // Builder handles the construction of the graph edges once vertices have been ingested via the ingestion pipeline.
 type Builder struct {
-	cfg      *config.KubehoundConfig
-	storedb  storedb.Provider
-	graphdb  graphdb.Provider
-	registry edge.EdgeRegistry
+	cfg     *config.KubehoundConfig
+	storedb storedb.Provider
+	graphdb graphdb.Provider
+	cache   cache.CacheReader
+	edges   edge.Registry
+	paths   path.Registry
 }
 
 // NewBuilder returns a new builder instance from the provided application config and service dependencies.
-func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider,
-	graph graphdb.Provider, registry edge.EdgeRegistry) (*Builder, error) {
+func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider, graph graphdb.Provider,
+	cache cache.CacheReader, edges edge.Registry, paths path.Registry) (*Builder, error) {
 
 	n := &Builder{
-		cfg:      cfg,
-		storedb:  store,
-		graphdb:  graph,
-		registry: registry,
+		cfg:     cfg,
+		storedb: store,
+		graphdb: graph,
+		cache:   cache,
+		edges:   edges,
+		paths:   paths,
 	}
 
 	return n, nil
@@ -44,6 +51,27 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 	})
 }
 
+// buildPath inserts a class of paths (combination of new vertices and edges) into the graph database.
+func (b *Builder) buildPath(ctx context.Context, p path.Builder) error {
+	w, err := b.graphdb.PathWriter(ctx, p)
+	if err != nil {
+		return err
+	}
+
+	err = p.Stream(ctx, b.storedb, b.cache,
+		func(ctx context.Context, entry types.DataContainer) error {
+			return w.Queue(ctx, entry)
+
+		},
+		func(ctx context.Context) error {
+			return w.Flush(ctx)
+		})
+
+	w.Close(ctx)
+
+	return err
+}
+
 // buildEdge inserts a class of edges into the graph database.
 // NOTE: function is blocking and expected to be called from within a goroutine.
 func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
@@ -52,18 +80,9 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 		return err
 	}
 
-	err = e.Stream(ctx, b.storedb,
-		func(ctx context.Context, entry edge.DataContainer) error {
-			processed, err := e.Processor(ctx, entry)
-			// TODO option for skip write if signalled by processor
-
-			if err != nil {
-				// TODO tolerate errors
-				return err
-			}
-
-			return w.Queue(ctx, processed)
-
+	err = e.Stream(ctx, b.storedb, b.cache,
+		func(ctx context.Context, entry types.DataContainer) error {
+			return w.Queue(ctx, entry)
 		},
 		func(ctx context.Context) error {
 			return w.Flush(ctx)
@@ -78,6 +97,22 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 // NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
 func (b *Builder) Run(ctx context.Context) error {
 	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
+
+	// Paths can have dependencies so must be built in sequence
+	l.Info("Starting path construction")
+	for label, p := range b.paths {
+		l.Infof("Building path %s", label)
+
+		err := b.buildPath(ctx, p)
+		if err != nil {
+			l.Errorf("building path %s: %v", label, err)
+			return err
+		}
+
+		return nil
+	}
+
+	// Edges can be built in parallel
 	l.Info("Creating edge builder worker pool")
 	wp, err := worker.PoolFactory(b.cfg)
 	if err != nil {
@@ -90,7 +125,8 @@ func (b *Builder) Run(ctx context.Context) error {
 	}
 
 	l.Info("Starting edge construction")
-	for label, e := range b.registry {
+
+	for label, e := range b.edges {
 		e := e
 		label := label
 
