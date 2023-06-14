@@ -17,48 +17,52 @@ build:
 	cd cmd && go build -ldflags="-X pkg/config.BuildVersion=$(BUILD_VERSION)" -o ../bin/kubehound kubehound/*.go
 
 .PHONY: infra-rm
-infra-rm:
+infra-rm: ## Delete the testing stack
 	docker compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
 .PHONY: infra-up
-infra-up:
+infra-up: ## Spwan the testing stack
 	docker compose $(DOCKER_COMPOSE_FILE_PATH) up -d
 
 .PHONY: test
-test:
+test: ## Run the full suite of unit tests 
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
 	cd pkg && go test ./...
 
 .PHONY: system-test
-system-test: 
+system-test: ## Run the system tests
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
 	cd test/system && go test -v -timeout "60s" -race ./...
 
 .PHONY: local-cluster-reset
-local-cluster-reset:
+local-cluster-reset: ## Destroy the current kind cluster and creates a new one
 	$(MAKE) local-cluster-destroy
 	$(MAKE) local-cluster-setup
 	$(MAKE) local-cluster-config-deploy
 
 .PHONY: local-cluster-deploy
-local-cluster-deploy:
+local-cluster-deploy: ## Create a kind cluster with some vulnerables resources (pods, roles, ...)
 	$(MAKE) local-cluster-setup
 	$(MAKE) local-cluster-config-deploy
 
 .PHONY: local-cluster-config-deploy
-local-cluster-config-deploy:
+local-cluster-config-deploy: ## Deploy the attacks resources
 	bash test/setup/manage-cluster-resources.sh deploy
 
 .PHONY: local-cluster-config-delete
-local-cluster-config-delete:
+local-cluster-config-delete: ## Delete the attack resources
 	bash test/setup/manage-cluster-resources.sh delete
 
 .PHONY: local-cluster-create
-local-cluster-create:
+local-cluster-create: ## Create a local kind cluster without any data
 	bash test/setup/manage-cluster.sh create
 
 .PHONY: local-cluster-destroy
-local-cluster-destroy:
+local-cluster-destroy: ## Destroy the local kind cluster
 	bash test/setup/manage-cluster.sh destroy
+
+.PHONY: help
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
