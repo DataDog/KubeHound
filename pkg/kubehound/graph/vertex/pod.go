@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	podLabel = "Pod"
+	PodLabel = "Pod"
 )
 
 var _ Builder = (*Pod)(nil)
@@ -16,7 +16,7 @@ type Pod struct {
 }
 
 func (v Pod) Label() string {
-	return podLabel
+	return PodLabel
 }
 
 func (v Pod) BatchSize() int {

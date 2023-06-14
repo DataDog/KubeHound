@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	containerLabel = "Container"
+	ContainerLabel = "Container"
 )
 
 var _ Builder = (*Container)(nil)
@@ -16,7 +16,7 @@ type Container struct {
 }
 
 func (v Container) Label() string {
-	return containerLabel
+	return ContainerLabel
 }
 
 func (v Container) BatchSize() int {
