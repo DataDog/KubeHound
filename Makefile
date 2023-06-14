@@ -4,9 +4,21 @@ MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR := $(dir $(MAKEFILE_PATH))
 
 DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml -f test/system/docker-compose.local.yaml
+DOCKER_COMPOSE_ENV_FILE_PATH := test/system/.env
 
 # https://docs.github.com/en/actions/learn-github-actions/variables
 ifeq (${CI},true)
+    DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml
+endif
+
+# Loading docker .env file if present
+ifneq (,$(wildcard $(DOCKER_COMPOSE_ENV_FILE_PATH)))
+	include $(DOCKER_COMPOSE_ENV_FILE_PATH)
+    export
+endif
+
+# No API key is being set
+ifeq (${DD_API_KEY},)
     DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml
 endif
 
