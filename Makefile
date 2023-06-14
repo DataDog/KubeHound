@@ -13,7 +13,7 @@ endif
 all: build
 
 .PHONEY: build
-build:
+build: ## Build the application
 	cd cmd && go build -ldflags="-X pkg/config.BuildVersion=$(BUILD_VERSION)" -o ../bin/kubehound kubehound/*.go
 
 .PHONY: infra-rm
