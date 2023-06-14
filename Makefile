@@ -3,7 +3,12 @@ BUILD_VERSION=dev-snapshot
 MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR := $(dir $(MAKEFILE_PATH))
 
-DOCKER_COMPOSE_FILE_PATH=test/system/docker-compose.yaml
+DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml -f test/system/docker-compose.local.yaml
+
+# https://docs.github.com/en/actions/learn-github-actions/variables
+ifeq (${CI},true)
+    DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml
+endif
 
 all: build
 
