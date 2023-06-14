@@ -3,12 +3,12 @@ package vertex
 import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+
 	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 )
 
 const (
-	roleLabel = "Role"
+	RoleLabel = "Role"
 )
 
 var _ Builder = (*Role)(nil)
@@ -17,7 +17,7 @@ type Role struct {
 }
 
 func (v Role) Label() string {
-	return roleLabel
+	return RoleLabel
 }
 
 func (v Role) BatchSize() int {
@@ -30,12 +30,12 @@ func (v Role) Traversal() Traversal {
 		for _, i := range inserts {
 			data := i.(*graph.Role)
 			g = g.AddV(v.Label()).
-				Property("store_id", data.StoreID).
+				Property("storeID", data.StoreID).
 				Property("name", data.Name).
-				Property("is_namespaced", data.IsNamespaced).
+				Property("isNamespaced", data.IsNamespaced).
 				Property("namespace", data.Namespace)
 			for _, rule := range data.Rules {
-				g = g.Property(gremlingo.Cardinality.Set, "rules", rule)
+				g = g.Property(gremlin.Cardinality.Set, "rules", rule)
 			}
 		}
 		return g
