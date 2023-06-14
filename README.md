@@ -60,6 +60,12 @@ To cleanup the environment you can destroy the cluster via:
 make local-cluster-destroy
 ```
 
+To list all the available commands, run:
+
+```bash
+make help
+```
+
 ### CI Testing
 
 System tests will be run in CI via the [system-test](./.github/workflows/system-test.yml) github action 
