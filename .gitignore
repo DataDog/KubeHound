@@ -32,3 +32,4 @@ deployments/kubehound/data
 deployments/kubehound/data/*
 # System test json files
 test/**/*.json
+*.env
