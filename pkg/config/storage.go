@@ -1,6 +1,8 @@
 package config
 
+import "time"
+
 type StorageConfig struct {
-	Retry      int `mapstructure:"retry"`
-	RetryDelay int `mapstructure:"retry_delay"`
+	Retry      int           `mapstructure:"retry"`
+	RetryDelay time.Duration `mapstructure:"retry_delay"`
 }

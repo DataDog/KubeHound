@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -23,7 +24,7 @@ type KubehoundConfig struct {
 	Collector  CollectorConfig  `mapstructure:"collector"`  // Collector configuration
 	MongoDB    MongoDBConfig    `mapstructure:"mongodb"`    // MongoDB configuration
 	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // JanusGraph configuration
-	Storage    StorageConfig    `mapstructure:"janusgraph"` // Global param for all storage provider
+	Storage    StorageConfig    `mapstructure:"storage"`    // Global param for all storage provider
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 }
 
@@ -49,9 +50,12 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("collector.live.page_buffer_size", globals.DefaultK8sAPIPageBufferSize)
 	c.SetDefault("collector.live.rate_limit_per_second", globals.DefaultK8sAPIRateLimitPerSecond)
 
-	// Connector Retry default for storedb
+	// Default values for storage provider
 	c.SetDefault("storage.retry", globals.DefaultRetry)
-	c.SetDefault("storage.retry_delay", globals.DefaultRetryDelay)
+	c.SetDefault("storage.retry_delay", time.Duration(globals.DefaultRetryDelay)*time.Second)
+
+	// Default value for MongoDB
+	c.SetDefault("mongodb.connection_timeout", time.Duration(globals.DefaultConnectionTimeout)*time.Second)
 }
 
 // NewConfig creates a new config instance from the provided file using viper.

@@ -2,16 +2,16 @@ package storedb
 
 import (
 	"context"
-	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
-const (
-	connectionTimeout = 5 * time.Second
-)
+// const (
+// 	connectionTimeout = 5 * time.Second
+// )
 
 type writerOptions struct {
 }
@@ -50,9 +50,6 @@ type AsyncWriter interface {
 
 // Factory returns an initialized instance of a storedb provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
-	provider, err := NewMongoProvider(ctx, cfg.MongoDB.URL, connectionTimeout)
-	if err != nil {
-		return nil, err
-	}
-	return provider, nil
+	r := storage.Retry(NewMongoProvider, cfg.Storage.Retry, cfg.Storage.RetryDelay)
+	return r(ctx, cfg.MongoDB.URL, cfg.MongoDB.ConnectionTimeout)
 }
