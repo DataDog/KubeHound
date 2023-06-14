@@ -13,7 +13,7 @@ function handle_resources(){
     _printf_warn "$2 test resources via kubectl apply"
     for attack in ${SCRIPT_DIR}/${CONFIG_DIR}/attacks/*.yaml; do
         [ -e "$attack" ] || continue
-        
+        # since deletion can take some times, || true to be able to retry in case of C-C
         kubectl $1 -f "$attack" --context "kind-${CLUSTER_NAME}" || true
     done
 
