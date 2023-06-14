@@ -8,6 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	mongotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -24,6 +25,14 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", connectionTimeout))
 
 	client, err := mongo.Connect(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, connectionTimeout)
+	defer cancel()
+	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {
 		return nil, err
 	}
