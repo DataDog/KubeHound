@@ -24,8 +24,6 @@ jobs:
             golang.org:443
             go.dev:443
             storage.googleapis.com:443
-            registry-1.docker.io:443
-            auth.docker.io:443
             *.docker.io:443
             
       - name: Setup Golang

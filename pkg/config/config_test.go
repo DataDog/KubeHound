@@ -2,7 +2,9 @@ package config
 
 import (
 	"testing"
+	"time"
 
+	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,6 +25,10 @@ func TestMustLoadConfig(t *testing.T) {
 				configPath: "./testdata/kubehound-file-collector.yaml",
 			},
 			want: &KubehoundConfig{
+				Storage: StorageConfig{
+					RetryDelay: time.Duration(globals.DefaultRetryDelay) * time.Second,
+					Retry:      globals.DefaultRetry,
+				},
 				Collector: CollectorConfig{
 					Type: CollectorTypeFile,
 					File: &FileCollectorConfig{
@@ -36,7 +42,8 @@ func TestMustLoadConfig(t *testing.T) {
 					},
 				},
 				MongoDB: MongoDBConfig{
-					URL: "mongodb://localhost:27017",
+					URL:               "mongodb://localhost:27017",
+					ConnectionTimeout: time.Duration(globals.DefaultConnectionTimeout) * time.Second,
 				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
@@ -52,6 +59,10 @@ func TestMustLoadConfig(t *testing.T) {
 				configPath: "./testdata/kubehound-k8s-collector.yaml",
 			},
 			want: &KubehoundConfig{
+				Storage: StorageConfig{
+					RetryDelay: time.Duration(globals.DefaultRetryDelay) * time.Second,
+					Retry:      globals.DefaultRetry,
+				},
 				Collector: CollectorConfig{
 					Type: CollectorTypeK8sAPI,
 					Live: &K8SAPICollectorConfig{
@@ -61,7 +72,8 @@ func TestMustLoadConfig(t *testing.T) {
 					},
 				},
 				MongoDB: MongoDBConfig{
-					URL: "mongodb://localhost:27017",
+					URL:               "mongodb://localhost:27017",
+					ConnectionTimeout: time.Duration(globals.DefaultConnectionTimeout) * time.Second,
 				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
