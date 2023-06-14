@@ -18,11 +18,11 @@ build:
 
 .PHONY: infra-rm
 infra-rm:
-	docker compose -f $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
+	docker compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
 .PHONY: infra-up
 infra-up:
-	docker compose -f $(DOCKER_COMPOSE_FILE_PATH) up -d
+	docker compose $(DOCKER_COMPOSE_FILE_PATH) up -d
 
 .PHONY: test
 test:
