@@ -82,6 +82,12 @@ func (jgp *JanusGraphProvider) Raw() any {
 	return jgp.client
 }
 
+func (jgp *JanusGraphProvider) ReindexData() error {
+	// TOOD should reindex data and block until complete
+	// TODO this should
+	return nil
+}
+
 // VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
 func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builder, opts ...WriterOption) (AsyncVertexWriter, error) {
 	return NewJanusGraphAsyncVertexWriter(ctx, jgp.client, v, opts...)

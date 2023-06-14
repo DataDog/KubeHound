@@ -9,20 +9,22 @@ services:
     volumes:
       - ./data/mongodb:/data/db
 
-  mongo-express:
-    image: mongo-express
-    restart: always
-    depends_on:
-      - mongodb
-    ports:
-      - "127.0.0.1:8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
+  # mongo-express:
+  #   image: mongo-express
+  #   restart: always
+  #   depends_on:
+  #     - mongodb
+  #   ports:
+  #     - "127.0.0.1:8081:8081"
+  #   environment:
+  #     ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
 
   janusgraph:
-    image: janusgraph/janusgraph:latest
+    image: janusgraph-exp 
     container_name: graphdb-ng
     ports:
       - "127.0.0.1:8182:8182"
     volumes:
       - ./data/janus:/data
+    # environment:
+    #   # - gremlinserver.evaluationTimeout=240000
