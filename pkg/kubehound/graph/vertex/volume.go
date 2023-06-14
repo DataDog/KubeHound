@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	volumeLabel = "Volume"
+	VolumeLabel = "Volume"
 )
 
 var _ Builder = (*Volume)(nil)
@@ -16,7 +16,7 @@ type Volume struct {
 }
 
 func (v Volume) Label() string {
-	return volumeLabel
+	return VolumeLabel
 }
 
 func (v Volume) BatchSize() int {
