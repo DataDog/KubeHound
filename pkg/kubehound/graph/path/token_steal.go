@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -22,17 +23,11 @@ import (
 const (
 	// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891284481/TOKEN+STEAL
 	tokenStealLabel = "TOKEN_STEAL"
-
-	// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880373371/IDENTITY+ASSUME
-	identityAssumeLabel = "IDENTITY_ASSUME"
 )
 
 var (
-	tokenVertexLabel    = vertex.Token{}.Label()
-	volumeVertexLabel   = vertex.Volume{}.Label()
-	identityVertexLabel = vertex.Identity{}.Label()
 	tokenStealPathLabel = fmt.Sprintf("(%s)-[%s]->(%s)-[%s]->(%s)",
-		volumeVertexLabel, tokenStealLabel, tokenVertexLabel, identityAssumeLabel, identityVertexLabel)
+		vertex.VolumeLabel, tokenStealLabel, vertex.TokenLabel, edge.IdentityAssumeLabel, vertex.IdentityLabel)
 )
 
 func init() {
@@ -72,7 +67,7 @@ func (v TokenSteal) Traversal() Traversal {
 			ts := i.(*tokenStealPath)
 
 			// Create a new token vertex
-			g = g.AddV(tokenVertexLabel).
+			g = g.AddV(vertex.TokenLabel).
 				Property("name", ts.Vertex.Name).
 				Property("namespace", ts.Vertex.Namespace).
 				Property("type", ts.Vertex.Type).
@@ -83,7 +78,7 @@ func (v TokenSteal) Traversal() Traversal {
 
 			// Create the TOKEN_STEAL edge between an existing volume and the new token
 			g = g.V().
-				HasLabel(volumeVertexLabel).
+				HasLabel(vertex.VolumeLabel).
 				Has("storeID", ts.VolumeId).
 				As("volume").
 				AddE(tokenStealLabel).
@@ -92,10 +87,10 @@ func (v TokenSteal) Traversal() Traversal {
 
 			// Create the IDENTITY_ASSUME edge between the new token and an existing identity
 			g = g.V().
-				HasLabel(identityVertexLabel).
+				HasLabel(vertex.IdentityLabel).
 				Has("storeID", ts.IdentityId).
 				As("identity").
-				AddE(identityAssumeLabel).
+				AddE(edge.IdentityAssumeLabel).
 				From("token").
 				To("identity")
 		}

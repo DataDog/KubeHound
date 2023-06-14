@@ -106,10 +106,8 @@ func (b *Builder) Run(ctx context.Context) error {
 		err := b.buildPath(ctx, p)
 		if err != nil {
 			l.Errorf("building path %s: %v", label, err)
-			return err
+			continue
 		}
-
-		return nil
 	}
 
 	// Edges can be built in parallel
