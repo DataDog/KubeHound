@@ -3,7 +3,7 @@ package vertex
 import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 const (

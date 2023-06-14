@@ -6,7 +6,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 var _ AsyncVertexWriter = (*JanusGraphAsyncWriter[vertex.Traversal])(nil)

@@ -6,7 +6,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 var _ AsyncPathWriter = (*JanusGraphAsyncWriter[path.Traversal])(nil)

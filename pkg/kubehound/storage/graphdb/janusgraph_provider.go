@@ -10,7 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 // TODO maybe move that into a config file?
@@ -83,6 +83,10 @@ func (jgp *JanusGraphProvider) Raw() any {
 }
 
 func (jgp *JanusGraphProvider) ReindexData() error {
+	// script := ``
+
+	// jgp.client.SubmitWithOptionb()
+
 	// TOOD should reindex data and block until complete
 	// TODO this should
 	return nil
