@@ -8,6 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage"
 )
 
 type writerOptions struct {
@@ -75,5 +76,6 @@ type AsyncPathWriter interface {
 
 // Factory returns an initialized instance of a graphdb provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
-	return NewGraphDriver(ctx, cfg.JanusGraph.URL, cfg.JanusGraph.ConnectionTimeout)
+	r := storage.Retry(NewGraphDriver, 5, 4)
+	return r(ctx, cfg.JanusGraph.URL, cfg.JanusGraph.ConnectionTimeout)
 }
