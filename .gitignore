@@ -36,3 +36,6 @@ test/**/*.json
 
 # kind config
 test/setup/.kube
+
+# binary for the autogen of fixtures
+test/system/generator/generator
