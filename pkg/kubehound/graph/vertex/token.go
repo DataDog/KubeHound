@@ -1,12 +1,12 @@
 package vertex
 
 const (
-	tokenLabel = "Token"
+	TokenLabel = "Token"
 )
 
 type Token struct {
 }
 
 func (v Token) Label() string {
-	return tokenLabel
+	return TokenLabel
 }

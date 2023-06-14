@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	nodeLabel = "Node"
+	NodeLabel = "Node"
 )
 
 var _ Builder = (*Node)(nil)
@@ -16,7 +16,7 @@ type Node struct {
 }
 
 func (v Node) Label() string {
-	return nodeLabel
+	return NodeLabel
 }
 
 func (v Node) BatchSize() int {

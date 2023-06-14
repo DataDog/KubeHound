@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	roleLabel = "Role"
+	RoleLabel = "Role"
 )
 
 var _ Builder = (*Role)(nil)
@@ -17,7 +17,7 @@ type Role struct {
 }
 
 func (v Role) Label() string {
-	return roleLabel
+	return RoleLabel
 }
 
 func (v Role) BatchSize() int {

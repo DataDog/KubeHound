@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	identityLabel = "Identity"
+	IdentityLabel = "Identity"
 )
 
 var _ Builder = (*Identity)(nil)
@@ -16,7 +16,7 @@ type Identity struct {
 }
 
 func (v Identity) Label() string {
-	return identityLabel
+	return IdentityLabel
 }
 
 func (v Identity) BatchSize() int {
