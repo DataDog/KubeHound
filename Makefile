@@ -39,12 +39,12 @@ system-test: ## Run the system tests
 .PHONY: local-cluster-reset
 local-cluster-reset: ## Destroy the current kind cluster and creates a new one
 	$(MAKE) local-cluster-destroy
-	$(MAKE) local-cluster-setup
+	$(MAKE) local-cluster-create
 	$(MAKE) local-cluster-config-deploy
 
 .PHONY: local-cluster-deploy
 local-cluster-deploy: ## Create a kind cluster with some vulnerables resources (pods, roles, ...)
-	$(MAKE) local-cluster-setup
+	$(MAKE) local-cluster-create
 	$(MAKE) local-cluster-config-deploy
 
 .PHONY: local-cluster-config-deploy
