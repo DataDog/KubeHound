@@ -29,8 +29,7 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 		return nil, err
 	}
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, connectionTimeout)
+	ctx, cancel := context.WithTimeout(ctx, connectionTimeout)
 	defer cancel()
 	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {

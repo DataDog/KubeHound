@@ -7,7 +7,7 @@ import (
 
 type Connector[T any] func(ctx context.Context, dbHost string, timeout time.Duration) (T, error)
 
-func Retry[T any](connector Connector[T], retries int, delay time.Duration) Connector[T] {
+func Retrier[T any](connector Connector[T], retries int, delay time.Duration) Connector[T] {
 	return func(ctx context.Context, dbHost string, timeout time.Duration) (T, error) {
 		for r := 0; ; r++ {
 			var emtpy T

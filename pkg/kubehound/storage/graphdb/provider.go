@@ -76,6 +76,6 @@ type AsyncPathWriter interface {
 
 // Factory returns an initialized instance of a graphdb provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
-	r := storage.Retry(NewGraphDriver, cfg.Storage.Retry, cfg.Storage.RetryDelay)
+	r := storage.Retrier(NewGraphDriver, cfg.Storage.Retry, cfg.Storage.RetryDelay)
 	return r(ctx, cfg.JanusGraph.URL, cfg.JanusGraph.ConnectionTimeout)
 }
