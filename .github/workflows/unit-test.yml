@@ -26,6 +26,7 @@ jobs:
             storage.googleapis.com:443
             registry-1.docker.io:443
             auth.docker.io:443
+            *.docker.io:443
             
       - name: Setup Golang
         uses: actions/setup-go@v4
