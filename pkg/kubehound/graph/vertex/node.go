@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	nodeLabel = "Node"
+	NodeLabel = "Node"
 )
 
 var _ Builder = (*Node)(nil)
@@ -16,7 +16,7 @@ type Node struct {
 }
 
 func (v Node) Label() string {
-	return nodeLabel
+	return NodeLabel
 }
 
 func (v Node) BatchSize() int {
@@ -31,7 +31,7 @@ func (v Node) Traversal() Traversal {
 			g = g.AddV(v.Label()).
 				Property("storeID", data.StoreID).
 				Property("name", data.Name).
-				Property("is_namespaced", data.IsNamespaced).
+				Property("isNamespaced", data.IsNamespaced).
 				Property("namespace", data.Namespace).
 				Property("compromised", int(data.Compromised)).
 				Property("critical", data.Critical)
