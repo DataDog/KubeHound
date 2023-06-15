@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
@@ -98,7 +99,8 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 func (b *Builder) Run(ctx context.Context) error {
 	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
 
-	// Wait for cache expiryt
+	// TODO wait for all transactions to complete before starting the builder
+	time.Sleep(time.Second * 30)
 
 	// Before we start the construction ensure all the new vertices have been index
 	l.Infof("Reindexing graph following vertex ingest")

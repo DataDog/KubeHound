@@ -93,8 +93,30 @@ mgmt.buildIndex('byType', Vertex.class).addKey(type).buildCompositeIndex();
 critical = mgmt.makePropertyKey('critical').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 mgmt.buildIndex('byCritical', Vertex.class).addKey(critical).buildCompositeIndex();
 
+// Specify remaining properties that will NOT be indexed
+mgmt.makePropertyKey('isNamespaced').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('compromised').dataType(Long.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('path').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('node').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('sharedProcessNamespace').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('serviceAccount').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('image').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('pod').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('hostNetwork').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('hostPath').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('hostPid').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('privesc').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('privileged').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('runAsUser').dataType(Long.class).cardinality(Cardinality.SINGLE).make();
+mgmt.makePropertyKey('rules').dataType(String.class).cardinality(Cardinality.SET).make();
+mgmt.makePropertyKey('command').dataType(String.class).cardinality(Cardinality.SET).make();
+mgmt.makePropertyKey('args').dataType(String.class).cardinality(Cardinality.SET).make();
+mgmt.makePropertyKey('capabilities').dataType(String.class).cardinality(Cardinality.SET).make();
+mgmt.makePropertyKey('ports').dataType(Long.class).cardinality(Cardinality.SET).make();
+
 mgmt.commit();
 
+// Wait for indexes to become available
 ManagementSystem.awaitGraphIndexStatus(graph, 'byClass').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byStoreIDUnique').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byName').status(SchemaStatus.ENABLED).call();
@@ -104,4 +126,5 @@ ManagementSystem.awaitGraphIndexStatus(graph, 'byCritical').status(SchemaStatus.
 
 System.out.println("[KUBEHOUND] graph schema and indexes ready");
 
+// Close the open connection
 :remote close

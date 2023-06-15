@@ -90,6 +90,12 @@ func (jgp *JanusGraphProvider) TriggerReindex(ctx context.Context, flags Reindex
 	default:
 	}
 
+	// TODO check no outstanding transactions!
+	// 	gremlin> graph.getOpenTransactions()
+	// ==>standardjanusgraphtx[0x2dbd4cb8]
+	// ==>standardjanusgraphtx[0x3f58aca0]
+	// ==>standardjanusgraphtx[0x6528e155]
+
 	// TOOD Edge.class vairant
 	reindexScript := `
 		graph.tx().commit();
@@ -105,6 +111,7 @@ func (jgp *JanusGraphProvider) TriggerReindex(ctx context.Context, flags Reindex
 
 		// Commit the changes
 		mgmt.commit();
+		graph.tx().commit();
 	`
 
 	builder := gremlingo.RequestOptionsBuilder{}
