@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"testing"
 	"time"
 
@@ -22,30 +21,9 @@ const (
 	CollectorOutputDir  = "kind-collect"
 )
 
-// cleanupCollected deletes data collected to enable idempotency for local calls.
-func cleanupCollected() {
-	err := os.RemoveAll(CollectorOutputDir)
-	if err != nil {
-		log.I.Errorf("Collector data cleanup: %v", err)
-	}
-}
-
 // runKubeHound runs the collector against the local kind cluster, then runs KubeHound to create
 // an attack graph that can be queried in the individual system tests.
 func runKubeHound() error {
-	cmdCtx, cmdCancel := context.WithTimeout(context.Background(), CollectorTimeout)
-	defer cmdCancel()
-
-	// Run the kind-collect.sh script. NOTE: this is a temporary solution until the K8s API collector is
-	// completed, at which point it should be invoked here.
-	cmd := exec.CommandContext(cmdCtx, CollectorScriptPath, CollectorOutputDir)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	defer cleanupCollected()
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("collector script execution: %v", err)
-	}
-
 	// Run the ingest
 	err := core.Launch(context.Background(), core.WithConfigPath(KubeHoundConfigPath))
 	if err != nil {
