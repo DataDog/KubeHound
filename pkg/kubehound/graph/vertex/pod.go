@@ -29,9 +29,9 @@ func (v Pod) Traversal() Traversal {
 		for _, i := range inserts {
 			data := i.(*graph.Pod)
 			g = g.AddV(v.Label()).
-				Property("store_id", data.StoreID).
+				Property("storeID", data.StoreID).
 				Property("name", data.Name).
-				Property("is_namespaced", data.IsNamespaced).
+				Property("isNamespaced", data.IsNamespaced).
 				Property("namespace", data.Namespace).
 				Property("sharedProcessNamespace", data.SharedProcessNamespace).
 				Property("serviceAccount", data.ServiceAccount).

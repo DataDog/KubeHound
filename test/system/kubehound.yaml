@@ -1,7 +1,5 @@
 collector:
-  type: file-collector
-  file:
-    directory: kind-collect/kind-kubehound.test.local
+  type: live-k8s-api-collector
 janusgraph:
   url: "ws://localhost:8182/gremlin"
 mongodb:

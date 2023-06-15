@@ -33,9 +33,9 @@ deployments/kubehound/data/*
 # System test json files
 test/**/*.json
 
-
 # kind config
 test/setup/.kube
 
 # binary for the autogen of fixtures
 test/system/generator/generator
+*.env
