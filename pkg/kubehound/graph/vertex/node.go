@@ -31,7 +31,7 @@ func (v Node) Traversal() Traversal {
 			g = g.AddV(v.Label()).
 				Property("storeID", data.StoreID).
 				Property("name", data.Name).
-				Property("is_namespaced", data.IsNamespaced).
+				Property("isNamespaced", data.IsNamespaced).
 				Property("namespace", data.Namespace).
 				Property("compromised", int(data.Compromised)).
 				Property("critical", data.Critical)

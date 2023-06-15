@@ -13,6 +13,9 @@ const (
 	DefaultBatchSize = 25
 )
 
+// Optional syntactic sugar.
+var __ = gremlin.T__
+
 // Traversal returns the function to create a graph database path insert from an array of input objects.
 // Paths are edges that result in one or more new vertex creation e.g TOKEN_BRUTEFORCE enables creation of a new Token vertex.
 type Traversal func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal

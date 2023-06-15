@@ -23,6 +23,7 @@ type KubehoundConfig struct {
 	Collector  CollectorConfig  `mapstructure:"collector"`  // Collector configuration
 	MongoDB    MongoDBConfig    `mapstructure:"mongodb"`    // MongoDB configuration
 	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // JanusGraph configuration
+	Storage    StorageConfig    `mapstructure:"storage"`    // Global param for all storage provider
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 }
 
@@ -47,6 +48,13 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("collector.live.page_size", globals.DefaultK8sAPIPageSize)
 	c.SetDefault("collector.live.page_buffer_size", globals.DefaultK8sAPIPageBufferSize)
 	c.SetDefault("collector.live.rate_limit_per_second", globals.DefaultK8sAPIRateLimitPerSecond)
+
+	// Default values for storage provider
+	c.SetDefault("storage.retry", globals.DefaultRetry)
+	c.SetDefault("storage.retry_delay", globals.DefaultRetryDelay)
+
+	// Default value for MongoDB
+	c.SetDefault("mongodb.connection_timeout", globals.DefaultConnectionTimeout)
 }
 
 // NewConfig creates a new config instance from the provided file using viper.
