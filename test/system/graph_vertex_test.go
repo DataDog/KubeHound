@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+//go:generate go run ./generator ../setup/test-cluster ./vertex.gen.go
+
 // Optional syntactic sugar.
 var __ = gremlingo.T__
 
@@ -41,39 +43,6 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 	g := gremlingo.Traversal_().WithRemote(suite.client)
 	results, err := g.V().HasLabel(vertex.ContainerLabel).ElementMap().ToList()
 	suite.NoError(err)
-
-	expectedContainers := map[string]graph.Container{
-		"netadmin-pod": {
-			Name:        "netadmin-pod",
-			Compromised: shared.CompromiseNone,
-			Critical:    false,
-		},
-		"pod-create-pod": {
-			Name:        "pod-create-pod",
-			Compromised: shared.CompromiseNone,
-			Critical:    false,
-		},
-		"priv-pod": {
-			Name:        "priv-pod",
-			Compromised: shared.CompromiseNone,
-			Critical:    false,
-		},
-		"kube-apiserver": {
-			Name:        "kube-apiserver",
-			Compromised: shared.CompromiseNone,
-			Critical:    false,
-		},
-		"kube-proxy": {
-			Name:        "kube-proxy",
-			Compromised: shared.CompromiseNone,
-			Critical:    false,
-		},
-		"impersonate-pod": {
-			Name:        "impersonate-pod",
-			Compromised: shared.CompromiseNone,
-			Critical:    false,
-		},
-	}
 
 	suite.Equal(len(expectedContainers), len(results))
 	resultsMap := map[string]graph.Container{}
@@ -114,32 +83,7 @@ func (suite *VertexTestSuite) TestVertexNode() {
 	results, err := g.V().HasLabel(vertex.NodeLabel).ElementMap().ToList()
 	suite.NoError(err)
 
-	expectedNodeNames := map[string]graph.Node{
-		"kubehound.test.local-control-plane": {
-			StoreID:      "",
-			Name:         "kubehound.test.local-control-plane",
-			IsNamespaced: false,
-			Namespace:    "",
-			Compromised:  shared.CompromiseNone,
-			Critical:     false,
-		},
-		"kubehound.test.local-worker": {
-			Name:         "kubehound.test.local-worker",
-			IsNamespaced: false,
-			Namespace:    "",
-			Compromised:  shared.CompromiseNone,
-			Critical:     false,
-		},
-		"kubehound.test.local-worker2": {
-			Name:         "kubehound.test.local-worker2",
-			IsNamespaced: false,
-			Namespace:    "",
-			Compromised:  shared.CompromiseNone,
-			Critical:     false,
-		},
-	}
-
-	suite.Equal(len(expectedNodeNames), len(results))
+	suite.Equal(len(expectedNodes), len(results))
 	resultsMap := map[string]graph.Node{}
 	for _, res := range results {
 		res := res.GetInterface()
@@ -168,7 +112,7 @@ func (suite *VertexTestSuite) TestVertexNode() {
 			Critical:     critical,
 		}
 	}
-	suite.Equal(expectedNodeNames, resultsMap)
+	suite.Equal(expectedNodes, resultsMap)
 }
 
 // func (suite *VertexTestSuite) TestVertexPod() {
