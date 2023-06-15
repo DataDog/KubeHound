@@ -213,6 +213,7 @@ func AddNodeToList(node *corev1.Node) error {
 	storeNode := store.Node{
 		K8: *node,
 	}
+	storeNode.K8.Name = "kubehound.test.local-" + storeNode.K8.Name
 	conv := converter.GraphConverter{}
 	convertedNode, err := conv.Node(&storeNode)
 	if err != nil {
