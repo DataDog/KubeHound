@@ -149,59 +149,64 @@ func ProcessCluster(content []byte) error {
 }
 
 func ProcessFile(basePath string, file os.FileInfo) {
-	fmt.Println(file.Name(), file.IsDir())
+	fmt.Println("Processing: " + file.Name())
 	data, err := os.ReadFile(filepath.Join(basePath, file.Name()))
 	if err != nil {
 		fmt.Printf("failed to read file: %v", err)
 		return
 	}
-	decode := scheme.Codecs.UniversalDeserializer().Decode
-	obj, _, err := decode(data, nil, nil)
-	if err != nil {
-		fmt.Println("Error while decoding YAML object. Err was: ", err)
-		return
-	}
+	for _, subfile := range bytes.Split(data, []byte("\n---\n")) {
 
-	// now use switch over the type of the object
-	// and match each type-case
-	switch o := obj.(type) {
-	case *v1.Node:
-		err = AddNodeToList(o)
+		decode := scheme.Codecs.UniversalDeserializer().Decode
+		obj, _, err := decode(subfile, nil, nil)
 		if err != nil {
-			fmt.Println("Failed to add node to list:", err)
+			fmt.Println("Error while decoding YAML object. Err was: ", err)
+			return
 		}
-	case *v1.Pod:
-		err = AddPodToList(o)
-		if err != nil {
-			fmt.Println("Failed to add pod to list:", err)
-		}
-		p := store.Pod{
-			K8: *o,
-		}
-		for _, vol := range o.Spec.Volumes {
-			err = AddVolumeToList(&vol, &p)
+
+		// now use switch over the type of the object
+		// and match each type-case
+		switch o := obj.(type) {
+		case *v1.List:
+			panic("list!")
+		case *v1.Node:
+			err = AddNodeToList(o)
 			if err != nil {
-				fmt.Println("Failed to add volume to list:", err)
+				fmt.Println("Failed to add node to list:", err)
 			}
-		}
-		for _, cont := range o.Spec.Containers {
-			err = AddContainerToList(&cont, &p)
+		case *v1.Pod:
+			err = AddPodToList(o)
 			if err != nil {
-				fmt.Println("Failed to add container to list:", err)
+				fmt.Println("Failed to add pod to list:", err)
 			}
+			p := store.Pod{
+				K8: *o,
+			}
+			for _, vol := range o.Spec.Volumes {
+				err = AddVolumeToList(&vol, &p)
+				if err != nil {
+					fmt.Println("Failed to add volume to list:", err)
+				}
+			}
+			for _, cont := range o.Spec.Containers {
+				err = AddContainerToList(&cont, &p)
+				if err != nil {
+					fmt.Println("Failed to add container to list:", err)
+				}
+			}
+		case *v1beta1.Role:
+			// TODO
+		case *v1beta1.RoleBinding:
+			// TODO
+		case *v1beta1.ClusterRole:
+			// TODO
+		case *v1beta1.ClusterRoleBinding:
+			// TODO
+		case *v1.ServiceAccount:
+		default:
+			fmt.Printf("Unknown object type: %+v\n", o)
+			//o is unknown for us
 		}
-	case *v1beta1.Role:
-		// TODO
-	case *v1beta1.RoleBinding:
-		// TODO
-	case *v1beta1.ClusterRole:
-		// TODO
-	case *v1beta1.ClusterRoleBinding:
-		// TODO
-	case *v1.ServiceAccount:
-	default:
-		fmt.Printf("Unknown object type: %+v\n", o)
-		//o is unknown for us
 	}
 }
 
@@ -330,7 +335,7 @@ func GenerateContainerTemplate() ([]byte, error) {
 			RunAsUser:    {{.RunAsUser}},
 			Ports:        []int{},
 			Pod:          "{{.Pod}}",
-			Node:         "{{.Node}}",
+			// Node:         "{{.Node}}",
 			Compromised:  0,
 			Critical:     {{.Critical}},
 		},{{ end }}
