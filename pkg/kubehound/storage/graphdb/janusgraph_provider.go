@@ -85,7 +85,14 @@ func (jgp *JanusGraphProvider) Raw() any {
 func (jgp *JanusGraphProvider) ReindexData() error {
 	// script := ``
 
-	// jgp.client.SubmitWithOptionb()
+	// builder := gremlingo.RequestOptionsBuilder{}
+	// builder.SetEvaluationTimeout(240000)
+
+	// opts := builder.Create()
+	// res, err := jgp.client.SubmitWithOptions(script, opts)
+	// if err != nil {
+	// 	return fmt.Errorf("gremlin reindex script: %w", err)
+	// }
 
 	// TOOD should reindex data and block until complete
 	// TODO this should

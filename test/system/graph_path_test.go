@@ -34,9 +34,9 @@ func (suite *PathTestSuite) TestPath_TOKEN_STEAL() {
 	g := gremlingo.Traversal_().WithRemote(suite.client)
 
 	rawCount, err := g.V().
-		HasLabel(vertex.VolumeLabel).
+		Has("class", vertex.VolumeLabel).
 		Repeat(__.Out().SimplePath()).
-		Until(__.HasLabel(vertex.IdentityLabel)).
+		Until(__.Has("class", vertex.IdentityLabel)).
 		Path().
 		Count().
 		Next()

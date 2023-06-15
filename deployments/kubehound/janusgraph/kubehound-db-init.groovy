@@ -2,25 +2,76 @@
 :remote console
 :remote config timeout none
 
+//
+// Graph schema and index definition for the KubeHound graph mode
+// See details of the janus graph APIs here https://docs.janusgraph.org/schema/
+// See details of the underlying graph model here: @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2871886994/Kube+Graph+Model
+//
+
+graph.tx().rollback()
 mgmt = graph.openManagement();
 
 System.out.println("[KUBEHOUND] Creating graph schema and indexes");
 
-// Create our edge labels
-mgmt.makeEdgeLabel('CE_NSENTER').multiplicity(MULTI).make();
-mgmt.makeEdgeLabel('CONTAINER_ATTACH').multiplicity(MULTI).make();
-mgmt.makeEdgeLabel('IDENTITY_ASSUME').multiplicity(MULTI).make();
-mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(MULTI).make();
-mgmt.makeEdgeLabel('TOKEN_BRUTEFORCE').multiplicity(MULTI).make();
-
 // Create our vertex labels
-mgmt.makeVertexLabel('Container').make();
-mgmt.makeVertexLabel('Identity').make();
-mgmt.makeVertexLabel('Node').make();
-mgmt.makeVertexLabel('Pod').make();
-mgmt.makeVertexLabel('Role').make();
-mgmt.makeVertexLabel('Token').make();
-mgmt.makeVertexLabel('Volume').make();
+container = mgmt.makeVertexLabel('Container').make();
+identity = mgmt.makeVertexLabel('Identity').make();
+node =mgmt.makeVertexLabel('Node').make();
+pod = mgmt.makeVertexLabel('Pod').make();
+role = mgmt.makeVertexLabel('Role').make();
+token = mgmt.makeVertexLabel('Token').make();
+volume = mgmt.makeVertexLabel('Volume').make();
+
+// Create our edge labels and connections
+roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(ONE2MANY).make();
+mgmt.addConnection(roleGrant, identity, role);
+
+volmeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MANY2ONE).make();
+mgmt.addConnection(volmeMount, container, volume);
+mgmt.addConnection(volmeMount, node, volume);
+
+sharedPs = mgmt.makeEdgeLabel('SHARED_PS_NAMESPACE').multiplicity(MULTI).make();
+mgmt.addConnection(sharedPs, container, container);
+
+containerAttach = mgmt.makeEdgeLabel('CONTAINER_ATTACH').multiplicity(ONE2MANY).make();
+mgmt.addConnection(containerAttach, pod, container);
+
+idAssume = mgmt.makeEdgeLabel('IDENTITY_ASSUME').multiplicity(MANY2ONE).make();
+mgmt.addConnection(idAssume, pod, identity);
+mgmt.addConnection(idAssume, token, identity);
+
+idImpersonate = mgmt.makeEdgeLabel('IDENTITY_IMPERSONATE').multiplicity(MANY2ONE).make();
+mgmt.addConnection(idImpersonate, role, identity);
+
+roleBind = mgmt.makeEdgeLabel('ROLE_BIND').multiplicity(MANY2ONE).make();
+mgmt.addConnection(roleBind, role, role);
+
+podAttach = mgmt.makeEdgeLabel('POD_ATTACH').multiplicity(ONE2MANY).make();
+mgmt.addConnection(podAttach, node, container);
+
+podCreate = mgmt.makeEdgeLabel('POD_CREATE').multiplicity(ONE2MANY).make();
+mgmt.addConnection(podCreate, role, pod);
+
+tokenSteal = mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(ONE2MANY).make();
+mgmt.addConnection(tokenSteal, volume, token);
+
+tokenBruteforce = mgmt.makeEdgeLabel('TOKEN_BRUTEFORCE').multiplicity(ONE2MANY).make();
+mgmt.addConnection(tokenBruteforce, role, identity);
+
+tokenList = mgmt.makeEdgeLabel('TOKEN_LIST').multiplicity(ONE2MANY).make();
+mgmt.addConnection(tokenBruteforce, role, identity);
+
+tokenVarLog = mgmt.makeEdgeLabel('TOKEN_VAR_LOG_SYMLINK').multiplicity(ONE2MANY).make();
+mgmt.addConnection(tokenVarLog, container, token);
+
+nsenter = mgmt.makeEdgeLabel('CE_NSENTER').multiplicity(MANY2ONE).make();
+mgmt.addConnection(nsenter, container, node);
+
+moduleLoad = mgmt.makeEdgeLabel('CE_MODULE_LOAD').multiplicity(MANY2ONE).make();
+mgmt.addConnection(moduleLoad, container, node);
+
+umhCorePattern = mgmt.makeEdgeLabel('CE_UMH_CORE_PATTERN').multiplicity(MANY2ONE).make();
+mgmt.addConnection(umhCorePattern, container, node);
 
 // Create the indexes on vertex properties
 // NOTE: labels cannot be indexed so we create the class property to mirror the vertex label and allow indexing

@@ -30,6 +30,7 @@ func (v Role) Traversal() Traversal {
 		for _, i := range inserts {
 			data := i.(*graph.Role)
 			g = g.AddV(v.Label()).
+				Property("class", v.Label()). // labels are not indexed - use a mirror property
 				Property("storeID", data.StoreID).
 				Property("name", data.Name).
 				Property("isNamespaced", data.IsNamespaced).

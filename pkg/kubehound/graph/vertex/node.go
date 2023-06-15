@@ -29,6 +29,7 @@ func (v Node) Traversal() Traversal {
 		for _, w := range inserts {
 			data := w.(*graph.Node)
 			g = g.AddV(v.Label()).
+				Property("class", v.Label()). // labels are not indexed - use a mirror property
 				Property("storeID", data.StoreID).
 				Property("name", data.Name).
 				Property("isNamespaced", data.IsNamespaced).

@@ -30,6 +30,7 @@ func (v Container) Traversal() Traversal {
 		for _, insert := range inserts {
 			i := insert.(*graph.Container)
 			g = g.AddV(v.Label()).
+				Property("class", v.Label()). // labels are not indexed - use a mirror property
 				Property("storeID", i.StoreID).
 				Property("name", i.Name).
 				Property("image", i.Image).
