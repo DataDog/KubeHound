@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -11,12 +12,24 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/exp/slices"
 )
 
 //go:generate go run ./generator ../setup/test-cluster ./vertex.gen.go
 
+const (
+	nodePrefix = "kubehound.test.local-"
+)
+
 // Optional syntactic sugar.
 var __ = gremlingo.T__
+
+var containerToVerify = []string{
+	"kube-apiserver",
+	"kindnet-cni",
+	"kube-controller-manager",
+	"kube-apiserver",
+}
 
 type VertexTestSuite struct {
 	suite.Suite
@@ -50,8 +63,17 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 		res := res.GetInterface()
 		converted := res.(map[any]any)
 
-		nodeName, ok := converted["name"].(string)
+		containerName, ok := converted["name"].(string)
+		suite.True(ok, "failed to convert container name to string")
+
+		nodeName, ok := converted["node"].(string)
 		suite.True(ok, "failed to convert node name to string")
+
+		podName, ok := converted["pod"].(string)
+		suite.True(ok, "failed to convert pod name to string")
+
+		imageName, ok := converted["image"].(string)
+		suite.True(ok, "failed to convert image name to string")
 
 		compromised, ok := converted["compromised"].(int)
 		suite.True(ok, "failed to convert compromised field to CompromiseType")
@@ -59,10 +81,30 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 		critical, ok := converted["critical"].(bool)
 		suite.True(ok, "failed to convert critical field to bool")
 
-		resultsMap[nodeName] = graph.Container{
-			Name:        nodeName,
-			Compromised: shared.CompromiseType(compromised),
-			Critical:    critical,
+		// We skip these because they are built by Kind itself
+		if slices.Contains(containerToVerify, containerName) {
+			continue
+		}
+
+		resultsMap[containerName] = graph.Container{
+			StoreID:      "",
+			Name:         containerName,
+			Image:        imageName,
+			Command:      []string{},
+			Args:         []string{},
+			Capabilities: []string{},
+			Privileged:   false,
+			PrivEsc:      false,
+			HostPID:      false,
+			HostPath:     false,
+			HostIPC:      false,
+			HostNetwork:  false,
+			RunAsUser:    0,
+			Ports:        []int{},
+			Pod:          podName,
+			Node:         nodeName,
+			Compromised:  shared.CompromiseType(compromised),
+			Critical:     critical,
 		}
 	}
 	suite.Equal(expectedContainers, resultsMap)
@@ -104,6 +146,18 @@ func (suite *VertexTestSuite) TestVertexNode() {
 		critical, ok := converted["critical"].(bool)
 		suite.True(ok, "failed to convert critical field to bool")
 
+		// Prefix the node with the kind prefix
+		// nodeName = nodePrefix + nodeName
+		for {
+			orig := nodeName
+			count := 0
+			_, exist := resultsMap[nodeName]
+			if exist {
+				nodeName = fmt.Sprintf("%s%d", orig, count)
+				continue
+			}
+			break
+		}
 		resultsMap[nodeName] = graph.Node{
 			Name:         nodeName,
 			Compromised:  shared.CompromiseType(compromised),

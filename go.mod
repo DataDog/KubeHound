@@ -11,6 +11,7 @@ require (
 	github.com/stretchr/testify v1.8.2
 	go.mongodb.org/mongo-driver v1.11.6
 	go.uber.org/ratelimit v0.2.0
+	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
 	gopkg.in/DataDog/dd-trace-go.v1 v1.51.0
 	k8s.io/api v0.27.2
 	k8s.io/apimachinery v0.27.2
