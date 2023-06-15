@@ -82,20 +82,96 @@ func (jgp *JanusGraphProvider) Raw() any {
 	return jgp.client
 }
 
-func (jgp *JanusGraphProvider) ReindexData() error {
-	// script := ``
+// TriggerReindex will request data to be reindexed in the database.
+func (jgp *JanusGraphProvider) TriggerReindex(ctx context.Context, flags ReindexOptions) error {
+	switch {
+	case flags&VERTEX_ONLY != 0:
+	case flags&EDGE_ONLY != 0:
+	default:
+	}
 
-	// builder := gremlingo.RequestOptionsBuilder{}
-	// builder.SetEvaluationTimeout(240000)
+	// TOOD Edge.class vairant
+	reindexScript := `
+		graph.tx().commit();
+		mgmt = graph.openManagement();
 
-	// opts := builder.Create()
-	// res, err := jgp.client.SubmitWithOptions(script, opts)
-	// if err != nil {
-	// 	return fmt.Errorf("gremlin reindex script: %w", err)
-	// }
+		// Get all existing indices
+		allIndices = mgmt.getGraphIndexes(Vertex.class);
 
-	// TOOD should reindex data and block until complete
-	// TODO this should
+		// Trigger a reindex of all indices
+		allIndices.forEach { index ->
+			mgmt.updateIndex(index, org.janusgraph.core.schema.SchemaAction.REINDEX);
+		};
+
+		// Commit the changes
+		mgmt.commit();
+	`
+
+	// def jobResults = [:];  jobResults[mgmt.getGraphIndex("byClass").toString()] = mgmt.getIndexJobStatus(mgmt.getGraphIndex("byClass")).isDone(); jobResults[mgmt.getGraphIndex("byName").toString()] = mgmt.getIndexJobStatus(mgmt.getGraphIndex("byClass")).isDone(); jobResults
+
+	builder := gremlingo.RequestOptionsBuilder{}
+	builder.SetEvaluationTimeout(240000)
+
+	opts := builder.Create()
+	res, err := jgp.client.SubmitWithOptions(reindexScript, opts)
+	if err != nil {
+		return fmt.Errorf("gremlin reindex trigger script submission: %w", err)
+	}
+
+	if res.GetError() != nil {
+		return fmt.Errorf("gremlin reindex trigger script evaluation: %w", err)
+	}
+
+	statusScript := `
+	mgmt = graph.openManagement();
+
+	// Get all existing indices
+	allIndices = mgmt.getGraphIndexes(Vertex.class);
+
+	// Query status of each job result
+	def jobResults = [:]; 
+	allIndices.forEach { index ->
+		status = mgmt.getIndexJobStatus(index);
+		if (status != null) {
+			jobResults[index.toString()] = status.isDone();
+		}
+	}
+
+	// Return the map
+	jobResults;
+	`
+
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			goto EXIT
+		case <-ticker.C:
+			res, err = jgp.client.SubmitWithOptions(statusScript, opts)
+			if err != nil {
+				return fmt.Errorf("gremlin reindex status script submission: %w", err)
+			}
+
+			if res.GetError() != nil {
+				return fmt.Errorf("gremlin reindex status script evaluation: %w", err)
+			}
+			data, err := res.All()
+			if err != nil {
+				return err
+			}
+			log.I.Info("%#v", data)
+
+			// data := <-res.Channel()
+			// if data != nil {
+			// 	log.I.Info("YAYAYAY")
+			// }
+
+			//goto EXIT
+		}
+	}
+
+EXIT:
 	return nil
 }
 

@@ -26,6 +26,7 @@ type JanusGraphAsyncWriter[T TWriterInput] struct {
 	writingInFlight *sync.WaitGroup
 	batchSize       int
 	mu              sync.Mutex
+	counter         int
 }
 
 // startBackgroundWriter starts a background go routine
@@ -96,13 +97,14 @@ func (jgv *JanusGraphAsyncWriter[T]) Flush(ctx context.Context) error {
 
 	jgv.writingInFlight.Wait()
 
+	log.I.Infof("%d %s written", jgv.counter, jgv.label)
 	return nil
 }
 
 func (jgv *JanusGraphAsyncWriter[T]) Queue(ctx context.Context, v any) error {
 	jgv.mu.Lock()
 	defer jgv.mu.Unlock()
-
+	jgv.counter += 1
 	jgv.inserts = append(jgv.inserts, v)
 	if len(jgv.inserts) > jgv.batchSize {
 		copied := make([]types.TraversalInput, len(jgv.inserts))
