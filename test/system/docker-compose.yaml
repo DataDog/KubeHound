@@ -1,0 +1,23 @@
+version: "3.7"
+name: kubehound-testing
+services:
+  mongodb:
+    image: mongo:6.0.6
+    restart: unless-stopped
+    container_name: ${COMPOSE_PROJECT_NAME}-storedb
+    ports:
+      - "127.0.0.1:27017:27017"
+    networks:
+      - kubenet
+
+  janusgraph:
+    image: janusgraph/janusgraph:0.6.2
+    restart: unless-stopped
+    container_name: ${COMPOSE_PROJECT_NAME}-graphdb
+    ports:
+      - "127.0.0.1:8182:8182"
+    networks:
+      - kubenet
+
+networks:
+  kubenet:
