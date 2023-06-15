@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -52,10 +51,10 @@ func SetDefaultValues(c *viper.Viper) {
 
 	// Default values for storage provider
 	c.SetDefault("storage.retry", globals.DefaultRetry)
-	c.SetDefault("storage.retry_delay", time.Duration(globals.DefaultRetryDelay)*time.Second)
+	c.SetDefault("storage.retry_delay", globals.DefaultRetryDelay)
 
 	// Default value for MongoDB
-	c.SetDefault("mongodb.connection_timeout", time.Duration(globals.DefaultConnectionTimeout)*time.Second)
+	c.SetDefault("mongodb.connection_timeout", globals.DefaultConnectionTimeout)
 }
 
 // NewConfig creates a new config instance from the provided file using viper.

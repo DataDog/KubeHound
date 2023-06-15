@@ -2,7 +2,6 @@ package config
 
 import (
 	"testing"
-	"time"
 
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +25,7 @@ func TestMustLoadConfig(t *testing.T) {
 			},
 			want: &KubehoundConfig{
 				Storage: StorageConfig{
-					RetryDelay: time.Duration(globals.DefaultRetryDelay) * time.Second,
+					RetryDelay: globals.DefaultRetryDelay,
 					Retry:      globals.DefaultRetry,
 				},
 				Collector: CollectorConfig{
@@ -43,7 +42,7 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				MongoDB: MongoDBConfig{
 					URL:               "mongodb://localhost:27017",
-					ConnectionTimeout: time.Duration(globals.DefaultConnectionTimeout) * time.Second,
+					ConnectionTimeout: globals.DefaultConnectionTimeout,
 				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
@@ -60,7 +59,7 @@ func TestMustLoadConfig(t *testing.T) {
 			},
 			want: &KubehoundConfig{
 				Storage: StorageConfig{
-					RetryDelay: time.Duration(globals.DefaultRetryDelay) * time.Second,
+					RetryDelay: globals.DefaultRetryDelay,
 					Retry:      globals.DefaultRetry,
 				},
 				Collector: CollectorConfig{
@@ -73,7 +72,7 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				MongoDB: MongoDBConfig{
 					URL:               "mongodb://localhost:27017",
-					ConnectionTimeout: time.Duration(globals.DefaultConnectionTimeout) * time.Second,
+					ConnectionTimeout: globals.DefaultConnectionTimeout,
 				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
