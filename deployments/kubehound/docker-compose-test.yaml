@@ -26,5 +26,7 @@ services:
       - "127.0.0.1:8182:8182"
     volumes:
       - ./data/janus:/data
-    # environment:
+    environment:
     #   - janusgraph.storage.batch-loading=true DOES NOT work with BerkelyJE backend
+      # See: https://github.com/JanusGraph/janusgraph/issues/1623
+      - janusgraph.storage.berkeleyje.lock-mode=LockMode.READ_UNCOMMITTED
