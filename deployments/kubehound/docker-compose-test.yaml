@@ -27,4 +27,4 @@ services:
     volumes:
       - ./data/janus:/data
     # environment:
-    #   # - gremlinserver.evaluationTimeout=240000
+    #   - janusgraph.storage.batch-loading=true DOES NOT work with BerkelyJE backend

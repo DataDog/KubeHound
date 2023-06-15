@@ -98,6 +98,8 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 func (b *Builder) Run(ctx context.Context) error {
 	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
 
+	// Wait for cache expiryt
+
 	// Before we start the construction ensure all the new vertices have been index
 	l.Infof("Reindexing graph following vertex ingest")
 	err := b.graphdb.TriggerReindex(ctx, graphdb.VERTEX_ONLY)

@@ -107,20 +107,20 @@ func (jgp *JanusGraphProvider) TriggerReindex(ctx context.Context, flags Reindex
 		mgmt.commit();
 	`
 
-	// def jobResults = [:];  jobResults[mgmt.getGraphIndex("byClass").toString()] = mgmt.getIndexJobStatus(mgmt.getGraphIndex("byClass")).isDone(); jobResults[mgmt.getGraphIndex("byName").toString()] = mgmt.getIndexJobStatus(mgmt.getGraphIndex("byClass")).isDone(); jobResults
-
 	builder := gremlingo.RequestOptionsBuilder{}
 	builder.SetEvaluationTimeout(240000)
 
 	opts := builder.Create()
-	res, err := jgp.client.SubmitWithOptions(reindexScript, opts)
+	resultSet, err := jgp.client.SubmitWithOptions(reindexScript, opts)
 	if err != nil {
 		return fmt.Errorf("gremlin reindex trigger script submission: %w", err)
 	}
 
-	if res.GetError() != nil {
+	if resultSet.GetError() != nil {
 		return fmt.Errorf("gremlin reindex trigger script evaluation: %w", err)
 	}
+
+	// TODO read all indices
 
 	statusScript := `
 	mgmt = graph.openManagement();
@@ -140,38 +140,63 @@ func (jgp *JanusGraphProvider) TriggerReindex(ctx context.Context, flags Reindex
 	// Return the map
 	jobResults;
 	`
-
-	ticker := time.NewTicker(30 * time.Second)
+	// TODO make configureable
+	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
+	expire := time.NewTicker(2 * time.Minute)
+	defer expire.Stop()
 	for {
 		select {
+		case <-expire.C:
+			return errors.New("gremlin reindex status wait expired")
 		case <-ctx.Done():
-			goto EXIT
+			goto Done
 		case <-ticker.C:
-			res, err = jgp.client.SubmitWithOptions(statusScript, opts)
+			resultSet, err := jgp.client.SubmitWithOptions(statusScript, opts)
 			if err != nil {
 				return fmt.Errorf("gremlin reindex status script submission: %w", err)
 			}
 
-			if res.GetError() != nil {
+			if resultSet.GetError() != nil {
 				return fmt.Errorf("gremlin reindex status script evaluation: %w", err)
 			}
-			data, err := res.All()
+
+			results, err := resultSet.All()
 			if err != nil {
-				return err
+				return fmt.Errorf("gremlin reindex status script result set read: %w", err)
 			}
-			log.I.Info("%#v", data)
 
-			// data := <-res.Channel()
-			// if data != nil {
-			// 	log.I.Info("YAYAYAY")
-			// }
+			complete := true
+			for _, r := range results {
+				raw := r.GetInterface()
+				rawMap, ok := raw.(map[interface{}]interface{})
+				if !ok {
+					return fmt.Errorf("gremlin reindex status script result parsing: %#v", rawMap)
+				}
 
-			//goto EXIT
+				for k, v := range rawMap {
+					done, ok := v.(bool)
+					if !ok {
+						return fmt.Errorf("gremlin reindex status script result parsing: %#v", v)
+					}
+
+					if done {
+						log.Trace(ctx).Infof("Index %s reindexing complete", k)
+					} else {
+						log.Trace(ctx).Infof("Index %s reindexing in progress", k)
+					}
+
+					complete = complete && done
+				}
+			}
+
+			if complete {
+				goto Done
+			}
 		}
 	}
 
-EXIT:
+Done:
 	return nil
 }
 
