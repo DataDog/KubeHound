@@ -44,8 +44,8 @@ test: ## Run the full suite of unit tests
 
 .PHONY: system-test
 system-test: ## Run the system tests
-	$(MAKE) infra-rm
-	$(MAKE) infra-up
+	# $(MAKE) infra-rm
+	# $(MAKE) infra-up
 	cd test/system && go test -v -timeout "60s" -race ./...
 
 .PHONY: local-cluster-reset
