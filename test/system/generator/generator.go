@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"text/template"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
@@ -38,12 +39,18 @@ var (
 )
 
 var (
-	globalHeaders = []byte(`
-// PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY
+	globalHeaders = []byte(`// PLEASE DO NOT EDIT
+// THIS HAS BEEN GENERATED AUTOMATICALLY on ` + time.Now().Format("2006-01-02 15:04") + `
 // 
-// FIXME:
-// cd test/system/generator && go build && ./generator ../../setup/test-cluster/
+// Generate it with "go generate ./..."
+// 
+// currently support only:
+// - nodes
+// - pods
+// - containers
+// - volumes
+//
+// TODO: roles, rolebinding, clusterrole, clusterrolebindings
 
 package system
 
@@ -55,11 +62,20 @@ import (
 `)
 )
 
-func main() {
-	// todo: check length
-	path := os.Args[1]
+func usage() {
+	fmt.Println(`Usage:
+	./generator <k8s_yaml_folder> <destination_file>`)
+}
 
-	clusterFile, err := ioutil.ReadFile(filepath.Join(path, "cluster.yaml"))
+func main() {
+	if len(os.Args) != 3 {
+		usage()
+		return
+	}
+	k8sDefinitionPath := os.Args[1]
+	codegenPath := os.Args[2]
+
+	clusterFile, err := ioutil.ReadFile(filepath.Join(k8sDefinitionPath, "cluster.yaml"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +84,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	attackPath := filepath.Join(path, "attacks")
+	attackPath := filepath.Join(k8sDefinitionPath, "attacks")
 	filesAttack, err := ioutil.ReadDir(attackPath)
 	if err != nil {
 		log.Fatal(err)
@@ -77,9 +93,6 @@ func main() {
 		ProcessFile(attackPath, file)
 	}
 
-	fmt.Printf("Pod stored: %+v\n", Pods)
-	fmt.Printf("Node stored: %+v\n", Nodes)
-	fmt.Printf("Volume stored: %+v\n", Volumes)
 	outPods, err := GeneratePodTemplate()
 	if err != nil {
 		fmt.Println("failed to write pods: ", err)
@@ -88,7 +101,19 @@ func main() {
 	if err != nil {
 		fmt.Println("failed to write pods: ", err)
 	}
-	WriteTemplatesToFile("outfile.gen.go", globalHeaders, outPods, outNodes)
+	outContainers, err := GenerateContainerTemplate()
+	if err != nil {
+		fmt.Println("failed to write pods: ", err)
+	}
+	outVolumes, err := GenerateVolumeTemplate()
+	if err != nil {
+		fmt.Println("failed to write pods: ", err)
+	}
+	fmt.Printf("volumes: %+v\n", Volumes)
+	err = WriteTemplatesToFile(codegenPath, globalHeaders, outPods, outNodes, outVolumes, outContainers)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func ProcessCluster(content []byte) error {
@@ -129,14 +154,29 @@ func ProcessFile(basePath string, file os.FileInfo) {
 	// and match each type-case
 	switch o := obj.(type) {
 	case *v1.Node:
-		AddNodeToList(o)
+		err = AddNodeToList(o)
+		if err != nil {
+			fmt.Println("Failed to add node to list:", err)
+		}
 	case *v1.Pod:
-		AddPodToList(o)
+		err = AddPodToList(o)
+		if err != nil {
+			fmt.Println("Failed to add pod to list:", err)
+		}
+		p := store.Pod{
+			K8: *o,
+		}
 		for _, vol := range o.Spec.Volumes {
-			p := store.Pod{
-				K8: *o,
+			err = AddVolumeToList(&vol, &p)
+			if err != nil {
+				fmt.Println("Failed to add volume to list:", err)
 			}
-			AddVolumeToList(&vol, &p)
+		}
+		for _, cont := range o.Spec.Containers {
+			err = AddContainerToList(&cont, &p)
+			if err != nil {
+				fmt.Println("Failed to add container to list:", err)
+			}
 		}
 	case *v1beta1.Role:
 		// TODO
@@ -159,7 +199,10 @@ func AddPodToList(pod *corev1.Pod) error {
 		K8: *pod,
 	}
 	conv := converter.GraphConverter{}
-	convertedPod, _ := conv.Pod(&storePod)
+	convertedPod, err := conv.Pod(&storePod)
+	if err != nil {
+		return err
+	}
 	Pods[pod.Name] = *convertedPod
 
 	return nil
@@ -171,8 +214,27 @@ func AddNodeToList(node *corev1.Node) error {
 		K8: *node,
 	}
 	conv := converter.GraphConverter{}
-	convertedNode, _ := conv.Node(&storeNode)
+	convertedNode, err := conv.Node(&storeNode)
+	if err != nil {
+		return err
+	}
 	Nodes[node.Name] = *convertedNode
+
+	return nil
+}
+
+func AddContainerToList(Container *corev1.Container, storePod *store.Pod) error {
+	fmt.Printf("Container name: %s\n", Container.Name)
+	storeContainer := store.Container{
+		K8: *Container,
+	}
+	conv := converter.GraphConverter{}
+	convertedContainer, err := conv.Container(&storeContainer)
+	if err != nil {
+		return err
+	}
+	convertedContainer.Pod = storePod.K8.Name
+	Containers[Container.Name] = *convertedContainer
 
 	return nil
 }
@@ -180,18 +242,22 @@ func AddNodeToList(node *corev1.Node) error {
 func AddVolumeToList(volume *corev1.Volume, storePod *store.Pod) error {
 	fmt.Printf("Volume name: %s\n", volume.Name)
 	storeVolume := store.Volume{
+		Name:   volume.Name,
 		Source: *volume,
 	}
 	conv := converter.GraphConverter{}
-	convertedVolume, _ := conv.Volume(&storeVolume, storePod)
+	convertedVolume, err := conv.Volume(&storeVolume, storePod)
+	if err != nil {
+		return err
+	}
 	Volumes[volume.Name] = *convertedVolume
 
 	return nil
 }
 
 func GenerateNodeTemplate() ([]byte, error) {
-	tmpl := `var expectedNodeNames = map[string]graph.Node{
-		{{range $val := . -}}
+	tmpl := `var expectedNodes = map[string]graph.Node{
+		{{- range $val := .}}
 		"{{.Name}}": {
 			StoreID:      "",
 			Name:         "{{.Name}}",
@@ -199,8 +265,7 @@ func GenerateNodeTemplate() ([]byte, error) {
 			Namespace:    "{{.Namespace}}",
 			Compromised:  shared.CompromiseNone,
 			Critical:     false,
-		},
-		{{- end}}
+		},{{ end }}
 	}
 `
 
@@ -212,8 +277,8 @@ func GenerateNodeTemplate() ([]byte, error) {
 }
 
 func GeneratePodTemplate() ([]byte, error) {
-	tmpl := `var expectedPodNames = map[string]graph.Pod{
-		{{range $val := . -}}
+	tmpl := `var expectedPods = map[string]graph.Pod{
+		{{- range $val := .}}
 		"{{.Name}}": {
 			StoreID:      "",
 			Name:         "{{.Name}}",
@@ -234,23 +299,53 @@ func GeneratePodTemplate() ([]byte, error) {
 }
 
 func GenerateContainerTemplate() ([]byte, error) {
-	tmpl := `var expectedContainerNames = map[string]graph.Container{
-		{{range $val := .}}
+	tmpl := `var expectedContainers = map[string]graph.Container{
+		{{- range $val := .}}
 		"{{.Name}}": {
 			StoreID:      "",
 			Name:         "{{.Name}}",
-			IsNamespaced: {{.IsNamespaced}},
-			Namespace:    "{{.Namespace}}",
-			Compromised:  shared.CompromiseNone,
-			Critical:     false,
-		},
-		{{end}}
+			Image:        "{{.Image}}",
+			Command:      []string{},
+			Args:         []string{},
+			Capabilities: []string{},
+			Privileged:   {{.Privileged}},
+			PrivEsc:      {{.PrivEsc}},
+			HostPID:      {{.HostPID}},
+			HostPath:     {{.HostPath}},
+			HostIPC:      {{.HostIPC}},
+			HostNetwork:  {{.HostNetwork}},
+			RunAsUser:    {{.RunAsUser}},
+			Ports:        []int{},
+			Pod:          "{{.Pod}}",
+			Node:         "{{.Node}}",
+			Compromised:  0,
+			Critical:     {{.Critical}},
+		},{{ end }}
 	}
 `
 
 	t := template.Must(template.New("tmpl").Parse(tmpl))
 	outbuf := bytes.NewBuffer([]byte{})
-	t.Execute(outbuf, Nodes)
+	t.Execute(outbuf, Containers)
+
+	return outbuf.Bytes(), nil
+}
+
+func GenerateVolumeTemplate() ([]byte, error) {
+	tmpl := `var expectedVolumes = map[string]graph.Volume{
+		{{- range $val := .}}
+		"{{.Name}}": {
+			StoreID: "",
+			Name:    "{{.Name}}",
+			Type:    "{{.Type}}",
+			Path:    "{{.Path}}",
+		},{{ end }}
+	}
+`
+
+	t := template.Must(template.New("tmpl").Parse(tmpl))
+	outbuf := bytes.NewBuffer([]byte{})
+	t.Execute(outbuf, Volumes)
 
 	return outbuf.Bytes(), nil
 }
@@ -260,12 +355,17 @@ func WriteTemplatesToFile(path string, templates ...[]byte) error {
 	if err != nil {
 		return err
 	}
-
-	for _, t := range templates {
-		_, err := f.Write(t)
-		if err != nil {
-			return err
-		}
+	in := bytes.Join(templates, []byte("\n"))
+	// We run go fmt on it so it's "clean"
+	// The formatting is not as strict as our editors config & linter
+	// clean, err := format.Source(in)
+	// if err != nil {
+	// 	return err
+	// }
+	clean := in
+	_, err = f.Write(clean)
+	if err != nil {
+		return err
 	}
 	return nil
 }

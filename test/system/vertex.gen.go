@@ -1,0 +1,256 @@
+// PLEASE DO NOT EDIT
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-06-15 10:59
+// 
+// Generate it with "go generate ./..."
+// 
+// currently support only:
+// - nodes
+// - pods
+// - containers
+// - volumes
+//
+// TODO: roles, rolebinding, clusterrole, clusterrolebindings
+
+package system
+
+import (
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
+)
+
+
+var expectedPods = map[string]graph.Pod{
+		"modload-pod": {
+			StoreID:      "",
+			Name:         "modload-pod",
+			IsNamespaced: false,
+			Namespace:    "",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},
+		"netadmin-pod": {
+			StoreID:      "",
+			Name:         "netadmin-pod",
+			IsNamespaced: false,
+			Namespace:    "",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},
+		"nsenter-pod": {
+			StoreID:      "",
+			Name:         "nsenter-pod",
+			IsNamespaced: false,
+			Namespace:    "",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},
+		"priv-pod": {
+			StoreID:      "",
+			Name:         "priv-pod",
+			IsNamespaced: false,
+			Namespace:    "",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},
+		"sharedps-pod": {
+			StoreID:      "",
+			Name:         "sharedps-pod",
+			IsNamespaced: false,
+			Namespace:    "",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},
+		"umh-core-pod": {
+			StoreID:      "",
+			Name:         "umh-core-pod",
+			IsNamespaced: false,
+			Namespace:    "",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},
+		"varlog-pod": {
+			StoreID:      "",
+			Name:         "varlog-pod",
+			IsNamespaced: false,
+			Namespace:    "",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},
+	}
+
+var expectedNodes = map[string]graph.Node{
+		"control-plane": {
+			StoreID:      "",
+			Name:         "control-plane",
+			IsNamespaced: false,
+			Namespace:    "",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},
+		"worker": {
+			StoreID:      "",
+			Name:         "worker",
+			IsNamespaced: false,
+			Namespace:    "",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},
+	}
+
+var expectedVolumes = map[string]graph.Volume{
+		"nodelog": {
+			StoreID: "",
+			Name:    "nodelog",
+			Type:    "HostPath",
+			Path:    "/var/log",
+		},
+		"nodeproc": {
+			StoreID: "",
+			Name:    "nodeproc",
+			Type:    "HostPath",
+			Path:    "/proc/sys/kernel",
+		},
+	}
+
+var expectedContainers = map[string]graph.Container{
+		"modload-pod": {
+			StoreID:      "",
+			Name:         "modload-pod",
+			Image:        "ubuntu",
+			Command:      []string{},
+			Args:         []string{},
+			Capabilities: []string{},
+			Privileged:   false,
+			PrivEsc:      false,
+			HostPID:      false,
+			HostPath:     false,
+			HostIPC:      false,
+			HostNetwork:  false,
+			RunAsUser:    0,
+			Ports:        []int{},
+			Pod:          "modload-pod",
+			Node:         "",
+			Compromised:  0,
+			Critical:     false,
+		},
+		"netadmin-pod": {
+			StoreID:      "",
+			Name:         "netadmin-pod",
+			Image:        "ubuntu",
+			Command:      []string{},
+			Args:         []string{},
+			Capabilities: []string{},
+			Privileged:   false,
+			PrivEsc:      false,
+			HostPID:      false,
+			HostPath:     false,
+			HostIPC:      false,
+			HostNetwork:  false,
+			RunAsUser:    0,
+			Ports:        []int{},
+			Pod:          "netadmin-pod",
+			Node:         "",
+			Compromised:  0,
+			Critical:     false,
+		},
+		"nsenter-pod": {
+			StoreID:      "",
+			Name:         "nsenter-pod",
+			Image:        "ubuntu",
+			Command:      []string{},
+			Args:         []string{},
+			Capabilities: []string{},
+			Privileged:   true,
+			PrivEsc:      false,
+			HostPID:      false,
+			HostPath:     false,
+			HostIPC:      false,
+			HostNetwork:  false,
+			RunAsUser:    0,
+			Ports:        []int{},
+			Pod:          "nsenter-pod",
+			Node:         "",
+			Compromised:  0,
+			Critical:     false,
+		},
+		"priv-pod": {
+			StoreID:      "",
+			Name:         "priv-pod",
+			Image:        "ubuntu",
+			Command:      []string{},
+			Args:         []string{},
+			Capabilities: []string{},
+			Privileged:   true,
+			PrivEsc:      false,
+			HostPID:      false,
+			HostPath:     false,
+			HostIPC:      false,
+			HostNetwork:  false,
+			RunAsUser:    0,
+			Ports:        []int{},
+			Pod:          "priv-pod",
+			Node:         "",
+			Compromised:  0,
+			Critical:     false,
+		},
+		"sharedps-pod": {
+			StoreID:      "",
+			Name:         "sharedps-pod",
+			Image:        "ubuntu",
+			Command:      []string{},
+			Args:         []string{},
+			Capabilities: []string{},
+			Privileged:   false,
+			PrivEsc:      false,
+			HostPID:      false,
+			HostPath:     false,
+			HostIPC:      false,
+			HostNetwork:  false,
+			RunAsUser:    0,
+			Ports:        []int{},
+			Pod:          "sharedps-pod",
+			Node:         "",
+			Compromised:  0,
+			Critical:     false,
+		},
+		"umh-core-pod": {
+			StoreID:      "",
+			Name:         "umh-core-pod",
+			Image:        "ubuntu",
+			Command:      []string{},
+			Args:         []string{},
+			Capabilities: []string{},
+			Privileged:   false,
+			PrivEsc:      false,
+			HostPID:      false,
+			HostPath:     false,
+			HostIPC:      false,
+			HostNetwork:  false,
+			RunAsUser:    0,
+			Ports:        []int{},
+			Pod:          "umh-core-pod",
+			Node:         "",
+			Compromised:  0,
+			Critical:     false,
+		},
+		"varlog-pod": {
+			StoreID:      "",
+			Name:         "varlog-pod",
+			Image:        "ubuntu",
+			Command:      []string{},
+			Args:         []string{},
+			Capabilities: []string{},
+			Privileged:   false,
+			PrivEsc:      false,
+			HostPID:      false,
+			HostPath:     false,
+			HostIPC:      false,
+			HostNetwork:  false,
+			RunAsUser:    0,
+			Ports:        []int{},
+			Pod:          "varlog-pod",
+			Node:         "",
+			Compromised:  0,
+			Critical:     false,
+		},
+	}
