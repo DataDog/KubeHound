@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"sync/atomic"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
@@ -26,7 +27,8 @@ type JanusGraphAsyncWriter[T TWriterInput] struct {
 	writingInFlight *sync.WaitGroup
 	batchSize       int
 	mu              sync.Mutex
-	counter         int
+	qcounter        int32
+	wcounter        int32
 }
 
 // startBackgroundWriter starts a background go routine
@@ -56,7 +58,7 @@ func (jgv *JanusGraphAsyncWriter[T]) startBackgroundWriter(ctx context.Context) 
 func (jgv *JanusGraphAsyncWriter[T]) batchWrite(ctx context.Context, data []types.TraversalInput) error {
 	log.I.Debugf("batch write JanusGraphAsyncVertexWriter with %d elements", len(data))
 	defer jgv.writingInFlight.Done()
-
+	atomic.AddInt32(&jgv.wcounter, int32(len(data)))
 	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()
 	err := <-promise
@@ -97,14 +99,16 @@ func (jgv *JanusGraphAsyncWriter[T]) Flush(ctx context.Context) error {
 
 	jgv.writingInFlight.Wait()
 
-	log.I.Infof("%d %s written", jgv.counter, jgv.label)
+	log.I.Infof("%d %s qeueed", jgv.qcounter, jgv.label)
+	log.I.Infof("%d %s written", jgv.wcounter, jgv.label)
 	return nil
 }
 
 func (jgv *JanusGraphAsyncWriter[T]) Queue(ctx context.Context, v any) error {
 	jgv.mu.Lock()
 	defer jgv.mu.Unlock()
-	jgv.counter += 1
+
+	atomic.AddInt32(&jgv.qcounter, 1)
 	jgv.inserts = append(jgv.inserts, v)
 	if len(jgv.inserts) > jgv.batchSize {
 		copied := make([]types.TraversalInput, len(jgv.inserts))

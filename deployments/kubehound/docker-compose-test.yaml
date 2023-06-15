@@ -27,8 +27,10 @@ services:
     volumes:
       - ./data/janus:/data
     environment:
+      # - janusgraph.graph.timestamps=NANO
       - janusgraph.schema.constraints=true
       - janusgraph.schema.default=none
+      # - janusgraph.storage.batch-loading=true
     #   - janusgraph.storage.batch-loading=true DOES NOT work with BerkelyJE backend
       # See: https://github.com/JanusGraph/janusgraph/issues/1623
       # - janusgraph.storage.berkeleyje.lock-mode=LockMode.READ_UNCOMMITTED

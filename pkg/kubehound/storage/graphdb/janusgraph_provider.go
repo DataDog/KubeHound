@@ -34,6 +34,7 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 	if err != nil {
 		return nil, err
 	}
+	//TODO try with managing our own tranasctions??
 
 	g := &JanusGraphProvider{
 		client: driver,
@@ -97,6 +98,7 @@ func (jgp *JanusGraphProvider) TriggerReindex(ctx context.Context, flags Reindex
 	// ==>standardjanusgraphtx[0x6528e155]
 
 	// TOOD Edge.class vairant
+	// TODO readd 	graph.tx().commit();
 	reindexScript := `
 		graph.tx().commit();
 		mgmt = graph.openManagement();
@@ -111,6 +113,7 @@ func (jgp *JanusGraphProvider) TriggerReindex(ctx context.Context, flags Reindex
 
 		// Commit the changes
 		mgmt.commit();
+		mgmt.close();
 		graph.tx().commit();
 	`
 
@@ -144,6 +147,7 @@ func (jgp *JanusGraphProvider) TriggerReindex(ctx context.Context, flags Reindex
 		}
 	}
 
+	mgmt.close();
 	// Return the map
 	jobResults;
 	`

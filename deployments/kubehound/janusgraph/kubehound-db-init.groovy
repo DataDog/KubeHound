@@ -73,46 +73,56 @@ mgmt.addConnection(moduleLoad, container, node);
 umhCorePattern = mgmt.makeEdgeLabel('CE_UMH_CORE_PATTERN').multiplicity(MANY2ONE).make();
 mgmt.addConnection(umhCorePattern, container, node);
 
+
+// All properties we will index on
+cls = mgmt.makePropertyKey('class').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+storeID = mgmt.makePropertyKey('storeID').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+name = mgmt.makePropertyKey('name').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+namespace = mgmt.makePropertyKey('namespace').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+type = mgmt.makePropertyKey('type').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+critical = mgmt.makePropertyKey('critical').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+
+// All properties that we want to be able to search on
+isNamespaced = mgmt.makePropertyKey('isNamespaced').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+compromised = mgmt.makePropertyKey('compromised').dataType(Long.class).cardinality(Cardinality.SINGLE).make();
+path = mgmt.makePropertyKey('path').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+nodeName = mgmt.makePropertyKey('node').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+sharedPs = mgmt.makePropertyKey('sharedProcessNamespace').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+serviceAccount = mgmt.makePropertyKey('serviceAccount').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+image = mgmt.makePropertyKey('image').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+podName = mgmt.makePropertyKey('pod').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+hostNetwork = mgmt.makePropertyKey('hostNetwork').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+hostPath = mgmt.makePropertyKey('hostPath').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+hostPid = mgmt.makePropertyKey('hostPid').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+privesc = mgmt.makePropertyKey('privesc').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+privileged = mgmt.makePropertyKey('privileged').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+runAsUser = mgmt.makePropertyKey('runAsUser').dataType(Long.class).cardinality(Cardinality.SINGLE).make();
+rules = mgmt.makePropertyKey('rules').dataType(String.class).cardinality(Cardinality.SET).make();
+command = mgmt.makePropertyKey('command').dataType(String.class).cardinality(Cardinality.SET).make();
+args = mgmt.makePropertyKey('args').dataType(String.class).cardinality(Cardinality.SET).make();
+capabilities = mgmt.makePropertyKey('capabilities').dataType(String.class).cardinality(Cardinality.SET).make();
+ports = mgmt.makePropertyKey('ports').dataType(Long.class).cardinality(Cardinality.SET).make();
+identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+
+// Define properties for each vertex 
+mgmt.addProperties(container, cls, storeID, name, image, privileged, privesc, hostPid, hostPath, hostNetwork, runAsUser, 
+podName, nodeName, compromised, critical, command, args, capabilities, ports);
+mgmt.addProperties(identity, cls, storeID, name, isNamespaced, namespace, type);
+mgmt.addProperties(node, cls, storeID, name, isNamespaced, namespace, compromised, critical);
+mgmt.addProperties(pod, cls, storeID, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
+mgmt.addProperties(role, cls, storeID, name, isNamespaced, namespace, rules);
+mgmt.addProperties(token, cls, name, type, identityName, compromised, critical);
+mgmt.addProperties(volume, cls, storeID, name, type, path);
+
+
 // Create the indexes on vertex properties
 // NOTE: labels cannot be indexed so we create the class property to mirror the vertex label and allow indexing
-cls = mgmt.makePropertyKey('class').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 mgmt.buildIndex('byClass', Vertex.class).addKey(cls).buildCompositeIndex();
-
-storeID = mgmt.makePropertyKey('storeID').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 mgmt.buildIndex('byStoreIDUnique', Vertex.class).addKey(storeID).unique().buildCompositeIndex();
-
-name = mgmt.makePropertyKey('name').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 mgmt.buildIndex('byName', Vertex.class).addKey(name).buildCompositeIndex();
-
-namespace = mgmt.makePropertyKey('namespace').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 mgmt.buildIndex('byNamespace', Vertex.class).addKey(namespace).buildCompositeIndex();
-
-type = mgmt.makePropertyKey('type').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 mgmt.buildIndex('byType', Vertex.class).addKey(type).buildCompositeIndex();
-
-critical = mgmt.makePropertyKey('critical').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 mgmt.buildIndex('byCritical', Vertex.class).addKey(critical).buildCompositeIndex();
-
-// Specify remaining properties that will NOT be indexed
-mgmt.makePropertyKey('isNamespaced').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('compromised').dataType(Long.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('path').dataType(String.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('node').dataType(String.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('sharedProcessNamespace').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('serviceAccount').dataType(String.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('image').dataType(String.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('pod').dataType(String.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('hostNetwork').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('hostPath').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('hostPid').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('privesc').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('privileged').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('runAsUser').dataType(Long.class).cardinality(Cardinality.SINGLE).make();
-mgmt.makePropertyKey('rules').dataType(String.class).cardinality(Cardinality.SET).make();
-mgmt.makePropertyKey('command').dataType(String.class).cardinality(Cardinality.SET).make();
-mgmt.makePropertyKey('args').dataType(String.class).cardinality(Cardinality.SET).make();
-mgmt.makePropertyKey('capabilities').dataType(String.class).cardinality(Cardinality.SET).make();
-mgmt.makePropertyKey('ports').dataType(Long.class).cardinality(Cardinality.SET).make();
 
 mgmt.commit();
 
@@ -125,6 +135,7 @@ ManagementSystem.awaitGraphIndexStatus(graph, 'byType').status(SchemaStatus.ENAB
 ManagementSystem.awaitGraphIndexStatus(graph, 'byCritical').status(SchemaStatus.ENABLED).call();
 
 System.out.println("[KUBEHOUND] graph schema and indexes ready");
+mgmt.close();
 
 // Close the open connection
 :remote close
