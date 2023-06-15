@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-06-15 10:59
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-06-15 13:01
 // 
 // Generate it with "go generate ./..."
 // 
@@ -79,17 +79,25 @@ var expectedPods = map[string]graph.Pod{
 	}
 
 var expectedNodes = map[string]graph.Node{
-		"control-plane": {
+		"kubehound.test.local-control-plane": {
 			StoreID:      "",
-			Name:         "control-plane",
+			Name:         "kubehound.test.local-control-plane",
 			IsNamespaced: false,
 			Namespace:    "",
 			Compromised:  shared.CompromiseNone,
 			Critical:     false,
 		},
-		"worker": {
+		"kubehound.test.local-worker": {
 			StoreID:      "",
-			Name:         "worker",
+			Name:         "kubehound.test.local-worker",
+			IsNamespaced: false,
+			Namespace:    "",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},
+		"kubehound.test.local-worker2": {
+			StoreID:      "",
+			Name:         "kubehound.test.local-worker2",
 			IsNamespaced: false,
 			Namespace:    "",
 			Compromised:  shared.CompromiseNone,

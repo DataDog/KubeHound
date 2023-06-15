@@ -2,7 +2,6 @@ package system
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -16,13 +15,6 @@ import (
 )
 
 //go:generate go run ./generator ../setup/test-cluster ./vertex.gen.go
-
-const (
-	nodePrefix = "kubehound.test.local-"
-)
-
-// Optional syntactic sugar.
-var __ = gremlingo.T__
 
 var containerToVerify = []string{
 	"kube-apiserver",
@@ -110,16 +102,6 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 	suite.Equal(expectedContainers, resultsMap)
 }
 
-// func (suite *VertexTestSuite) TestVertexIdentity() {
-// 	g := gremlingo.Traversal_().WithRemote(suite.client)
-// 	results, err := g.V().HasLabel(vertex.IdentityLabel).ElementMap().ToList()
-// 	suite.NoError(err)
-// 	suite.T().Errorf("results: %s", results)
-// 	for _, res := range results {
-// 		suite.T().Errorf("res: %s", res.String())
-// 	}
-// }
-
 func (suite *VertexTestSuite) TestVertexNode() {
 	g := gremlingo.Traversal_().WithRemote(suite.client)
 	results, err := g.V().HasLabel(vertex.NodeLabel).ElementMap().ToList()
@@ -146,18 +128,6 @@ func (suite *VertexTestSuite) TestVertexNode() {
 		critical, ok := converted["critical"].(bool)
 		suite.True(ok, "failed to convert critical field to bool")
 
-		// Prefix the node with the kind prefix
-		// nodeName = nodePrefix + nodeName
-		for {
-			orig := nodeName
-			count := 0
-			_, exist := resultsMap[nodeName]
-			if exist {
-				nodeName = fmt.Sprintf("%s%d", orig, count)
-				continue
-			}
-			break
-		}
 		resultsMap[nodeName] = graph.Node{
 			Name:         nodeName,
 			Compromised:  shared.CompromiseType(compromised),

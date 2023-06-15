@@ -122,11 +122,23 @@ func ProcessCluster(content []byte) error {
 	if err != nil {
 		return err
 	}
+
 	for _, n := range cluster.Nodes {
-		node := n.Role
-		Nodes[node] = graph.Node{
+		nodeName := "kubehound.test.local-" + n.Role
+		for {
+			orig := nodeName
+			count := 2
+			_, exist := Nodes[nodeName]
+			if exist {
+				nodeName = fmt.Sprintf("%s%d", orig, count)
+				continue
+			}
+			break
+		}
+
+		Nodes[nodeName] = graph.Node{
 			StoreID:      "",
-			Name:         node,
+			Name:         nodeName,
 			IsNamespaced: false,
 			Namespace:    "",
 			Compromised:  0,
@@ -213,13 +225,13 @@ func AddNodeToList(node *corev1.Node) error {
 	storeNode := store.Node{
 		K8: *node,
 	}
-	storeNode.K8.Name = "kubehound.test.local-" + storeNode.K8.Name
 	conv := converter.GraphConverter{}
 	convertedNode, err := conv.Node(&storeNode)
 	if err != nil {
 		return err
 	}
-	Nodes[node.Name] = *convertedNode
+	fmt.Printf("Adding %+v to nodes", convertedNode)
+	Nodes[convertedNode.Name] = *convertedNode
 
 	return nil
 }
