@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -86,19 +85,22 @@ type VertexTestSuite struct {
 func (suite *VertexTestSuite) SetupSuite() {
 	require := suite.Require()
 	ctx := context.Background()
+	cfg := config.MustLoadConfig("./kubehound.yaml")
 
 	// JanusGraph
-	gdb, err := graphdb.Factory(ctx, config.MustLoadConfig("./kubehound.yaml"))
+	gdb, err := graphdb.Factory(ctx, cfg)
 	require.NoError(err, "error deleting the graphdb")
 	suite.gdb = gdb
 	suite.client = gdb.Raw().(*gremlingo.DriverRemoteConnection)
+
 	suite.g = gremlingo.Traversal_().WithRemote(suite.client)
 	errChan := suite.g.V().Drop().Iterate()
 	err = <-errChan
 	require.NoError(err, "error deleting the graphdb")
 
 	// Mongo
-	provider, err := storedb.NewMongoProvider(ctx, storedb.MongoLocalDatabaseURL, 1*time.Second)
+	provider, err := storedb.Factory(ctx, cfg)
+	require.NoError(err, "failed to connect to the mongodb")
 	mongoclient := provider.Raw().(*mongo.Client)
 	db := mongoclient.Database("kubehound")
 	err = db.Drop(ctx)
