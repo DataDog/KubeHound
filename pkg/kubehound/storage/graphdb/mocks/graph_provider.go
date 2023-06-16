@@ -346,49 +346,6 @@ func (_c *Provider_Raw_Call) RunAndReturn(run func() interface{}) *Provider_Raw_
 	return _c
 }
 
-// TriggerReindex provides a mock function with given fields: ctx, flags
-func (_m *Provider) TriggerReindex(ctx context.Context, flags graphdb.ReindexOptions) error {
-	ret := _m.Called(ctx, flags)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, graphdb.ReindexOptions) error); ok {
-		r0 = rf(ctx, flags)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Provider_TriggerReindex_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TriggerReindex'
-type Provider_TriggerReindex_Call struct {
-	*mock.Call
-}
-
-// TriggerReindex is a helper method to define mock.On call
-//   - ctx context.Context
-//   - flags graphdb.ReindexOptions
-func (_e *Provider_Expecter) TriggerReindex(ctx interface{}, flags interface{}) *Provider_TriggerReindex_Call {
-	return &Provider_TriggerReindex_Call{Call: _e.mock.On("TriggerReindex", ctx, flags)}
-}
-
-func (_c *Provider_TriggerReindex_Call) Run(run func(ctx context.Context, flags graphdb.ReindexOptions)) *Provider_TriggerReindex_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(graphdb.ReindexOptions))
-	})
-	return _c
-}
-
-func (_c *Provider_TriggerReindex_Call) Return(_a0 error) *Provider_TriggerReindex_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Provider_TriggerReindex_Call) RunAndReturn(run func(context.Context, graphdb.ReindexOptions) error) *Provider_TriggerReindex_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // VertexWriter provides a mock function with given fields: ctx, v, opts
 func (_m *Provider) VertexWriter(ctx context.Context, v vertex.Builder, opts ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error) {
 	_va := make([]interface{}, len(opts))

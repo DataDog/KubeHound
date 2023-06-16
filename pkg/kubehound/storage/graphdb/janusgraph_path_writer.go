@@ -11,6 +11,7 @@ import (
 
 var _ AsyncPathWriter = (*JanusGraphAsyncWriter[path.Traversal])(nil)
 
+// NewJanusGraphAsyncPathWriter creates a new bulk path writer instance.
 func NewJanusGraphAsyncPathWriter(ctx context.Context, dcp *DriverConnectionPool,
 	p path.Builder, opts ...WriterOption) (*JanusGraphAsyncWriter[path.Traversal], error) {
 
@@ -19,6 +20,7 @@ func NewJanusGraphAsyncPathWriter(ctx context.Context, dcp *DriverConnectionPool
 		opt(options)
 	}
 
+	// Creating a transaction modifies the connection pool, acquire the lock
 	dcp.Lock.Lock()
 	defer dcp.Lock.Unlock()
 

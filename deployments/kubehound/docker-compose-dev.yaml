@@ -1,0 +1,32 @@
+version: "3.7"
+
+services:
+  mongodb:
+    image: mongo
+    container_name: storedb
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - ./data/mongodb:/data/db
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    depends_on:
+      - mongodb
+    ports:
+      - "127.0.0.1:8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
+
+  janusgraph:
+    image: janusgraph-exp 
+    container_name: graphdb-ng
+    ports:
+      - "127.0.0.1:8182:8182"
+    volumes:
+       # Named volume mounts. The data mount is only used when BerkeleyDB is used for storage.
+      - "./data/janus:/var/lib/janusgraph"
+    environment:
+      - janusgraph.schema.constraints=true
+      - janusgraph.schema.default=none

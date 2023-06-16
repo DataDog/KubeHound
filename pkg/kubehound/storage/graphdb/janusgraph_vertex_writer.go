@@ -11,6 +11,7 @@ import (
 
 var _ AsyncVertexWriter = (*JanusGraphAsyncWriter[vertex.Traversal])(nil)
 
+// NewJanusGraphAsyncVertexWriter creates a new bulk vertex writer instance.
 func NewJanusGraphAsyncVertexWriter(ctx context.Context, dcp *DriverConnectionPool,
 	v vertex.Builder, opts ...WriterOption) (*JanusGraphAsyncWriter[vertex.Traversal], error) {
 
@@ -19,6 +20,7 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, dcp *DriverConnectionPo
 		opt(options)
 	}
 
+	// Creating a transaction modifies the connection pool, acquire the lock
 	dcp.Lock.Lock()
 	defer dcp.Lock.Unlock()
 

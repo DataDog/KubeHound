@@ -11,6 +11,7 @@ import (
 
 var _ AsyncPathWriter = (*JanusGraphAsyncWriter[edge.Traversal])(nil)
 
+// NewJanusGraphAsyncEdgeWriter creates a new bulk edge writer instance.
 func NewJanusGraphAsyncEdgeWriter(ctx context.Context, dcp *DriverConnectionPool,
 	e edge.Builder, opts ...WriterOption) (*JanusGraphAsyncWriter[edge.Traversal], error) {
 
@@ -19,6 +20,7 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, dcp *DriverConnectionPool
 		opt(options)
 	}
 
+	// Creating a transaction modifies the connection pool, acquire the lock
 	dcp.Lock.Lock()
 	defer dcp.Lock.Unlock()
 

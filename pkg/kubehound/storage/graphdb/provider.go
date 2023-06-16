@@ -11,14 +11,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage"
 )
 
-type ReindexOptions uint8
-
-const (
-	DEFAULT ReindexOptions = 1 << iota
-	VERTEX_ONLY
-	EDGE_ONLY
-)
-
 type writerOptions struct {
 }
 

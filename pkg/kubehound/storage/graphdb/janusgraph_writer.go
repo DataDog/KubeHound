@@ -19,18 +19,18 @@ type TWriterInput interface {
 }
 
 type JanusGraphAsyncWriter[T TWriterInput] struct {
-	label           string
-	gremlin         T
-	dcp             *DriverConnectionPool
-	traversalSource *gremlingo.GraphTraversalSource
-	transaction     *gremlingo.Transaction
-	inserts         []types.TraversalInput
-	consumerChan    chan []types.TraversalInput
-	writingInFlight *sync.WaitGroup
-	batchSize       int
-	mu              sync.Mutex
-	qcounter        int32
-	wcounter        int32
+	label           string                          // Label of the graph entity being written
+	gremlin         T                               // Gremlin traversal generator function
+	dcp             *DriverConnectionPool           // Lock protected gremlin driver remote connection
+	traversalSource *gremlingo.GraphTraversalSource // Transacted graph traversal source
+	transaction     *gremlingo.Transaction          // Transaction holding all the writes done by this writer
+	inserts         []types.TraversalInput          // Object data to be inserted in the graph
+	mu              sync.Mutex                      // Mutex protecting access to the inserts array
+	consumerChan    chan []types.TraversalInput     // Channel consuming inserts for async writing
+	writingInFlight *sync.WaitGroup                 // Wait group tracking current unfinished writes
+	batchSize       int                             // Batchsize of graph DB inserts
+	qcounter        int32                           // Track items queued
+	wcounter        int32                           // Track items writtn
 }
 
 // startBackgroundWriter starts a background go routine
@@ -77,6 +77,7 @@ func (jgv *JanusGraphAsyncWriter[T]) batchWrite(ctx context.Context, data []type
 func (jgv *JanusGraphAsyncWriter[T]) Close(ctx context.Context) error {
 	close(jgv.consumerChan)
 
+	// Closing a transaction modifies the connection pool, acquire the lock
 	jgv.dcp.Lock.Lock()
 	defer jgv.dcp.Lock.Unlock()
 
@@ -108,11 +109,16 @@ func (jgv *JanusGraphAsyncWriter[T]) Flush(ctx context.Context) error {
 
 	jgv.writingInFlight.Wait()
 
+	// Committing a transaction modifies the connection pool, acquire the lock
+	jgv.dcp.Lock.Lock()
+	defer jgv.dcp.Lock.Unlock()
+
 	err := jgv.transaction.Commit()
 	if err != nil {
 		return err
 	}
 
+	// TODO replace with metrics
 	log.I.Infof("%d %s queued", jgv.qcounter, jgv.label)
 	log.I.Infof("%d %s written", jgv.wcounter, jgv.label)
 	return nil

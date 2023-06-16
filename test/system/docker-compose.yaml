@@ -11,13 +11,17 @@ services:
       - kubenet
 
   janusgraph:
-    image: janusgraph/janusgraph:0.6.2
+    build: ../../deployments/kubehound/janusgraph/
     restart: unless-stopped
     container_name: ${COMPOSE_PROJECT_NAME}-graphdb
     ports:
       - "127.0.0.1:8182:8182"
     networks:
       - kubenet
+    environment:
+      # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
+      - janusgraph.schema.constraints=true
+      - janusgraph.schema.default=none
 
 networks:
   kubenet:
