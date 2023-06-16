@@ -84,25 +84,26 @@ type VertexTestSuite struct {
 }
 
 func (suite *VertexTestSuite) SetupSuite() {
+	require := suite.Require()
 	ctx := context.Background()
+
+	// JanusGraph
 	gdb, err := graphdb.Factory(ctx, config.MustLoadConfig("./kubehound.yaml"))
-	suite.NoError(err)
+	require.NoError(err, "error deleting the graphdb")
 	suite.gdb = gdb
 	suite.client = gdb.Raw().(*gremlingo.DriverRemoteConnection)
 	suite.g = gremlingo.Traversal_().WithRemote(suite.client)
 	errChan := suite.g.V().Drop().Iterate()
 	err = <-errChan
-	if err != nil {
-		suite.Errorf(err, "error deleting the graphdb:\n")
-	}
+	require.NoError(err, "error deleting the graphdb")
 
+	// Mongo
 	provider, err := storedb.NewMongoProvider(ctx, storedb.MongoLocalDatabaseURL, 1*time.Second)
 	mongoclient := provider.Raw().(*mongo.Client)
 	db := mongoclient.Database("kubehound")
 	err = db.Drop(ctx)
-	if err != nil {
-		suite.Errorf(err, "error deleting the mongodb:\n")
-	}
+	require.NoError(err, "error deleting the mongodb")
+
 	err = runKubeHound()
 	suite.NoError(err)
 }
@@ -121,8 +122,10 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 		suite.True(ok, "failed to convert container name to string")
 
 		// This is most likely going to be flaky if we try to match these
-		// nodeName, ok := converted["node"].(string)
-		// suite.True(ok, "failed to convert node name to string")
+		// because the node may change between run if they have the same specs
+		// so we ignore the return value and just check that it exists and is a readable as a string
+		_, ok = converted["node"].(string)
+		suite.True(ok, "failed to convert node name to string")
 
 		podName, ok := converted["pod"].(string)
 		suite.True(ok, "failed to convert pod name to string")
@@ -160,7 +163,7 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 			RunAsUser:    0,
 			Ports:        []int{},
 			Pod:          podName,
-			// Node:         nodeName,
+			// Node:         nodeName, // see comments for converted["node"].(string)
 			// Compromised:  shared.CompromiseType(compromised),
 			Critical: critical,
 		}
