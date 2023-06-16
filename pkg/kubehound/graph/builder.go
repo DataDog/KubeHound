@@ -123,7 +123,6 @@ func (b *Builder) Run(ctx context.Context) error {
 	}
 
 	l.Info("Starting edge construction")
-
 	for label, e := range b.edges {
 		e := e
 		label := label

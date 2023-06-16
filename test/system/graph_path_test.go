@@ -7,7 +7,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -34,9 +34,9 @@ func (suite *PathTestSuite) TestPath_TOKEN_STEAL() {
 	g := gremlingo.Traversal_().WithRemote(suite.client)
 
 	rawCount, err := g.V().
-		HasLabel(vertex.VolumeLabel).
+		Has("class", vertex.VolumeLabel).
 		Repeat(__.Out().SimplePath()).
-		Until(__.HasLabel(vertex.IdentityLabel)).
+		Until(__.Has("class", vertex.IdentityLabel)).
 		Path().
 		Count().
 		Next()
