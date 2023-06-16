@@ -30,6 +30,8 @@ var containerToVerify = []string{
 	"local-path-provisioner",
 }
 
+const numberOfKindDefaultContainer = 13
+
 type VertexTestSuite struct {
 	suite.Suite
 	gdb    graphdb.Provider
@@ -57,7 +59,6 @@ func (suite *VertexTestSuite) SetupSuite() {
 	if err != nil {
 		suite.Errorf(err, "error deleting the mongodb:\n")
 	}
-	time.Sleep(2 * time.Second)
 	err = runKubeHound()
 	suite.NoError(err)
 }
@@ -66,7 +67,7 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 	results, err := suite.g.V().HasLabel(vertex.ContainerLabel).ElementMap().ToList()
 	suite.NoError(err)
 
-	suite.Equal(len(expectedContainers), len(results))
+	suite.Equal(len(expectedContainers)+numberOfKindDefaultContainer, len(results))
 	resultsMap := map[string]graph.Container{}
 	for _, res := range results {
 		res := res.GetInterface()
@@ -124,8 +125,7 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 }
 
 func (suite *VertexTestSuite) TestVertexNode() {
-	g := gremlingo.Traversal_().WithRemote(suite.client)
-	results, err := g.V().HasLabel(vertex.NodeLabel).ElementMap().ToList()
+	results, err := suite.g.V().HasLabel(vertex.NodeLabel).ElementMap().ToList()
 	suite.NoError(err)
 
 	suite.Equal(len(expectedNodes), len(results))
@@ -194,6 +194,6 @@ func TestVertexTestSuite(t *testing.T) {
 	suite.Run(t, new(VertexTestSuite))
 }
 
-func (suite *VertexTestSuite) TearDownTest() {
+func (suite *VertexTestSuite) TearDownSuite() {
 	suite.gdb.Close(context.Background())
 }
