@@ -32,9 +32,6 @@ type Provider interface {
 	// Raw returns a handle to the underlying provider to allow implementation specific operations e.g graph queries.
 	Raw() any
 
-	// TODO TODO
-	TriggerReindex(ctx context.Context, flags ReindexOptions) error
-
 	// VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
 	VertexWriter(ctx context.Context, v vertex.Builder, opts ...WriterOption) (AsyncVertexWriter, error)
 

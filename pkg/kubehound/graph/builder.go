@@ -98,15 +98,6 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 func (b *Builder) Run(ctx context.Context) error {
 	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
 
-	// TODO wait for all transactions to complete before starting the builder
-
-	// Before we start the construction ensure all the new vertices have been index
-	// l.Infof("Reindexing graph following vertex ingest")
-	// err := b.graphdb.TriggerReindex(ctx, graphdb.VERTEX_ONLY)
-	// if err != nil {
-	// 	return fmt.Errorf("vertex reindexing: %w", err)
-	// }
-
 	// Paths can have dependencies so must be built in sequence
 	l.Info("Starting path construction")
 	for label, p := range b.paths {
@@ -118,13 +109,6 @@ func (b *Builder) Run(ctx context.Context) error {
 			continue
 		}
 	}
-
-	// We've inserted more vertices via paths, reindex once again!
-	// l.Infof("Reindexing graph following path inserts")
-	// err = b.graphdb.TriggerReindex(ctx, graphdb.DEFAULT)
-	// if err != nil {
-	// 	return fmt.Errorf("path reindexing: %w", err)
-	// }
 
 	// Edges can be built in parallel
 	l.Info("Creating edge builder worker pool")
@@ -160,13 +144,6 @@ func (b *Builder) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	// All insertions are complete, the graph will now be available for query. Ensure it is reindex first
-	l.Infof("Reindexing final graph")
-	// err = b.graphdb.TriggerReindex(ctx, graphdb.DEFAULT)
-	// if err != nil {
-	// 	return fmt.Errorf("final graph reindexing: %w", err)
-	// }
 
 	l.Info("Completed edge construction")
 	return nil

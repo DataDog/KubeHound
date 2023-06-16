@@ -11,7 +11,7 @@ import (
 
 var _ AsyncVertexWriter = (*JanusGraphAsyncWriter[vertex.Traversal])(nil)
 
-func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRemoteConnection,
+func NewJanusGraphAsyncVertexWriter(ctx context.Context, dcp *DriverConnectionPool,
 	v vertex.Builder, opts ...WriterOption) (*JanusGraphAsyncWriter[vertex.Traversal], error) {
 
 	options := &writerOptions{}
@@ -19,12 +19,23 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRe
 		opt(options)
 	}
 
-	source := gremlingo.Traversal_().WithRemote(drc)
+	dcp.Lock.Lock()
+	defer dcp.Lock.Unlock()
+
+	source := gremlingo.Traversal_().WithRemote(dcp.Driver)
+	tx := source.Tx()
+	gtx, err := tx.Begin()
+	if err != nil {
+		return nil, err
+	}
+
 	jw := JanusGraphAsyncWriter[vertex.Traversal]{
 		label:           v.Label(),
 		gremlin:         v.Traversal(),
+		dcp:             dcp,
 		inserts:         make([]types.TraversalInput, 0, v.BatchSize()),
-		traversalSource: source,
+		traversalSource: gtx,
+		transaction:     tx,
 		batchSize:       v.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []types.TraversalInput, v.BatchSize()*channelSizeBatchFactor),

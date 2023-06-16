@@ -21,7 +21,9 @@ type TWriterInput interface {
 type JanusGraphAsyncWriter[T TWriterInput] struct {
 	label           string
 	gremlin         T
+	dcp             *DriverConnectionPool
 	traversalSource *gremlingo.GraphTraversalSource
+	transaction     *gremlingo.Transaction
 	inserts         []types.TraversalInput
 	consumerChan    chan []types.TraversalInput
 	writingInFlight *sync.WaitGroup
@@ -58,11 +60,14 @@ func (jgv *JanusGraphAsyncWriter[T]) startBackgroundWriter(ctx context.Context) 
 func (jgv *JanusGraphAsyncWriter[T]) batchWrite(ctx context.Context, data []types.TraversalInput) error {
 	log.I.Debugf("batch write JanusGraphAsyncVertexWriter with %d elements", len(data))
 	defer jgv.writingInFlight.Done()
+
 	atomic.AddInt32(&jgv.wcounter, int32(len(data)))
+
 	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()
 	err := <-promise
 	if err != nil {
+		jgv.transaction.Rollback()
 		return err
 	}
 
@@ -71,7 +76,11 @@ func (jgv *JanusGraphAsyncWriter[T]) batchWrite(ctx context.Context, data []type
 
 func (jgv *JanusGraphAsyncWriter[T]) Close(ctx context.Context) error {
 	close(jgv.consumerChan)
-	return nil
+
+	jgv.dcp.Lock.Lock()
+	defer jgv.dcp.Lock.Unlock()
+
+	return jgv.transaction.Close()
 }
 
 // Flush triggers writes of any remaining items in the queue.
@@ -99,7 +108,12 @@ func (jgv *JanusGraphAsyncWriter[T]) Flush(ctx context.Context) error {
 
 	jgv.writingInFlight.Wait()
 
-	log.I.Infof("%d %s qeueed", jgv.qcounter, jgv.label)
+	err := jgv.transaction.Commit()
+	if err != nil {
+		return err
+	}
+
+	log.I.Infof("%d %s queued", jgv.qcounter, jgv.label)
 	log.I.Infof("%d %s written", jgv.wcounter, jgv.label)
 	return nil
 }
