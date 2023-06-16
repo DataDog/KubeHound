@@ -45,7 +45,7 @@ The cluster setup and running instances can be found under [test/setup](./test/s
 Setup the test kind cluster (you only need to do this once!) via:
 
 ```bash
-make local-cluster-setup
+make local-cluster-deploy
 ```
 
 Then run the system tests via:
@@ -58,6 +58,12 @@ To cleanup the environment you can destroy the cluster via:
 
 ```bash
 make local-cluster-destroy
+```
+
+To list all the available commands, run:
+
+```bash
+make help
 ```
 
 ### CI Testing
