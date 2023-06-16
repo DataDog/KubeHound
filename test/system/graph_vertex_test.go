@@ -9,10 +9,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
 	"github.com/stretchr/testify/suite"
-	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/exp/slices"
 )
 
@@ -94,20 +92,6 @@ func (suite *VertexTestSuite) SetupSuite() {
 	suite.client = gdb.Raw().(*gremlingo.DriverRemoteConnection)
 
 	suite.g = gremlingo.Traversal_().WithRemote(suite.client)
-	errChan := suite.g.V().Drop().Iterate()
-	err = <-errChan
-	require.NoError(err, "error deleting the graphdb")
-
-	// Mongo
-	provider, err := storedb.Factory(ctx, cfg)
-	require.NoError(err, "failed to connect to the mongodb")
-	mongoclient := provider.Raw().(*mongo.Client)
-	db := mongoclient.Database("kubehound")
-	err = db.Drop(ctx)
-	require.NoError(err, "error deleting the mongodb")
-
-	err = runKubeHound()
-	suite.NoError(err)
 }
 
 func (suite *VertexTestSuite) TestVertexContainer() {
