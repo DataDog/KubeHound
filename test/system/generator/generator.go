@@ -16,7 +16,6 @@ import (
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/api/rbac/v1beta1"
 
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -172,8 +171,6 @@ func ProcessFile(basePath string, file os.FileInfo) {
 		// now use switch over the type of the object
 		// and match each type-case
 		switch o := obj.(type) {
-		case *v1.List:
-			panic("list!")
 		case *v1.Node:
 			err = AddNodeToList(o)
 			if err != nil {
@@ -199,24 +196,16 @@ func ProcessFile(basePath string, file os.FileInfo) {
 					fmt.Println("Failed to add container to list:", err)
 				}
 			}
-		case *v1beta1.Role:
-			// TODO
-		case *v1beta1.RoleBinding:
-			// TODO
-		case *v1beta1.ClusterRole:
-			// TODO
-		case *v1beta1.ClusterRoleBinding:
-			// TODO
-		case *v1.ServiceAccount:
+		//TODO:
+		// case *v1beta1.Role, *v1beta1.RoleBinding, *v1beta1.ClusterRole, *v1beta1.ClusterRoleBinding:
 		default:
-			fmt.Printf("Unknown object type: %+v\n", o)
-			//o is unknown for us
+			fmt.Printf("(TODO) %T object has not yet been implememented: %+v", o, o)
 		}
 	}
 }
 
 func AddPodToList(pod *corev1.Pod) error {
-	fmt.Printf("pod name: %s (%+v)\n", pod.Name, pod)
+	fmt.Printf("pod name: %s\n", pod.Name)
 	pod.Namespace = defaultNamespace
 	storePod := store.Pod{
 		K8: *pod,
@@ -227,7 +216,6 @@ func AddPodToList(pod *corev1.Pod) error {
 	if convertedPod.ServiceAccount == "" {
 		convertedPod.ServiceAccount = defaultServiceAccount
 	}
-	fmt.Printf("pod converted: %+v\n", convertedPod)
 	if err != nil {
 		return err
 	}
