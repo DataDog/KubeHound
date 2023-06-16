@@ -41,13 +41,13 @@ infra-up: ## Spwan the testing stack
 	docker compose $(DOCKER_COMPOSE_FILE_PATH) up -d
 
 .PHONY: test
-test: generate ## Run the full suite of unit tests 
+test: ## Run the full suite of unit tests 
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
 	cd pkg && go test ./...
 
 .PHONY: system-test
-system-test: generate ## Run the system tests
+system-test: ## Run the system tests
 	# we print the KUBECONFIG envvar here to make it easier to see what is actively used
 	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/.kube/config && bash -c "printenv KUBECONFIG" && go test -v -timeout "60s" -count=1 -race ./...
 
