@@ -253,25 +253,75 @@ func (suite *VertexTestSuite) TestVertexPod() {
 	suite.Equal(expectedPods, resultsMap)
 }
 
-// func (suite *VertexTestSuite) TestVertexRole() {
-// 	g := gremlingo.Traversal_().WithRemote(suite.client)
-// 	results, err := g.V().HasLabel(vertex.RoleLabel).ElementMap().ToList()
-// 	suite.NoError(err)
-// 	suite.T().Errorf("results: %s", results)
-// 	for _, res := range results {
-// 		suite.T().Errorf("res: %s", res.String())
-// 	}
-// }
+func (suite *VertexTestSuite) TestVertexRole() {
+	results, err := suite.g.V().HasLabel(vertex.RoleLabel).Has("name", "impersonate").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(1, len(results))
 
-// func (suite *VertexTestSuite) TestVertexVolume() {
-// 	g := gremlingo.Traversal_().WithRemote(suite.client)
-// 	results, err := g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
-// 	suite.NoError(err)
-// 	suite.T().Errorf("results: %s", results)
-// 	for _, res := range results {
-// 		suite.T().Errorf("res: %s", res.String())
-// 	}
-// }
+	results, err = suite.g.V().HasLabel(vertex.RoleLabel).Has("name", "read-secrets").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(1, len(results))
+
+	results, err = suite.g.V().HasLabel(vertex.RoleLabel).Has("name", "create-pods").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(1, len(results))
+
+	results, err = suite.g.V().HasLabel(vertex.RoleLabel).Has("name", "patch-pods").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(1, len(results))
+
+	results, err = suite.g.V().HasLabel(vertex.RoleLabel).Has("name", "rolebind").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(1, len(results))
+}
+
+func (suite *VertexTestSuite) TestVertexVolume() {
+	results, err := suite.g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(54, len(results))
+
+	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("path", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(1, len(results))
+
+	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("path", "/lib/modules").Has("name", "lib-modules").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Greater(len(results), 1) // Not sure why it has "6"
+
+	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("path", "/var/log").Has("name", "nodelog").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(len(results), 1)
+}
+
+func (suite *VertexTestSuite) TestVertexIdentity() {
+	results, err := suite.g.V().HasLabel(vertex.IdentityLabel).ElementMap().ToList()
+	suite.NoError(err)
+	suite.Greater(len(results), 50)
+
+	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "tokenget-sa").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(len(results), 1)
+
+	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "impersonate-sa").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(len(results), 1)
+
+	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "tokenlist-sa").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(len(results), 1)
+
+	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "pod-patch-sa").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(len(results), 1)
+
+	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "rolebind-sa").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(len(results), 1)
+
+	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "pod-create-sa").ElementMap().ToList()
+	suite.NoError(err)
+	suite.Equal(len(results), 1)
+}
 
 func TestVertexTestSuite(t *testing.T) {
 	suite.Run(t, new(VertexTestSuite))
