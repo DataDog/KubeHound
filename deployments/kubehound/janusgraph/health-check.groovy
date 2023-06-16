@@ -13,10 +13,6 @@ if (allIndices.size <= 0) {
 
 // Query the state of each index and check it is enabled!
 allIndices.forEach { index ->
-    // status = mgmt.getIndexJobStatus(index);
-    // if (status == null || !status.isDone()) {
-    //     throw new Exception("Index ${index.toString()} not ready")
-    // }
     mgmt.awaitGraphIndexStatus(graph, index.toString()).status(SchemaStatus.REGISTERED).timeout(1, java.time.temporal.ChronoUnit.SECONDS).call();
 }
 mgmt.close();

@@ -30,7 +30,7 @@ services:
     environment:
       - janusgraph.schema.constraints=true
       - janusgraph.schema.default=none
-    healthcheck:
+    healthcheck: 
       test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
       interval: 60s
       timeout: 30s

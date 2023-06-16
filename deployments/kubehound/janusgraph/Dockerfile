@@ -4,5 +4,5 @@ FROM janusgraph/janusgraph:latest
 # See https://github.com/JanusGraph/janusgraph-docker#initialization
 COPY kubehound-db-init.groovy /docker-entrypoint-initdb.d/
 
-# 
+# Custom health check script
 COPY health-check.groovy /opt/janusgraph/scripts/
