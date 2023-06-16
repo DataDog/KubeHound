@@ -5,10 +5,8 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -27,41 +25,55 @@ func (suite *EdgeTestSuite) SetupTest() {
 	suite.NoError(err)
 }
 
-func (suite *EdgeTestSuite) TestEdge_ESCAPE_MODULE_LOAD() {
-	g := gremlingo.Traversal_().WithRemote(suite.client)
+// // find the vertices connected by the CE_MODULE_LOAD edge and get the name of the pod and node
+// func (suite *EdgeTestSuite) TestEdge_CE_MODULE_LOAD() {
+// 	g := gremlingo.Traversal_().WithRemote(suite.client)
 
-	rawCount, err := g.V().
-		Has("class", vertex.VolumeLabel).
-		Repeat(__.Out().SimplePath()).
-		Until(__.Has("class", vertex.IdentityLabel)).
-		Path().
-		Count().
-		Next()
+// 	// query the name of the node
+// 	g.V().Has("class", vertex.PodLabel).OutE("CE_MODULE_LOAD").InV().Values("name").Next()
 
-	assert.NoError(suite.T(), err)
-	_, err = rawCount.GetInt()
-	assert.NoError(suite.T(), err)
-	// assert.NotEqual(suite.T(), pathCount, 0)
+// 	// query the name of the outE container
+// 	g.V().Has("class", vertex.PodLabel).OutE("CE_MODULE_LOAD").Values("name").Next()
 
-	// Every pod in our test cluster should have projected volume holding a token. BUT we only
-	// save those with a non-default service account token as shown below.
-	//
-	// $ kubectl get sa
-	// NAME             SECRETS   AGE
-	// default          0         28h
-	// impersonate-sa   0         28h
-	// pod-create-sa    0         28h
-	// pod-patch-sa     0         28h
-	// rolebind-sa      0         28h
-	// tokenget-sa      0         28h
-	// tokenlist-sa     0         28h
-	const expectedTokenCount = 6
+// 	// Count of containers
+// 	g.V().has("class", "Container").outE("CE_MODULE_LOAD").outV().dedup().values("name")
+// 	[priv-pod, nsenter-pod, kube-proxy, kube-proxy, modload-pod, kube-proxy]
 
-	// assert.Equal(suite.T(), expectedTokenCount, pathCount)
-}
+// 	g.V().has("class", "Container").outE("CE_MODULE_LOAD").inV().dedup().values("name")
+// 	[kubehound.test.local-worker2, kubehound.test.local-worker, kubehound.test.local-control-plane]
+
+// 	g.V().has("class", "Container").outE("CE_MODULE_LOAD").outV().values("name").Count()
+// }
+
+// // Find the vertices connected by the ESCAPE_MODULE_LOAD edge
+// func (suite *EdgeTestSuite) TestEdge_ESCAPE_MODULE_LOAD() {
+// 	g := gremlingo.Traversal_().WithRemote(suite.client)
+
+// 	// We will probably have more than just our example due to the OR condition. So just look for
+// 	// our specific example pod.
+
+// 	//
+
+// 	rawCount, err := g.V().
+// 		Has("class", vertex.VolumeLabel).
+// 		Repeat(__.Out().SimplePath()).
+// 		Until(__.Has("class", vertex.IdentityLabel)).
+// 		Path().
+// 		Count().
+// 		Next()
+
+// 	assert.NoError(suite.T(), err)
+// 	_, err = rawCount.GetInt()
+// 	assert.NoError(suite.T(), err)
+// 	// assert.NotEqual(suite.T(), pathCount, 0)
+
+// 	const expectedTokenCount = 6
+
+// 	assert.Equal(suite.T(), expectedTokenCount, pathCount)
+// }
 
 func TestEdgeTestSuite(t *testing.T) {
-	suite.Run(t, new(PathTestSuite))
+	suite.Run(t, new(EdgeTestSuite))
 }
 
 func (suite *EdgeTestSuite) TearDownTest() {

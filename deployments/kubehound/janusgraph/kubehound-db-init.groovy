@@ -37,7 +37,7 @@ containerAttach = mgmt.makeEdgeLabel('CONTAINER_ATTACH').multiplicity(ONE2MANY).
 mgmt.addConnection(containerAttach, pod, container);
 
 idAssume = mgmt.makeEdgeLabel('IDENTITY_ASSUME').multiplicity(MANY2ONE).make();
-mgmt.addConnection(idAssume, pod, identity);
+mgmt.addConnection(idAssume, container, identity);
 mgmt.addConnection(idAssume, token, identity);
 
 idImpersonate = mgmt.makeEdgeLabel('IDENTITY_IMPERSONATE').multiplicity(MANY2ONE).make();
@@ -72,6 +72,9 @@ mgmt.addConnection(moduleLoad, container, node);
 
 umhCorePattern = mgmt.makeEdgeLabel('CE_UMH_CORE_PATTERN').multiplicity(MANY2ONE).make();
 mgmt.addConnection(umhCorePattern, container, node);
+
+privMount = mgmt.makeEdgeLabel('CE_PRIV_MOUNT').multiplicity(MANY2ONE).make();
+mgmt.addConnection(privMount, container, node);
 
 
 // All properties we will index on

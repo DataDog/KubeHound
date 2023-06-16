@@ -13,36 +13,35 @@ import (
 )
 
 func init() {
-	Register(EscapeModuleLoad{})
+	Register(EscapePrivMount{})
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2890006884/CE+MODULE+LOAD
-type EscapeModuleLoad struct {
+// @@DOCLINK: TODO
+type EscapePrivMount struct {
 }
 
-func (e EscapeModuleLoad) Label() string {
-	return "CE_MODULE_LOAD"
+func (e EscapePrivMount) Label() string {
+	return "CE_PRIV_MOUNT"
 }
 
-func (e EscapeModuleLoad) BatchSize() int {
+func (e EscapePrivMount) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e EscapeModuleLoad) Traversal() Traversal {
+func (e EscapePrivMount) Traversal() Traversal {
 	return containerEscapeTraversal(e.Label())
 }
 
-func (e EscapeModuleLoad) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e EscapePrivMount) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
 
-	// Escape is possible with privileged containers or CAP_SYS_MODULE loaded explicitly
+	// Escape is possible with privileged containers via mounting the root directory on the host
+	// and editing sensitive files e.g SSH keys, cronjobs, etc
 	filter := bson.M{
-		"$or": bson.A{
-			bson.M{"k8.securitycontext.privileged": true},
-			bson.M{"k8.securitycontext.capabilities.add": "SYS_MODULE"},
-		}}
+		"k8.securitycontext.privileged": true,
+	}
 
 	// We just need a 1:1 mapping of the node and container to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}

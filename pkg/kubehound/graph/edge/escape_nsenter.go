@@ -13,36 +13,35 @@ import (
 )
 
 func init() {
-	Register(EscapeModuleLoad{})
+	Register(EscapeNsenter{})
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2890006884/CE+MODULE+LOAD
-type EscapeModuleLoad struct {
+// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2897872074/CE+NSENTER
+type EscapeNsenter struct {
 }
 
-func (e EscapeModuleLoad) Label() string {
-	return "CE_MODULE_LOAD"
+func (e EscapeNsenter) Label() string {
+	return "CE_NSENTER"
 }
 
-func (e EscapeModuleLoad) BatchSize() int {
+func (e EscapeNsenter) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e EscapeModuleLoad) Traversal() Traversal {
+func (e EscapeNsenter) Traversal() Traversal {
 	return containerEscapeTraversal(e.Label())
 }
 
-func (e EscapeModuleLoad) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e EscapeNsenter) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
 
-	// Escape is possible with privileged containers or CAP_SYS_MODULE loaded explicitly
+	// Escape is possible with privileged containers that share the PID namespace
 	filter := bson.M{
-		"$or": bson.A{
-			bson.M{"k8.securitycontext.privileged": true},
-			bson.M{"k8.securitycontext.capabilities.add": "SYS_MODULE"},
-		}}
+		"k8.securitycontext.privileged": true,
+		"inherited.host_pid":            true,
+	}
 
 	// We just need a 1:1 mapping of the node and container to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}
