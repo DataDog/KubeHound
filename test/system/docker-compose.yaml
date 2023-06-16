@@ -9,6 +9,9 @@ services:
       - "127.0.0.1:27017:27017"
     networks:
       - kubenet
+    depends_on:
+      janusgraph:
+        condition: service_healthy
 
   janusgraph:
     build: ../../deployments/kubehound/janusgraph/
@@ -22,6 +25,12 @@ services:
       # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
       - janusgraph.schema.constraints=true
       - janusgraph.schema.default=none
+    healthcheck:
+      test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
+      interval: 60s
+      timeout: 30s
+      retries: 1
+      start_period: 15s
 
 networks:
   kubenet:

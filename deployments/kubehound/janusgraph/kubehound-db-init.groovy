@@ -16,7 +16,7 @@ System.out.println("[KUBEHOUND] Creating graph schema and indexes");
 // Create our vertex labels
 container = mgmt.makeVertexLabel('Container').make();
 identity = mgmt.makeVertexLabel('Identity').make();
-node =mgmt.makeVertexLabel('Node').make();
+node = mgmt.makeVertexLabel('Node').make();
 pod = mgmt.makeVertexLabel('Pod').make();
 role = mgmt.makeVertexLabel('Role').make();
 token = mgmt.makeVertexLabel('Token').make();

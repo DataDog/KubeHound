@@ -34,7 +34,7 @@ infra-rm: ## Delete the testing stack
 
 .PHONY: infra-up
 infra-up: ## Spawn the testing stack
-	docker compose $(DOCKER_COMPOSE_FILE_PATH) up -d
+	docker compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
 
 .PHONY: test
 test: ## Run the full suite of unit tests 
@@ -46,7 +46,7 @@ test: ## Run the full suite of unit tests
 system-test: ## Run the system tests (we need to wait for the schema definition to be created and no clean way to check)
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
-	sleep 30s && cd test/system && go test -v -timeout "60s" -count 1 -race ./...
+	cd test/system && go test -v -timeout "60s" -count 1 -race ./...
 
 .PHONY: local-cluster-reset
 local-cluster-reset: ## Destroy the current kind cluster and creates a new one
