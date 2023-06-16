@@ -24,8 +24,12 @@ endif
 
 all: build
 
+.PHONEY: generate
+generate: ## generate code the application
+	go generate ./...
+
 .PHONEY: build
-build: ## Build the application
+build: generate ## Build the application
 	cd cmd && go build -ldflags="-X pkg/config.BuildVersion=$(BUILD_VERSION)" -o ../bin/kubehound kubehound/*.go
 
 .PHONY: infra-rm
@@ -37,13 +41,13 @@ infra-up: ## Spwan the testing stack
 	docker compose $(DOCKER_COMPOSE_FILE_PATH) up -d
 
 .PHONY: test
-test: ## Run the full suite of unit tests 
+test: generate ## Run the full suite of unit tests 
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
 	cd pkg && go test ./...
 
 .PHONY: system-test
-system-test: ## Run the system tests
+system-test: generate ## Run the system tests
 	# we print the KUBECONFIG envvar here to make it easier to see what is actively used
 	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/.kube/config && bash -c "printenv KUBECONFIG" && go test -v -timeout "60s" -count=1 -race ./...
 
