@@ -22,6 +22,13 @@ ifeq (${DD_API_KEY},)
     DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml
 endif
 
+
+DOCKER_CMD = docker
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	DOCKER_CMD = sudo docker
+endif
+
 all: build
 
 .PHONEY: generate
@@ -34,11 +41,11 @@ build: generate ## Build the application
 
 .PHONY: infra-rm
 infra-rm: ## Delete the testing stack
-	docker compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
+	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
 .PHONY: infra-up
 infra-up: ## Spwan the testing stack
-	docker compose $(DOCKER_COMPOSE_FILE_PATH) up -d
+	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up -d
 
 .PHONY: test
 test: ## Run the full suite of unit tests 
@@ -48,6 +55,8 @@ test: ## Run the full suite of unit tests
 
 .PHONY: system-test
 system-test: ## Run the system tests
+	$(MAKE) infra-rm
+	$(MAKE) infra-up
 	# we print the KUBECONFIG envvar here to make it easier to see what is actively used
 	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/.kube/config && bash -c "printenv KUBECONFIG" && go test -v -timeout "60s" -count=1 -race ./...
 
