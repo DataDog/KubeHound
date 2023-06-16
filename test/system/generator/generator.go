@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"go/format"
 	"io/ioutil"
 	"log"
 	"os"
@@ -377,11 +378,10 @@ func WriteTemplatesToFile(path string, templates ...[]byte) error {
 	in := bytes.Join(templates, []byte("\n"))
 	// We run go fmt on it so it's "clean"
 	// The formatting is not as strict as our editors config & linter
-	// clean, err := format.Source(in)
-	// if err != nil {
-	// 	return err
-	// }
-	clean := in
+	clean, err := format.Source(in)
+	if err != nil {
+		return err
+	}
 	_, err = f.Write(clean)
 	if err != nil {
 		return err
