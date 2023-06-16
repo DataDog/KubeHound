@@ -67,6 +67,10 @@ func (jgv *JanusGraphAsyncWriter[T]) batchWrite(ctx context.Context, data []type
 	promise := op.Iterate()
 	err := <-promise
 	if err != nil {
+		// Rolling back a transaction modifies the connection pool, acquire the lock
+		jgv.dcp.Lock.Lock()
+		defer jgv.dcp.Lock.Unlock()
+
 		jgv.transaction.Rollback()
 		return err
 	}

@@ -148,13 +148,3 @@ func (b *Builder) Run(ctx context.Context) error {
 	l.Info("Completed edge construction")
 	return nil
 }
-
-// IN SUMMARY
-// WE SHOULD MANAGE OUR OWN transactions
-// AT THE END OF ingest
-// CALL graph.getOpenTransactions()
-// WAIT for completion i.e they are 0
-// then trigger a reindex of the data to enable querying
-// THEN WE SHOULD TRY A BACKEND that supports BULKO LOAD for performance
-// SEE THE BLOG in slack
-// DONE DONE!!

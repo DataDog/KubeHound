@@ -15,7 +15,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -71,7 +70,6 @@ func (v TokenSteal) Traversal() Traversal {
 			g = g.AddV(vertex.TokenLabel).
 				Property("class", vertex.TokenLabel). // labels are not indexed - use a mirror property
 				Property("name", ts.Vertex.Name).
-				//Property("namespace", ts.Vertex.Namespace).
 				Property("type", ts.Vertex.Type).
 				Property("identity", ts.Vertex.Identity).
 				Property("compromised", int(ts.Vertex.Compromised)).
@@ -150,7 +148,7 @@ func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 		return err
 	}
 	defer cur.Close(ctx)
-	counter := 0
+
 	convert := converter.NewGraph()
 	var res volumeQueryResult
 	for cur.Next(ctx) {
@@ -182,10 +180,7 @@ func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 		if err != nil {
 			return err
 		}
-		counter += 1
 	}
-
-	log.I.Infof("%d %s found", counter, v.Label())
 
 	return complete(ctx)
 }
