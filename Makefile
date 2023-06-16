@@ -31,11 +31,11 @@ endif
 
 all: build
 
-.PHONEY: generate
+.PHONY: generate
 generate: ## generate code the application
 	go generate ./...
 
-.PHONEY: build
+.PHONY: build
 build: generate ## Build the application
 	cd cmd && go build -ldflags="-X pkg/config.BuildVersion=$(BUILD_VERSION)" -o ../bin/kubehound kubehound/*.go
 
