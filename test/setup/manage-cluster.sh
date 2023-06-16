@@ -11,10 +11,11 @@ PROJECT_MAN="options: [create | destroy]"
 
 function create_cluster(){
     echo "[*] Creating test cluster "${CLUSTER_NAME}" via kind"
-    kind create cluster \
+    $KIND create cluster \
         --name "${CLUSTER_NAME}" \
         --config "${CONFIG_DIR}/cluster.yaml" \
 
+    echo "Using KUBECONFIG: $(printenv KUBECONFIG)"
     kubectl cluster-info --context "kind-${CLUSTER_NAME}"
 
     echo "[*] Cluster ${CLUSTER_NAME} configuration complete"
@@ -22,7 +23,7 @@ function create_cluster(){
 
 function destroy_cluster(){
     echo "[*] Destroying test cluster "${CLUSTER_NAME}" via kind"
-    kind delete cluster --name "${CLUSTER_NAME}" 
+    $KIND delete cluster --name "${CLUSTER_NAME}" 
 }
 
 case $SCRIPT_ACTION in

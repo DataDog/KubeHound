@@ -34,3 +34,15 @@ function load_env(){
 }
 
 load_env
+
+# post load env
+KIND=kind
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    KIND="sudo kind"
+fi
+
+KIND="$KIND --kubeconfig $KUBECONFIG"
+if [ -f $KUBECONFIG ]; then
+    sudo chown $USER:$USER $KUBECONFIG
+fi
+echo "Using KUBECONFIG: $(printenv KUBECONFIG)"
