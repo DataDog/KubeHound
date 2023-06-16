@@ -30,6 +30,11 @@ type Cluster struct {
 	} `yaml:"nodes"`
 }
 
+const (
+	defaultNamespace      = "default"
+	defaultServiceAccount = "default"
+)
+
 var (
 	Containers = make(map[string]graph.Container)
 	Pods       = make(map[string]graph.Pod)
@@ -211,12 +216,18 @@ func ProcessFile(basePath string, file os.FileInfo) {
 }
 
 func AddPodToList(pod *corev1.Pod) error {
-	fmt.Printf("pod name: %s\n", pod.Name)
+	fmt.Printf("pod name: %s (%+v)\n", pod.Name, pod)
+	pod.Namespace = defaultNamespace
 	storePod := store.Pod{
 		K8: *pod,
 	}
 	conv := converter.GraphConverter{}
 	convertedPod, err := conv.Pod(&storePod)
+	// if we haven't defined the service account in the yaml file, k8s will do it for us.
+	if convertedPod.ServiceAccount == "" {
+		convertedPod.ServiceAccount = defaultServiceAccount
+	}
+	fmt.Printf("pod converted: %+v\n", convertedPod)
 	if err != nil {
 		return err
 	}
@@ -303,6 +314,8 @@ func GeneratePodTemplate() ([]byte, error) {
 			IsNamespaced: {{.IsNamespaced}},
 			Namespace:    "{{.Namespace}}",
 			Compromised:  shared.CompromiseNone,
+			ServiceAccount: "{{.ServiceAccount}}",
+			SharedProcessNamespace: {{.SharedProcessNamespace}},
 			Critical:     false,
 		},{{ end }}
 	}
