@@ -13,7 +13,7 @@ if (allIndices.size <= 0) {
 
 // Query the state of each index and check it is enabled!
 allIndices.forEach { index ->
-    mgmt.awaitGraphIndexStatus(graph, index.toString()).status(SchemaStatus.REGISTERED).timeout(1, java.time.temporal.ChronoUnit.SECONDS).call();
+    mgmt.awaitGraphIndexStatus(graph, index.toString()).status(SchemaStatus.ENABLED).timeout(1, java.time.temporal.ChronoUnit.SECONDS).call();
 }
 mgmt.close();
 
