@@ -20,9 +20,19 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
 
   janusgraph:
-    image: janusgraph/janusgraph:latest
+    build: ./janusgraph/
     container_name: graphdb-ng
     ports:
       - "127.0.0.1:8182:8182"
     volumes:
-      - ./data/janus:/data
+       # Named volume mounts. The data mount is only used when BerkeleyDB is used for storage.
+      - "./data/janus:/var/lib/janusgraph"
+    environment:
+      - janusgraph.schema.constraints=true
+      - janusgraph.schema.default=none
+    healthcheck: 
+      test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
+      interval: 60s
+      timeout: 30s
+      retries: 1
+      start_period: 15s

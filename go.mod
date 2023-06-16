@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/DataDog/datadog-go/v5 v5.1.1
 	github.com/alitto/pond v1.8.3
-	github.com/apache/tinkerpop/gremlin-go v0.0.0-20220530191148-29272fa563ec
+	github.com/apache/tinkerpop/gremlin-go/v3 v3.6.4
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
@@ -62,7 +62,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/nicksnyder/go-i18n/v2 v2.2.0 // indirect
+	github.com/nicksnyder/go-i18n/v2 v2.2.1 // indirect
 	github.com/outcaste-io/ristretto v0.2.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
