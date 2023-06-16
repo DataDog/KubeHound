@@ -94,9 +94,11 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 		ServiceAccount: input.K8.Spec.ServiceAccountName,
 		Node:           input.K8.Spec.NodeName,
 	}
-
 	if input.K8.Spec.ShareProcessNamespace != nil {
 		output.SharedProcessNamespace = *input.K8.Spec.ShareProcessNamespace
+	}
+	if output.Namespace != "" {
+		output.IsNamespaced = true
 	}
 
 	return output, nil
