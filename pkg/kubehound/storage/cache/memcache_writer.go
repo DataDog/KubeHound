@@ -6,6 +6,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 )
 
 type MemCacheAsyncWriter struct {
@@ -18,12 +19,14 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	_ = statsd.Incr(MetricCacheWrite, []string{}, 1)
 	keyId := computeKey(key)
 	_, ok := m.data[keyId]
 	if ok {
 		if m.opts.Test {
 			return ErrCacheEntryOverwrite
 		} else {
+			_ = statsd.Incr(MetricCacheDuplicateEntry, []string{keyId}, 1)
 			log.I.Warnf("overwriting cache entry: [key]%s", keyId)
 		}
 	}

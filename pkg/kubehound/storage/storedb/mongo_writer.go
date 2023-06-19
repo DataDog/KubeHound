@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const (
@@ -65,6 +66,9 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 
 // batchWrite blocks until the write is complete
 func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteModel) error {
+	span := tracer.StartSpan(SpanOperationBatchWrite, tracer.Measured())
+	defer span.Finish()
+
 	maw.writingInFlight.Add(1)
 	defer maw.writingInFlight.Done()
 
@@ -95,6 +99,9 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 // Flush triggers writes of any remaining items in the queue.
 // This is blocking
 func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
+	span := tracer.StartSpan(SpanOperationFlush, tracer.Measured())
+	defer span.Finish()
+
 	if maw.mongodb.client == nil {
 		return fmt.Errorf("mongodb client is not initialized")
 	}

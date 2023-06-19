@@ -15,10 +15,13 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.CacheProvider,
 	storedb storedb.Provider, graphdb graphdb.Provider) error {
+	span := tracer.StartSpan(SpanOperationIngestData, tracer.Measured())
+	defer span.Finish()
 
 	log.I.Info("Loading Kubernetes data collector client")
 	collect, err := collector.ClientFactory(ctx, cfg)
@@ -52,6 +55,8 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 // All I/O operations are performed asynchronously.
 func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
 	graphdb graphdb.Provider, cache cache.CacheReader) error {
+	span := tracer.StartSpan(SpanOperationBuildGraph, tracer.Measured())
+	defer span.Finish()
 
 	log.I.Info("Loading graph edge definitions")
 	edges := edge.Registered()
@@ -81,6 +86,9 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 
 // Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context, opts ...LaunchOption) error {
+	span := tracer.StartSpan(SpanOperationLaunch, tracer.Measured())
+	defer span.Finish()
+
 	log.I.Info("Starting KubeHound")
 	log.I.Info("Initializing launch options")
 	lOpts := &launchConfig{}
