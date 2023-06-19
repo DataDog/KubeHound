@@ -26,7 +26,7 @@ volume = mgmt.makeVertexLabel('Volume').make();
 roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(MULTI).make();
 mgmt.addConnection(roleGrant, identity, role);
 
-volmeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MANY2ONE).make();
+volmeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MULTI).make();
 mgmt.addConnection(volmeMount, container, volume);
 mgmt.addConnection(volmeMount, node, volume);
 
