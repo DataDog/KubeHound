@@ -40,25 +40,26 @@ func (e IdentityAssume) BatchSize() int {
 	return DefaultBatchSize
 }
 
+func (e IdentityAssume) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+	return adapter.GremlinInputProcessor[*identityGroup](ctx, entry)
+}
+
 func (e IdentityAssume) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal()
-
-		for _, i := range inserts {
-			ml := i.(*identityGroup)
-
-			g = g.V().
-				Has("class", vertex.ContainerLabel).
-				Has("storeID", ml.Container.Hex()).
-				As("container").
-				V().
-				Has("class", vertex.IdentityLabel).
-				Has("storeID", ml.Identity.Hex()).
-				As("identity").
-				AddE(e.Label()).
-				From("container").
-				To("identity")
-		}
+		g := source.GetGraphTraversal().
+			Inject(inserts).
+			Unfold().As("ig").
+			V().HasLabel(vertex.ContainerLabel).
+			Where(P.Eq("ig")).
+			By("storeID").
+			By("container").
+			AddE(e.Label()).
+			To(
+				__.V().HasLabel(vertex.IdentityLabel).
+					Where(P.Eq("ig")).
+					By("storeID").
+					By("identity")).
+			Barrier().Limit(0)
 
 		return g
 	}

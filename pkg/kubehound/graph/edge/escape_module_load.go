@@ -28,6 +28,10 @@ func (e EscapeModuleLoad) BatchSize() int {
 	return DefaultBatchSize
 }
 
+func (e EscapeModuleLoad) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+	return adapter.GremlinInputProcessor[*containerEscapeGroup](ctx, entry)
+}
+
 func (e EscapeModuleLoad) Traversal() Traversal {
 	return containerEscapeTraversal(e.Label())
 }

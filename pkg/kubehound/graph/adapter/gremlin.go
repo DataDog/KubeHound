@@ -1,0 +1,37 @@
+package adapter
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+)
+
+func GremlinInputProcessor[T any](_ context.Context, entry interface{}) (map[string]any, error) {
+	typed, ok := entry.(T)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	processed, err := structToMap(typed)
+	if err != nil {
+		return nil, err
+	}
+
+	return processed, nil
+}
+
+func structToMap(in interface{}) (map[string]any, error) {
+	var res map[string]any
+
+	tmp, err := json.Marshal(in)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(tmp, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

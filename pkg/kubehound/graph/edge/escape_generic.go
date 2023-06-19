@@ -14,25 +14,20 @@ type containerEscapeGroup struct {
 
 func containerEscapeTraversal(edgeLabel string) Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal()
-
-		// g.inject([["role":"3", "identity":"6"],["role":"1", "identity":"5"]]).unfold().as("rb").V().hasLabel("Role").where(eq("rb")).by("sid").by("role").as("r").V().hasLabel("Identity").where(eq("rb")).by("sid").by("identity").as("i").addE("TEST_TEST2").from("i").to("r")
-
-		for _, i := range inserts {
-			ml := i.(*containerEscapeGroup)
-
-			g = g.V().
-				Has("class", vertex.ContainerLabel).
-				Has("storeID", ml.Container.Hex()).
-				As("container").
-				V().
-				Has("class", vertex.NodeLabel).
-				Has("storeID", ml.Node.Hex()).
-				As("node").
-				AddE(edgeLabel).
-				From("container").
-				To("node")
-		}
+		g := source.GetGraphTraversal().
+			Inject(inserts).
+			Unfold().As("ce").
+			V().HasLabel(vertex.ContainerLabel).
+			Where(P.Eq("ce")).
+			By("storeID").
+			By("container").
+			AddE(edgeLabel).
+			To(
+				__.V().HasLabel(vertex.NodeLabel).
+					Where(P.Eq("ce")).
+					By("storeID").
+					By("node")).
+			Barrier().Limit(0)
 
 		return g
 	}

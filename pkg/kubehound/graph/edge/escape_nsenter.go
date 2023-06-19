@@ -32,6 +32,10 @@ func (e EscapeNsenter) Traversal() Traversal {
 	return containerEscapeTraversal(e.Label())
 }
 
+func (e EscapeNsenter) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+	return adapter.GremlinInputProcessor[*containerEscapeGroup](ctx, entry)
+}
+
 func (e EscapeNsenter) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
