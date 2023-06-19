@@ -16,3 +16,5 @@ janusgraph:
 telemetry:
   statsd:
     url: "127.0.0.1:8125"
+  tracer:
+    url: "127.0.0.1:8126"

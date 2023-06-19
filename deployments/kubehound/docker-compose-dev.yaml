@@ -36,3 +36,19 @@ services:
       timeout: 30s
       retries: 1
       start_period: 15s
+
+  datadog:
+    image: gcr.io/datadoghq/agent:7
+    pid: host
+    environment:
+     - DD_API_KEY=${DD_API_KEY}
+     - DD_DOGSTATSD_PORT=${DD_DOGSTATSD_PORT}
+     - DD_EXPVAR_PORT=${DD_EXPVAR_PORT}
+     - DD_APM_RECEIVER_PORT=${DD_APM_RECEIVER_PORT}
+     - DD_SITE=datadoghq.com
+     - DD_LOGS_ENABLED=true
+     - DD_APM_ENABLED=true
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - /proc/:/host/proc/:ro
+     - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
