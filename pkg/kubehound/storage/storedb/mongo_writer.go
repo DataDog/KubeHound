@@ -7,6 +7,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -49,6 +50,7 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 				if data == nil {
 					return
 				}
+				_ = statsd.Incr(MetricBackgroundWriterCall, maw.mongodb.tags, 1)
 				err := maw.batchWrite(ctx, data)
 				if err != nil {
 					log.I.Errorf("write data in background batch writer: %v", err)
@@ -65,6 +67,9 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteModel) error {
 	maw.writingInFlight.Add(1)
 	defer maw.writingInFlight.Done()
+
+	_ = statsd.Gauge(MetricBatchWrite, float64(len(ops)), maw.mongodb.tags, 1)
+
 	bulkWriteOpts := options.BulkWrite().SetOrdered(false)
 	_, err := maw.collection.BulkWrite(ctx, ops, bulkWriteOpts)
 	if err != nil {
@@ -76,6 +81,9 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 // Queue add a model to an asynchronous write queue. Non-blocking.
 func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 	maw.ops = append(maw.ops, mongo.NewInsertOneModel().SetDocument(model))
+
+	_ = statsd.Gauge(MetricQueueSize, float64(len(maw.ops)), maw.mongodb.tags, 1)
+
 	if len(maw.ops) > maw.batchSize {
 		maw.consumerChan <- maw.ops
 		// cleanup the ops array after we have copied it to the channel

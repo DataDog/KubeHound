@@ -140,6 +140,9 @@ func (jgv *JanusGraphAsyncWriter[T]) Queue(ctx context.Context, v any) error {
 
 	atomic.AddInt32(&jgv.qcounter, 1)
 	jgv.inserts = append(jgv.inserts, v)
+
+	_ = statsd.Gauge(MetricQueueSize, float64(len(jgv.inserts)), jgv.tags, 1)
+
 	if len(jgv.inserts) > jgv.batchSize {
 		copied := make([]types.TraversalInput, len(jgv.inserts))
 		copy(copied, jgv.inserts)
