@@ -9,6 +9,11 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 )
 
+var (
+	// This is the base tags slice for all collectors. This is populated in the constructors of each.
+	baseTags = []string{}
+)
+
 // NodeIngestor defines the interface to allow an ingestor to consume node inputs from a collector.
 //
 //go:generate mockery --name NodeIngestor --output mockingest --case underscore --filename node_ingestor.go --with-expecter

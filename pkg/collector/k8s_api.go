@@ -6,6 +6,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -40,6 +41,7 @@ func checkK8sAPICollectorConfig(collectorType string) error {
 
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
+	baseTags = append(baseTags, "collector:k8s-api")
 	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
 
 	err := checkK8sAPICollectorConfig(cfg.Collector.Type)
@@ -129,6 +131,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
+		_ = statsd.Incr(MetricCollectorPodsCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*corev1.Pod)
 		err := ingestor.IngestPod(ctx, item)
@@ -168,11 +171,12 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
+		_ = statsd.Incr(MetricCollectorRolesCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*rbacv1.Role)
 		err := ingestor.IngestRole(ctx, item)
 		if err != nil {
-			return fmt.Errorf("processing K8s pod %s for namespace %s: %w", item.Name, namespace, err)
+			return fmt.Errorf("processing K8s roles %s for namespace %s: %w", item.Name, namespace, err)
 		}
 		return nil
 	})
@@ -207,11 +211,12 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
+		_ = statsd.Incr(MetricCollectorRoleBindingsCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*rbacv1.RoleBinding)
 		err := ingestor.IngestRoleBinding(ctx, item)
 		if err != nil {
-			return fmt.Errorf("processing K8s role binding %s for namespace %s: %w", item.Name, namespace, err)
+			return fmt.Errorf("processing K8s rolebinding %s for namespace %s: %w", item.Name, namespace, err)
 		}
 		return nil
 	})
@@ -240,6 +245,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
+		_ = statsd.Incr(MetricCollectorNodesCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*corev1.Node)
 		err := ingestor.IngestNode(ctx, item)
@@ -268,6 +274,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
+		_ = statsd.Incr(MetricCollectorClusterRolesCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*rbacv1.ClusterRole)
 		err := ingestor.IngestClusterRole(ctx, item)
@@ -296,6 +303,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
+		_ = statsd.Incr(MetricCollectorClusterRoleBindingsCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*rbacv1.ClusterRoleBinding)
 		err := ingestor.IngestClusterRoleBinding(ctx, obj.(*rbacv1.ClusterRoleBinding))
