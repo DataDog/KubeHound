@@ -114,7 +114,7 @@ mgmt.addProperties(identity, cls, storeID, name, isNamespaced, namespace, type);
 mgmt.addProperties(node, cls, storeID, name, isNamespaced, namespace, compromised, critical);
 mgmt.addProperties(pod, cls, storeID, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
 mgmt.addProperties(role, cls, storeID, name, isNamespaced, namespace, rules);
-mgmt.addProperties(token, cls, name, type, identityName, compromised, critical);
+mgmt.addProperties(token, cls, name, namespace, type, identityName, compromised, critical);
 mgmt.addProperties(volume, cls, storeID, name, type, path);
 
 

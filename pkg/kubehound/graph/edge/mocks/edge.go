@@ -111,6 +111,61 @@ func (_c *Builder_Label_Call) RunAndReturn(run func() string) *Builder_Label_Cal
 	return _c
 }
 
+// Processor provides a mock function with given fields: _a0, _a1
+func (_m *Builder) Processor(_a0 context.Context, _a1 interface{}) (interface{}, error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 interface{}
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, interface{}) (interface{}, error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, interface{}) interface{}); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(interface{})
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, interface{}) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Builder_Processor_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Processor'
+type Builder_Processor_Call struct {
+	*mock.Call
+}
+
+// Processor is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 interface{}
+func (_e *Builder_Expecter) Processor(_a0 interface{}, _a1 interface{}) *Builder_Processor_Call {
+	return &Builder_Processor_Call{Call: _e.mock.On("Processor", _a0, _a1)}
+}
+
+func (_c *Builder_Processor_Call) Run(run func(_a0 context.Context, _a1 interface{})) *Builder_Processor_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(interface{}))
+	})
+	return _c
+}
+
+func (_c *Builder_Processor_Call) Return(_a0 interface{}, _a1 error) *Builder_Processor_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Builder_Processor_Call) RunAndReturn(run func(context.Context, interface{}) (interface{}, error)) *Builder_Processor_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Stream provides a mock function with given fields: ctx, store, _a2, process, complete
 func (_m *Builder) Stream(ctx context.Context, store storedb.Provider, _a2 cache.CacheReader, process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 	ret := _m.Called(ctx, store, _a2, process, complete)

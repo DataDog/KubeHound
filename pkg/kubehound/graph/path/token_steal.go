@@ -41,7 +41,7 @@ type volumeQueryResult struct {
 }
 
 type tokenStealPath struct {
-	Vertex     *graph.Token `bson:"vertex" json:"vertex"`
+	Vertex     *graph.Token `bson:"properties" json:"properties"`
 	VolumeId   string       `bson:"volume" json:"volume"`
 	IdentityId string       `bson:"identity" json:"identity"`
 }
@@ -49,57 +49,58 @@ type tokenStealPath struct {
 type TokenSteal struct {
 }
 
-func (v TokenSteal) Label() string {
+func (p TokenSteal) Label() string {
 	return tokenStealPathLabel
 }
 
-func (v TokenSteal) BatchSize() int {
+func (p TokenSteal) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (v TokenSteal) Traversal() Traversal {
+func (p TokenSteal) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+	return adapter.GremlinInputProcessor[*tokenStealPath](ctx, entry)
+}
+
+func (p TokenSteal) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal()
-
-		for _, i := range inserts {
-			// Create the path from the provided inputs
-			// (Volume)-[TOKEN_STEAL]->(Token)-[IDENTITY_ASSUME]->(Identity)
-			ts := i.(*tokenStealPath)
-
+		// Create the path from the provided inputs
+		// (Volume)-[TOKEN_STEAL]->(Token)-[IDENTITY_ASSUME]->(Identity)
+		g := source.GetGraphTraversal().
+			Inject(inserts).
+			Unfold().As("ts").
 			// Create a new token vertex
-			g = g.AddV(vertex.TokenLabel).
-				Property("class", vertex.TokenLabel). // labels are not indexed - use a mirror property
-				Property("name", ts.Vertex.Name).
-				Property("type", ts.Vertex.Type).
-				Property("identity", ts.Vertex.Identity).
-				Property("compromised", int(ts.Vertex.Compromised)).
-				Property("critical", ts.Vertex.Critical).
-				As("token")
-
-			// Create the TOKEN_STEAL edge between an existing volume and the new token
-			g = g.V().
-				Has("class", vertex.VolumeLabel).
-				Has("storeID", ts.VolumeId).
-				As("volume").
-				AddE(tokenStealLabel).
-				From("volume").
-				To("token")
-
+			AddV(vertex.TokenLabel).As("tv").
+			SideEffect(
+				__.Select("ts").
+					Select("properties").
+					Unfold().As("kv").
+					Select("tv").
+					Property("class", vertex.TokenLabel). // labels are not indexed - use a mirror property
+					Property(
+						__.Select("kv").By(Column.Keys),
+						__.Select("kv").By(Column.Values))).
 			// Create the IDENTITY_ASSUME edge between the new token and an existing identity
-			g = g.V().
-				Has("class", vertex.IdentityLabel).
-				Has("storeID", ts.IdentityId).
-				As("identity").
-				AddE(edge.IdentityAssumeLabel).
-				From("token").
-				To("identity")
-		}
+			AddE(edge.IdentityAssumeLabel).
+			To(
+				__.V().HasLabel(vertex.IdentityLabel).
+					Where(P.Eq("ts")).
+					By("storeID").
+					By("identity")).
+			// Create the TOKEN_STEAL edge between an existing volume and the new token
+			AddE(tokenStealLabel).
+			To(__.Select("tv")).
+			From(
+				__.V().HasLabel(vertex.VolumeLabel).
+					Where(P.Eq("ts")).
+					By("storeID").
+					By("volume")).
+			Barrier().Limit(0)
 
 		return g
 	}
 }
 
-func (v TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cache.CacheReader,
+func (p TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cache.CacheReader,
 	process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	volumes := adapter.MongoDB(sdb).Collection(collections.VolumeName)

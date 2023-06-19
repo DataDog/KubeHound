@@ -15,6 +15,8 @@ const (
 
 // Optional syntactic sugar.
 var __ = gremlin.T__
+var Column = gremlin.Column
+var P = gremlin.P
 
 // Traversal returns the function to create a graph database path insert from an array of input objects.
 // Paths are edges that result in one or more new vertex creation e.g TOKEN_BRUTEFORCE enables creation of a new Token vertex.
@@ -30,6 +32,8 @@ type Builder interface {
 
 	// Traversal returns a graph traversal function that enables creating vertices from an input array of TraversalInput objects.
 	Traversal() Traversal
+
+	Processor(context.Context, interface{}) (interface{}, error)
 
 	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
 	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput. Invoking the complete callback signals the end of the stream.

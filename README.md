@@ -32,6 +32,11 @@ The repository includes a suite of system tests that will do the following:
 
 The cluster setup and running instances can be found under [test/setup](./test/setup/)
 
+If you need to manually access the system test environement with kubectl and other commands, you'll need to set (assuming you are at the root dir):
+```bash
+cd test/setup/ && export KUBECONFIG=$(pwd)/.kube/config
+```
+
 ### Requirements
 
 + Kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager
