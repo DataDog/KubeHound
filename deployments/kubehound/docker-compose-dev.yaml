@@ -40,6 +40,9 @@ services:
   datadog:
     image: gcr.io/datadoghq/agent:7
     pid: host
+    ports:
+      - ${DD_DOGSTATSD_PORT}:${DD_DOGSTATSD_PORT}
+      - ${DD_APM_RECEIVER_PORT}:${DD_APM_RECEIVER_PORT}
     environment:
      - DD_API_KEY=${DD_API_KEY}
      - DD_DOGSTATSD_PORT=${DD_DOGSTATSD_PORT}
