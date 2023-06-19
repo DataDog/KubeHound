@@ -98,7 +98,7 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 	results, err := suite.g.V().HasLabel(vertex.ContainerLabel).ElementMap().ToList()
 	suite.NoError(err)
 
-	suite.Equal(len(expectedContainers)+numberOfKindDefaultContainer, len(results))
+	suite.Equal(len(expectedContainers), len(results)-numberOfKindDefaultContainer)
 	resultsMap := map[string]graph.Container{}
 	for _, res := range results {
 		res := res.GetInterface()
@@ -197,7 +197,7 @@ func (suite *VertexTestSuite) TestVertexPod() {
 	results, err := suite.g.V().HasLabel(vertex.PodLabel).ElementMap().ToList()
 	suite.NoError(err)
 
-	suite.Equal(len(expectedPods)+numberOfKindDefaultPod, len(results))
+	suite.Equal(len(expectedPods), len(results)-numberOfKindDefaultPod)
 	resultsMap := map[string]graph.Pod{}
 	for _, res := range results {
 		res := res.GetInterface()
