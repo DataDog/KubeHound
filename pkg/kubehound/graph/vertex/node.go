@@ -3,7 +3,7 @@ package vertex
 import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 const (
@@ -29,6 +29,7 @@ func (v Node) Traversal() Traversal {
 		for _, w := range inserts {
 			data := w.(*graph.Node)
 			g = g.AddV(v.Label()).
+				Property("class", v.Label()). // labels are not indexed - use a mirror property
 				Property("storeID", data.StoreID).
 				Property("name", data.Name).
 				Property("isNamespaced", data.IsNamespaced).

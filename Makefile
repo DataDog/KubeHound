@@ -45,7 +45,7 @@ infra-rm: ## Delete the testing stack
 
 .PHONY: infra-up
 infra-up: ## Spwan the testing stack
-	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up -d
+	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
 
 .PHONY: test
 test: ## Run the full suite of unit tests 

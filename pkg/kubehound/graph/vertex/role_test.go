@@ -6,7 +6,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"github.com/stretchr/testify/assert"
 )
 
