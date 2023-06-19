@@ -269,7 +269,7 @@ func (suite *VertexTestSuite) TestVertexToken() {
 	suite.NoError(err)
 	suite.Equal(6, len(results))
 
-	results, err = suite.g.V().HasLabel(vertex.TokenLabel).Has("identity", "pod-patch-sa").Has("namespace", "default").Has("critical", false).ElementMap().ToList()
+	results, err = suite.g.V().HasLabel(vertex.TokenLabel).Has("type", "ServiceAccount").Has("identity", "pod-patch-sa").Has("critical", false).ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
 }

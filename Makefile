@@ -58,7 +58,8 @@ system-test: ## Run the system tests
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
 	# we print the KUBECONFIG envvar here to make it easier to see what is actively used
-	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/.kube/config && bash -c "printenv KUBECONFIG" && go test -v -timeout "60s" -count=1 -race ./...
+	sleep 10
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/.kube/config && bash -c "printenv KUBECONFIG" && go test -v -timeout "60s" -count=1 ./...
 
 .PHONY: local-cluster-reset
 local-cluster-reset: ## Destroy the current kind cluster and creates a new one
