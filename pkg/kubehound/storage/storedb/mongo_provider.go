@@ -17,6 +17,7 @@ var _ Provider = (*MongoProvider)(nil)
 type MongoProvider struct {
 	client *mongo.Client
 	db     *mongo.Database
+	tags   []string
 }
 
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
@@ -40,6 +41,7 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	return &MongoProvider{
 		client: client,
 		db:     db,
+		tags:   append(baseTags, "type:mongodb"),
 	}, nil
 }
 

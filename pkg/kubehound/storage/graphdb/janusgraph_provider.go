@@ -21,6 +21,7 @@ var _ Provider = (*JanusGraphProvider)(nil)
 
 type JanusGraphProvider struct {
 	pool *DriverConnectionPool
+	tags []string
 }
 
 func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (*JanusGraphProvider, error) {
@@ -41,6 +42,7 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 			Lock:   &sync.Mutex{},
 			Driver: driver,
 		},
+		tags: append(baseTags, "type:janusgraph"),
 	}
 
 	return g, nil
@@ -88,17 +90,17 @@ func (jgp *JanusGraphProvider) Raw() any {
 
 // VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
 func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builder, opts ...WriterOption) (AsyncVertexWriter, error) {
-	return NewJanusGraphAsyncVertexWriter(ctx, jgp.pool, v, opts...)
+	return NewJanusGraphAsyncVertexWriter(ctx, jgp.pool, v, jgp.tags, opts...)
 }
 
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
 func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error) {
-	return NewJanusGraphAsyncEdgeWriter(ctx, jgp.pool, e, opts...)
+	return NewJanusGraphAsyncEdgeWriter(ctx, jgp.pool, e, jgp.tags, opts...)
 }
 
 // PathWriter creates a new AsyncPathWriter instance to enable asynchronous bulk inserts of paths.
 func (jgp *JanusGraphProvider) PathWriter(ctx context.Context, p path.Builder, opts ...WriterOption) (AsyncPathWriter, error) {
-	return NewJanusGraphAsyncPathWriter(ctx, jgp.pool, p, opts...)
+	return NewJanusGraphAsyncPathWriter(ctx, jgp.pool, p, jgp.tags, opts...)
 }
 
 // Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.

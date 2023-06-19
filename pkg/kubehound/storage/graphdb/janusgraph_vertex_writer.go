@@ -13,7 +13,7 @@ var _ AsyncVertexWriter = (*JanusGraphAsyncWriter[vertex.Traversal])(nil)
 
 // NewJanusGraphAsyncVertexWriter creates a new bulk vertex writer instance.
 func NewJanusGraphAsyncVertexWriter(ctx context.Context, dcp *DriverConnectionPool,
-	v vertex.Builder, opts ...WriterOption) (*JanusGraphAsyncWriter[vertex.Traversal], error) {
+	v vertex.Builder, tags []string, opts ...WriterOption) (*JanusGraphAsyncWriter[vertex.Traversal], error) {
 
 	options := &writerOptions{}
 	for _, opt := range opts {
@@ -41,6 +41,7 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, dcp *DriverConnectionPo
 		batchSize:       v.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []types.TraversalInput, v.BatchSize()*channelSizeBatchFactor),
+		tags:            tags,
 	}
 
 	jw.startBackgroundWriter(ctx)

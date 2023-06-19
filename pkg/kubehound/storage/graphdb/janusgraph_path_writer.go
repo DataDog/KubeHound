@@ -13,7 +13,7 @@ var _ AsyncPathWriter = (*JanusGraphAsyncWriter[path.Traversal])(nil)
 
 // NewJanusGraphAsyncPathWriter creates a new bulk path writer instance.
 func NewJanusGraphAsyncPathWriter(ctx context.Context, dcp *DriverConnectionPool,
-	p path.Builder, opts ...WriterOption) (*JanusGraphAsyncWriter[path.Traversal], error) {
+	p path.Builder, tags []string, opts ...WriterOption) (*JanusGraphAsyncWriter[path.Traversal], error) {
 
 	options := &writerOptions{}
 	for _, opt := range opts {
@@ -41,6 +41,7 @@ func NewJanusGraphAsyncPathWriter(ctx context.Context, dcp *DriverConnectionPool
 		batchSize:       p.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []types.TraversalInput, p.BatchSize()*channelSizeBatchFactor),
+		tags:            tags,
 	}
 
 	jw.startBackgroundWriter(ctx)
