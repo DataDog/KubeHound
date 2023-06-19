@@ -15,7 +15,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -68,8 +68,8 @@ func (v TokenSteal) Traversal() Traversal {
 
 			// Create a new token vertex
 			g = g.AddV(vertex.TokenLabel).
+				Property("class", vertex.TokenLabel). // labels are not indexed - use a mirror property
 				Property("name", ts.Vertex.Name).
-				Property("namespace", ts.Vertex.Namespace).
 				Property("type", ts.Vertex.Type).
 				Property("identity", ts.Vertex.Identity).
 				Property("compromised", int(ts.Vertex.Compromised)).
@@ -78,7 +78,7 @@ func (v TokenSteal) Traversal() Traversal {
 
 			// Create the TOKEN_STEAL edge between an existing volume and the new token
 			g = g.V().
-				HasLabel(vertex.VolumeLabel).
+				Has("class", vertex.VolumeLabel).
 				Has("storeID", ts.VolumeId).
 				As("volume").
 				AddE(tokenStealLabel).
@@ -87,7 +87,7 @@ func (v TokenSteal) Traversal() Traversal {
 
 			// Create the IDENTITY_ASSUME edge between the new token and an existing identity
 			g = g.V().
-				HasLabel(vertex.IdentityLabel).
+				Has("class", vertex.IdentityLabel).
 				Has("storeID", ts.IdentityId).
 				As("identity").
 				AddE(edge.IdentityAssumeLabel).
