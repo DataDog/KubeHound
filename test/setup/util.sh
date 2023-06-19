@@ -43,6 +43,8 @@ fi
 
 KIND="$KIND --kubeconfig $KUBECONFIG"
 if [ -f $KUBECONFIG ]; then
-    sudo chown $USER:$USER $KUBECONFIG
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        sudo chown $USER:$USER $KUBECONFIG
+    fi
 fi
 echo "Using KUBECONFIG: $(printenv KUBECONFIG)"
