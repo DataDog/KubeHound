@@ -47,7 +47,7 @@ roleBind = mgmt.makeEdgeLabel('ROLE_BIND').multiplicity(MANY2ONE).make();
 mgmt.addConnection(roleBind, role, role);
 
 podAttach = mgmt.makeEdgeLabel('POD_ATTACH').multiplicity(ONE2MANY).make();
-mgmt.addConnection(podAttach, node, container);
+mgmt.addConnection(podAttach, node, pod);
 
 podCreate = mgmt.makeEdgeLabel('POD_CREATE').multiplicity(ONE2MANY).make();
 mgmt.addConnection(podCreate, role, pod);
