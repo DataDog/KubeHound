@@ -16,6 +16,8 @@ func containerEscapeTraversal(edgeLabel string) Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal()
 
+		// g.inject([["role":"3", "identity":"6"],["role":"1", "identity":"5"]]).unfold().as("rb").V().hasLabel("Role").where(eq("rb")).by("sid").by("role").as("r").V().hasLabel("Identity").where(eq("rb")).by("sid").by("identity").as("i").addE("TEST_TEST2").from("i").to("r")
+
 		for _, i := range inserts {
 			ml := i.(*containerEscapeGroup)
 

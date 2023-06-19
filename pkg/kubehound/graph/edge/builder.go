@@ -13,6 +13,10 @@ const (
 	DefaultBatchSize = 200
 )
 
+// Optional syntactic sugar.
+var __ = gremlin.T__
+var P = gremlin.P
+
 // Traversal returns the function to create a graph database edge insert from an array of input objects.
 type Traversal func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal
 

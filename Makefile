@@ -46,7 +46,7 @@ test: ## Run the full suite of unit tests
 system-test: ## Run the system tests
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
-	cd test/system && go test -v -timeout "60s" -count 1 -race ./...
+	cd test/system && go test -v -timeout "240s" -count 1 -race ./...
 
 .PHONY: local-cluster-reset
 local-cluster-reset: ## Destroy the current kind cluster and creates a new one

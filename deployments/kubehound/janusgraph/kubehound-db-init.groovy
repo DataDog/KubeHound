@@ -23,7 +23,7 @@ token = mgmt.makeVertexLabel('Token').make();
 volume = mgmt.makeVertexLabel('Volume').make();
 
 // Create our edge labels and connections
-roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(ONE2MANY).make();
+roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(MULTI).make();
 mgmt.addConnection(roleGrant, identity, role);
 
 volmeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MANY2ONE).make();
