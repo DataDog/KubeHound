@@ -40,6 +40,11 @@ func (e VolumeMount) Processor(ctx context.Context, entry interface{}) (interfac
 	return adapter.GremlinInputProcessor[*mountGroup](ctx, entry)
 }
 
+// Traversal expects a list of mountGroup objects serialized as map structures for injection into the graph.
+// For each mountGroup, the traversal will: 1) find the node vertex with the same storeID as the mountGroup's node
+// field, 2) find the volume vertex with the same storeID as the mountGroup's volume field, 3) create an edge between
+// the node and volume vertices with the label "VOLUME_MOUNT", and 4) create an edge between each container vertex
+// with the label "CONTAINER_MOUNT" and the volume vertex.
 func (e VolumeMount) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().

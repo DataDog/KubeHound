@@ -38,6 +38,9 @@ func (e RoleGrant) Processor(ctx context.Context, entry interface{}) (interface{
 	return adapter.GremlinInputProcessor[*roleBindingGroup](ctx, entry)
 }
 
+// Traversal expects a list of roleBindings objects serialized as map structures for injection into the graph.
+// For each roleBindings, the traversal will: 1) find the container vertex with matching storeID, 2) find the
+// identity vertex with matching storeID, and 3) add a ROLE_GRANT edge between the two vertices.
 func (e RoleGrant) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
