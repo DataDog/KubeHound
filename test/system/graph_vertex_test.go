@@ -9,7 +9,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/exp/slices"
 )
