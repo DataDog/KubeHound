@@ -3,6 +3,7 @@ package telemetry
 import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/profiler"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tracer"
 )
@@ -10,6 +11,8 @@ import (
 // Initialize all telemetry required
 // return client to enable clean shutdown
 func Initialize(cfg *config.KubehoundConfig) error {
+	// profiling
+	profiler.Initialize(cfg)
 	//Tracing
 	tracer.Initialize(cfg)
 	// Metrics
@@ -23,6 +26,7 @@ func Initialize(cfg *config.KubehoundConfig) error {
 
 func Shutdown() {
 	//Tracing
+	profiler.Shutdown()
 	tracer.Shutdown()
 	// Metrics
 	err := statsd.Flush()

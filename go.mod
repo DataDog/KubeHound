@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/DataDog/datadog-go/v5 v5.1.1
 	github.com/alitto/pond v1.8.3
-	github.com/apache/tinkerpop/gremlin-go v0.0.0-20220530191148-29272fa563ec
 	github.com/apache/tinkerpop/gremlin-go/v3 v3.6.4
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/spf13/cobra v1.6.1
@@ -26,6 +25,7 @@ require (
 	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.45.0-rc.1 // indirect
 	github.com/DataDog/go-libddwaf v1.2.0 // indirect
 	github.com/DataDog/go-tuf v0.3.0--fix-localmeta-fork // indirect
+	github.com/DataDog/gostackparse v0.5.0 // indirect
 	github.com/DataDog/sketches-go v1.3.0 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
@@ -48,6 +48,7 @@ require (
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -75,7 +76,9 @@ require (
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
+	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.5.0 // indirect
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
