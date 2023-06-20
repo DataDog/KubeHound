@@ -28,7 +28,7 @@ function load_env(){
     _printf_warn "Loading env vars from $SCRIPT_DIR/.env.local ..."
     if [ -f $SCRIPT_DIR/.env.local ]; then
         set -a
-        source $SCRIPT_DIR/.env 
+        source $SCRIPT_DIR/.env.local 
         set +a
     fi
 }
@@ -36,13 +36,12 @@ function load_env(){
 load_env
 
 # post load env
-KIND=kind
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    KIND="sudo kind"
+# Set configuration for linux - https://docs.github.com/en/actions/learn-github-actions/variables
+if [ -z $KIND_CMD ]; then 
+    if [[ "$OSTYPE" == "linux-gnu"* && "$CI" != "true" ]]; then
+        _printf_warn "sudo mode activated"
+        KIND_CMD="sudo kind"
+    else
+        KIND_CMD="kind"
+    fi
 fi
-
-KIND="$KIND --kubeconfig $KUBECONFIG"
-if [ -f $KUBECONFIG ]; then
-    sudo chown $USER:$USER $KUBECONFIG
-fi
-echo "Using KUBECONFIG: $(printenv KUBECONFIG)"
