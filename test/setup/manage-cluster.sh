@@ -15,7 +15,6 @@ function create_cluster(){
         --name "${CLUSTER_NAME}" \
         --config "${CONFIG_DIR}/cluster.yaml" \
 
-    echo "Using KUBECONFIG: $(printenv KUBECONFIG)"
     kubectl cluster-info --context "kind-${CLUSTER_NAME}"
 
     echo "[*] Cluster ${CLUSTER_NAME} configuration complete"
