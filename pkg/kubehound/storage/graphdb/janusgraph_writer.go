@@ -63,6 +63,7 @@ func (jgv *JanusGraphAsyncWriter[T]) startBackgroundWriter(ctx context.Context) 
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
 func (jgv *JanusGraphAsyncWriter[T]) batchWrite(ctx context.Context, data []types.TraversalInput) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationBatchWrite, tracer.Measured())
+	span.SetTag("label", jgv.label)
 	defer span.Finish()
 
 	datalen := len(data)
@@ -101,6 +102,7 @@ func (jgv *JanusGraphAsyncWriter[T]) Close(ctx context.Context) error {
 // This is blocking
 func (jgv *JanusGraphAsyncWriter[T]) Flush(ctx context.Context) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationFlush, tracer.Measured())
+	span.SetTag("label", jgv.label)
 	defer span.Finish()
 
 	jgv.mu.Lock()

@@ -1,7 +1,9 @@
 package graphdb
 
 var (
-	baseTags = []string{}
+	baseTags = []string{
+		"database:janusgraph",
+	}
 )
 
 var (

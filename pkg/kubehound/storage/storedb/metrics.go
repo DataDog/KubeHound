@@ -1,7 +1,9 @@
 package storedb
 
 var (
-	baseTags = []string{}
+	baseTags = []string{
+		"database:mongodb",
+	}
 )
 
 var (

@@ -15,6 +15,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/google/uuid"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -86,10 +87,14 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 
 // Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context, opts ...LaunchOption) error {
+	runUUID := uuid.NewString()
 	span := tracer.StartSpan(SpanOperationLaunch, tracer.Measured())
+	// We set this so we can measure run by run in addition of version per version
+	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
+	span.SetBaggageItem("run_id", runUUID)
 	defer span.Finish()
 
-	log.I.Info("Starting KubeHound")
+	log.I.Infof("Starting KubeHound (%s)", runUUID)
 	log.I.Info("Initializing launch options")
 	lOpts := &launchConfig{}
 	for _, opt := range opts {
