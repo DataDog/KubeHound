@@ -110,7 +110,28 @@ func (suite *EdgeTestSuite) TestEdge_CE_PRIV_MOUNT() {
 }
 
 func (suite *EdgeTestSuite) TestEdge_CONTAINER_ATTACH() {
-	suite.True(false)
+	// Every container should have a CONTAINER_ATTACH incoming from a pod
+	rawCount, err := suite.g.V().
+		HasLabel("Container").
+		Count().Next()
+
+	suite.NoError(err)
+	containerCount, err := rawCount.GetInt()
+	suite.NoError(err)
+	suite.NotEqual(containerCount, 0)
+
+	rawCount, err = suite.g.V().
+		HasLabel("Pod").
+		OutE().HasLabel("CONTAINER_ATTACH").
+		InV().HasLabel("Container").
+		Dedup().
+		Path().
+		Count().Next()
+
+	suite.NoError(err)
+	pathCount, err := rawCount.GetInt()
+	suite.NoError(err)
+	suite.Equal(containerCount, pathCount)
 }
 
 func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME() {
@@ -149,7 +170,28 @@ func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME() {
 }
 
 func (suite *EdgeTestSuite) TestEdge_POD_ATTACH() {
+	// Every pod should have a POD_ATTACH incoming from a node
+	rawCount, err := suite.g.V().
+		HasLabel("Pod").
+		Count().Next()
 
+	suite.NoError(err)
+	podCount, err := rawCount.GetInt()
+	suite.NoError(err)
+	suite.NotEqual(podCount, 0)
+
+	rawCount, err = suite.g.V().
+		HasLabel("Node").
+		OutE().HasLabel("POD_ATTACH").
+		InV().HasLabel("Pod").
+		Dedup().
+		Path().
+		Count().Next()
+
+	suite.NoError(err)
+	pathCount, err := rawCount.GetInt()
+	suite.NoError(err)
+	suite.Equal(podCount, pathCount)
 }
 
 func (suite *EdgeTestSuite) TestEdge_POD_PATCH() {
@@ -234,7 +276,42 @@ func (suite *EdgeTestSuite) TestEdge_ROLE_GRANT() {
 }
 
 func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
-	suite.True(false)
+	// Every volume should have a VOLUME_MOUNT incoming from a node
+	rawCount, err := suite.g.V().
+		HasLabel("Volume").
+		Count().Next()
+
+	suite.NoError(err)
+	volumeCount, err := rawCount.GetInt()
+	suite.NoError(err)
+	suite.NotEqual(volumeCount, 0)
+
+	rawCount, err = suite.g.V().
+		HasLabel("Node").
+		OutE().HasLabel("VOLUME_MOUNT").
+		InV().HasLabel("Volume").
+		Dedup().
+		Path().
+		Count().Next()
+
+	suite.NoError(err)
+	pathCount, err := rawCount.GetInt()
+	suite.NoError(err)
+	suite.Equal(volumeCount, pathCount)
+
+	// Every volume should have a VOLUME_MOUNT incoming from a container
+	rawCount, err = suite.g.V().
+		HasLabel("Container").
+		OutE().HasLabel("VOLUME_MOUNT").
+		InV().HasLabel("Volume").
+		Dedup().
+		Path().
+		Count().Next()
+
+	suite.NoError(err)
+	pathCount, err = rawCount.GetInt()
+	suite.NoError(err)
+	suite.Equal(volumeCount, pathCount)
 }
 
 func TestEdgeTestSuite(t *testing.T) {
