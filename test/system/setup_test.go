@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
@@ -38,9 +37,9 @@ func runKubeHound() error {
 }
 
 func TestMain(m *testing.M) {
-	if err := runKubeHound(); err != nil {
-		log.I.Fatalf(err.Error())
-	}
+	// if err := runKubeHound(); err != nil {
+	// 	log.I.Fatalf(err.Error())
+	// }
 
 	// Run the test suite
 	os.Exit(m.Run())

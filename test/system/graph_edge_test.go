@@ -14,63 +14,228 @@ type EdgeTestSuite struct {
 	suite.Suite
 	gdb    graphdb.Provider
 	client *gremlingo.DriverRemoteConnection
+	g      *gremlingo.GraphTraversalSource
 }
 
 func (suite *EdgeTestSuite) SetupTest() {
 	gdb, err := graphdb.Factory(context.Background(), config.MustLoadConfig(KubeHoundConfigPath))
-	suite.NoError(err)
+	suite.Require().NoError(err)
 	suite.gdb = gdb
 	suite.client = gdb.Raw().(*gremlingo.DriverRemoteConnection)
+	suite.g = gremlingo.Traversal_().WithRemote(suite.client)
 
-	suite.NoError(err)
 }
 
-// // find the vertices connected by the CE_MODULE_LOAD edge and get the name of the pod and node
-// func (suite *EdgeTestSuite) TestEdge_CE_MODULE_LOAD() {
-// 	g := gremlingo.Traversal_().WithRemote(suite.client)
+var DefaultContainerEscapeNodes = map[string]bool{
+	"kubehound.test.local-worker":  true,
+	"kubehound.test.local-worker2": true,
+}
 
-// 	// query the name of the node
-// 	g.V().Has("class", vertex.PodLabel).OutE("CE_MODULE_LOAD").InV().Values("name").Next()
+func (suite *EdgeTestSuite) pathsToStringArray(results []*gremlingo.Result) []string {
+	paths := make([]string, 0, len(results))
+	for _, r := range results {
+		path, err := r.GetPath()
+		suite.NoError(err)
+		suite.Len(path.Objects, 3)
+		paths = append(paths, path.String())
+	}
 
-// 	// query the name of the outE container
-// 	g.V().Has("class", vertex.PodLabel).OutE("CE_MODULE_LOAD").Values("name").Next()
+	return paths
+}
 
-// 	// Count of containers
-// 	g.V().has("class", "Container").outE("CE_MODULE_LOAD").outV().dedup().values("name")
-// 	[priv-pod, nsenter-pod, kube-proxy, kube-proxy, modload-pod, kube-proxy]
+func (suite *EdgeTestSuite) _testContainerEscape(edgeLabel string, nodes map[string]bool, containers map[string]bool) {
+	results, err := suite.g.V().
+		Has("class", "Container").
+		OutE(edgeLabel).
+		InV().
+		Dedup().
+		Values("name").
+		ToList()
 
-// 	g.V().has("class", "Container").outE("CE_MODULE_LOAD").inV().dedup().values("name")
-// 	[kubehound.test.local-worker2, kubehound.test.local-worker, kubehound.test.local-control-plane]
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1) // multiple matches as overlaps other container escapes
 
-// 	g.V().has("class", "Container").outE("CE_MODULE_LOAD").outV().values("name").Count()
-// }
+	matched := false
+	for _, r := range results {
+		if nodes[r.GetString()] {
+			matched = true
+			break
+		}
+	}
+	suite.True(matched)
 
-// // Find the vertices connected by the ESCAPE_MODULE_LOAD edge
-// func (suite *EdgeTestSuite) TestEdge_ESCAPE_MODULE_LOAD() {
-// 	g := gremlingo.Traversal_().WithRemote(suite.client)
+	results, err = suite.g.V().
+		Has("class", "Container").
+		OutE(edgeLabel).
+		OutV().Dedup().
+		Values("name").
+		ToList()
 
-// 	// We will probably have more than just our example due to the OR condition. So just look for
-// 	// our specific example pod.
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1) // multiple matches as overlaps other container escapes
 
-// 	//
+	matched = false
+	for _, r := range results {
+		if containers[r.GetString()] {
+			matched = true
+			break
+		}
+	}
 
-// 	rawCount, err := g.V().
-// 		Has("class", vertex.VolumeLabel).
-// 		Repeat(__.Out().SimplePath()).
-// 		Until(__.Has("class", vertex.IdentityLabel)).
-// 		Path().
-// 		Count().
-// 		Next()
+	suite.True(matched)
+}
 
-// 	assert.NoError(suite.T(), err)
-// 	_, err = rawCount.GetInt()
-// 	assert.NoError(suite.T(), err)
-// 	// assert.NotEqual(suite.T(), pathCount, 0)
+func (suite *EdgeTestSuite) TestEdge_CE_MODULE_LOAD() {
+	containers := map[string]bool{
+		"modload-pod": true,
+	}
 
-// 	const expectedTokenCount = 6
+	suite._testContainerEscape("CE_MODULE_LOAD", DefaultContainerEscapeNodes, containers)
+}
 
-// 	assert.Equal(suite.T(), expectedTokenCount, pathCount)
-// }
+func (suite *EdgeTestSuite) TestEdge_CE_NSENTER() {
+	containers := map[string]bool{
+		"nsenter-pod": true,
+	}
+
+	suite._testContainerEscape("CE_NSENTER", DefaultContainerEscapeNodes, containers)
+}
+
+func (suite *EdgeTestSuite) TestEdge_CE_PRIV_MOUNT() {
+	containers := map[string]bool{
+		"priv-pod": true,
+	}
+
+	suite._testContainerEscape("CE_PRIV_MOUNT", DefaultContainerEscapeNodes, containers)
+}
+
+func (suite *EdgeTestSuite) TestEdge_CONTAINER_ATTACH() {
+	suite.True(false)
+}
+
+func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME() {
+	// We currently have 6 custom accounts configured (excluding the default)
+	// 	➜  KubeHound ✗ k get sa
+	// NAME             SECRETS   AGE
+	// default          0         7h39m
+	// impersonate-sa   0         7h39m
+	// pod-create-sa    0         7h39m
+	// pod-patch-sa     0         7h39m
+	// rolebind-sa      0         7h39m
+	// tokenget-sa      0         7h39m
+	// tokenlist-sa     0         7h39m
+
+	results, err := suite.g.V().
+		HasLabel("Container").
+		OutE().HasLabel("IDENTITY_ASSUME").
+		InV().HasLabel("Identity").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 6)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[rolebind-pod]], map[], map[name:[rolebind-sa]",
+		"path[map[name:[tokenget-pod]], map[], map[name:[tokenget-sa]",
+		"path[map[name:[pod-patch-pod]], map[], map[name:[pod-patch-sa]",
+		"path[map[name:[tokenlist-pod]], map[], map[name:[tokenlist-sa]",
+		"path[map[name:[pod-create-pod]], map[], map[name:[pod-create-sa]",
+		"path[map[name:[impersonate-pod]], map[], map[name:[impersonate-sa]",
+	}
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_POD_ATTACH() {
+
+}
+
+func (suite *EdgeTestSuite) TestEdge_POD_PATCH() {
+	// We have one bespoke container running with pod/patch permissions
+	// 	➜  KubeHound ✗ k get pods
+	// NAME              READY   STATUS    RESTARTS   AGE
+	// impersonate-pod   1/1     Running   0          8h
+	// modload-pod       1/1     Running   0          8h
+	// netadmin-pod      1/1     Running   0          8h
+	// nsenter-pod       1/1     Running   0          8h
+	// pod-create-pod    1/1     Running   0          8h
+	// pod-patch-pod     1/1     Running   0          8h
+	// priv-pod          1/1     Running   0          8h
+	// rolebind-pod      1/1     Running   0          8h
+	// sharedps-pod      1/1     Running   0          8h
+	// tokenget-pod      1/1     Running   0          8h
+	// tokenlist-pod     1/1     Running   0          8h
+	// umh-core-pod      1/1     Running   0          8h
+	// varlog-pod        1/1     Running   0          8h
+	results, err := suite.g.V().
+		HasLabel("Role").
+		OutE().HasLabel("POD_PATCH").
+		InV().HasLabel("Pod").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[patch-pods]], map[], map[name:[impersonate-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[modload-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[pod-create-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[rolebind-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[tokenlist-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[netadmin-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[priv-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[tokenget-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[nsenter-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[varlog-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[sharedps-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[umh-core-pod]",
+	}
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_ROLE_GRANT() {
+
+	// We currently have 6 custom accounts configured (excluding the default)
+	// 	➜  KubeHound ✗ k get sa
+	// NAME             SECRETS   AGE
+	// default          0         7h39m
+	// impersonate-sa   0         7h39m
+	// pod-create-sa    0         7h39m
+	// pod-patch-sa     0         7h39m
+	// rolebind-sa      0         7h39m
+	// tokenget-sa      0         7h39m
+	// tokenlist-sa     0         7h39m
+	results, err := suite.g.V().
+		HasLabel("Identity").
+		OutE().HasLabel("ROLE_GRANT").
+		InV().HasLabel("Role").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 6)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[pod-create-sa]], map[], map[name:[create-pods]",
+		"path[map[name:[rolebind-sa]], map[], map[name:[rolebind]",
+		"path[map[name:[tokenlist-sa]], map[], map[name:[list-secrets]",
+		"path[map[name:[impersonate-sa]], map[], map[name:[impersonate]",
+		"path[map[name:[tokenget-sa]], map[], map[name:[read-secrets]",
+		"path[map[name:[pod-patch-sa]], map[], map[name:[patch-pods]",
+	}
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
+	suite.True(false)
+}
 
 func TestEdgeTestSuite(t *testing.T) {
 	suite.Run(t, new(EdgeTestSuite))
