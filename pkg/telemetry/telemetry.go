@@ -25,8 +25,10 @@ func Initialize(cfg *config.KubehoundConfig) error {
 }
 
 func Shutdown() {
-	//Tracing
+	//Profiling
 	profiler.Shutdown()
+
+	//Tracing
 	tracer.Shutdown()
 	// Metrics
 	err := statsd.Flush()
