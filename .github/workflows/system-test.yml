@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: datadog/agent-github-action@v1.3
         with:
-            api_key: ${{ secrets.DD_API_KEY }}
+          api_key: ${{ secrets.DD_API_KEY }}
       - name: Checkout Git Repo
         uses: actions/checkout@v3
 
