@@ -33,7 +33,8 @@ type Builder interface {
 	// Traversal returns a graph traversal function that enables creating vertices from an input array of TraversalInput objects.
 	Traversal() Traversal
 
-	Processor(context.Context, interface{}) (interface{}, error)
+	// Processor transforms an object queued for writing to a format suitable for consumption by the Traversal function.
+	Processor(context.Context, any) (any, error)
 
 	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
 	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput. Invoking the complete callback signals the end of the stream.
