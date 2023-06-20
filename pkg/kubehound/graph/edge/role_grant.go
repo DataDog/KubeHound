@@ -34,7 +34,7 @@ func (e RoleGrant) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e RoleGrant) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+func (e RoleGrant) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*roleBindingGroup](ctx, entry)
 }
 

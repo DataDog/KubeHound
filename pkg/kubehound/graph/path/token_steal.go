@@ -57,7 +57,7 @@ func (p TokenSteal) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (p TokenSteal) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+func (p TokenSteal) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*tokenStealPath](ctx, entry)
 }
 

@@ -32,7 +32,7 @@ func (e EscapePrivMount) Traversal() Traversal {
 	return containerEscapeTraversal(e.Label())
 }
 
-func (e EscapePrivMount) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+func (e EscapePrivMount) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*containerEscapeGroup](ctx, entry)
 }
 

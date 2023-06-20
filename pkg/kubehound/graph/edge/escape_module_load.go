@@ -28,7 +28,7 @@ func (e EscapeModuleLoad) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e EscapeModuleLoad) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+func (e EscapeModuleLoad) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*containerEscapeGroup](ctx, entry)
 }
 

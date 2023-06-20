@@ -40,7 +40,7 @@ func (e IdentityAssume) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e IdentityAssume) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+func (e IdentityAssume) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*identityGroup](ctx, entry)
 }
 

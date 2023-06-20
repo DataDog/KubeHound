@@ -30,11 +30,12 @@ type podAttachGroup struct {
 func (e PodAttach) Label() string {
 	return "POD_ATTACH"
 }
+
 func (e PodAttach) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e PodAttach) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+func (e PodAttach) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*podAttachGroup](ctx, entry)
 }
 

@@ -36,7 +36,7 @@ func (e VolumeMount) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e VolumeMount) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+func (e VolumeMount) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*mountGroup](ctx, entry)
 }
 

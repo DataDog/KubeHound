@@ -35,7 +35,7 @@ func (e ContainerAttach) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e ContainerAttach) Processor(ctx context.Context, entry interface{}) (interface{}, error) {
+func (e ContainerAttach) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*containerAttachGroup](ctx, entry)
 }
 

@@ -52,6 +52,9 @@ mgmt.addConnection(podAttach, node, pod);
 podCreate = mgmt.makeEdgeLabel('POD_CREATE').multiplicity(ONE2MANY).make();
 mgmt.addConnection(podCreate, role, pod);
 
+podPatch = mgmt.makeEdgeLabel('POD_PATCH').multiplicity(ONE2MANY).make();
+mgmt.addConnection(podPatch, role, pod);
+
 tokenSteal = mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(ONE2MANY).make();
 mgmt.addConnection(tokenSteal, volume, token);
 
