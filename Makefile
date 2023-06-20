@@ -22,19 +22,30 @@ ifeq (${DD_API_KEY},)
     DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml
 endif
 
+
+DOCKER_CMD = docker
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	DOCKER_CMD = sudo docker
+endif
+
 all: build
 
-.PHONEY: build
-build: ## Build the application
+.PHONY: generate
+generate: ## generate code the application
+	go generate ./...
+
+.PHONY: build
+build: generate ## Build the application
 	cd cmd && go build -ldflags="-X pkg/config.BuildVersion=$(BUILD_VERSION)" -o ../bin/kubehound kubehound/*.go
 
 .PHONY: infra-rm
 infra-rm: ## Delete the testing stack
-	docker compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
+	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
 .PHONY: infra-up
-infra-up: ## Spawn the testing stack
-	docker compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
+infra-up: ## Spwan the testing stack
+	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
 
 .PHONY: test
 test: ## Run the full suite of unit tests 
@@ -46,7 +57,7 @@ test: ## Run the full suite of unit tests
 system-test: ## Run the system tests
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
-	cd test/system && go test -v -timeout "60s" -count 1 -race ./...
+	cd test/system && go test -v -timeout "60s" -count=1 ./...
 
 .PHONY: local-cluster-reset
 local-cluster-reset: ## Destroy the current kind cluster and creates a new one

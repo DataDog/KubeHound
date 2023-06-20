@@ -34,3 +34,11 @@ function load_env(){
 }
 
 load_env
+
+# post load env
+KIND=kind
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    KIND="sudo kind"
+fi
+
+KIND="$KIND"
