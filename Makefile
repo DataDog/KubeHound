@@ -3,13 +3,9 @@ BUILD_VERSION=dev-snapshot
 MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR := $(dir $(MAKEFILE_PATH))
 
-DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml -f test/system/docker-compose.local.yaml
-DOCKER_COMPOSE_ENV_FILE_PATH := test/system/.env
-
-# https://docs.github.com/en/actions/learn-github-actions/variables
-ifeq (${CI},true)
-    DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml
-endif
+DOCKER_COMPOSE_FILE_PATH := -f deployments/kubehound/docker-compose.yaml
+DOCKER_COMPOSE_ENV_FILE_PATH := deployments/kubehound/.env
+DEV_ENV_FILE_PATH := test/setup/.env.local
 
 # Loading docker .env file if present
 ifneq (,$(wildcard $(DOCKER_COMPOSE_ENV_FILE_PATH)))
@@ -17,16 +13,37 @@ ifneq (,$(wildcard $(DOCKER_COMPOSE_ENV_FILE_PATH)))
     export
 endif
 
-# No API key is being set
-ifeq (${DD_API_KEY},)
-    DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml
+# Loading docker .env file if present
+ifneq (,$(wildcard $(DEV_ENV_FILE_PATH)))
+	include $(DEV_ENV_FILE_PATH)
+    export
+endif
+
+ifeq (${KUBEHOUND_ENV}, prod)
+	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.prod.yaml
+else ifeq (${KUBEHOUND_ENV}, dev)
+	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
 endif
 
 
-DOCKER_CMD = docker
+# No API key is being set
+# ifeq (${DD_API_KEY},)
+ifneq (${DD_API_KEY},)
+    DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
+endif
+
 UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Linux)
-	DOCKER_CMD = sudo docker
+ifndef DOCKER_CMD
+	ifeq ($(UNAME_S),Linux)
+		# https://docs.github.com/en/actions/learn-github-actions/variables
+		ifneq (${CI},true)
+			DOCKER_CMD := sudo docker
+		endif
+	else
+		DOCKER_CMD := docker
+	endif
+else
+	DOCKER_CMD := ${DOCKER_CMD}
 endif
 
 all: build
@@ -57,9 +74,7 @@ test: ## Run the full suite of unit tests
 system-test: ## Run the system tests
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
-	# we print the KUBECONFIG envvar here to make it easier to see what is actively used
-	sleep 10
-	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/.kube/config && bash -c "printenv KUBECONFIG" && go test -v -timeout "60s" -count=1 ./...
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 ./...
 
 .PHONY: local-cluster-reset
 local-cluster-reset: ## Destroy the current kind cluster and creates a new one
