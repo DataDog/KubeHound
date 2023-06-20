@@ -51,7 +51,7 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 				if data == nil {
 					return
 				}
-				_ = statsd.Incr(MetricBackgroundWriterCall, maw.mongodb.tags, 1)
+				_ = statsd.Count(MetricBackgroundWriterCall, 1, baseTags, 1)
 				err := maw.batchWrite(ctx, data)
 				if err != nil {
 					log.I.Errorf("write data in background batch writer: %v", err)

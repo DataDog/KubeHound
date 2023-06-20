@@ -46,7 +46,7 @@ func (jgv *JanusGraphAsyncWriter[T]) startBackgroundWriter(ctx context.Context) 
 				if data == nil {
 					return
 				}
-				_ = statsd.Gauge(MetricBackgroundWriterCall, 1, baseTags, 1)
+				_ = statsd.Count(MetricBackgroundWriterCall, 1, baseTags, 1)
 				err := jgv.batchWrite(ctx, data)
 				if err != nil {
 					log.I.Errorf("write data in background batch writer: %v", err)
