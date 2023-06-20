@@ -1,10 +1,17 @@
-BUILD_VERSION=dev-snapshot
-
 MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR := $(dir $(MAKEFILE_PATH))
 
 DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml -f test/system/docker-compose.local.yaml
 DOCKER_COMPOSE_ENV_FILE_PATH := test/system/.env
+
+# get the latest commit hash in the short form
+COMMIT := $(shell git rev-parse --short HEAD)
+# get the latest commit date in the form of YYYYmmdd
+DATE := $(shell git log -1 --format=%cd --date=format:"%Y%m%d")
+# check if the version string is empty
+ifeq $(BUILD_VERSION,)
+    BUILD_VERSION := $(COMMIT)-$(DATA)
+endif
 
 # https://docs.github.com/en/actions/learn-github-actions/variables
 ifeq (${CI},true)
@@ -22,6 +29,7 @@ ifeq (${DD_API_KEY},)
     DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml
 endif
 
+FLAGS := -ldflags="-X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION)"
 
 DOCKER_CMD = docker
 UNAME_S := $(shell uname -s)
@@ -37,7 +45,7 @@ generate: ## generate code the application
 
 .PHONY: build
 build: generate ## Build the application
-	cd cmd && go build -ldflags="-X pkg/config.BuildVersion=$(BUILD_VERSION)" -o ../bin/kubehound kubehound/*.go
+	cd cmd && go build $(FLAGS) -o ../bin/kubehound kubehound/*.go
 
 .PHONY: infra-rm
 infra-rm: ## Delete the testing stack
@@ -51,13 +59,13 @@ infra-up: ## Spwan the testing stack
 test: ## Run the full suite of unit tests 
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
-	cd pkg && go test ./...
+	cd pkg && go test $(FLAGS) ./...
 
 .PHONY: system-test
 system-test: ## Run the system tests
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
-	cd test/system && go test -v -timeout "60s" -count=1 ./...
+	cd test/system && go test $(FLAGS) -v -timeout "60s" -count=1 ./...
 
 .PHONY: local-cluster-reset
 local-cluster-reset: ## Destroy the current kind cluster and creates a new one
