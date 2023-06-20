@@ -28,7 +28,7 @@ function load_env(){
     _printf_warn "Loading env vars from $SCRIPT_DIR/.env.local ..."
     if [ -f $SCRIPT_DIR/.env.local ]; then
         set -a
-        source $SCRIPT_DIR/.env.local
+        source $SCRIPT_DIR/.env
         set +a
     fi
 }
@@ -42,7 +42,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 fi
 
 KIND="$KIND --kubeconfig $KUBECONFIG"
-# if [ -f $KUBECONFIG ]; then
-#     sudo chown $USER:$USER $KUBECONFIG
-# fi
+if [ -f $KUBECONFIG ]; then
+    sudo chown $USER:$USER $KUBECONFIG
+fi
 echo "Using KUBECONFIG: $(printenv KUBECONFIG)"
