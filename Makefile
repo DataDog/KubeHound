@@ -6,12 +6,8 @@ DOCKER_COMPOSE_ENV_FILE_PATH := test/system/.env
 
 # get the latest commit hash in the short form
 COMMIT := $(shell git rev-parse --short HEAD)
-# get the latest commit date in the form of YYYYmmdd
 DATE := $(shell git log -1 --format=%cd --date=format:"%Y%m%d")
-# check if the version string is empty
-ifeq $(BUILD_VERSION,)
-    BUILD_VERSION := $(COMMIT)-$(DATA)
-endif
+BUILD_VERSION := $(COMMIT)-$(DATA)
 
 # https://docs.github.com/en/actions/learn-github-actions/variables
 ifeq (${CI},true)
