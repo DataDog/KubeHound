@@ -8,3 +8,8 @@ var (
 	MetricCollectorClusterRolesCount        = "kubehound.collector.clusterroles.count"
 	MetricCollectorClusterRoleBindingsCount = "kubehound.collector.clusterrolebindings.count"
 )
+
+var (
+	SpanOperationStream   = "kubehound.collector.stream"
+	SpanOperationReadFile = "kubehound.collector.readFile"
+)
