@@ -32,6 +32,7 @@ func (e EscapeModuleLoad) Processor(ctx context.Context, entry any) (any, error)
 	return adapter.GremlinInputProcessor[*containerEscapeGroup](ctx, entry)
 }
 
+// Traversal delegates the traversal creation to the generic containerEscapeTraversal.
 func (e EscapeModuleLoad) Traversal() Traversal {
 	return containerEscapeTraversal(e.Label())
 }

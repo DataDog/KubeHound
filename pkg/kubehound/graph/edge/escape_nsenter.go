@@ -28,6 +28,7 @@ func (e EscapeNsenter) BatchSize() int {
 	return DefaultBatchSize
 }
 
+// Traversal delegates the traversal creation to the generic containerEscapeTraversal.
 func (e EscapeNsenter) Traversal() Traversal {
 	return containerEscapeTraversal(e.Label())
 }

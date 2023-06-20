@@ -70,12 +70,12 @@ func (p TokenSteal) Traversal() Traversal {
 			Unfold().As("ts").
 			// Create a new token vertex
 			AddV(vertex.TokenLabel).As("tv").
+			Property("class", vertex.TokenLabel). // labels are not indexed - use a mirror property
 			SideEffect(
 				__.Select("ts").
 					Select("properties").
 					Unfold().As("kv").
 					Select("tv").
-					Property("class", vertex.TokenLabel). // labels are not indexed - use a mirror property
 					Property(
 						__.Select("kv").By(Column.Keys),
 						__.Select("kv").By(Column.Values))).
