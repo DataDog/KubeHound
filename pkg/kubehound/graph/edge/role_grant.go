@@ -18,6 +18,7 @@ func init() {
 	Register(RoleGrant{})
 }
 
+// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880471602/ROLE+GRANT
 type RoleGrant struct {
 }
 
