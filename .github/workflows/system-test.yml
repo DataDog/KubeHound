@@ -1,6 +1,10 @@
 name: KubeHound System Tests
 
-on: pull_request
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   system-test:
