@@ -71,6 +71,10 @@ To list all the available commands, run:
 make help
 ```
 
+Note: if you are running on Linux but you dont want to run `sudo` for `kind` and `docker` command, you can overwrite this behavior by editing the following var in `test/setup/.env.local`:
+* `DOCKER_CMD="docker"` for docker command
+* `KIND_CMD="kind"` for kind command 
+
 ### CI Testing
 
 System tests will be run in CI via the [system-test](./.github/workflows/system-test.yml) github action 
