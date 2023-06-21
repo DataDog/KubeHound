@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/DataDog/datadog-go/v5 v5.1.1
 	github.com/alitto/pond v1.8.3
-	github.com/apache/tinkerpop/gremlin-go v0.0.0-20220530191148-29272fa563ec
 	github.com/apache/tinkerpop/gremlin-go/v3 v3.6.4
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/spf13/cobra v1.6.1

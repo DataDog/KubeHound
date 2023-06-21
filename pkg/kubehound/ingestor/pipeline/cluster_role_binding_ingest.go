@@ -54,18 +54,18 @@ func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *sto
 	}
 
 	// Async write identity to store
-	if err := i.r.storeWriter(i.identity).Queue(ctx, sid); err != nil {
+	if err := i.r.writeStore(ctx, i.identity, sid); err != nil {
 		return err
 	}
 
 	// Transform store model to vertex input
-	v, err := i.r.graphConvert.Identity(sid)
+	insert, err := i.r.graphConvert.Identity(sid)
 	if err != nil {
 		return err
 	}
 
 	// Aysnc write to graph
-	if err := i.r.graphWriter(i.vertex).Queue(ctx, v); err != nil {
+	if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
 		return err
 	}
 
@@ -84,7 +84,7 @@ func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context,
 	}
 
 	// Async write role binding to store
-	if err := i.r.storeWriter(i.rolebinding).Queue(ctx, o); err != nil {
+	if err := i.r.writeStore(ctx, i.rolebinding, o); err != nil {
 		return err
 	}
 

@@ -12,9 +12,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// Optional syntactic sugar.
-var __ = gremlingo.T__
-
 type PathTestSuite struct {
 	suite.Suite
 	gdb    graphdb.Provider
@@ -42,9 +39,9 @@ func (suite *PathTestSuite) TestPath_TOKEN_STEAL() {
 		Next()
 
 	assert.NoError(suite.T(), err)
-	_, err = rawCount.GetInt()
+	pathCount, err := rawCount.GetInt()
 	assert.NoError(suite.T(), err)
-	// assert.NotEqual(suite.T(), pathCount, 0)
+	assert.NotEqual(suite.T(), pathCount, 0)
 
 	// Every pod in our test cluster should have projected volume holding a token. BUT we only
 	// save those with a non-default service account token as shown below.
@@ -60,7 +57,7 @@ func (suite *PathTestSuite) TestPath_TOKEN_STEAL() {
 	// tokenlist-sa     0         28h
 	const expectedTokenCount = 6
 
-	// assert.Equal(suite.T(), expectedTokenCount, pathCount)
+	assert.Equal(suite.T(), expectedTokenCount, pathCount)
 }
 
 func TestPathTestSuite(t *testing.T) {

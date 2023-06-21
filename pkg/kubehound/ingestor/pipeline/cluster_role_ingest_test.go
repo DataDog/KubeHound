@@ -7,6 +7,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/collector"
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
@@ -46,15 +47,30 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
 	roles := collections.Role{}
-	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).Return(nil).Once()
+	storeId := store.ObjectID()
+	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).
+		RunAndReturn(func(ctx context.Context, i any) error {
+			i.(*store.Role).Id = storeId
+			return nil
+		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, roles).Return(sw, nil)
 
 	// Graph setup
+	vtxInsert := map[string]any{
+		"isNamespaced": false,
+		"name":         "test-reader",
+		"namespace":    "",
+		"rules": []any{
+			"API()::R(pods)::N()::V(get,list)",
+			"API()::R(configmaps)::N()::V(get)",
+			"API(apps)::R(statefulsets)::N()::V(get,list)",
+		},
+		"storeID": storeId.Hex()}
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
-	gw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Role")).Return(nil).Once()
+	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
 	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Role")).Return(gw, nil)

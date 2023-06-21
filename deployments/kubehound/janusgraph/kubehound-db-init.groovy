@@ -23,10 +23,10 @@ token = mgmt.makeVertexLabel('Token').make();
 volume = mgmt.makeVertexLabel('Volume').make();
 
 // Create our edge labels and connections
-roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(ONE2MANY).make();
+roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(MULTI).make();
 mgmt.addConnection(roleGrant, identity, role);
 
-volmeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MANY2ONE).make();
+volmeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MULTI).make();
 mgmt.addConnection(volmeMount, container, volume);
 mgmt.addConnection(volmeMount, node, volume);
 
@@ -37,7 +37,7 @@ containerAttach = mgmt.makeEdgeLabel('CONTAINER_ATTACH').multiplicity(ONE2MANY).
 mgmt.addConnection(containerAttach, pod, container);
 
 idAssume = mgmt.makeEdgeLabel('IDENTITY_ASSUME').multiplicity(MANY2ONE).make();
-mgmt.addConnection(idAssume, pod, identity);
+mgmt.addConnection(idAssume, container, identity);
 mgmt.addConnection(idAssume, token, identity);
 
 idImpersonate = mgmt.makeEdgeLabel('IDENTITY_IMPERSONATE').multiplicity(MANY2ONE).make();
@@ -47,10 +47,13 @@ roleBind = mgmt.makeEdgeLabel('ROLE_BIND').multiplicity(MANY2ONE).make();
 mgmt.addConnection(roleBind, role, role);
 
 podAttach = mgmt.makeEdgeLabel('POD_ATTACH').multiplicity(ONE2MANY).make();
-mgmt.addConnection(podAttach, node, container);
+mgmt.addConnection(podAttach, node, pod);
 
 podCreate = mgmt.makeEdgeLabel('POD_CREATE').multiplicity(ONE2MANY).make();
 mgmt.addConnection(podCreate, role, pod);
+
+podPatch = mgmt.makeEdgeLabel('POD_PATCH').multiplicity(ONE2MANY).make();
+mgmt.addConnection(podPatch, role, pod);
 
 tokenSteal = mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(ONE2MANY).make();
 mgmt.addConnection(tokenSteal, volume, token);
@@ -73,6 +76,9 @@ mgmt.addConnection(moduleLoad, container, node);
 umhCorePattern = mgmt.makeEdgeLabel('CE_UMH_CORE_PATTERN').multiplicity(MANY2ONE).make();
 mgmt.addConnection(umhCorePattern, container, node);
 
+privMount = mgmt.makeEdgeLabel('CE_PRIV_MOUNT').multiplicity(MANY2ONE).make();
+mgmt.addConnection(privMount, container, node);
+
 
 // All properties we will index on
 cls = mgmt.makePropertyKey('class').dataType(String.class).cardinality(Cardinality.SINGLE).make();
@@ -84,7 +90,7 @@ critical = mgmt.makePropertyKey('critical').dataType(Boolean.class).cardinality(
 
 // All properties that we want to be able to search on
 isNamespaced = mgmt.makePropertyKey('isNamespaced').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
-compromised = mgmt.makePropertyKey('compromised').dataType(Long.class).cardinality(Cardinality.SINGLE).make();
+compromised = mgmt.makePropertyKey('compromised').dataType(Integer.class).cardinality(Cardinality.SINGLE).make();
 path = mgmt.makePropertyKey('path').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 nodeName = mgmt.makePropertyKey('node').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 sharedPs = mgmt.makePropertyKey('sharedProcessNamespace').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
@@ -94,24 +100,25 @@ podName = mgmt.makePropertyKey('pod').dataType(String.class).cardinality(Cardina
 hostNetwork = mgmt.makePropertyKey('hostNetwork').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 hostPath = mgmt.makePropertyKey('hostPath').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 hostPid = mgmt.makePropertyKey('hostPid').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+hostIpc = mgmt.makePropertyKey('hostIpc').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 privesc = mgmt.makePropertyKey('privesc').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 privileged = mgmt.makePropertyKey('privileged').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 runAsUser = mgmt.makePropertyKey('runAsUser').dataType(Long.class).cardinality(Cardinality.SINGLE).make();
-rules = mgmt.makePropertyKey('rules').dataType(String.class).cardinality(Cardinality.SET).make();
-command = mgmt.makePropertyKey('command').dataType(String.class).cardinality(Cardinality.SET).make();
-args = mgmt.makePropertyKey('args').dataType(String.class).cardinality(Cardinality.SET).make();
-capabilities = mgmt.makePropertyKey('capabilities').dataType(String.class).cardinality(Cardinality.SET).make();
-ports = mgmt.makePropertyKey('ports').dataType(Long.class).cardinality(Cardinality.SET).make();
+rules = mgmt.makePropertyKey('rules').dataType(String.class).cardinality(Cardinality.LIST).make();
+command = mgmt.makePropertyKey('command').dataType(String.class).cardinality(Cardinality.LIST).make();
+args = mgmt.makePropertyKey('args').dataType(String.class).cardinality(Cardinality.LIST).make();
+capabilities = mgmt.makePropertyKey('capabilities').dataType(String.class).cardinality(Cardinality.LIST).make();
+ports = mgmt.makePropertyKey('ports').dataType(String.class).cardinality(Cardinality.LIST).make();
 identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 
 // Define properties for each vertex 
-mgmt.addProperties(container, cls, storeID, name, image, privileged, privesc, hostPid, hostPath, hostNetwork, runAsUser, 
+mgmt.addProperties(container, cls, storeID, name, image, privileged, privesc, hostPid, hostPath, hostIpc, hostNetwork, runAsUser, 
 podName, nodeName, compromised, critical, command, args, capabilities, ports);
 mgmt.addProperties(identity, cls, storeID, name, isNamespaced, namespace, type);
 mgmt.addProperties(node, cls, storeID, name, isNamespaced, namespace, compromised, critical);
 mgmt.addProperties(pod, cls, storeID, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
 mgmt.addProperties(role, cls, storeID, name, isNamespaced, namespace, rules);
-mgmt.addProperties(token, cls, name, type, identityName, compromised, critical);
+mgmt.addProperties(token, cls, name, namespace, type, identityName, compromised, critical);
 mgmt.addProperties(volume, cls, storeID, name, type, path);
 
 

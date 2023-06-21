@@ -52,23 +52,23 @@ func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error 
 	}
 
 	// Async write to store
-	if err := i.r.storeWriter(i.collection).Queue(ctx, o); err != nil {
+	if err := i.r.writeStore(ctx, i.collection, o); err != nil {
 		return err
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cachekey.Node(o.K8.Name), o.Id.Hex()); err != nil {
+	if err := i.r.writeCache(ctx, cachekey.Node(o.K8.Name), o.Id.Hex()); err != nil {
 		return err
 	}
 
 	// Transform store model to vertex input
-	v, err := i.r.graphConvert.Node(o)
+	insert, err := i.r.graphConvert.Node(o)
 	if err != nil {
 		return err
 	}
 
 	// Aysnc write to graph
-	if err := i.r.graphWriter(i.vertex).Queue(ctx, v); err != nil {
+	if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
 		return err
 	}
 

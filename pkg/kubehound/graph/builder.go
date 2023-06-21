@@ -60,7 +60,12 @@ func (b *Builder) buildPath(ctx context.Context, p path.Builder) error {
 
 	err = p.Stream(ctx, b.storedb, b.cache,
 		func(ctx context.Context, entry types.DataContainer) error {
-			return w.Queue(ctx, entry)
+			insert, err := p.Processor(ctx, entry)
+			if err != nil {
+				return err
+			}
+
+			return w.Queue(ctx, insert)
 
 		},
 		func(ctx context.Context) error {
@@ -82,7 +87,12 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 
 	err = e.Stream(ctx, b.storedb, b.cache,
 		func(ctx context.Context, entry types.DataContainer) error {
-			return w.Queue(ctx, entry)
+			insert, err := e.Processor(ctx, entry)
+			if err != nil {
+				return err
+			}
+
+			return w.Queue(ctx, insert)
 		},
 		func(ctx context.Context) error {
 			return w.Flush(ctx)
