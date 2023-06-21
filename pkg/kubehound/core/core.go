@@ -21,7 +21,7 @@ import (
 
 func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.CacheProvider,
 	storedb storedb.Provider, graphdb graphdb.Provider) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationIngestData, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationIngestData, tracer.Measured())
 	defer span.Finish()
 
 	log.I.Info("Loading Kubernetes data collector client")
@@ -56,7 +56,7 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 // All I/O operations are performed asynchronously.
 func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
 	graphdb graphdb.Provider, cache cache.CacheReader) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationBuildGraph, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationBuildGraph, tracer.Measured())
 	defer span.Finish()
 
 	log.I.Info("Loading graph edge definitions")
@@ -88,7 +88,7 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 // Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context, opts ...LaunchOption) error {
 	runUUID := uuid.NewString()
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationLaunch, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationLaunch, tracer.Measured())
 	// We set this so we can measure run by run in addition of version per version
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
 	span.SetBaggageItem("run_id", runUUID)

@@ -13,6 +13,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/worker"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -97,7 +98,7 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 // Run constructs all the registered edges in the graph database.
 // NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
 func (b *Builder) Run(ctx context.Context) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationRun, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationRun, tracer.Measured())
 	defer span.Finish()
 	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
 

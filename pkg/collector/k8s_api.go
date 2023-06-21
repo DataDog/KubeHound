@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -132,7 +133,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(MetricCollectorPodsCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorPodsCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*corev1.Pod)
 		err := ingestor.IngestPod(ctx, item)
@@ -144,7 +145,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 }
 
 func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "pods")
 	defer span.Finish()
 
@@ -176,7 +177,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(MetricCollectorRolesCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorRolesCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*rbacv1.Role)
 		err := ingestor.IngestRole(ctx, item)
@@ -188,7 +189,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 }
 
 func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "roles")
 	defer span.Finish()
 
@@ -220,7 +221,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(MetricCollectorRoleBindingsCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorRoleBindingsCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*rbacv1.RoleBinding)
 		err := ingestor.IngestRoleBinding(ctx, item)
@@ -232,7 +233,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 }
 
 func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "rolebindings")
 	defer span.Finish()
 
@@ -245,7 +246,7 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 }
 
 func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "nodes")
 	defer span.Finish()
 
@@ -262,7 +263,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(MetricCollectorNodesCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorNodesCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*corev1.Node)
 		err := ingestor.IngestNode(ctx, item)
@@ -278,7 +279,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 }
 
 func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "clusterroles")
 	defer span.Finish()
 
@@ -295,7 +296,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(MetricCollectorClusterRolesCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorClusterRolesCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*rbacv1.ClusterRole)
 		err := ingestor.IngestClusterRole(ctx, item)
@@ -311,7 +312,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 }
 
 func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "clusterrolebindings")
 	defer span.Finish()
 
@@ -328,7 +329,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(MetricCollectorClusterRoleBindingsCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorClusterRoleBindingsCount, baseTags, 1)
 		c.rl.Take()
 		item := obj.(*rbacv1.ClusterRoleBinding)
 		err := ingestor.IngestClusterRoleBinding(ctx, obj.(*rbacv1.ClusterRoleBinding))

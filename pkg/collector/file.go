@@ -12,6 +12,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -97,7 +98,7 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(MetricCollectorPodsCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorPodsCount, baseTags, 1)
 		i := types.PodType(&item)
 		err = ingestor.IngestPod(ctx, i)
 		if err != nil {
@@ -109,7 +110,7 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 }
 
 func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "pods")
 	defer span.Finish()
 
@@ -140,7 +141,7 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(MetricCollectorRolesCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorRolesCount, baseTags, 1)
 		i := types.RoleType(&item)
 		err = ingestor.IngestRole(ctx, i)
 		if err != nil {
@@ -152,7 +153,7 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 }
 
 func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "roles")
 	defer span.Finish()
 
@@ -183,7 +184,7 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(MetricCollectorRoleBindingsCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorRoleBindingsCount, baseTags, 1)
 		i := types.RoleBindingType(&item)
 		err = ingestor.IngestRoleBinding(ctx, i)
 		if err != nil {
@@ -195,7 +196,7 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 }
 
 func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "rolebindings")
 	defer span.Finish()
 
@@ -219,7 +220,7 @@ func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBin
 }
 
 func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "nodes")
 	defer span.Finish()
 
@@ -232,7 +233,7 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(MetricCollectorNodesCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorNodesCount, baseTags, 1)
 		i := types.NodeType(&item)
 		err = ingestor.IngestNode(ctx, i)
 		if err != nil {
@@ -244,7 +245,7 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 }
 
 func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "clusterroles")
 	defer span.Finish()
 
@@ -257,7 +258,7 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(MetricCollectorClusterRolesCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorClusterRolesCount, baseTags, 1)
 		i := types.ClusterRoleType(&item)
 		err = ingestor.IngestClusterRole(ctx, i)
 		if err != nil {
@@ -269,7 +270,7 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 }
 
 func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag("resource", "clusterrolebindings")
 	defer span.Finish()
 
@@ -282,7 +283,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(MetricCollectorClusterRoleBindingsCount, baseTags, 1)
+		_ = statsd.Incr(telemetry.MetricCollectorClusterRoleBindingsCount, baseTags, 1)
 		i := types.ClusterRoleBindingType(&item)
 		err = ingestor.IngestClusterRoleBinding(ctx, i)
 		if err != nil {
@@ -296,7 +297,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 // readList loads a list of K8s API objects into memory from a JSON file on disk.
 // NOTE: This implementation reads the entire array of objects from the file into memory at once.
 func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl, error) {
-	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationReadFile, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationReadFile, tracer.Measured())
 	defer span.Finish()
 
 	var inputList Tl

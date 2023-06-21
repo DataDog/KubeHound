@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 )
 
@@ -50,10 +51,10 @@ func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) (stri
 	var err error
 	data, ok := m.data[computeKey(key)]
 	if !ok {
-		_ = statsd.Incr(MetricCacheMiss, []string{}, 1)
+		_ = statsd.Incr(telemetry.MetricCacheMiss, []string{}, 1)
 		err = errors.New("entry not found in cache")
 	} else {
-		_ = statsd.Incr(MetricCacheHit, []string{}, 1)
+		_ = statsd.Incr(telemetry.MetricCacheHit, []string{}, 1)
 	}
 
 	return data, err
