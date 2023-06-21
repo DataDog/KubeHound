@@ -63,7 +63,7 @@ infra-rm: ## Delete the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
 .PHONY: infra-up
-infra-up: ## Spwan the kubehound stack
+infra-up: ## Spawn the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
 
 .PHONY: infra-reset
