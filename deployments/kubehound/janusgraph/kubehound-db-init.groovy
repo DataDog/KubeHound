@@ -90,7 +90,7 @@ critical = mgmt.makePropertyKey('critical').dataType(Boolean.class).cardinality(
 
 // All properties that we want to be able to search on
 isNamespaced = mgmt.makePropertyKey('isNamespaced').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
-compromised = mgmt.makePropertyKey('compromised').dataType(Long.class).cardinality(Cardinality.SINGLE).make();
+compromised = mgmt.makePropertyKey('compromised').dataType(Integer.class).cardinality(Cardinality.SINGLE).make();
 path = mgmt.makePropertyKey('path').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 nodeName = mgmt.makePropertyKey('node').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 sharedPs = mgmt.makePropertyKey('sharedProcessNamespace').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
