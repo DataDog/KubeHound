@@ -25,7 +25,7 @@ ifeq (${DD_API_KEY},)
     DOCKER_COMPOSE_FILE_PATH := -f test/system/docker-compose.yaml
 endif
 
-FLAGS := -ldflags="-X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION)"
+BUILD_FLAGS := -ldflags="-X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION)"
 
 DOCKER_CMD = docker
 UNAME_S := $(shell uname -s)
@@ -41,7 +41,7 @@ generate: ## generate code the application
 
 .PHONY: build
 build: generate ## Build the application
-	cd cmd && go build $(FLAGS) -o ../bin/kubehound kubehound/*.go
+	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
 
 .PHONY: infra-rm
 infra-rm: ## Delete the testing stack
@@ -55,13 +55,13 @@ infra-up: ## Spwan the testing stack
 test: ## Run the full suite of unit tests 
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
-	cd pkg && go test $(FLAGS) ./...
+	cd pkg && go test $(BUILD_FLAGS) ./...
 
 .PHONY: system-test
 system-test: ## Run the system tests
 	$(MAKE) infra-rm
 	$(MAKE) infra-up
-	cd test/system && go test $(FLAGS) -v -timeout "60s" -count=1 ./...
+	cd test/system && go test $(BUILD_FLAGS) -v -timeout "60s" -count=1 ./...
 
 .PHONY: local-cluster-reset
 local-cluster-reset: ## Destroy the current kind cluster and creates a new one
