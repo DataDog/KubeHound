@@ -5,7 +5,7 @@ ROOT_DIR := $(dir $(MAKEFILE_PATH))
 
 DOCKER_COMPOSE_FILE_PATH := -f deployments/kubehound/docker-compose.yaml
 DOCKER_COMPOSE_ENV_FILE_PATH := deployments/kubehound/.env
-DEV_ENV_FILE_PATH := test/setup/.env.local
+DEV_ENV_FILE_PATH := test/setup/.config
 
 # Need to save the MAKEFILE_LIST variable before the including the env var files
 HELP_MAKEFILE_LIST := $(MAKEFILE_LIST)
@@ -76,7 +76,7 @@ test: ## Run the full suite of unit tests
 	cd pkg && go test ./...
 
 .PHONY: system-test
-system-test: | infra-reset ## Run the system tests
+system-test: | backend-reset ## Run the system tests
 	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 -race ./...
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 

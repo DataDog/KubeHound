@@ -25,10 +25,10 @@ function _printf_warn(){
 }
 
 function load_env(){
-    _printf_warn "Loading env vars from $SCRIPT_DIR/.env.local ..."
-    if [ -f $SCRIPT_DIR/.env.local ]; then
+    _printf_warn "Loading env vars from $SCRIPT_DIR/.config ..."
+    if [ -f $SCRIPT_DIR/.config ]; then
         set -a
-        source $SCRIPT_DIR/.env.local 
+        source $SCRIPT_DIR/.config 
         set +a
     fi
 }
