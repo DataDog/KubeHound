@@ -51,15 +51,27 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	// Store setup -  identities
 	isw := storedb.NewAsyncWriter(t)
 	identities := collections.Identity{}
-	isw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Identity")).Return(nil).Once()
+	storeId := store.ObjectID()
+	isw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Identity")).
+		RunAndReturn(func(ctx context.Context, i interface{}) error {
+			i.(*store.Identity).Id = storeId
+			return nil
+		}).Once()
 	isw.EXPECT().Flush(ctx).Return(nil)
 	isw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, identities).Return(isw, nil)
 
 	// Graph setup
+	vtxInsert := map[string]interface{}{
+		"isNamespaced": false,
+		"name":         "app-monitors",
+		"namespace":    "test-app",
+		"storeID":      storeId.Hex(),
+		"type":         "ServiceAccount",
+	}
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
-	gw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Identity")).Return(nil).Once()
+	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
 	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Identity")).Return(gw, nil)
