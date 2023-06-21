@@ -305,7 +305,7 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, storeContainer.K8.Args, graphContainer.Args)
 	assert.Equal(t, storeContainer.Inherited.PodName, graphContainer.Pod)
 	assert.Equal(t, storeContainer.Inherited.NodeName, graphContainer.Node)
-	assert.Equal(t, []int{9200, 9300}, graphContainer.Ports)
+	assert.Equal(t, []string{"9200", "9300"}, graphContainer.Ports)
 	assert.Equal(t, shared.CompromiseNone, graphContainer.Compromised)
 	assert.False(t, graphContainer.Critical)
 

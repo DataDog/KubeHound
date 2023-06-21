@@ -1,6 +1,8 @@
 package graph
 
-import "github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
+import (
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
+)
 
 type Container struct {
 	StoreID      string                `json:"storeID" mapstructure:"storeID"`
@@ -16,11 +18,11 @@ type Container struct {
 	HostIPC      bool                  `json:"hostIpc" mapstructure:"hostIpc"`
 	HostNetwork  bool                  `json:"hostNetwork" mapstructure:"hostNetwork"`
 	RunAsUser    int64                 `json:"runAsUser" mapstructure:"runAsUser"`
-	Ports        []int                 `json:"ports" mapstructure:"ports"`
+	Ports        []string              `json:"ports" mapstructure:"ports"`
 	Pod          string                `json:"pod" mapstructure:"pod"`
 	Node         string                `json:"node" mapstructure:"node"`
-	Compromised  shared.CompromiseType `json:"compromised,omitempty" mapstructure:"compromised"`
-	Critical     bool                  `json:"critical,omitempty" mapstructure:"critical"`
+	Compromised  shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
+	Critical     bool                  `json:"critical" mapstructure:"critical"`
 }
 
 type Group struct {
@@ -41,8 +43,8 @@ type Node struct {
 	Name         string                `json:"name" mapstructure:"name"`
 	IsNamespaced bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string                `json:"namespace" mapstructure:"namespace"`
-	Compromised  shared.CompromiseType `json:"compromised,omitempty" mapstructure:"compromised"`
-	Critical     bool                  `json:"critical,omitempty" mapstructure:"critical"`
+	Compromised  shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
+	Critical     bool                  `json:"critical" mapstructure:"critical"`
 }
 
 type Pod struct {
@@ -53,8 +55,8 @@ type Pod struct {
 	SharedProcessNamespace bool                  `json:"sharedProcessNamespace" mapstructure:"sharedProcessNamespace"`
 	ServiceAccount         string                `json:"serviceAccount" mapstructure:"serviceAccount"`
 	Node                   string                `json:"node" mapstructure:"node"`
-	Compromised            shared.CompromiseType `json:"compromised,omitempty" mapstructure:"compromised"`
-	Critical               bool                  `json:"critical,omitempty" mapstructure:"critical"`
+	Compromised            shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
+	Critical               bool                  `json:"critical" mapstructure:"critical"`
 }
 
 type Role struct {
@@ -70,8 +72,8 @@ type Token struct {
 	Namespace   string                `json:"namespace"  mapstructure:"namespace"`
 	Type        string                `json:"type" mapstructure:"type"`
 	Identity    string                `json:"identity" mapstructure:"identity"`
-	Compromised shared.CompromiseType `json:"compromised,omitempty" mapstructure:"compromised"`
-	Critical    bool                  `json:"critical,omitempty" mapstructure:"critical"`
+	Compromised shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
+	Critical    bool                  `json:"critical" mapstructure:"critical"`
 }
 
 type Volume struct {

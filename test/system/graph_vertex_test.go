@@ -94,6 +94,12 @@ func (suite *VertexTestSuite) SetupSuite() {
 	suite.g = gremlingo.Traversal_().WithRemote(suite.client)
 }
 
+func (suite *VertexTestSuite) TestVertexLargeInsert() {
+	// results, err := suite.g.V().HasLabel(vertex.NodeLabel).ElementMap().ToList()
+	// suite.NoError(err)
+	// TODO inserty then remove 1000 vertices
+}
+
 func (suite *VertexTestSuite) TestVertexContainer() {
 	results, err := suite.g.V().HasLabel(vertex.ContainerLabel).ElementMap().ToList()
 	suite.NoError(err)
@@ -147,7 +153,7 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 			HostIPC:      false,
 			HostNetwork:  false,
 			RunAsUser:    0,
-			Ports:        []int{},
+			Ports:        []string{},
 			Pod:          podName,
 			// Node:         nodeName, // see comments for converted["node"].(string)
 			// Compromised:  shared.CompromiseType(compromised),

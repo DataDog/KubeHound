@@ -1,6 +1,9 @@
 package vertex
 
 import (
+	"context"
+
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
@@ -23,23 +26,26 @@ func (v Pod) BatchSize() int {
 	return DefaultBatchSize
 }
 
+func (v Pod) Processor(ctx context.Context, entry any) (any, error) {
+	return adapter.GremlinInputProcessor[*graph.Pod](ctx, entry)
+}
+
 func (v Pod) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal()
-		for _, i := range inserts {
-			data := i.(*graph.Pod)
-			g = g.AddV(v.Label()).
-				Property("class", v.Label()). // labels are not indexed - use a mirror property
-				Property("storeID", data.StoreID).
-				Property("name", data.Name).
-				Property("isNamespaced", data.IsNamespaced).
-				Property("namespace", data.Namespace).
-				Property("sharedProcessNamespace", data.SharedProcessNamespace).
-				Property("serviceAccount", data.ServiceAccount).
-				Property("node", data.Node).
-				Property("compromised", int(data.Compromised)).
-				Property("critical", data.Critical)
-		}
+		g := source.GetGraphTraversal().
+			Inject(inserts).
+			Unfold().As("pods").
+			AddV(v.Label()).As("podVtx").
+			Property("class", v.Label()). // labels are not indexed - use a mirror property
+			SideEffect(
+				__.Select("pods").
+					Unfold().As("kv").
+					Select("podVtx").
+					Property(
+						__.Select("kv").By(Column.Keys),
+						__.Select("kv").By(Column.Values))).
+			Barrier().Limit(0)
+
 		return g
 	}
 }

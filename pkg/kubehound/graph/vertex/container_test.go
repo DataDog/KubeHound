@@ -36,7 +36,7 @@ func TestContainer_Traversal(t *testing.T) {
 				HostIPC:      true,
 				HostNetwork:  true,
 				RunAsUser:    1234,
-				Ports:        []int{1337},
+				Ports:        []string{"1337"},
 				Pod:          "test pod",
 				Node:         "test node",
 				Compromised:  1,

@@ -100,18 +100,19 @@ podName = mgmt.makePropertyKey('pod').dataType(String.class).cardinality(Cardina
 hostNetwork = mgmt.makePropertyKey('hostNetwork').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 hostPath = mgmt.makePropertyKey('hostPath').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 hostPid = mgmt.makePropertyKey('hostPid').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+hostIpc = mgmt.makePropertyKey('hostIpc').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 privesc = mgmt.makePropertyKey('privesc').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 privileged = mgmt.makePropertyKey('privileged').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 runAsUser = mgmt.makePropertyKey('runAsUser').dataType(Long.class).cardinality(Cardinality.SINGLE).make();
-rules = mgmt.makePropertyKey('rules').dataType(String.class).cardinality(Cardinality.SET).make();
-command = mgmt.makePropertyKey('command').dataType(String.class).cardinality(Cardinality.SET).make();
-args = mgmt.makePropertyKey('args').dataType(String.class).cardinality(Cardinality.SET).make();
-capabilities = mgmt.makePropertyKey('capabilities').dataType(String.class).cardinality(Cardinality.SET).make();
-ports = mgmt.makePropertyKey('ports').dataType(Long.class).cardinality(Cardinality.SET).make();
+rules = mgmt.makePropertyKey('rules').dataType(String.class).cardinality(Cardinality.LIST).make();
+command = mgmt.makePropertyKey('command').dataType(String.class).cardinality(Cardinality.LIST).make();
+args = mgmt.makePropertyKey('args').dataType(String.class).cardinality(Cardinality.LIST).make();
+capabilities = mgmt.makePropertyKey('capabilities').dataType(String.class).cardinality(Cardinality.LIST).make();
+ports = mgmt.makePropertyKey('ports').dataType(String.class).cardinality(Cardinality.LIST).make();
 identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 
 // Define properties for each vertex 
-mgmt.addProperties(container, cls, storeID, name, image, privileged, privesc, hostPid, hostPath, hostNetwork, runAsUser, 
+mgmt.addProperties(container, cls, storeID, name, image, privileged, privesc, hostPid, hostPath, hostIpc, hostNetwork, runAsUser, 
 podName, nodeName, compromised, critical, command, args, capabilities, ports);
 mgmt.addProperties(identity, cls, storeID, name, isNamespaced, namespace, type);
 mgmt.addProperties(node, cls, storeID, name, isNamespaced, namespace, compromised, critical);
