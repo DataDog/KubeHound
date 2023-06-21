@@ -71,7 +71,7 @@ To list all the available commands, run:
 make help
 ```
 
-Note: if you are running on Linux but you dont want to run `sudo` for `kind` and `docker` command, you can overwrite this behavior by editing the following var in `test/setup/.env.local`:
+Note: if you are running on Linux but you dont want to run `sudo` for `kind` and `docker` command, you can overwrite this behavior by editing the following var in `test/setup/.config`:
 * `DOCKER_CMD="docker"` for docker command
 * `KIND_CMD="kind"` for kind command 
 
