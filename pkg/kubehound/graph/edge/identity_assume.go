@@ -45,7 +45,7 @@ func (e IdentityAssume) Processor(ctx context.Context, entry any) (any, error) {
 }
 
 // Traversal expects a list of identityGroup serialized as mapstructure for injection into the graph.
-// Fo each identityGroup, the traversal will: 1) find the container with matching storeID, 2) find the
+// For each identityGroup, the traversal will: 1) find the container with matching storeID, 2) find the
 // identity vertex with matching storeID, and 3) add a IDENTITY_ASSUME edge between the two vertices.
 func (e IdentityAssume) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {

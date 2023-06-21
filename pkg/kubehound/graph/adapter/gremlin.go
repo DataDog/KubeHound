@@ -7,7 +7,7 @@ import (
 )
 
 // GremlinInputProcessor transform a graph model object to a map suitable for consumption by a gremllin traversal.
-func GremlinInputProcessor[T any](_ context.Context, entry interface{}) (map[string]any, error) {
+func GremlinInputProcessor[T any](_ context.Context, entry any) (map[string]any, error) {
 	typed, ok := entry.(T)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -22,7 +22,7 @@ func GremlinInputProcessor[T any](_ context.Context, entry interface{}) (map[str
 }
 
 // structToMap creates a map from a simple input struct.
-func structToMap(in interface{}) (map[string]any, error) {
+func structToMap(in any) (map[string]any, error) {
 	var res map[string]any
 
 	tmp, err := json.Marshal(in)

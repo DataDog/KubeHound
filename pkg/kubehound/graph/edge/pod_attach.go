@@ -40,7 +40,7 @@ func (e PodAttach) Processor(ctx context.Context, entry any) (any, error) {
 }
 
 // Traversal expects a list of podAttachGroup serialized as mapstructure for injection into the graph.
-// Fo each podAttachGroup, the traversal will: 1) find the pod vertex with matching storeID, 2) find the
+// For each podAttachGroup, the traversal will: 1) find the pod vertex with matching storeID, 2) find the
 // node vertex with matching storeID, and 3) add a POD_ATTACH edge between the two vertices.
 func (e PodAttach) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
