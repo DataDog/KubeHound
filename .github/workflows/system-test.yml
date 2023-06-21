@@ -24,7 +24,7 @@ jobs:
           KUBECONFIG: ./test/setup/.kube-config
         
       - name: Create K8s resources
-        run: make local-cluster-config-deploy
+        run: make local-cluster-resource-deploy
         env:
           KUBECONFIG: ./test/setup/.kube-config
       
