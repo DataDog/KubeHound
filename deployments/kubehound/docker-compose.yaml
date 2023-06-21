@@ -14,7 +14,7 @@ services:
         condition: service_healthy
 
   janusgraph:
-    build: ../../deployments/kubehound/janusgraph/
+    build: ./janusgraph/
     restart: unless-stopped
     container_name: ${COMPOSE_PROJECT_NAME}-graphdb
     ports:
