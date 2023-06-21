@@ -1,5 +1,6 @@
 BUILD_VERSION=dev-snapshot
 
+MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR := $(dir $(MAKEFILE_PATH))
 
 DOCKER_COMPOSE_FILE_PATH := -f deployments/kubehound/docker-compose.yaml
