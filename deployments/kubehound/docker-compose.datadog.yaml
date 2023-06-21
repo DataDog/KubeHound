@@ -1,10 +1,10 @@
-version: "3.7"
-name: kubehound-testing
+version: "3.8"
+
 services:
   datadog:
     image: gcr.io/datadoghq/agent:7
     restart: unless-stopped
-    container_name: ${COMPOSE_PROJECT_NAME}-datadog-agent
+    container_name: datadog-agent
     ports:
       - "127.0.0.1:8125:8125"
     environment:
