@@ -88,7 +88,7 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 // Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context, opts ...LaunchOption) error {
 	runUUID := uuid.NewString()
-	span := tracer.StartSpan(SpanOperationLaunch, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, SpanOperationLaunch, tracer.Measured())
 	// We set this so we can measure run by run in addition of version per version
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
 	span.SetBaggageItem("run_id", runUUID)

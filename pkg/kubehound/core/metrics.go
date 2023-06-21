@@ -1,7 +1,7 @@
 package core
 
 var (
-	SpanOperationIngestData = "kubehound.ingestdata"
-	SpanOperationBuildGraph = "kubehound.buildgraph"
+	SpanOperationIngestData = "kubehound.ingestData"
+	SpanOperationBuildGraph = "kubehound.buildGraph"
 	SpanOperationLaunch     = "kubehound.launch"
 )
