@@ -31,7 +31,7 @@ function destroy_cluster(){
 function remove_config_files(){
     _printf_ok "Removing config files for kind cluster "${CLUSTER_NAME}""
     rm -f ${SCRIPT_DIR}/${KIND_KUBECONFIG}
-    rm -f  ${SCRIPT_DIR}/${KIND_KUBECONFIG_INTERNAL}
+    rm -f ${SCRIPT_DIR}/${KIND_KUBECONFIG_INTERNAL}
 }
 
 function dump_config_file(){
