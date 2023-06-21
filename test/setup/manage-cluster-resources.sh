@@ -3,7 +3,7 @@ set -e
 
 # Internal vars
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-# This is needed to ensure the use fo
+# This is needed to ensure that we are targetting the kind cluster and not another Kub cluster
 export KUBECONFIG=${SCRIPT_DIR}/${KIND_KUBECONFIG}
 SCRIPT_ACTION="$1"
 source $SCRIPT_DIR/util.sh

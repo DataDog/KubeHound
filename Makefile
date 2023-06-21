@@ -31,7 +31,6 @@ ifneq ($(MAKECMDGOALS),system-test)
 endif
 
 # No API key is being set
-# ifeq (${DD_API_KEY},)
 ifneq (${DD_API_KEY},)
     DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
 endif
@@ -78,7 +77,7 @@ test: ## Run the full suite of unit tests
 
 .PHONY: system-test
 system-test: | infra-reset ## Run the system tests
-	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 ./...
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 -race ./...
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
 .PHONY: local-cluster-deploy
