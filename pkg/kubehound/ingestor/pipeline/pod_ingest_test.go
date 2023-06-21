@@ -146,9 +146,9 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	vgw.EXPECT().Flush(ctx).Return(nil)
 	vgw.EXPECT().Close(ctx).Return(nil)
 
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Pod")).Return(pgw, nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Container")).Return(cgw, nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Volume")).Return(vgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Pod"), mock.AnythingOfType("graphdb.WriterOption")).Return(pgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Container"), mock.AnythingOfType("graphdb.WriterOption")).Return(cgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Volume"), mock.AnythingOfType("graphdb.WriterOption")).Return(vgw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
