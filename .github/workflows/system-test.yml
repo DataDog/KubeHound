@@ -33,3 +33,5 @@ jobs:
 
       - name: Run integration Tests
         run: make system-test
+        env:
+          KUBECONFIG: ./test/setup/.kube-config
