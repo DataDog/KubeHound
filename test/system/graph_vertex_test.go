@@ -8,6 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"github.com/stretchr/testify/suite"
@@ -94,6 +95,12 @@ func (suite *VertexTestSuite) SetupSuite() {
 	suite.g = gremlingo.Traversal_().WithRemote(suite.client)
 }
 
+func (suite *VertexTestSuite) TestVertexLargeInsert() {
+	// results, err := suite.g.V().HasLabel(vertex.NodeLabel).ElementMap().ToList()
+	// suite.NoError(err)
+	// TODO inserty then remove 1000 vertices
+}
+
 func (suite *VertexTestSuite) TestVertexContainer() {
 	results, err := suite.g.V().HasLabel(vertex.ContainerLabel).ElementMap().ToList()
 	suite.NoError(err)
@@ -119,8 +126,8 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 		imageName, ok := converted["image"].(string)
 		suite.True(ok, "failed to convert image name to string")
 
-		// compromised, ok := converted["compromised"].(int)
-		// suite.True(ok, "failed to convert compromised field to CompromiseType")
+		compromised, ok := converted["compromised"].(int32)
+		suite.True(ok, "failed to convert compromised field to CompromiseType")
 
 		critical, ok := converted["critical"].(bool)
 		suite.True(ok, "failed to convert critical field to bool")
@@ -147,11 +154,11 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 			HostIPC:      false,
 			HostNetwork:  false,
 			RunAsUser:    0,
-			Ports:        []int{},
+			Ports:        []string{},
 			Pod:          podName,
 			// Node:         nodeName, // see comments for converted["node"].(string)
-			// Compromised:  shared.CompromiseType(compromised),
-			Critical: critical,
+			Compromised: shared.CompromiseType(compromised),
+			Critical:    critical,
 		}
 	}
 	suite.Equal(expectedContainers, resultsMap)
@@ -170,8 +177,8 @@ func (suite *VertexTestSuite) TestVertexNode() {
 		nodeName, ok := converted["name"].(string)
 		suite.True(ok, "failed to convert node name to string")
 
-		// compromised, ok := converted["compromised"].(int)
-		// suite.True(ok, "failed to convert compromised field to CompromiseType")
+		compromised, ok := converted["compromised"].(int32)
+		suite.True(ok, "failed to convert compromised field to CompromiseType")
 
 		isNamespaced, ok := converted["isNamespaced"].(bool)
 		suite.True(ok, "failed to convert isNamespaced field to bool")
@@ -183,8 +190,8 @@ func (suite *VertexTestSuite) TestVertexNode() {
 		suite.True(ok, "failed to convert critical field to bool")
 
 		resultsMap[nodeName] = graph.Node{
-			Name: nodeName,
-			// Compromised:  shared.CompromiseType(compromised),
+			Name:         nodeName,
+			Compromised:  shared.CompromiseType(compromised),
 			IsNamespaced: isNamespaced,
 			Namespace:    namespace,
 			Critical:     critical,
@@ -206,8 +213,8 @@ func (suite *VertexTestSuite) TestVertexPod() {
 		podName, ok := converted["name"].(string)
 		suite.True(ok, "failed to convert pod name to string")
 
-		// compromised, ok := converted["compromised"].(int)
-		// suite.True(ok, "failed to convert compromised field to CompromiseType")
+		compromised, ok := converted["compromised"].(int32)
+		suite.True(ok, "failed to convert compromised field to CompromiseType")
 
 		isNamespaced, ok := converted["isNamespaced"].(bool)
 		suite.True(ok, "failed to convert isNamespaced field to bool")
@@ -230,9 +237,9 @@ func (suite *VertexTestSuite) TestVertexPod() {
 		}
 
 		resultsMap[podName] = graph.Pod{
-			Name:           podName,
-			ServiceAccount: serviceAccount,
-			// Compromised:            shared.CompromiseType(compromised),
+			Name:                   podName,
+			ServiceAccount:         serviceAccount,
+			Compromised:            shared.CompromiseType(compromised),
 			SharedProcessNamespace: sharedProcessNamespace,
 			IsNamespaced:           isNamespaced,
 			Namespace:              namespace,
@@ -269,7 +276,7 @@ func (suite *VertexTestSuite) TestVertexToken() {
 	suite.NoError(err)
 	suite.Equal(6, len(results))
 
-	results, err = suite.g.V().HasLabel(vertex.TokenLabel).Has("type", "ServiceAccount").Has("identity", "pod-patch-sa").Has("critical", false).ElementMap().ToList()
+	results, err = suite.g.V().HasLabel(vertex.TokenLabel).Has("type", "ServiceAccount").Has("identity", "pod-patch-sa").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
 }

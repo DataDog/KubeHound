@@ -13,6 +13,10 @@ const (
 	DefaultBatchSize = 200
 )
 
+// Optional syntactic sugar.
+var __ = gremlin.T__
+var P = gremlin.P
+
 // Traversal returns the function to create a graph database edge insert from an array of input objects.
 type Traversal func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal
 
@@ -28,6 +32,9 @@ type Builder interface {
 
 	// Traversal returns a graph traversal function that enables creating edges from an input array of TraversalInput objects.
 	Traversal() Traversal
+
+	// Processor transforms an object queued for writing to a format suitable for consumption by the Traversal function.
+	Processor(context.Context, any) (any, error)
 
 	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
 	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput via a call to

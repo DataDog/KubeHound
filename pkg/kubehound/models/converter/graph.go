@@ -2,6 +2,7 @@ package converter
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -60,10 +61,11 @@ func (c *GraphConverter) Container(input *store.Container) (*graph.Container, er
 	}
 
 	// Exposed ports
-	output.Ports = make([]int, 0)
+	output.Ports = make([]string, 0)
 	if input.K8.Ports != nil {
 		for _, p := range input.K8.Ports {
-			output.Ports = append(output.Ports, int(p.HostPort))
+			// We map the integer port to a string to make our lives easier in the bullk gaph insert (#gremlin)
+			output.Ports = append(output.Ports, strconv.Itoa((int(p.HostPort))))
 		}
 	}
 

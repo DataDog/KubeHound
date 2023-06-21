@@ -52,23 +52,23 @@ func (i *RoleIngest) IngestRole(ctx context.Context, role types.RoleType) error 
 	}
 
 	// Async write to store
-	if err := i.r.storeWriter(i.collection).Queue(ctx, o); err != nil {
+	if err := i.r.writeStore(ctx, i.collection, o); err != nil {
 		return err
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cachekey.Role(o.Name, o.Namespace), o.Id.Hex()); err != nil {
+	if err := i.r.writeCache(ctx, cachekey.Role(o.Name, o.Namespace), o.Id.Hex()); err != nil {
 		return err
 	}
 
 	// Transform store model to vertex input
-	v, err := i.r.graphConvert.Role(o)
+	insert, err := i.r.graphConvert.Role(o)
 	if err != nil {
 		return err
 	}
 
 	// Aysnc write to graph
-	if err := i.r.graphWriter(i.vertex).Queue(ctx, v); err != nil {
+	if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
 		return err
 	}
 

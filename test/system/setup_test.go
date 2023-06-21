@@ -9,6 +9,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 const (
@@ -20,6 +21,9 @@ const (
 	CollectorScriptPath = "./kind-collect.sh"
 	CollectorOutputDir  = "kind-collect"
 )
+
+// Optional syntactic sugar.
+var __ = gremlingo.T__
 
 // runKubeHound runs the collector against the local kind cluster, then runs KubeHound to create
 // an attack graph that can be queried in the individual system tests.

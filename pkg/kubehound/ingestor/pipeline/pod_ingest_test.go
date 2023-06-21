@@ -50,21 +50,37 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	sdb := storedb.NewProvider(t)
 	psw := storedb.NewAsyncWriter(t)
 	pods := collections.Pod{}
-	psw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Pod")).Return(nil).Once()
+	pid := store.ObjectID()
+	psw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Pod")).
+		RunAndReturn(func(ctx context.Context, i any) error {
+			i.(*store.Pod).Id = pid
+			return nil
+		}).Once()
 	psw.EXPECT().Flush(ctx).Return(nil)
 	psw.EXPECT().Close(ctx).Return(nil)
 
 	// Store setup - containers
 	csw := storedb.NewAsyncWriter(t)
 	containers := collections.Container{}
-	csw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Container")).Return(nil).Once()
+	cid := store.ObjectID()
+	csw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Container")).
+		RunAndReturn(func(ctx context.Context, i any) error {
+			i.(*store.Container).Id = cid
+			return nil
+		}).Once()
 	csw.EXPECT().Flush(ctx).Return(nil)
 	csw.EXPECT().Close(ctx).Return(nil)
 
 	// Store setup - volumes
 	vsw := storedb.NewAsyncWriter(t)
 	volumes := collections.Volume{}
-	vsw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Volume")).Return(nil).Once()
+	vid := store.ObjectID()
+	vsw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Volume")).
+		RunAndReturn(func(ctx context.Context, i any) error {
+			i.(*store.Volume).Id = vid
+			return nil
+		}).Once()
+
 	vsw.EXPECT().Flush(ctx).Return(nil)
 	vsw.EXPECT().Close(ctx).Return(nil)
 
@@ -73,21 +89,60 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	sdb.EXPECT().BulkWriter(ctx, volumes).Return(vsw, nil)
 
 	// Graph setup - pods
+	pv := map[string]any{
+		"compromised":            float64(0),
+		"critical":               false,
+		"isNamespaced":           true,
+		"name":                   "app-monitors-client-78cb6d7899-j2rjp",
+		"namespace":              "test-app",
+		"node":                   "test-node.ec2.internal",
+		"serviceAccount":         "app-monitors",
+		"sharedProcessNamespace": false,
+		"storeID":                pid.Hex(),
+	}
+
 	gdb := graphdb.NewProvider(t)
 	pgw := graphdb.NewAsyncVertexWriter(t)
-	pgw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Pod")).Return(nil).Once()
+	pgw.EXPECT().Queue(ctx, pv).Return(nil).Once()
 	pgw.EXPECT().Flush(ctx).Return(nil)
 	pgw.EXPECT().Close(ctx).Return(nil)
 
 	// Graph setup - containers
+	cv := map[string]any{
+		"args":         any(nil),
+		"capabilities": []any{},
+		"command":      any(nil),
+		"compromised":  float64(0),
+		"critical":     false,
+		"hostIpc":      false,
+		"hostNetwork":  false,
+		"hostPath":     false,
+		"hostPid":      false,
+		"image":        "dockerhub.com/elasticsearch:latest",
+		"name":         "elasticsearch",
+		"node":         "test-node.ec2.internal",
+		"pod":          "app-monitors-client-78cb6d7899-j2rjp",
+		"ports":        []any{"9200", "9300"},
+		"privesc":      false,
+		"privileged":   false,
+		"runAsUser":    float64(0),
+		"storeID":      cid.Hex()}
+
 	cgw := graphdb.NewAsyncVertexWriter(t)
-	cgw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Container")).Return(nil).Once()
+	cgw.EXPECT().Queue(ctx, cv).Return(nil).Once()
 	cgw.EXPECT().Flush(ctx).Return(nil)
 	cgw.EXPECT().Close(ctx).Return(nil)
 
 	// Graph setup - volumes
+
+	vv := map[string]any{
+		"name":    "kube-api-access-4x9fz",
+		"path":    "/var/lib/kubelet/pods//volumes/kubernetes.io~projected/kube-api-access-4x9fz/token",
+		"storeID": vid.Hex(),
+		"type":    "Projected",
+	}
 	vgw := graphdb.NewAsyncVertexWriter(t)
-	vgw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Volume")).Return(nil).Once()
+	vgw.EXPECT().Queue(ctx, vv).Return(nil).Once()
 	vgw.EXPECT().Flush(ctx).Return(nil)
 	vgw.EXPECT().Close(ctx).Return(nil)
 
