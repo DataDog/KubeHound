@@ -25,6 +25,8 @@ jobs:
         
       - name: Create K8s resources
         run: make local-cluster-config-deploy
+        env:
+          KUBECONFIG: ./test/setup/.kube-config
       
       - name: Setup Golang
         uses: actions/setup-go@v4
