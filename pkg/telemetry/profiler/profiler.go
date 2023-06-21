@@ -1,6 +1,8 @@
 package profiler
 
 import (
+	"time"
+
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -22,6 +24,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 			// profiler.MutexProfile,
 			// profiler.GoroutineProfile,
 		),
+		profiler.WithPeriod(5*time.Second),
 	)
 	if err != nil {
 		log.I.Errorf("start profiler: %v", err)
