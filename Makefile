@@ -67,7 +67,7 @@ infra-up: ## Spwan the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
 
 .PHONY: infra-reset
-infra-reset: ## Spwan the testing stack
+infra-reset: ## Spawn the testing stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
 
