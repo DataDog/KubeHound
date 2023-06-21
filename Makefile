@@ -58,16 +58,16 @@ generate: ## Generate code the application
 build: generate ## Build the application
 	cd cmd && go build -ldflags="-X pkg/config.BuildVersion=$(BUILD_VERSION)" -o ../bin/kubehound kubehound/*.go
 
-.PHONY: infra-rm
-infra-rm: ## Delete the kubehound stack
+.PHONY: backend-rm
+backend-rm: ## Delete the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
-.PHONY: infra-up
-infra-up: ## Spawn the kubehound stack
+.PHONY: backend-up
+backend-up: ## Spawn the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
 
-.PHONY: infra-reset
-infra-reset: ## Spawn the testing stack
+.PHONY: backend-reset
+backend-reset: ## Spawn the testing stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
 
