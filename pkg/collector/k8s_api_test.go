@@ -155,7 +155,7 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 			}...,
 		)
 		m := mocks.NewPodIngestor(t)
-		m.EXPECT().IngestPod(ctx, mock.AnythingOfType("types.PodType")).Return(nil).Twice()
+		m.EXPECT().IngestPod(mock.AnythingOfType("context.Context"), mock.AnythingOfType("types.PodType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.AnythingOfType("context.Context")).Return(nil).Once()
 		return clienset, m
 	}
@@ -236,7 +236,7 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 			}...,
 		)
 		m := mocks.NewRoleIngestor(t)
-		m.EXPECT().IngestRole(ctx, mock.AnythingOfType("types.RoleType")).Return(nil).Twice()
+		m.EXPECT().IngestRole(mock.AnythingOfType("context.Context"), mock.AnythingOfType("types.RoleType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.AnythingOfType("context.Context")).Return(nil).Once()
 		return clienset, m
 	}
@@ -322,7 +322,7 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 			}...,
 		)
 		m := mocks.NewRoleBindingIngestor(t)
-		m.EXPECT().IngestRoleBinding(ctx, mock.AnythingOfType("types.RoleBindingType")).Return(nil).Twice()
+		m.EXPECT().IngestRoleBinding(mock.AnythingOfType("context.Context"), mock.AnythingOfType("types.RoleBindingType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.AnythingOfType("context.Context")).Return(nil).Once()
 		return clienset, m
 	}
@@ -398,7 +398,7 @@ func Test_k8sAPICollector_StreamNodes(t *testing.T) {
 			}...,
 		)
 		m := mocks.NewNodeIngestor(t)
-		m.EXPECT().IngestNode(ctx, mock.AnythingOfType("types.NodeType")).Return(nil).Twice()
+		m.EXPECT().IngestNode(mock.AnythingOfType("context.Context"), mock.AnythingOfType("types.NodeType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.AnythingOfType("context.Context")).Return(nil).Once()
 		return clienset, m
 	}
@@ -478,7 +478,7 @@ func Test_k8sAPICollector_StreamClusterRoles(t *testing.T) {
 			}...,
 		)
 		m := mocks.NewClusterRoleIngestor(t)
-		m.EXPECT().IngestClusterRole(ctx, mock.AnythingOfType("types.ClusterRoleType")).Return(nil).Twice()
+		m.EXPECT().IngestClusterRole(mock.AnythingOfType("context.Context"), mock.AnythingOfType("types.ClusterRoleType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.AnythingOfType("context.Context")).Return(nil).Once()
 		return clienset, m
 	}
@@ -562,7 +562,7 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 			}...,
 		)
 		m := mocks.NewClusterRoleBindingIngestor(t)
-		m.EXPECT().IngestClusterRoleBinding(ctx, mock.AnythingOfType("types.ClusterRoleBindingType")).Return(nil).Twice()
+		m.EXPECT().IngestClusterRoleBinding(mock.AnythingOfType("context.Context"), mock.AnythingOfType("types.ClusterRoleBindingType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.AnythingOfType("context.Context")).Return(nil).Once()
 		return clienset, m
 	}
