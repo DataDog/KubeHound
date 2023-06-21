@@ -7,6 +7,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/collector"
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
@@ -46,15 +47,28 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
 	nodes := collections.Node{}
-	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Node")).Return(nil).Once()
+	storeId := store.ObjectID()
+	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Node")).
+		RunAndReturn(func(ctx context.Context, i any) error {
+			i.(*store.Node).Id = storeId
+			return nil
+		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, nodes).Return(sw, nil)
 
 	// Graph setup
+	vtxInsert := map[string]any{
+		"compromised":  float64(0), // weird conversion to float by processor
+		"critical":     false,
+		"isNamespaced": false,
+		"name":         "node-1",
+		"namespace":    "",
+		"storeID":      storeId.Hex(),
+	}
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
-	gw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Node")).Return(nil).Once()
+	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
 	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Node")).Return(gw, nil)

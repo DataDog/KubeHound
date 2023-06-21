@@ -24,10 +24,13 @@ jobs:
           cluster_name: kubehound.test.local
           config: test/setup/test-cluster/cluster.yaml
           wait: 5m
-
+        env:
+          KUBECONFIG: ./test/setup/.kube-config
+        
       - name: Create K8s resources
-        working-directory: test/setup/
-        run: bash create-cluster-resources.sh
+        run: make local-cluster-resource-deploy
+        env:
+          KUBECONFIG: ./test/setup/.kube-config
       
       - name: Setup Golang
         uses: actions/setup-go@v4
@@ -36,3 +39,5 @@ jobs:
 
       - name: Run integration Tests
         run: make system-test
+        env:
+          KIND_KUBECONFIG: .kube-config

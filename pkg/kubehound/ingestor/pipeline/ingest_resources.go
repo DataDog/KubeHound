@@ -2,11 +2,13 @@ package pipeline
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -111,14 +113,26 @@ type IngestResources struct {
 	resourceOptions
 }
 
-// storeWriter returns the registered store writer for the provided collection.
-func (i *IngestResources) storeWriter(c collections.Collection) storedb.AsyncWriter {
-	return i.storeWriters[c.Name()]
+// writeCache delegates a write to the cache writer.
+func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value string) error {
+	return i.cacheWriter.Queue(ctx, ck, value)
 }
 
-// graphWriter returns the registered graph writer for the provided collection.
-func (i *IngestResources) graphWriter(v vertex.Builder) graphdb.AsyncVertexWriter {
-	return i.graphWriters[v.Label()]
+// writeStore delegates a write to the registered store writer.
+func (i *IngestResources) writeStore(ctx context.Context, c collections.Collection, model any) error {
+	return i.storeWriters[c.Name()].Queue(ctx, model)
+}
+
+// writeVertex delegates a write to the registered graph writer after invoking the vertex.Processor on the provided insert.
+func (i *IngestResources) writeVertex(ctx context.Context, v vertex.Builder, insert any) error {
+	w := i.graphWriters[v.Label()]
+
+	processed, err := v.Processor(ctx, insert)
+	if err != nil {
+		return fmt.Errorf("vertex processing: %w", err)
+	}
+
+	return w.Queue(ctx, processed)
 }
 
 // CreateResources handles the base initialization of service dependencies for an object ingest pipeline.

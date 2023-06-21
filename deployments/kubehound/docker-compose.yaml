@@ -14,7 +14,7 @@ services:
         condition: service_healthy
 
   janusgraph:
-    build: ../../deployments/kubehound/janusgraph/
+    build: ./janusgraph/
     restart: unless-stopped
     container_name: ${COMPOSE_PROJECT_NAME}-graphdb
     ports:
@@ -26,10 +26,11 @@ services:
       - janusgraph.schema.constraints=true
       - janusgraph.schema.default=none
     healthcheck:
+      # Healthcheck parameters optimized to ensure fast system tests. DO NOT USE IN PRODUCTION!
       test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
-      interval: 60s
+      interval: 15s
       timeout: 30s
-      retries: 1
+      retries: 5
       start_period: 15s
 
 networks:

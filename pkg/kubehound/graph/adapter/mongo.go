@@ -23,8 +23,8 @@ func MongoDB(store storedb.Provider) *mongo.Database {
 func MongoCursorHandler[T any](ctx context.Context, cur *mongo.Cursor,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	var entry T
 	for cur.Next(ctx) {
+		var entry T
 		err := cur.Decode(&entry)
 		if err != nil {
 			return err

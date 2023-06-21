@@ -4,6 +4,17 @@ A Kubernetes attack graph tool
 
 Full documentation available on confluence: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2871592134/KubeHound+1.0
 
+## Run
+
+To run the application, you can use docker image with the compose:
+* Copy `deployments/kubehound/.env.tpl` to `deployments/kubehound/.env`
+* Edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`)
+* Run `make backend-up`
+
+Note:
+* KUBEHOUND_ENV=prod will use prebuilt image from ghcr.io
+* KUBEHOUND_ENV=dev will build the images locally
+
 ## Build
 
 Build the application via:
@@ -70,6 +81,10 @@ To list all the available commands, run:
 ```bash
 make help
 ```
+
+Note: if you are running on Linux but you dont want to run `sudo` for `kind` and `docker` command, you can overwrite this behavior by editing the following var in `test/setup/.config`:
+* `DOCKER_CMD="docker"` for docker command
+* `KIND_CMD="kind"` for kind command 
 
 ### CI Testing
 
