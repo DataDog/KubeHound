@@ -55,6 +55,10 @@ func SetDefaultValues(c *viper.Viper) {
 
 	// Default value for MongoDB
 	c.SetDefault("mongodb.connection_timeout", globals.DefaultConnectionTimeout)
+
+	// Profiler values
+	c.SetDefault("telemetry.profiler.period", globals.DefaultProfilerPeriod)
+	c.SetDefault("telemetry.profiler.cpu_duration", globals.DefaultProfilerCPUDuration)
 }
 
 // NewConfig creates a new config instance from the provided file using viper.

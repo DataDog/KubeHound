@@ -14,3 +14,8 @@ telemetry:
     url: "127.0.0.1:8125"
   tracer:
     url: "127.0.0.1:8126"
+  # this profiler block needs to set the period of cpu collection lower than the default 60s
+  # in order to be able to have the chance to run it once during a run against the kind cluster
+  profiler:
+    period: "5s"
+    cpu_duration: "5s"
