@@ -87,6 +87,10 @@ local-cluster-deploy: ## Create a kind cluster with some vulnerables resources (
 	bash test/setup/manage-cluster.sh create
 	bash test/setup/manage-cluster-resources.sh deploy
 
+.PHONY: local-cluster-config-deploy
+local-cluster-config-deploy: ## Deploy the attacks resources into the kind cluster
+	bash test/setup/manage-cluster-resources.sh deploy
+
 .PHONY: local-cluster-destroy
 local-cluster-destroy: ## Destroy the local kind cluster
 	bash test/setup/manage-cluster.sh destroy
