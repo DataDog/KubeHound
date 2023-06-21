@@ -335,7 +335,7 @@ func GenerateContainerTemplate() ([]byte, error) {
 			HostIPC:      {{.HostIPC}},
 			HostNetwork:  {{.HostNetwork}},
 			RunAsUser:    {{.RunAsUser}},
-			Ports:        []int{},
+			Ports:        []string{},
 			Pod:          "{{.Pod}}",
 			// Node:         "{{.Node}}",
 			Compromised:  0,
