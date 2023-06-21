@@ -38,3 +38,11 @@ var (
 	MetricCacheWrite          = "kubehound.cache.write"
 	MetricCacheDuplicateEntry = "kubehound.cache.duplicate"
 )
+
+var (
+	TagTypeJanusGraph = "type:janusgraph"
+	TagTypeMongodb    = "type:mongodb"
+	// BaseTags represents the minimal tags sent by the application
+	// Each sub-component of the app will add to their local usage their own tags depending on their needs.
+	BaseTags = []string{}
+)

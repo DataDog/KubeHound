@@ -13,7 +13,7 @@ var _ AsyncPathWriter = (*JanusGraphAsyncWriter[edge.Traversal])(nil)
 
 // NewJanusGraphAsyncEdgeWriter creates a new bulk edge writer instance.
 func NewJanusGraphAsyncEdgeWriter(ctx context.Context, dcp *DriverConnectionPool,
-	e edge.Builder, tags []string, opts ...WriterOption) (*JanusGraphAsyncWriter[edge.Traversal], error) {
+	e edge.Builder, opts ...WriterOption) (*JanusGraphAsyncWriter[edge.Traversal], error) {
 
 	options := &writerOptions{}
 	for _, opt := range opts {
@@ -41,7 +41,7 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, dcp *DriverConnectionPool
 		batchSize:       e.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []types.TraversalInput, e.BatchSize()*channelSizeBatchFactor),
-		tags:            tags,
+		tags:            options.Tags,
 	}
 
 	jw.startBackgroundWriter(ctx)

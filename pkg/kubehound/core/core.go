@@ -92,6 +92,10 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	// We set this so we can measure run by run in addition of version per version
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
 	span.SetBaggageItem("run_id", runUUID)
+	// We update the base tags to include that run id, so we have it available for metrics
+	tagRunUUID := "run_id:" + runUUID
+	log.I.SetRunUUID(runUUID)
+	telemetry.BaseTags = append(telemetry.BaseTags, tagRunUUID)
 	defer span.Finish()
 
 	log.I.Infof("Starting KubeHound (%s)", runUUID)

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -41,7 +42,7 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	return &MongoProvider{
 		client: client,
 		db:     db,
-		tags:   append(baseTags, "type:mongodb"),
+		tags:   append(baseTags, telemetry.TagTypeMongodb),
 	}, nil
 }
 

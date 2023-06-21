@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -86,7 +87,9 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 // To access the writer use the graphWriter(v vertex.Vertex) function.
 func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		opts := []graphdb.WriterOption{}
+		opts := []graphdb.WriterOption{
+			graphdb.WithTags([]string{telemetry.TagTypeJanusGraph}),
+		}
 
 		w, err := deps.GraphDB.VertexWriter(ctx, v, opts...)
 		if err != nil {
