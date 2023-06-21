@@ -52,7 +52,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	pods := collections.Pod{}
 	pid := store.ObjectID()
 	psw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Pod")).
-		RunAndReturn(func(ctx context.Context, i interface{}) error {
+		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Pod).Id = pid
 			return nil
 		}).Once()
@@ -64,7 +64,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	containers := collections.Container{}
 	cid := store.ObjectID()
 	csw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Container")).
-		RunAndReturn(func(ctx context.Context, i interface{}) error {
+		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Container).Id = cid
 			return nil
 		}).Once()
@@ -76,7 +76,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	volumes := collections.Volume{}
 	vid := store.ObjectID()
 	vsw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Volume")).
-		RunAndReturn(func(ctx context.Context, i interface{}) error {
+		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Volume).Id = vid
 			return nil
 		}).Once()
@@ -89,7 +89,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	sdb.EXPECT().BulkWriter(ctx, volumes).Return(vsw, nil)
 
 	// Graph setup - pods
-	pv := map[string]interface{}{
+	pv := map[string]any{
 		"compromised":            float64(0),
 		"critical":               false,
 		"isNamespaced":           true,
@@ -108,10 +108,10 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	pgw.EXPECT().Close(ctx).Return(nil)
 
 	// Graph setup - containers
-	cv := map[string]interface{}{
-		"args":         interface{}(nil),
-		"capabilities": []interface{}{},
-		"command":      interface{}(nil),
+	cv := map[string]any{
+		"args":         any(nil),
+		"capabilities": []any{},
+		"command":      any(nil),
 		"compromised":  float64(0),
 		"critical":     false,
 		"hostIpc":      false,
@@ -122,7 +122,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"name":         "elasticsearch",
 		"node":         "test-node.ec2.internal",
 		"pod":          "app-monitors-client-78cb6d7899-j2rjp",
-		"ports":        []interface{}{"9200", "9300"},
+		"ports":        []any{"9200", "9300"},
 		"privesc":      false,
 		"privileged":   false,
 		"runAsUser":    float64(0),
@@ -135,7 +135,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 
 	// Graph setup - volumes
 
-	vv := map[string]interface{}{
+	vv := map[string]any{
 		"name":    "kube-api-access-4x9fz",
 		"path":    "/var/lib/kubelet/pods//volumes/kubernetes.io~projected/kube-api-access-4x9fz/token",
 		"storeID": vid.Hex(),

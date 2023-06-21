@@ -58,7 +58,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	identities := collections.Identity{}
 	storeId := store.ObjectID()
 	isw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Identity")).
-		RunAndReturn(func(ctx context.Context, i interface{}) error {
+		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Identity).Id = storeId
 			return nil
 		}).Once()
@@ -68,7 +68,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	c.EXPECT().BulkWriter(ctx, mock.AnythingOfType("cache.WriterOption")).Return(csw, nil)
 
 	// Graph setup
-	vtxInsert := map[string]interface{}{
+	vtxInsert := map[string]any{
 		"isNamespaced": false,
 		"name":         "app-monitors",
 		"namespace":    "test-app",

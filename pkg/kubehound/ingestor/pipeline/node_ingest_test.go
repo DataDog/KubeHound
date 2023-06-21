@@ -49,7 +49,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	nodes := collections.Node{}
 	storeId := store.ObjectID()
 	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Node")).
-		RunAndReturn(func(ctx context.Context, i interface{}) error {
+		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Node).Id = storeId
 			return nil
 		}).Once()
@@ -58,7 +58,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	sdb.EXPECT().BulkWriter(ctx, nodes).Return(sw, nil)
 
 	// Graph setup
-	vtxInsert := map[string]interface{}{
+	vtxInsert := map[string]any{
 		"compromised":  float64(0), // weird conversion to float by processor
 		"critical":     false,
 		"isNamespaced": false,

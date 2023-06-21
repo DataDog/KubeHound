@@ -49,7 +49,7 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	roles := collections.Role{}
 	storeId := store.ObjectID()
 	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).
-		RunAndReturn(func(ctx context.Context, i interface{}) error {
+		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Role).Id = storeId
 			return nil
 		}).Once()
@@ -58,11 +58,11 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	sdb.EXPECT().BulkWriter(ctx, roles).Return(sw, nil)
 
 	// Graph setup
-	vtxInsert := map[string]interface{}{
+	vtxInsert := map[string]any{
 		"isNamespaced": false,
 		"name":         "test-reader",
 		"namespace":    "test-app",
-		"rules": []interface{}{
+		"rules": []any{
 			"API()::R(pods)::N()::V(get,list)", "API()::R(configmaps)::N()::V(get)",
 			"API(apps)::R(statefulsets)::N()::V(get,list)",
 		},

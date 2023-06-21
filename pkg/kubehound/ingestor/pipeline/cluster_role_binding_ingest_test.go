@@ -53,7 +53,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	identities := collections.Identity{}
 	storeId := store.ObjectID()
 	isw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Identity")).
-		RunAndReturn(func(ctx context.Context, i interface{}) error {
+		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Identity).Id = storeId
 			return nil
 		}).Once()
@@ -62,7 +62,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	sdb.EXPECT().BulkWriter(ctx, identities).Return(isw, nil)
 
 	// Graph setup
-	vtxInsert := map[string]interface{}{
+	vtxInsert := map[string]any{
 		"isNamespaced": false,
 		"name":         "app-monitors",
 		"namespace":    "test-app",
