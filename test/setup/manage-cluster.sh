@@ -3,6 +3,7 @@ set -e
 
 # Internal vars
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+export KUBECONFIG=${SCRIPT_DIR}/${KIND_KUBECONFIG}
 SCRIPT_ACTION="$1"
 source $SCRIPT_DIR/util.sh
 
@@ -15,10 +16,10 @@ function create_cluster(){
         --name "${CLUSTER_NAME}" \
         --config "${SCRIPT_DIR}/${CONFIG_DIR}/cluster.yaml" \
 
-    _printf_warn "Using KUBECONFIG: $(printenv KUBECONFIG)"
+    dump_config_file
+
     kubectl cluster-info --context "kind-${CLUSTER_NAME}"
 
-    dump_config_file
     echo "[*] Cluster ${CLUSTER_NAME} configuration complete"
 }
 

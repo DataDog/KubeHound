@@ -3,6 +3,8 @@ set -e
 
 # Internal vars
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+# This is needed to ensure the use fo
+export KUBECONFIG=${SCRIPT_DIR}/${KIND_KUBECONFIG}
 SCRIPT_ACTION="$1"
 source $SCRIPT_DIR/util.sh
 
@@ -14,6 +16,7 @@ function handle_resources(){
     for attack in ${SCRIPT_DIR}/${CONFIG_DIR}/attacks/*.yaml; do
         [ -e "$attack" ] || continue
         _printf_ok "$attack"
+
         # since deletion can take some times, || true to be able to retry in case of C-C
         kubectl $1 -f "$attack" --context "kind-${CLUSTER_NAME}" || true
     done
