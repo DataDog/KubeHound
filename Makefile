@@ -83,11 +83,11 @@ test: ## Run the full suite of unit tests
 
 .PHONY: system-test
 system-test: | backend-reset ## Run the system tests
-	ifneq (${CI},true)
-		cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test $(BUILD_FLAGS) -v -timeout "60s" -count=1 ./...
-	else
-		cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test $(BUILD_FLAGS) -v -timeout "60s" -race -count=1 ./...
-	endif
+    @if [[ -z "${CI}" ]]; then; \
+		cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test $(BUILD_FLAGS) -v -timeout "60s" -count=1 ./... \
+	else \ 
+		cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test $(BUILD_FLAGS) -v -timeout "60s" -race -count=1 ./... \
+	fi
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
 .PHONY: local-cluster-deploy
