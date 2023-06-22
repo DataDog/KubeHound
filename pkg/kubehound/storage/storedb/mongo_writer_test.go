@@ -203,13 +203,13 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 
 			ctx := context.Background()
 			mongoProvider, err := NewMongoProvider(ctx, MongoLocalDatabaseURL, 1*time.Second)
-			defer mongoProvider.Close(ctx)
 			// TODO: add another check (env var maybe?)
 			// "integration test checks"
 			if err != nil {
 				t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
 				return
 			}
+			defer mongoProvider.Close(ctx)
 
 			maw := NewMongoAsyncWriter(ctx, mongoProvider, collections.FakeCollection{})
 			// insert multiple times if needed
