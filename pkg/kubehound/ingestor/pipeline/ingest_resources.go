@@ -70,11 +70,8 @@ func WithConverterCache() IngestResourceOption {
 func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		tags := append(telemetry.BaseTags, telemetry.TagTypeMongodb)
-		opts := []storedb.WriterOption{
-			storedb.WithTags(tags),
-		}
 
-		w, err := deps.StoreDB.BulkWriter(ctx, c, opts...)
+		w, err := deps.StoreDB.BulkWriter(ctx, c, storedb.WithTags(tags))
 		if err != nil {
 			return err
 		}
@@ -94,11 +91,8 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 // To access the writer use the graphWriter(v vertex.Vertex) function.
 func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		opts := []graphdb.WriterOption{
-			graphdb.WithTags([]string{telemetry.TagTypeJanusGraph}),
-		}
-
-		w, err := deps.GraphDB.VertexWriter(ctx, v, opts...)
+		tags := []string{telemetry.TagTypeJanusGraph}
+		w, err := deps.GraphDB.VertexWriter(ctx, v, graphdb.WithTags(tags))
 		if err != nil {
 			return err
 		}

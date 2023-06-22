@@ -1,6 +1,6 @@
 package telemetry
 
-var (
+const (
 	SpanJanusGraphOperationFlush      = "kubehound.janusgraph.flush"
 	SpanJanusGraphOperationBatchWrite = "kubehound.janusgraph.batchwrite"
 
@@ -17,7 +17,7 @@ var (
 	SpanOperationRun = "kubehound.graph.builder.run"
 )
 
-var (
+const (
 	MetricCollectorNodesCount               = "kubehound.collector.nodes.count"
 	MetricCollectorPodsCount                = "kubehound.collector.pods.count"
 	MetricCollectorRolesCount               = "kubehound.collector.roles.count"
@@ -39,12 +39,25 @@ var (
 	MetricCacheDuplicateEntry = "kubehound.cache.duplicate"
 )
 
-var (
+const (
 	TagTypeJanusGraph      = "type:janusgraph"
 	TagTypeMongodb         = "type:mongodb"
 	TagCollectorTypeK8sApi = "collector:k8s-api"
 	TagCollectorTypeFile   = "collector:file"
+
+	TagKeyResource = "resource"
+	TagKeyLabel    = "label"
+
+	TagResourcePods                = "pods"
+	TagResourceRoles               = "roles"
+	TagResourceRolebindings        = "rolebindings"
+	TagResourceNodes               = "nodes"
+	TagResourceClusterRoles        = "clusterroles"
+	TagResourceClusterRolebindings = "clusterrolebindings"
 	// BaseTags represents the minimal tags sent by the application
 	// Each sub-component of the app will add to their local usage their own tags depending on their needs.
+)
+
+var (
 	BaseTags = []string{}
 )

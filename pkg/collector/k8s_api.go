@@ -148,7 +148,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 
 func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "pods")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourcePods)
 	defer span.Finish()
 
 	// passing an empty namespace will collect all namespaces
@@ -192,7 +192,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 
 func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "roles")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceRoles)
 	defer span.Finish()
 
 	// passing an empty namespace will collect all namespaces
@@ -236,7 +236,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 
 func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "rolebindings")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceRolebindings)
 	defer span.Finish()
 
 	// passing an empty namespace will collect all namespaces
@@ -249,7 +249,7 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 
 func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "nodes")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceNodes)
 	defer span.Finish()
 
 	opts := metav1.ListOptions{}
@@ -282,7 +282,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 
 func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "clusterroles")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceClusterRoles)
 	defer span.Finish()
 
 	opts := metav1.ListOptions{}
@@ -315,7 +315,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 
 func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "clusterrolebindings")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceClusterRolebindings)
 	defer span.Finish()
 
 	opts := metav1.ListOptions{}

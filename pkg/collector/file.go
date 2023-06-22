@@ -113,7 +113,7 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 
 func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "pods")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourcePods)
 	defer span.Finish()
 
 	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
@@ -156,7 +156,7 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 
 func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "roles")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceRoles)
 	defer span.Finish()
 
 	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
@@ -199,7 +199,7 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 
 func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "rolebindings")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceRolebindings)
 	defer span.Finish()
 
 	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
@@ -223,7 +223,7 @@ func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBin
 
 func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "nodes")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceNodes)
 	defer span.Finish()
 
 	fp := filepath.Join(c.cfg.Directory, nodePath)
@@ -248,7 +248,7 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 
 func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "clusterroles")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceClusterRoles)
 	defer span.Finish()
 
 	fp := filepath.Join(c.cfg.Directory, clusterRolesPath)
@@ -273,7 +273,7 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 
 func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag("resource", "clusterrolebindings")
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceClusterRolebindings)
 	defer span.Finish()
 
 	fp := filepath.Join(c.cfg.Directory, clusterRoleBindingsPath)

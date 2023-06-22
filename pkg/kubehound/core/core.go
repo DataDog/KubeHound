@@ -98,7 +98,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	telemetry.BaseTags = append(telemetry.BaseTags, tagRunUUID)
 	defer span.Finish()
 
-	log.I.Infof("Starting KubeHound (%s)", runUUID)
+	log.I.Infof("Starting KubeHound (run_id: %s)", runUUID)
 	log.I.Info("Initializing launch options")
 	lOpts := &launchConfig{}
 	for _, opt := range opts {
