@@ -55,7 +55,11 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 
 // buildPath inserts a class of paths (combination of new vertices and edges) into the graph database.
 func (b *Builder) buildPath(ctx context.Context, p path.Builder) error {
-	w, err := b.graphdb.PathWriter(ctx, p, graphdb.WithTags([]string{telemetry.TagTypeJanusGraph}))
+	tags := append(telemetry.BaseTags, telemetry.TagTypeJanusGraph)
+	opts := []graphdb.WriterOption{
+		graphdb.WithTags(tags),
+	}
+	w, err := b.graphdb.PathWriter(ctx, p, opts...)
 	if err != nil {
 		return err
 	}
@@ -82,7 +86,11 @@ func (b *Builder) buildPath(ctx context.Context, p path.Builder) error {
 // buildEdge inserts a class of edges into the graph database.
 // NOTE: function is blocking and expected to be called from within a goroutine.
 func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
-	w, err := b.graphdb.EdgeWriter(ctx, e, graphdb.WithTags([]string{telemetry.TagTypeJanusGraph}))
+	tags := append(telemetry.BaseTags, telemetry.TagTypeJanusGraph)
+	opts := []graphdb.WriterOption{
+		graphdb.WithTags(tags),
+	}
+	w, err := b.graphdb.EdgeWriter(ctx, e, opts...)
 	if err != nil {
 		return err
 	}
