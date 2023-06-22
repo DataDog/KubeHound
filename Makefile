@@ -54,6 +54,11 @@ else
 	DOCKER_CMD := ${DOCKER_CMD}
 endif
 
+RACE_FLAG_SYTEM_TEST := "-race"
+ifneq (${CI},true)
+	RACE_FLAG := ""
+endif
+
 all: build
 
 .PHONY: generate
@@ -83,11 +88,7 @@ test: ## Run the full suite of unit tests
 
 .PHONY: system-test
 system-test: | backend-reset ## Run the system tests
-    @if [[ -z "${CI}" ]]; then; \
-		cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test $(BUILD_FLAGS) -v -timeout "60s" -count=1 ./... \
-	else \ 
-		cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test $(BUILD_FLAGS) -v -timeout "60s" -race -count=1 ./... \
-	fi
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test $(BUILD_FLAGS) -v -timeout "60s" -count=1 $(RACE_FLAG_SYTEM_TEST) ./... \
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
 .PHONY: local-cluster-deploy
