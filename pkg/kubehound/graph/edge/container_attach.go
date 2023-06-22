@@ -31,6 +31,10 @@ func (e ContainerAttach) Label() string {
 	return "CONTAINER_ATTACH"
 }
 
+func (e ContainerAttach) Name() string {
+	return "ContainerAttacher"
+}
+
 func (e ContainerAttach) BatchSize() int {
 	return DefaultBatchSize
 }

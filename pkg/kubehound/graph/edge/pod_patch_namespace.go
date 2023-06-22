@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	Register(PodPatch{})
+	//Register(PodPatch{})
 }
 
 // @@DOCLINK: TODO
@@ -29,6 +29,10 @@ type podPatchGroup struct {
 
 func (e PodPatch) Label() string {
 	return "POD_PATCH"
+}
+
+func (e PodPatch) Name() string {
+	return "PodPatchNamespace"
 }
 
 func (e PodPatch) BatchSize() int {
@@ -67,6 +71,10 @@ func (e PodPatch) Traversal() Traversal {
 	}
 }
 
+// TODO if the role is not namespaced handle the case and add to ALL pods in the clusster
+// OR do we just add a new attack pod for each node? since we can patch to be evil? this might be the better one
+// IN this case it becomes a path??
+// TODO also add pod exec and verbs *
 func (e PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
@@ -74,14 +82,20 @@ func (e PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.Ca
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
+				"is_namespaced": true,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
-						"$or": bson.A{
-							bson.M{"resources": "pods"},
-							bson.M{"resources": "pods/*"},
-							bson.M{"resources": "*"},
+						"$and": bson.A{
+							bson.M{"$or": bson.A{
+								bson.M{"resources": "pods"},
+								bson.M{"resources": "pods/*"},
+								bson.M{"resources": "*"},
+							}},
+							bson.M{"$or": bson.A{
+								bson.M{"verbs": "exec"},
+								bson.M{"verbs": "*"},
+							}},
 						},
-						"verbs": "patch",
 					},
 				},
 			},
@@ -94,6 +108,7 @@ func (e PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.Ca
 				"as":           "podsInNamespace",
 			},
 		},
+		// TODO nodes instead of pods!
 		{
 			"$project": bson.M{
 				"_id":             1,

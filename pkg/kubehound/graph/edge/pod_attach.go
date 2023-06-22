@@ -31,6 +31,10 @@ func (e PodAttach) Label() string {
 	return "POD_ATTACH"
 }
 
+func (e PodAttach) Name() string {
+	return "PodAttach"
+}
+
 func (e PodAttach) BatchSize() int {
 	return DefaultBatchSize
 }

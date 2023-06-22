@@ -36,6 +36,10 @@ func (e IdentityAssume) Label() string {
 	return IdentityAssumeLabel
 }
 
+func (e IdentityAssume) Name() string {
+	return "IdentityAssume"
+}
+
 func (e IdentityAssume) BatchSize() int {
 	return DefaultBatchSize
 }

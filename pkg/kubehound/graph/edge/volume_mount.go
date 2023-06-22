@@ -32,6 +32,10 @@ func (e VolumeMount) Label() string {
 	return "VOLUME_MOUNT"
 }
 
+func (e VolumeMount) Name() string {
+	return "VolumeMount"
+}
+
 func (e VolumeMount) BatchSize() int {
 	return DefaultBatchSize
 }

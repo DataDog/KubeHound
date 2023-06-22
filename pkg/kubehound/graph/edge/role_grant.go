@@ -31,6 +31,10 @@ func (e RoleGrant) Label() string {
 	return "ROLE_GRANT"
 }
 
+func (e RoleGrant) Name() string {
+	return "RoleGrant"
+}
+
 func (e RoleGrant) BatchSize() int {
 	return DefaultBatchSize
 }

@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-06-21 17:47
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-06-22 13:46
 //
 // Generate it with "go generate ./..."
 //
@@ -66,6 +66,16 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "pod-create-sa",
+		SharedProcessNamespace: false,
+		Critical:               false,
+	},
+	"pod-exec-pod": {
+		StoreID:                "",
+		Name:                   "pod-exec-pod",
+		IsNamespaced:           true,
+		Namespace:              "default",
+		Compromised:            shared.CompromiseNone,
+		ServiceAccount:         "pod-exec-sa",
 		SharedProcessNamespace: false,
 		Critical:               false,
 	},
@@ -290,6 +300,26 @@ var expectedContainers = map[string]graph.Container{
 		RunAsUser:    0,
 		Ports:        []string{},
 		Pod:          "pod-create-pod",
+		// Node:         "",
+		Compromised: 0,
+		Critical:    false,
+	},
+	"pod-exec-pod": {
+		StoreID:      "",
+		Name:         "pod-exec-pod",
+		Image:        "ubuntu",
+		Command:      []string{},
+		Args:         []string{},
+		Capabilities: []string{},
+		Privileged:   false,
+		PrivEsc:      false,
+		HostPID:      false,
+		HostPath:     false,
+		HostIPC:      false,
+		HostNetwork:  false,
+		RunAsUser:    0,
+		Ports:        []string{},
+		Pod:          "pod-exec-pod",
 		// Node:         "",
 		Compromised: 0,
 		Critical:    false,

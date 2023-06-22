@@ -49,11 +49,14 @@ mgmt.addConnection(roleBind, role, role);
 podAttach = mgmt.makeEdgeLabel('POD_ATTACH').multiplicity(ONE2MANY).make();
 mgmt.addConnection(podAttach, node, pod);
 
-podCreate = mgmt.makeEdgeLabel('POD_CREATE').multiplicity(ONE2MANY).make();
-mgmt.addConnection(podCreate, role, pod);
+podCreate = mgmt.makeEdgeLabel('POD_CREATE').multiplicity(MULTI).make();
+mgmt.addConnection(podCreate, role, node);
 
-podPatch = mgmt.makeEdgeLabel('POD_PATCH').multiplicity(ONE2MANY).make();
-mgmt.addConnection(podPatch, role, pod);
+podPatch = mgmt.makeEdgeLabel('POD_PATCH').multiplicity(MULTI).make();
+mgmt.addConnection(podPatch, role, node);
+
+podExec = mgmt.makeEdgeLabel('POD_EXEC').multiplicity(MULTI).make();
+mgmt.addConnection(podExec, role, pod);
 
 tokenSteal = mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(ONE2MANY).make();
 mgmt.addConnection(tokenSteal, volume, token);

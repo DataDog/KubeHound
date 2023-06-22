@@ -78,7 +78,6 @@ test: ## Run the full suite of unit tests
 .PHONY: system-test
 system-test: | backend-reset ## Run the system tests
 	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 -race ./...
-	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
 .PHONY: local-cluster-deploy
 local-cluster-deploy: ## Create a kind cluster with some vulnerables resources (pods, roles, ...)
