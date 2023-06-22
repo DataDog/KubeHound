@@ -84,9 +84,9 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	vsw.EXPECT().Flush(ctx).Return(nil)
 	vsw.EXPECT().Close(ctx).Return(nil)
 
-	sdb.EXPECT().BulkWriter(ctx, pods).Return(psw, nil)
-	sdb.EXPECT().BulkWriter(ctx, containers).Return(csw, nil)
-	sdb.EXPECT().BulkWriter(ctx, volumes).Return(vsw, nil)
+	sdb.EXPECT().BulkWriter(ctx, pods, mock.Anything).Return(psw, nil)
+	sdb.EXPECT().BulkWriter(ctx, containers, mock.Anything).Return(csw, nil)
+	sdb.EXPECT().BulkWriter(ctx, volumes, mock.Anything).Return(vsw, nil)
 
 	// Graph setup - pods
 	pv := map[string]any{

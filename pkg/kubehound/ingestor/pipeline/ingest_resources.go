@@ -69,7 +69,11 @@ func WithConverterCache() IngestResourceOption {
 // To access the writer use the storeWriter(c collections.Collection) function.
 func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		w, err := deps.StoreDB.BulkWriter(ctx, c)
+		opts := []storedb.WriterOption{
+			storedb.WithTags([]string{telemetry.TagTypeMongodb}),
+		}
+
+		w, err := deps.StoreDB.BulkWriter(ctx, c, opts...)
 		if err != nil {
 			return err
 		}

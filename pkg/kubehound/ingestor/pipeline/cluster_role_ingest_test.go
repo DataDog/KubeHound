@@ -55,7 +55,7 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, roles).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, roles, mock.Anything).Return(sw, nil)
 
 	// Graph setup
 	vtxInsert := map[string]any{

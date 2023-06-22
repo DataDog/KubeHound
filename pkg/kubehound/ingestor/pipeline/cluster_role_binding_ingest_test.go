@@ -46,7 +46,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	rsw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.RoleBinding")).Return(nil).Once()
 	rsw.EXPECT().Flush(ctx).Return(nil)
 	rsw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, crbs).Return(rsw, nil)
+	sdb.EXPECT().BulkWriter(ctx, crbs, mock.Anything).Return(rsw, nil)
 
 	// Store setup -  identities
 	isw := storedb.NewAsyncWriter(t)
@@ -59,7 +59,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 		}).Once()
 	isw.EXPECT().Flush(ctx).Return(nil)
 	isw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, identities).Return(isw, nil)
+	sdb.EXPECT().BulkWriter(ctx, identities, mock.Anything).Return(isw, nil)
 
 	// Graph setup
 	vtxInsert := map[string]any{

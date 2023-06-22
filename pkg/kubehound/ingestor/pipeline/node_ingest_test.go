@@ -55,7 +55,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, nodes).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, nodes, mock.Anything).Return(sw, nil)
 
 	// Graph setup
 	vtxInsert := map[string]any{

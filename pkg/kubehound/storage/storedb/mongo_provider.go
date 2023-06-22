@@ -42,7 +42,7 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	return &MongoProvider{
 		client: client,
 		db:     db,
-		tags:   append(baseTags, telemetry.TagTypeMongodb),
+		tags:   []string{telemetry.TagTypeMongodb},
 	}, nil
 }
 
@@ -67,6 +67,6 @@ func (mp *MongoProvider) Close(ctx context.Context) error {
 }
 
 func (mp *MongoProvider) BulkWriter(ctx context.Context, collection collections.Collection, opts ...WriterOption) (AsyncWriter, error) {
-	writer := NewMongoAsyncWriter(ctx, mp, collection)
+	writer := NewMongoAsyncWriter(ctx, mp, collection, opts...)
 	return writer, nil
 }

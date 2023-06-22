@@ -7,6 +7,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 )
 
 // We need a "complex" object to store in MongoDB
@@ -85,7 +86,7 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			writer := NewMongoAsyncWriter(ctx, mongoProvider, collections.FakeCollection{})
+			writer := NewMongoAsyncWriter(ctx, mongoProvider, collections.FakeCollection{}, WithTags([]string{telemetry.TagTypeMongodb}))
 			// insert multiple times if needed
 			for _, args := range tt.args {
 				if err := writer.Queue(args.ctx, args.model); (err != nil) != tt.wantErr {

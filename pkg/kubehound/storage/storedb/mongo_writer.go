@@ -29,13 +29,20 @@ type MongoAsyncWriter struct {
 	batchSize       int
 	consumerChan    chan []mongo.WriteModel
 	writingInFlight sync.WaitGroup
+	tags            []string
 }
 
-func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection collections.Collection) *MongoAsyncWriter {
+func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection collections.Collection, opts ...WriterOption) *MongoAsyncWriter {
+	wOpts := &writerOptions{}
+	for _, o := range opts {
+		o(wOpts)
+	}
+
 	maw := MongoAsyncWriter{
 		mongodb:    mp,
 		collection: mp.db.Collection(collection.Name()),
 		batchSize:  collection.BatchSize(),
+		tags:       wOpts.Tags,
 	}
 	maw.consumerChan = make(chan []mongo.WriteModel, consumerChanSize)
 	maw.startBackgroundWriter(ctx)
@@ -52,7 +59,7 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 				if data == nil {
 					return
 				}
-				_ = statsd.Count(telemetry.MetricStoredbBackgroundWriterCall, 1, baseTags, 1)
+				_ = statsd.Count(telemetry.MetricStoredbBackgroundWriterCall, 1, maw.tags, 1)
 				err := maw.batchWrite(ctx, data)
 				if err != nil {
 					log.I.Errorf("write data in background batch writer: %v", err)
