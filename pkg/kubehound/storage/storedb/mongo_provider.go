@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -17,6 +18,7 @@ var _ Provider = (*MongoProvider)(nil)
 type MongoProvider struct {
 	client *mongo.Client
 	db     *mongo.Database
+	tags   []string
 }
 
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
@@ -40,6 +42,7 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	return &MongoProvider{
 		client: client,
 		db:     db,
+		tags:   []string{telemetry.TagTypeMongodb},
 	}, nil
 }
 
@@ -64,6 +67,6 @@ func (mp *MongoProvider) Close(ctx context.Context) error {
 }
 
 func (mp *MongoProvider) BulkWriter(ctx context.Context, collection collections.Collection, opts ...WriterOption) (AsyncWriter, error) {
-	writer := NewMongoAsyncWriter(ctx, mp, collection)
+	writer := NewMongoAsyncWriter(ctx, mp, collection, opts...)
 	return writer, nil
 }

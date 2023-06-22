@@ -48,6 +48,10 @@ func TestMustLoadConfig(t *testing.T) {
 					Statsd: StatsdConfig{
 						URL: "127.0.0.1:8125",
 					},
+					Profiler: ProfilerConfig{
+						Period:      globals.DefaultProfilerPeriod,
+						CPUDuration: globals.DefaultProfilerCPUDuration,
+					},
 				},
 			},
 			wantErr: false,
@@ -77,6 +81,10 @@ func TestMustLoadConfig(t *testing.T) {
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
 						URL: "127.0.0.1:8125",
+					},
+					Profiler: ProfilerConfig{
+						Period:      globals.DefaultProfilerPeriod,
+						CPUDuration: globals.DefaultProfilerCPUDuration,
 					},
 				},
 			},

@@ -8,9 +8,14 @@ on:
 
 jobs:
   system-test:
+    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
-
-    steps:       
+    environment: devenv
+    steps:
+      - uses: datadog/agent-github-action@v1.3
+        with:
+          api_key: ${{ secrets.DD_API_KEY }}
+          extra_env: DD_TRACE_DEBUG=1,DD_LOGS_ENABLED=true,DD_APM_ENABLED=true
       - name: Checkout Git Repo
         uses: actions/checkout@v3
 

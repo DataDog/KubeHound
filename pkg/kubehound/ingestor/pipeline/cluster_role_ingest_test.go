@@ -55,7 +55,7 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, roles).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, roles, mock.Anything).Return(sw, nil)
 
 	// Graph setup
 	vtxInsert := map[string]any{
@@ -73,7 +73,7 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Role")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Role"), mock.Anything).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,

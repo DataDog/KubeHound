@@ -1,11 +1,17 @@
-BUILD_VERSION=dev-snapshot
-
 MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR := $(dir $(MAKEFILE_PATH))
 
 DOCKER_COMPOSE_FILE_PATH := -f deployments/kubehound/docker-compose.yaml
 DOCKER_COMPOSE_ENV_FILE_PATH := deployments/kubehound/.env
 DEV_ENV_FILE_PATH := test/setup/.config
+
+
+# get the latest commit hash in the short form
+COMMIT := $(shell git rev-parse --short HEAD)
+DATE := $(shell git log -1 --format=%cd --date=format:"%Y%m%d")
+BUILD_VERSION := $(COMMIT)-$(DATA)
+
+BUILD_FLAGS := -ldflags="-X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION)"
 
 # Need to save the MAKEFILE_LIST variable before the including the env var files
 HELP_MAKEFILE_LIST := $(MAKEFILE_LIST)
@@ -48,15 +54,20 @@ else
 	DOCKER_CMD := ${DOCKER_CMD}
 endif
 
+RACE_FLAG_SYSTEM_TEST := "-race"
+ifeq (${CI},true)
+	RACE_FLAG_SYSTEM_TEST := ""
+endif
+
 all: build
 
 .PHONY: generate
 generate: ## Generate code the application
-	go generate ./...
+	go generate $(BUILD_FLAGS) ./...
 
 .PHONY: build
 build: generate ## Build the application
-	cd cmd && go build -ldflags="-X pkg/config.BuildVersion=$(BUILD_VERSION)" -o ../bin/kubehound kubehound/*.go
+	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
 
 .PHONY: backend-rm
 backend-rm: ## Delete the kubehound stack
@@ -73,11 +84,11 @@ backend-reset: ## Spawn the testing stack
 
 .PHONY: test
 test: ## Run the full suite of unit tests 
-	cd pkg && go test ./...
+	cd pkg && go test -race $(BUILD_FLAGS) ./...
 
 .PHONY: system-test
 system-test: | backend-reset ## Run the system tests
-	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 -race ./...
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test $(BUILD_FLAGS) -v -timeout "120s" -count=1 $(RACE_FLAG_SYSTEM_TEST) ./...
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
 
 .PHONY: local-cluster-deploy

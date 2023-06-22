@@ -60,6 +60,10 @@ func WithComponent(name string) LoggerOption {
 	}
 }
 
+func (kl *KubehoundLogger) SetRunUUID(uuid string) {
+	kl.WithField("run_id", uuid)
+}
+
 // Trace creates a logger from the current context, attaching trace and span IDs for use with APM.
 func Trace(ctx context.Context, opts ...LoggerOption) *KubehoundLogger {
 	baseLogger := Default()

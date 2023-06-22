@@ -12,9 +12,16 @@ import (
 )
 
 type writerOptions struct {
+	Tags []string
 }
 
 type WriterOption func(*writerOptions)
+
+func WithTags(tags []string) WriterOption {
+	return func(wo *writerOptions) {
+		wo.Tags = tags
+	}
+}
 
 // Provider defines the interface for implementations of the graphdb provider for storage of the calculated K8s attack graph.
 //
