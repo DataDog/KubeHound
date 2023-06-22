@@ -41,6 +41,7 @@ func NewJanusGraphAsyncPathWriter(ctx context.Context, dcp *DriverConnectionPool
 		batchSize:       p.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []types.TraversalInput, p.BatchSize()*channelSizeBatchFactor),
+		tags:            options.Tags,
 	}
 
 	jw.startBackgroundWriter(ctx)

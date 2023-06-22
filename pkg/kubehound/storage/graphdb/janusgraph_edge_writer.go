@@ -41,6 +41,7 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, dcp *DriverConnectionPool
 		batchSize:       e.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []types.TraversalInput, e.BatchSize()*channelSizeBatchFactor),
+		tags:            options.Tags,
 	}
 
 	jw.startBackgroundWriter(ctx)

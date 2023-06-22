@@ -13,8 +13,10 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/worker"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 // Builder handles the construction of the graph edges once vertices have been ingested via the ingestion pipeline.
@@ -53,7 +55,8 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 
 // buildPath inserts a class of paths (combination of new vertices and edges) into the graph database.
 func (b *Builder) buildPath(ctx context.Context, p path.Builder) error {
-	w, err := b.graphdb.PathWriter(ctx, p)
+	tags := append(telemetry.BaseTags, telemetry.TagTypeJanusGraph)
+	w, err := b.graphdb.PathWriter(ctx, p, graphdb.WithTags(tags))
 	if err != nil {
 		return err
 	}
@@ -80,7 +83,8 @@ func (b *Builder) buildPath(ctx context.Context, p path.Builder) error {
 // buildEdge inserts a class of edges into the graph database.
 // NOTE: function is blocking and expected to be called from within a goroutine.
 func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
-	w, err := b.graphdb.EdgeWriter(ctx, e)
+	tags := append(telemetry.BaseTags, telemetry.TagTypeJanusGraph)
+	w, err := b.graphdb.EdgeWriter(ctx, e, graphdb.WithTags(tags))
 	if err != nil {
 		return err
 	}
@@ -106,6 +110,8 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 // Run constructs all the registered edges in the graph database.
 // NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
 func (b *Builder) Run(ctx context.Context) error {
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationRun, tracer.Measured())
+	defer span.Finish()
 	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
 
 	// Paths can have dependencies so must be built in sequence

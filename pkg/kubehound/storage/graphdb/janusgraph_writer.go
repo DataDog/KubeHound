@@ -10,8 +10,11 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 type TWriterInput interface {
@@ -31,6 +34,7 @@ type JanusGraphAsyncWriter[T TWriterInput] struct {
 	batchSize       int                             // Batchsize of graph DB inserts
 	qcounter        int32                           // Track items queued
 	wcounter        int32                           // Track items writtn
+	tags            []string
 }
 
 // startBackgroundWriter starts a background go routine
@@ -43,6 +47,7 @@ func (jgv *JanusGraphAsyncWriter[T]) startBackgroundWriter(ctx context.Context) 
 				if data == nil {
 					return
 				}
+				_ = statsd.Count(telemetry.MetricGraphdbBackgroundWriterCall, 1, jgv.tags, 1)
 				err := jgv.batchWrite(ctx, data)
 				if err != nil {
 					log.I.Errorf("write data in background batch writer: %v", err)
@@ -58,11 +63,17 @@ func (jgv *JanusGraphAsyncWriter[T]) startBackgroundWriter(ctx context.Context) 
 // batchWrite will write a batch of entries into the graph DB and block until the write completes.
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
 func (jgv *JanusGraphAsyncWriter[T]) batchWrite(ctx context.Context, data []types.TraversalInput) error {
-	log.I.Debugf("batch write JanusGraphAsyncVertexWriter with %d elements", len(data))
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite, tracer.Measured())
+	span.SetTag(telemetry.TagKeyLabel, jgv.label)
+	defer span.Finish()
+
+	datalen := len(data)
+	_ = statsd.Gauge(telemetry.MetricGraphdbBatchWrite, float64(datalen), jgv.tags, 1)
+
+	log.I.Debugf("batch write JanusGraphAsyncVertexWriter with %d elements", datalen)
 	defer jgv.writingInFlight.Done()
 
-	atomic.AddInt32(&jgv.wcounter, int32(len(data)))
-
+	atomic.AddInt32(&jgv.wcounter, int32(datalen))
 	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()
 	err := <-promise
@@ -91,6 +102,10 @@ func (jgv *JanusGraphAsyncWriter[T]) Close(ctx context.Context) error {
 // Flush triggers writes of any remaining items in the queue.
 // This is blocking
 func (jgv *JanusGraphAsyncWriter[T]) Flush(ctx context.Context) error {
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationFlush, tracer.Measured())
+	span.SetTag(telemetry.TagKeyLabel, jgv.label)
+	defer span.Finish()
+
 	jgv.mu.Lock()
 	defer jgv.mu.Unlock()
 
@@ -122,7 +137,7 @@ func (jgv *JanusGraphAsyncWriter[T]) Flush(ctx context.Context) error {
 		return err
 	}
 
-	// TODO replace with metrics
+	// TODO replace with telemetry.metrics
 	log.I.Infof("%d %s queued", jgv.qcounter, jgv.label)
 	log.I.Infof("%d %s written", jgv.wcounter, jgv.label)
 	return nil
@@ -134,6 +149,9 @@ func (jgv *JanusGraphAsyncWriter[T]) Queue(ctx context.Context, v any) error {
 
 	atomic.AddInt32(&jgv.qcounter, 1)
 	jgv.inserts = append(jgv.inserts, v)
+
+	_ = statsd.Gauge(telemetry.MetricGraphdbQueueSize, float64(len(jgv.inserts)), jgv.tags, 1)
+
 	if len(jgv.inserts) > jgv.batchSize {
 		copied := make([]types.TraversalInput, len(jgv.inserts))
 		copy(copied, jgv.inserts)
