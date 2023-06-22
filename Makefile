@@ -55,7 +55,7 @@ else
 endif
 
 RACE_FLAG_SYSTEM_TEST := "-race"
-ifneq (${CI},true)
+ifeq (${CI},true)
 	RACE_FLAG_SYSTEM_TEST := ""
 endif
 
