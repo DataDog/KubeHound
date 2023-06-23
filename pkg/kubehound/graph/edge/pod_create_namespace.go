@@ -45,7 +45,7 @@ func (e PodCreateNamespace) Processor(ctx context.Context, entry any) (any, erro
 
 // Traversal expects a list of podCreateGroup serialized as mapstructure for injection into the graph.
 // For each podCreateGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find the
-// node vertices for each matching storeID, and 3) add a POD_CREATE edge between the two vertices.
+// node vertices for each matching storeID, and 3) add a POD_CREATE edge between the vertices.
 func (e PodCreateNamespace) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().

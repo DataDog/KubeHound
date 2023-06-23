@@ -47,7 +47,9 @@ func (e PodExecCluster) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*podExecClusterGroup](ctx, entry)
 }
 
-// For each role, attach to all pods in the cluster!
+// Traversal expects a list of podExecClusterGroup serialized as mapstructure for injection into the graph.
+// For each podExecClusterGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
+// matching pods in the cluster 3) add a POD_EXEC edge between the vertices.
 func (e PodExecCluster) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().

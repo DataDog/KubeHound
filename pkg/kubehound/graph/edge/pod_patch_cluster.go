@@ -47,6 +47,9 @@ func (e PodPatchCluster) Processor(ctx context.Context, entry any) (any, error) 
 	return adapter.GremlinInputProcessor[*podPatchClusterGroup](ctx, entry)
 }
 
+// Traversal expects a list of podPatchClusterGroup serialized as mapstructure for injection into the graph.
+// For each podPatchClusterGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
+// matching nodes in the cluster 3) add a POD_PATCH edge between the vertices.
 func (e PodPatchCluster) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
