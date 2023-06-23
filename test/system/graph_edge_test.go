@@ -195,25 +195,56 @@ func (suite *EdgeTestSuite) TestEdge_POD_ATTACH() {
 }
 
 func (suite *EdgeTestSuite) TestEdge_POD_PATCH() {
-	// We have one bespoke container running with pod/patch permissions
-	// 	➜  KubeHound ✗ k get pods
-	// NAME              READY   STATUS    RESTARTS   AGE
-	// impersonate-pod   1/1     Running   0          8h
-	// modload-pod       1/1     Running   0          8h
-	// netadmin-pod      1/1     Running   0          8h
-	// nsenter-pod       1/1     Running   0          8h
-	// pod-create-pod    1/1     Running   0          8h
-	// pod-patch-pod     1/1     Running   0          8h
-	// priv-pod          1/1     Running   0          8h
-	// rolebind-pod      1/1     Running   0          8h
-	// sharedps-pod      1/1     Running   0          8h
-	// tokenget-pod      1/1     Running   0          8h
-	// tokenlist-pod     1/1     Running   0          8h
-	// umh-core-pod      1/1     Running   0          8h
-	// varlog-pod        1/1     Running   0          8h
+	// We have one bespoke container running with pod/patch permissions which should reach all nodes
+	// since they are not namespaced
 	results, err := suite.g.V().
 		HasLabel("Role").
 		OutE().HasLabel("POD_PATCH").
+		InV().HasLabel("Node").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[patch-pods]], map[], map[name:[kubehound.test.local-control-plane]",
+		"path[map[name:[patch-pods]], map[], map[name:[kubehound.test.local-worker]",
+		"path[map[name:[patch-pods]], map[], map[name:[kubehound.test.local-worker2]",
+	}
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_POD_CREATE() {
+	// We have one bespoke container running with pod/create permissions which should reach all nodes
+	// since they are not namespaced
+	results, err := suite.g.V().
+		HasLabel("Role").
+		OutE().HasLabel("POD_CREATE").
+		InV().HasLabel("Node").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-control-plane]",
+		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-worker]",
+		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-worker2]",
+	}
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_POD_EXEC() {
+	// We have one bespoke container running with pod/exec permissions which should reach all pods in the namespace
+	results, err := suite.g.V().
+		HasLabel("Role").
+		OutE().HasLabel("POD_EXEC").
 		InV().HasLabel("Pod").
 		Path().
 		By(__.ValueMap("name")).
@@ -224,18 +255,20 @@ func (suite *EdgeTestSuite) TestEdge_POD_PATCH() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[patch-pods]], map[], map[name:[impersonate-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[modload-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[pod-create-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[rolebind-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[tokenlist-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[netadmin-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[priv-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[tokenget-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[nsenter-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[varlog-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[sharedps-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[umh-core-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[impersonate-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[modload-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[pod-create-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[rolebind-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[tokenlist-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[netadmin-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[priv-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[tokenget-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[nsenter-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[varlog-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[sharedps-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[umh-core-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[pod-patch-pod]",
+		"path[map[name:[exec-pods]], map[], map[name:[pod-exec-pod]",
 	}
 	suite.Subset(paths, expected)
 }

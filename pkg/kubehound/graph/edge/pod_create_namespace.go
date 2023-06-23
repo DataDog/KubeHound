@@ -1,1 +1,132 @@
 package edge
+
+import (
+	"context"
+
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
+	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+func init() {
+	Register(PodCreateNamespace{})
+}
+
+// @@DOCLINK: TODO
+type PodCreateNamespace struct {
+}
+
+type podCreateGroup struct {
+	Role  primitive.ObjectID   `bson:"_id" json:"role"`
+	Nodes []primitive.ObjectID `bson:"nodesInNamespace" json:"nodes"`
+}
+
+func (e PodCreateNamespace) Label() string {
+	return "POD_CREATE"
+}
+
+func (e PodCreateNamespace) Name() string {
+	return "PodCreateNamespace"
+}
+
+func (e PodCreateNamespace) BatchSize() int {
+	return DefaultBatchSize
+}
+
+func (e PodCreateNamespace) Processor(ctx context.Context, entry any) (any, error) {
+	return adapter.GremlinInputProcessor[*podCreateGroup](ctx, entry)
+}
+
+func (e PodCreateNamespace) Traversal() Traversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+		g := source.GetGraphTraversal().
+			Inject(inserts).
+			Unfold().As("pcg").
+			Select("nodes").
+			Unfold().
+			As("n").
+			V().HasLabel(vertex.NodeLabel).
+			Where(P.Eq("n")).
+			By("storeID").
+			By().
+			AddE(e.Label()).
+			From(
+				__.V().HasLabel(vertex.RoleLabel).
+					Where(P.Eq("pcg")).
+					By("storeID").
+					By("role")).
+			Barrier().Limit(0)
+
+		return g
+	}
+}
+
+func (e PodCreateNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
+
+	roles := adapter.MongoDB(store).Collection(collections.RoleName)
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"is_namespaced": true,
+				"rules": bson.M{
+					"$elemMatch": bson.M{
+						"$and": bson.A{
+							bson.M{"$or": bson.A{
+								bson.M{"resources": "pods"},
+								bson.M{"resources": "pods/*"},
+								bson.M{"resources": "*"},
+							}},
+							bson.M{"$or": bson.A{
+								bson.M{"verbs": "create"},
+								bson.M{"verbs": "*"},
+							}},
+						},
+					},
+				},
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from": "nodes",
+				"let": bson.M{
+					"namespace": "$namespace",
+				},
+				"pipeline": []bson.M{
+					{
+						"$match": bson.M{"$or": bson.A{
+							bson.M{"namespace": "$$namespace"},
+							bson.M{"is_namespaced": false},
+						}},
+					},
+					{
+						"$project": bson.M{
+							"_id": 1,
+						},
+					},
+				},
+				"as": "nodesInNamespace",
+			},
+		},
+		{
+			"$project": bson.M{
+				"_id":              1,
+				"nodesInNamespace": "$nodesInNamespace._id",
+			},
+		},
+	}
+
+	cur, err := roles.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return err
+	}
+	defer cur.Close(ctx)
+
+	return adapter.MongoCursorHandler[podCreateGroup](ctx, cur, callback, complete)
+}

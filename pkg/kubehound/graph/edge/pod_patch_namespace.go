@@ -15,31 +15,31 @@ import (
 )
 
 func init() {
-	//Register(PodPatch{})
+	Register(PodPatchNamespace{})
 }
 
 // @@DOCLINK: TODO
-type PodPatch struct {
+type PodPatchNamespace struct {
 }
 
 type podPatchGroup struct {
-	Role primitive.ObjectID   `bson:"_id" json:"role"`
-	Pods []primitive.ObjectID `bson:"podsInNamespace" json:"pods"`
+	Role  primitive.ObjectID   `bson:"_id" json:"role"`
+	Nodes []primitive.ObjectID `bson:"nodesInNamespace" json:"nodes"`
 }
 
-func (e PodPatch) Label() string {
+func (e PodPatchNamespace) Label() string {
 	return "POD_PATCH"
 }
 
-func (e PodPatch) Name() string {
+func (e PodPatchNamespace) Name() string {
 	return "PodPatchNamespace"
 }
 
-func (e PodPatch) BatchSize() int {
+func (e PodPatchNamespace) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e PodPatch) Processor(ctx context.Context, entry any) (any, error) {
+func (e PodPatchNamespace) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*podPatchGroup](ctx, entry)
 }
 
@@ -47,16 +47,16 @@ func (e PodPatch) Processor(ctx context.Context, entry any) (any, error) {
 // For each podPatchGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find the
 // pod vertices for each matching storeID, and 3) add a POD_PATCH edge between the two vertices.
 // TODO this only handles the same namespace case. What do we do if its all namespaces to avoid edge count blowing up?
-func (e PodPatch) Traversal() Traversal {
+func (e PodPatchNamespace) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("ppg").
-			Select("pods").
+			Select("nodes").
 			Unfold().
-			As("p").
-			V().HasLabel(vertex.PodLabel).
-			Where(P.Eq("p")).
+			As("n").
+			V().HasLabel(vertex.NodeLabel).
+			Where(P.Eq("n")).
 			By("storeID").
 			By().
 			AddE(e.Label()).
@@ -71,11 +71,7 @@ func (e PodPatch) Traversal() Traversal {
 	}
 }
 
-// TODO if the role is not namespaced handle the case and add to ALL pods in the clusster
-// OR do we just add a new attack pod for each node? since we can patch to be evil? this might be the better one
-// IN this case it becomes a path??
-// TODO also add pod exec and verbs *
-func (e PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e PodPatchNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roles := adapter.MongoDB(store).Collection(collections.RoleName)
@@ -92,7 +88,7 @@ func (e PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.Ca
 								bson.M{"resources": "*"},
 							}},
 							bson.M{"$or": bson.A{
-								bson.M{"verbs": "exec"},
+								bson.M{"verbs": "patch"},
 								bson.M{"verbs": "*"},
 							}},
 						},
@@ -102,17 +98,30 @@ func (e PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.Ca
 		},
 		{
 			"$lookup": bson.M{
-				"from":         "pods",
-				"localField":   "namespace",
-				"foreignField": "k8.objectmeta.namespace",
-				"as":           "podsInNamespace",
+				"from": "nodes",
+				"let": bson.M{
+					"namespace": "$namespace",
+				},
+				"pipeline": []bson.M{
+					{
+						"$match": bson.M{"$or": bson.A{
+							bson.M{"namespace": "$$namespace"},
+							bson.M{"is_namespaced": false},
+						}},
+					},
+					{
+						"$project": bson.M{
+							"_id": 1,
+						},
+					},
+				},
+				"as": "nodesInNamespace",
 			},
 		},
-		// TODO nodes instead of pods!
 		{
 			"$project": bson.M{
-				"_id":             1,
-				"podsInNamespace": "$podsInNamespace._id",
+				"_id":              1,
+				"nodesInNamespace": "$nodesInNamespace._id",
 			},
 		},
 	}

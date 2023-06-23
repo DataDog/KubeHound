@@ -51,11 +51,12 @@ func (suite *PathTestSuite) TestPath_TOKEN_STEAL() {
 	// default          0         28h
 	// impersonate-sa   0         28h
 	// pod-create-sa    0         28h
+	// pod-exec-sa      0         28h
 	// pod-patch-sa     0         28h
 	// rolebind-sa      0         28h
 	// tokenget-sa      0         28h
 	// tokenlist-sa     0         28h
-	const expectedTokenCount = 6
+	const expectedTokenCount = 7
 
 	assert.Equal(suite.T(), expectedTokenCount, pathCount)
 }

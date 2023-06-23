@@ -173,17 +173,27 @@ func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
 		Rules:     c.flattenPolicyRules(input.Rules),
 	}
 
+	if output.Namespace != "" {
+		output.IsNamespaced = true
+	}
+
 	return output, nil
 }
 
 // Identity returns the graph representation of an identity vertex from a store identity model input.
 func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error) {
-	return &graph.Identity{
+	output := &graph.Identity{
 		StoreID:   input.Id.Hex(),
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Type:      input.Type,
-	}, nil
+	}
+
+	if output.Namespace != "" {
+		output.IsNamespaced = true
+	}
+
+	return output, nil
 }
 
 // Token returns the graph representation of a service account token vertex from a store projected volume model input.
