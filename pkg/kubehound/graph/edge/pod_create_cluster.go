@@ -14,6 +14,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+const (
+	// Use a small batch size here as each role will generate a significant number of edges
+	podCreateBatchSize = 5
+)
+
 func init() {
 	Register(PodCreateCluster{})
 }
@@ -35,8 +40,7 @@ func (e PodCreateCluster) Name() string {
 }
 
 func (e PodCreateCluster) BatchSize() int {
-	// Use a small batch size here as each role will generate a significant number of edges
-	return 5
+	return podCreateBatchSize
 }
 
 func (e PodCreateCluster) Processor(ctx context.Context, entry any) (any, error) {
@@ -64,6 +68,7 @@ func (e PodCreateCluster) Traversal() Traversal {
 	}
 }
 
+// Stream finds all roles that are NOT namespaced and have pod/create or equivalent wildcard permissions.
 func (e PodCreateCluster) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 

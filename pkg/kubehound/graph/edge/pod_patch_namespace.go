@@ -71,6 +71,8 @@ func (e PodPatchNamespace) Traversal() Traversal {
 	}
 }
 
+// Stream finds all roles that are namespaced and have pod/patch or equivalent wildcard permissions and matching nodes.
+// Matching nodes are defined as namespaced nodes that share the role namespace or non-namespaced nodes.
 func (e PodPatchNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 

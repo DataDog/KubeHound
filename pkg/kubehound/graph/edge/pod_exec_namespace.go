@@ -71,6 +71,8 @@ func (e PodExecNamespace) Traversal() Traversal {
 	}
 }
 
+// Stream finds all roles that are namespaced and have pod/exec or equivalent wildcard permissions and matching pods.
+// Matching pods are defined as all pods that share the role namespace.
 func (e PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
