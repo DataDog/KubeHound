@@ -10,7 +10,7 @@ jobs:
   system-test:
     runs-on:
       group: Large Runner Shared Public 
-      label: ubuntu-8-core-latest
+      labels: ubuntu-8-core-latest
     environment: devenv
     steps:
       - uses: datadog/agent-github-action@v1.3
