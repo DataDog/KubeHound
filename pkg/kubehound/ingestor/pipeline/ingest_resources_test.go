@@ -85,7 +85,7 @@ func TestIngestResources_Initializer(t *testing.T) {
 	sw.EXPECT().Close(ctx).Return(nil)
 
 	collection := collections.Node{}
-	sdb.EXPECT().BulkWriter(ctx, collection).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, collection, mock.Anything).Return(sw, nil)
 
 	oi, err = CreateResources(ctx, deps, WithStoreWriter(collection))
 	assert.NoError(t, err)
@@ -100,7 +100,7 @@ func TestIngestResources_Initializer(t *testing.T) {
 	gw.EXPECT().Close(ctx).Return(nil)
 
 	vtx := vertex.Node{}
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Node")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Node"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	oi, err = CreateResources(ctx, deps, WithGraphWriter(vtx))
 	assert.NoError(t, err)
@@ -135,7 +135,7 @@ func TestIngestResources_FlushErrors(t *testing.T) {
 	// Set store to fail
 	sw := storedb.NewAsyncWriter(t)
 	sw.EXPECT().Flush(ctx).Return(errors.New("test error"))
-	sdb.EXPECT().BulkWriter(ctx, mock.Anything).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, mock.Anything, mock.Anything).Return(sw, nil)
 
 	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
 	assert.NoError(t, err)
@@ -169,7 +169,7 @@ func TestIngestResources_CloseErrors(t *testing.T) {
 	// Set store to fail
 	sw := storedb.NewAsyncWriter(t)
 	sw.EXPECT().Close(ctx).Return(errors.New("test error"))
-	sdb.EXPECT().BulkWriter(ctx, mock.Anything).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, mock.Anything, mock.Anything).Return(sw, nil)
 
 	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
 	assert.NoError(t, err)
@@ -201,7 +201,7 @@ func TestIngestResources_CloseIdempotent(t *testing.T) {
 
 	sw := storedb.NewAsyncWriter(t)
 	sw.EXPECT().Close(ctx).Return(nil).Once()
-	sdb.EXPECT().BulkWriter(ctx, mock.Anything).Return(sw, nil).Once()
+	sdb.EXPECT().BulkWriter(ctx, mock.Anything, mock.Anything).Return(sw, nil).Once()
 
 	oi, err := CreateResources(ctx, deps, WithCacheWriter(), WithStoreWriter(collections.Node{}))
 	assert.NoError(t, err)

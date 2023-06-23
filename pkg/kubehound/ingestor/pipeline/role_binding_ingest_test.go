@@ -46,7 +46,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	rsw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.RoleBinding")).Return(nil).Once()
 	rsw.EXPECT().Flush(ctx).Return(nil)
 	rsw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, crbs).Return(rsw, nil)
+	sdb.EXPECT().BulkWriter(ctx, crbs, mock.Anything).Return(rsw, nil)
 
 	// Store setup -  identities
 	isw := storedb.NewAsyncWriter(t)
@@ -64,7 +64,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 		}).Once()
 	isw.EXPECT().Flush(ctx).Return(nil)
 	isw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, identities).Return(isw, nil)
+	sdb.EXPECT().BulkWriter(ctx, identities, mock.Anything).Return(isw, nil)
 	c.EXPECT().BulkWriter(ctx, mock.AnythingOfType("cache.WriterOption")).Return(csw, nil)
 
 	// Graph setup
@@ -80,7 +80,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Identity")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Identity"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,

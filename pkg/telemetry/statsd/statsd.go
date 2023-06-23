@@ -22,6 +22,7 @@ func init() {
 }
 
 func Setup(statsdURL string) error {
+	log.I.Infof("Using %s for statsd URL", statsdURL)
 	var err error
 	// In case we don't have a statsd url set, we just want to continue, but log that we aren't going to submit metrics.
 	if statsdURL == "" {

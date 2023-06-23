@@ -7,6 +7,8 @@ import (
 	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
+	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 )
 
 type MemCacheProvider struct {
@@ -46,11 +48,13 @@ func (m *MemCacheProvider) HealthCheck(ctx context.Context) (bool, error) {
 func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-
 	var err error
 	data, ok := m.data[computeKey(key)]
 	if !ok {
+		_ = statsd.Incr(telemetry.MetricCacheMiss, []string{}, 1)
 		err = errors.New("entry not found in cache")
+	} else {
+		_ = statsd.Incr(telemetry.MetricCacheHit, []string{}, 1)
 	}
 
 	return data, err

@@ -5,7 +5,9 @@ import (
 	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 )
 
 type MemCacheAsyncWriter struct {
@@ -18,14 +20,15 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	_ = statsd.Incr(telemetry.MetricCacheWrite, []string{}, 1)
 	keyId := computeKey(key)
 	_, ok := m.data[keyId]
 	if ok {
 		if m.opts.Test {
 			return ErrCacheEntryOverwrite
-		} else {
-			log.I.Warnf("overwriting cache entry: [key]%s", keyId)
 		}
+		_ = statsd.Incr(telemetry.MetricCacheDuplicateEntry, []string{keyId}, 1)
+		log.I.Warnf("overwriting cache entry: [key]%s", keyId)
 	}
 	m.data[keyId] = value
 	return nil

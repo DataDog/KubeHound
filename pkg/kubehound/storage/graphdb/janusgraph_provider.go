@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
@@ -21,6 +22,7 @@ var _ Provider = (*JanusGraphProvider)(nil)
 
 type JanusGraphProvider struct {
 	pool *DriverConnectionPool
+	tags []string
 }
 
 func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (*JanusGraphProvider, error) {
@@ -41,6 +43,7 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 			Lock:   &sync.Mutex{},
 			Driver: driver,
 		},
+		tags: append(telemetry.BaseTags, telemetry.TagTypeJanusGraph),
 	}
 
 	return g, nil

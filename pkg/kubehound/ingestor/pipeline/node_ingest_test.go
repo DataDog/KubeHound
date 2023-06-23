@@ -55,7 +55,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, nodes).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, nodes, mock.Anything).Return(sw, nil)
 
 	// Graph setup
 	vtxInsert := map[string]any{
@@ -71,7 +71,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Node")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Node"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
