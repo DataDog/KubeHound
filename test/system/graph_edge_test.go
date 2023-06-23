@@ -347,6 +347,29 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 	suite.Equal(volumeCount, pathCount)
 }
 
+func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFOCE() {
+	// We have one bespoke container running with pod/create permissions which should reach all nodes
+	// since they are not namespaced
+	results, err := suite.g.V().
+		HasLabel("Role").
+		OutE().HasLabel("POD_CREATE").
+		InV().HasLabel("Node").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-control-plane]",
+		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-worker]",
+		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-worker2]",
+	}
+	suite.Subset(paths, expected)
+}
+
 func TestEdgeTestSuite(t *testing.T) {
 	suite.Run(t, new(EdgeTestSuite))
 }

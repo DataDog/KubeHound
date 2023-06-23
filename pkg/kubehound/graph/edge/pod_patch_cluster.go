@@ -60,6 +60,7 @@ func (e PodPatchCluster) Traversal() Traversal {
 			By("storeID").
 			By("role").
 			As("r").
+			Has("critical", false). // Not out edges from critical assets
 			V().HasLabel(vertex.NodeLabel).
 			Has("class", vertex.NodeLabel).
 			Unfold().

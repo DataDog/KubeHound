@@ -61,10 +61,10 @@ mgmt.addConnection(podExec, role, pod);
 tokenSteal = mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(ONE2MANY).make();
 mgmt.addConnection(tokenSteal, volume, token);
 
-tokenBruteforce = mgmt.makeEdgeLabel('TOKEN_BRUTEFORCE').multiplicity(ONE2MANY).make();
+tokenBruteforce = mgmt.makeEdgeLabel('TOKEN_BRUTEFORCE').multiplicity(MULTI).make();
 mgmt.addConnection(tokenBruteforce, role, identity);
 
-tokenList = mgmt.makeEdgeLabel('TOKEN_LIST').multiplicity(ONE2MANY).make();
+tokenList = mgmt.makeEdgeLabel('TOKEN_LIST').multiplicity(MULTI).make();
 mgmt.addConnection(tokenBruteforce, role, identity);
 
 tokenVarLog = mgmt.makeEdgeLabel('TOKEN_VAR_LOG_SYMLINK').multiplicity(ONE2MANY).make();
@@ -116,11 +116,11 @@ identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinali
 
 // Define properties for each vertex 
 mgmt.addProperties(container, cls, storeID, name, image, privileged, privesc, hostPid, hostPath, hostIpc, hostNetwork, runAsUser, 
-podName, nodeName, compromised, critical, command, args, capabilities, ports);
-mgmt.addProperties(identity, cls, storeID, name, isNamespaced, namespace, type);
+podName, nodeName, compromised, command, args, capabilities, ports);
+mgmt.addProperties(identity, cls, storeID, name, isNamespaced, namespace, type, critical);
 mgmt.addProperties(node, cls, storeID, name, isNamespaced, namespace, compromised, critical);
 mgmt.addProperties(pod, cls, storeID, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
-mgmt.addProperties(role, cls, storeID, name, isNamespaced, namespace, rules);
+mgmt.addProperties(role, cls, storeID, name, isNamespaced, namespace, rules, critical);
 mgmt.addProperties(token, cls, name, namespace, type, identityName, compromised, critical);
 mgmt.addProperties(volume, cls, storeID, name, type, path);
 

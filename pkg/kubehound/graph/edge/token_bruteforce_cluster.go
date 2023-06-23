@@ -16,53 +16,54 @@ import (
 
 const (
 	// Use a small batch size here as each role will generate a significant number of edges
-	podExecBatchSize = 5
+	tokenBruteforceClusterBatchSize = 5
 )
 
 func init() {
-	Register(PodExecCluster{})
+	Register(TokenBruteforceCluster{})
 }
 
-// @@DOCLINK: TODO
-type PodExecCluster struct {
+// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
+type TokenBruteforceCluster struct {
 }
 
-type podExecClusterGroup struct {
+type tokenBruteforceClusterGroup struct {
 	Role primitive.ObjectID `bson:"_id" json:"role"`
 }
 
-func (e PodExecCluster) Label() string {
-	return "POD_EXEC"
+func (e TokenBruteforceCluster) Label() string {
+	return "TOKEN_BRUTEFORCE"
 }
 
-func (e PodExecCluster) Name() string {
-	return "PodExecCluster"
+func (e TokenBruteforceCluster) Name() string {
+	return "TokenBruteforceCluster"
 }
 
-func (e PodExecCluster) BatchSize() int {
-	return podExecBatchSize
+func (e TokenBruteforceCluster) BatchSize() int {
+	return tokenBruteforceClusterBatchSize
 }
 
-func (e PodExecCluster) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*podExecClusterGroup](ctx, entry)
+func (e TokenBruteforceCluster) Processor(ctx context.Context, entry any) (any, error) {
+	return adapter.GremlinInputProcessor[*tokenBruteforceClusterGroup](ctx, entry)
 }
 
-// Traversal expects a list of podExecClusterGroup serialized as mapstructure for injection into the graph.
-// For each podExecClusterGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
-// matching pods in the cluster 3) add a POD_EXEC edge between the vertices.
-func (e PodExecCluster) Traversal() Traversal {
+// Traversal expects a list of TokenBruteforceCluster serialized as mapstructure for injection into the graph.
+// For each TokenBruteforceCluster, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
+// matching identities in the cluster 3) add a TOKEN_BRUTEFORCE edge between the vertices.
+func (e TokenBruteforceCluster) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
-			Unfold().As("pec").
+			Unfold().As("tbc").
 			V().HasLabel(vertex.RoleLabel).
-			Where(P.Eq("pec")).
+			Where(P.Eq("tbc")).
 			By("storeID").
 			By("role").
-			As("r").
 			Has("critical", false). // Not out edges from critical assets
-			V().HasLabel(vertex.PodLabel).
-			Has("class", vertex.PodLabel).
+			As("r").
+			V().HasLabel(vertex.IdentityLabel).
+			Has("class", vertex.IdentityLabel).
+			Has("type", "ServiceAccount").
 			Unfold().
 			AddE(e.Label()).
 			From(__.Select("r")).
@@ -72,8 +73,8 @@ func (e PodExecCluster) Traversal() Traversal {
 	}
 }
 
-// Stream finds all roles that are NOT namespaced and have pod/exec or equivalent wildcard permissions.
-func (e PodExecCluster) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+// Stream finds all roles that are NOT namespaced and have secrets/get or equivalent wildcard permissions.
+func (e TokenBruteforceCluster) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roles := adapter.MongoDB(store).Collection(collections.RoleName)
@@ -85,12 +86,12 @@ func (e PodExecCluster) Stream(ctx context.Context, store storedb.Provider, _ ca
 					"$elemMatch": bson.M{
 						"$and": bson.A{
 							bson.M{"$or": bson.A{
-								bson.M{"resources": "pods"},
-								bson.M{"resources": "pods/*"},
+								bson.M{"resources": "secrets"},
+								bson.M{"resources": "secrets/*"},
 								bson.M{"resources": "*"},
 							}},
 							bson.M{"$or": bson.A{
-								bson.M{"verbs": "exec"},
+								bson.M{"verbs": "get"},
 								bson.M{"verbs": "*"},
 							}},
 						},
@@ -111,5 +112,5 @@ func (e PodExecCluster) Stream(ctx context.Context, store storedb.Provider, _ ca
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[podExecClusterGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[tokenBruteforceClusterGroup](ctx, cur, callback, complete)
 }
