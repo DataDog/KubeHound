@@ -8,7 +8,6 @@ on:
 
 jobs:
   system-test:
-    if: ${{ true }}  # disable for now
     runs-on:
       group: Large Runner Shared Public 
       label: ubuntu-8-core-latest
