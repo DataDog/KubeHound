@@ -96,14 +96,19 @@ func (e PodCreateNamespace) Stream(ctx context.Context, store storedb.Provider, 
 		},
 		{
 			"$lookup": bson.M{
+				"as":   "nodesInNamespace",
 				"from": "nodes",
 				"let": bson.M{
-					"namespace": "$namespace",
+					"roleNamespace": "$namespace",
 				},
 				"pipeline": []bson.M{
 					{
 						"$match": bson.M{"$or": bson.A{
-							bson.M{"k8.objectmeta.namespace": "$$namespace"},
+							bson.M{"$expr": bson.M{
+								"$eq": bson.A{
+									"$k8.objectmeta.namespace", "$$roleNamespace",
+								},
+							}},
 							bson.M{"is_namespaced": false},
 						}},
 					},
@@ -113,7 +118,6 @@ func (e PodCreateNamespace) Stream(ctx context.Context, store storedb.Provider, 
 						},
 					},
 				},
-				"as": "nodesInNamespace",
 			},
 		},
 		{
