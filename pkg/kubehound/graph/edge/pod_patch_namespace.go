@@ -107,7 +107,7 @@ func (e PodPatchNamespace) Stream(ctx context.Context, store storedb.Provider, _
 				"pipeline": []bson.M{
 					{
 						"$match": bson.M{"$or": bson.A{
-							bson.M{"namespace": "$$namespace"},
+							bson.M{"k8.objectmeta.namespace": "$$namespace"},
 							bson.M{"is_namespaced": false},
 						}},
 					},

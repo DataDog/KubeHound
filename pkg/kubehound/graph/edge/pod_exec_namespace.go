@@ -43,10 +43,9 @@ func (e PodExecNamespace) Processor(ctx context.Context, entry any) (any, error)
 	return adapter.GremlinInputProcessor[*podExecGroup](ctx, entry)
 }
 
-// Traversal expects a list of podPatchGroup serialized as mapstructure for injection into the graph.
-// For each podPatchGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find the
-// pod vertices for each matching storeID, and 3) add a POD_PATCH edge between the two vertices.
-// TODO this only handles the same namespace case. What do we do if its all namespaces to avoid edge count blowing up?
+// Traversal expects a list of podExecGroup serialized as mapstructure for injection into the graph.
+// For each podExecGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find the
+// pod vertices for each matching storeID, and 3) add a POD_EXEC edge between the two vertices.
 func (e PodExecNamespace) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
@@ -72,7 +71,7 @@ func (e PodExecNamespace) Traversal() Traversal {
 }
 
 // Stream finds all roles that are namespaced and have pod/exec or equivalent wildcard permissions and matching pods.
-// Matching pods are defined as all pods that share the role namespace.
+// Matching pods are defined as all pods that share the role namespace or non-namespaced pods.
 func (e PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
@@ -100,10 +99,28 @@ func (e PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _ 
 		},
 		{
 			"$lookup": bson.M{
-				"from":         "pods",
-				"localField":   "namespace",
-				"foreignField": "k8.objectmeta.namespace",
-				"as":           "podsInNamespace",
+				"as":   "podsInNamespace",
+				"from": "pods",
+				"let": bson.M{
+					"roleNamespace": "$namespace",
+				},
+				"pipeline": []bson.M{
+					{
+						"$match": bson.M{"$or": bson.A{
+							bson.M{"$expr": bson.M{
+								"$eq": bson.A{
+									"$k8.objectmeta.namespace", "$$roleNamespace",
+								},
+							}},
+							bson.M{"is_namespaced": false},
+						}},
+					},
+					{
+						"$project": bson.M{
+							"_id": 1,
+						},
+					},
+				},
 			},
 		},
 		{
