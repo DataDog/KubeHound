@@ -8,8 +8,10 @@ on:
 
 jobs:
   system-test:
-    if: ${{ false }}  # disable for now
-    runs-on: ubuntu-latest
+    if: ${{ true }}  # disable for now
+    runs-on:
+      group: Large Runner Shared Public 
+      label: ubuntu-8-core-latest
     environment: devenv
     steps:
       - uses: datadog/agent-github-action@v1.3
