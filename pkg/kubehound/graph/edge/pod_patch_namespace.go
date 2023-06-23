@@ -45,8 +45,7 @@ func (e PodPatchNamespace) Processor(ctx context.Context, entry any) (any, error
 
 // Traversal expects a list of podPatchGroup serialized as mapstructure for injection into the graph.
 // For each podPatchGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find the
-// pod vertices for each matching storeID, and 3) add a POD_PATCH edge between the two vertices.
-// TODO this only handles the same namespace case. What do we do if its all namespaces to avoid edge count blowing up?
+// node vertices for each matching storeID, and 3) add a POD_PATCH edge between the two vertices.
 func (e PodPatchNamespace) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
