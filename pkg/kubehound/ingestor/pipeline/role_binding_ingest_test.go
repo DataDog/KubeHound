@@ -69,7 +69,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 
 	// Graph setup
 	vtxInsert := map[string]any{
-		"isNamespaced": false,
+		"isNamespaced": true,
 		"name":         "app-monitors",
 		"namespace":    "test-app",
 		"storeID":      storeId.Hex(),

@@ -65,7 +65,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	vtxInsert := map[string]any{
 		"isNamespaced": false,
 		"name":         "app-monitors",
-		"namespace":    "test-app",
+		"namespace":    "",
 		"storeID":      storeId.Hex(),
 		"type":         "ServiceAccount",
 	}
