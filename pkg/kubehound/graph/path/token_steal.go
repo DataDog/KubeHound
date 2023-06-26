@@ -31,7 +31,7 @@ var (
 )
 
 func init() {
-	Register(TokenSteal{})
+	//Register(TokenSteal{})
 }
 
 type volumeQueryResult struct {

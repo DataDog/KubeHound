@@ -58,3 +58,5 @@ func Factory(ctx context.Context, cfg *config.KubehoundConfig) (CacheProvider, e
 	}
 	return provider, nil
 }
+
+var IdMap map[string]int64 = make(map[string]int64)

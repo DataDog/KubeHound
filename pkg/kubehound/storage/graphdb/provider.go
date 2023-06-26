@@ -9,10 +9,12 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 )
 
 type writerOptions struct {
-	Tags []string
+	Tags  []string
+	Cache cache.CacheProvider
 }
 
 type WriterOption func(*writerOptions)
@@ -20,6 +22,12 @@ type WriterOption func(*writerOptions)
 func WithTags(tags []string) WriterOption {
 	return func(wo *writerOptions) {
 		wo.Tags = tags
+	}
+}
+
+func WithCache(c cache.CacheProvider) WriterOption {
+	return func(wo *writerOptions) {
+		wo.Cache = c
 	}
 }
 

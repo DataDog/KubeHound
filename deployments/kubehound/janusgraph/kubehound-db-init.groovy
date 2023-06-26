@@ -82,6 +82,9 @@ mgmt.addConnection(umhCorePattern, container, node);
 privMount = mgmt.makeEdgeLabel('CE_PRIV_MOUNT').multiplicity(MANY2ONE).make();
 mgmt.addConnection(privMount, container, node);
 
+testEdge = mgmt.makeEdgeLabel('TEST_EDGE').multiplicity(MULTI).make();
+mgmt.addConnection(testEdge, container, node);
+
 
 // All properties we will index on
 cls = mgmt.makePropertyKey('class').dataType(String.class).cardinality(Cardinality.SINGLE).make();

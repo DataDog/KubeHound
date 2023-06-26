@@ -92,7 +92,7 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		tags := []string{telemetry.TagTypeJanusGraph}
-		w, err := deps.GraphDB.VertexWriter(ctx, v, graphdb.WithTags(tags))
+		w, err := deps.GraphDB.VertexWriter(ctx, v, graphdb.WithTags(tags), graphdb.WithCache(deps.Cache))
 		if err != nil {
 			return err
 		}

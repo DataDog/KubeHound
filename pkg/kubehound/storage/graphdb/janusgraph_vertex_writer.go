@@ -42,6 +42,7 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, dcp *DriverConnectionPo
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []types.TraversalInput, v.BatchSize()*channelSizeBatchFactor),
 		tags:            options.Tags,
+		cache:           options.Cache,
 	}
 
 	jw.startBackgroundWriter(ctx)

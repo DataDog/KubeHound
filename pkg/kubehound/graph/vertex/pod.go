@@ -32,6 +32,19 @@ func (v Pod) Processor(ctx context.Context, entry any) (any, error) {
 
 func (v Pod) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+		// g := source.GetGraphTraversal().
+		// 	Inject(inserts).
+		// 	Unfold().As("pods").
+		// 	AddV(v.Label()).As("podVtx").
+		// 	Property("class", v.Label()). // labels are not indexed - use a mirror property
+		// 	SideEffect(
+		// 		__.Select("pods").
+		// 			Unfold().As("kv").
+		// 			Select("podVtx").
+		// 			Property(
+		// 				__.Select("kv").By(Column.Keys),
+		// 				__.Select("kv").By(Column.Values))).
+		// 	Barrier().Limit(0)
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("pods").
@@ -43,8 +56,7 @@ func (v Pod) Traversal() Traversal {
 					Select("podVtx").
 					Property(
 						__.Select("kv").By(Column.Keys),
-						__.Select("kv").By(Column.Values))).
-			Barrier().Limit(0)
+						__.Select("kv").By(Column.Values)))
 
 		return g
 	}

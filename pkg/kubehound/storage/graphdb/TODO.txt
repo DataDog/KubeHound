@@ -1,0 +1,7 @@
+Change vertex inserts to returns a  list of vertexID -> storeID mapping
+Project("id", "storeID").
+			By(gremlin.T.Id).
+			By("storeID").
+			ToList()
+Process the result and write the mappings into the cache
+In the vertex 
