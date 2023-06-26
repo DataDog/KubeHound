@@ -56,7 +56,7 @@ func (e PodCreateNamespace) Traversal() Traversal {
 			As("n").
 			V().
 			HasLabel(vertex.NodeLabel).
-			Has("storeID", __.Where(P.Eq("n")).By().By()).
+			Has("storeID", __.Where(P.Eq("n"))).
 			AddE(e.Label()).
 			From(
 				__.V().

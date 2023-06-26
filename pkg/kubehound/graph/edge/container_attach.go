@@ -56,7 +56,7 @@ func (e ContainerAttach) Traversal() Traversal {
 			As("c").
 			V().
 			HasLabel(vertex.ContainerLabel).
-			Has("storeID", __.Where(P.Eq("c")).By().By()).
+			Has("storeID", __.Where(P.Eq("c"))).
 			AddE(e.Label()).
 			From(
 				__.V().

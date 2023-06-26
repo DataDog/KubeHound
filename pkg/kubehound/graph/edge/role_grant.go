@@ -56,7 +56,7 @@ func (e RoleGrant) Traversal() Traversal {
 			As("id").
 			V().
 			HasLabel(vertex.IdentityLabel).
-			Has("storeID", __.Where(P.Eq("id")).By().By()).
+			Has("storeID", __.Where(P.Eq("id"))).
 			AddE(e.Label()).
 			To(
 				__.V().
