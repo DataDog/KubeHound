@@ -78,7 +78,7 @@ func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 	output := &graph.Node{
 		StoreID:  input.Id.Hex(),
 		Name:     input.K8.Name,
-		Critical: risk.Assessor().IsCritical(input),
+		Critical: risk.Engine().IsCritical(input),
 	}
 
 	if input.IsNamespaced {
@@ -97,7 +97,7 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 		Namespace:      input.K8.GetNamespace(),
 		ServiceAccount: input.K8.Spec.ServiceAccountName,
 		Node:           input.K8.Spec.NodeName,
-		Critical:       risk.Assessor().IsCritical(input),
+		Critical:       risk.Engine().IsCritical(input),
 	}
 	if input.K8.Spec.ShareProcessNamespace != nil {
 		output.SharedProcessNamespace = *input.K8.Spec.ShareProcessNamespace
@@ -174,7 +174,7 @@ func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Rules:     c.flattenPolicyRules(input.Rules),
-		Critical:  risk.Assessor().IsCritical(input),
+		Critical:  risk.Engine().IsCritical(input),
 	}
 
 	if output.Namespace != "" {
@@ -191,7 +191,7 @@ func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Type:      input.Type,
-		Critical:  risk.Assessor().IsCritical(input),
+		Critical:  risk.Engine().IsCritical(input),
 	}
 
 	if output.Namespace != "" {

@@ -55,29 +55,25 @@ func (e VolumeMount) Traversal() Traversal {
 			Inject(inserts).
 			Unfold().As("mg").
 			SideEffect(
-				__.V().HasLabel(vertex.NodeLabel).
-					Where(P.Eq("mg")).
-					By("storeID").
-					By("node").
+				__.V().
+					HasLabel(vertex.NodeLabel).
+					Has("storeID", __.Where(P.Eq("mg")).By().By("node")).
 					AddE(e.Label()).
 					To(
-						__.V().HasLabel(vertex.VolumeLabel).
-							Where(P.Eq("mg")).
-							By("storeID").
-							By("volume"))).
+						__.V().
+							HasLabel(vertex.VolumeLabel).
+							Has("storeID", __.Where(P.Eq("mg")).By().By("volume")))).
 			Select("containers").
 			Unfold().
 			As("c").
-			V().HasLabel(vertex.ContainerLabel).
-			Where(P.Eq("c")).
-			By("storeID").
-			By().
+			V().
+			HasLabel(vertex.ContainerLabel).
+			Has("storeID", __.Where(P.Eq("c"))).
 			AddE(e.Label()).
 			To(
-				__.V().HasLabel(vertex.VolumeLabel).
-					Where(P.Eq("mg")).
-					By("storeID").
-					By("volume")).
+				__.V().
+					HasLabel(vertex.VolumeLabel).
+					Has("storeID", __.Where(P.Eq("mg")).By().By("volume"))).
 			Barrier().Limit(0)
 
 		return g
