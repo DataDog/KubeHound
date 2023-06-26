@@ -1,3 +1,5 @@
+# This Dockerfile is a tailored version of https://github.com/aws/graph-notebook under APACHE 2 LICENCE
+
 FROM amazonlinux:2
 
 # Notebook Port

@@ -1,3 +1,5 @@
+# This Dockerfile is a tailored version of https://github.com/aws/graph-notebook under APACHE 2 LICENCE
+
 source /tmp/venv/bin/activate
 cd "${WORKING_DIR}"
 if [ ${GRAPH_NOTEBOOK_SSL} = "" ]; then
