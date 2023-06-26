@@ -25,6 +25,7 @@ URL: `https://127.0.0.1:8888`
 The Dockerfile is based on https://github.com/aws/graph-notebook
 
 The default password for the localhost instance is "admin", you should change it by changing the `NOTEBOOK_PASSWORD` env var.
+If no password is provided, and aws is used to host this container, the instance id will be the default password.
 
 ## Build
 
