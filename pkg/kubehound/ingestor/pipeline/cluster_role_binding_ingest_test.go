@@ -63,6 +63,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 
 	// Graph setup
 	vtxInsert := map[string]any{
+		"critical":     false,
 		"isNamespaced": false,
 		"name":         "app-monitors",
 		"namespace":    "",

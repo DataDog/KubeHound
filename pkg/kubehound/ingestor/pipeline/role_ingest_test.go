@@ -60,6 +60,7 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	// Graph setup
 	vtxInsert := map[string]any{
 		"isNamespaced": true,
+		"critical":     false,
 		"name":         "test-reader",
 		"namespace":    "test-app",
 		"rules": []any{
