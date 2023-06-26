@@ -48,39 +48,20 @@ func (e TokenBruteforceNamespace) Processor(ctx context.Context, entry any) (any
 // identity vertices for each matching storeID, and 3) add a TOKEN_BRUTEFORCE edge between the vertices.
 func (e TokenBruteforceNamespace) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		// g := source.GetGraphTraversal().
-		// 	Inject(inserts).
-		// 	Unfold().As("tbg").
-		// 	Select("identities").
-		// 	Unfold().
-		// 	As("id").
-		// 	V().HasLabel(vertex.IdentityLabel).
-		// 	Where(P.Eq("id")).
-		// 	By("storeID").
-		// 	By().
-		// 	AddE(e.Label()).
-		// 	From(
-		// 		__.V().HasLabel(vertex.RoleLabel).
-		// 			Where(P.Eq("tbg")). TODO No out edges from critical assets
-		// 			By("storeID").
-		// 			By("role")).
-		// 	Barrier().Limit(0)
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("tbg").
 			Select("identities").
 			Unfold().
 			As("id").
-			V().HasLabel(vertex.IdentityLabel).
-			Where(P.Eq("id")).
-			By("storeID").
-			By().
+			V().
+			HasLabel(vertex.IdentityLabel).
+			Has("storeID", __.Where(P.Eq("id")).By().By()).
 			As("i").
-			V().HasLabel(vertex.RoleLabel).
-			Where(P.Eq("tbg")).
-			By("storeID").
-			By("role").
+			V().
+			HasLabel(vertex.RoleLabel).
 			Has("critical", false). // No out edges from critical assets
+			Has("storeID", __.Where(P.Eq("tbg")).By().By("role")).
 			As("r").
 			AddE(e.Label()).
 			From(__.Select("r")).

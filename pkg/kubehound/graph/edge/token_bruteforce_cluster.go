@@ -55,14 +55,13 @@ func (e TokenBruteforceCluster) Traversal() Traversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("tbc").
-			V().HasLabel(vertex.RoleLabel).
-			Where(P.Eq("tbc")).
-			By("storeID").
-			By("role").
+			V().
 			Has("critical", false). // Not out edges from critical assets
+			HasLabel(vertex.RoleLabel).
+			Has("storeID", __.Where(P.Eq("tbc")).By().By("role")).
 			As("r").
-			V().HasLabel(vertex.IdentityLabel).
-			Has("class", vertex.IdentityLabel).
+			V().
+			HasLabel(vertex.IdentityLabel).
 			Has("type", "ServiceAccount").
 			Unfold().
 			AddE(e.Label()).

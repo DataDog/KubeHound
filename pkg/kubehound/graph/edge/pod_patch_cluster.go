@@ -55,14 +55,13 @@ func (e PodPatchCluster) Traversal() Traversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("ppc").
-			V().HasLabel(vertex.RoleLabel).
-			Where(P.Eq("ppc")).
-			By("storeID").
-			By("role").
-			As("r").
+			V().
+			HasLabel(vertex.RoleLabel).
 			Has("critical", false). // Not out edges from critical assets
-			V().HasLabel(vertex.NodeLabel).
-			Has("class", vertex.NodeLabel).
+			Has("storeID", __.Where(P.Eq("ppc")).By().By("role")).
+			As("r").
+			V().
+			HasLabel(vertex.NodeLabel).
 			Unfold().
 			AddE(e.Label()).
 			From(__.Select("r")).
