@@ -15,6 +15,15 @@ Note:
 * KUBEHOUND_ENV=prod will use prebuilt image from ghcr.io
 * KUBEHOUND_ENV=dev will build the images locally
 
+### Visualize
+
+Kubehound has Jupyter Notebook setup provided in the docker compose.
+It allows user to perform query dynamically and display graphs visualization.
+
+URL: `https://127.0.0.1:8888`
+
+The Dockerfile is based on https://github.com/aws/graph-notebook
+
 ## Build
 
 Build the application via:
