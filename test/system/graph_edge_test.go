@@ -206,7 +206,7 @@ func (suite *EdgeTestSuite) TestEdge_POD_PATCH() {
 		ToList()
 
 	suite.NoError(err)
-	suite.GreaterOrEqual(len(results), 1)
+	suite.GreaterOrEqual(len(results), 3)
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
@@ -229,7 +229,7 @@ func (suite *EdgeTestSuite) TestEdge_POD_CREATE() {
 		ToList()
 
 	suite.NoError(err)
-	suite.GreaterOrEqual(len(results), 1)
+	suite.GreaterOrEqual(len(results), 3)
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
@@ -348,24 +348,27 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 }
 
 func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFOCE() {
-	// We have one bespoke container running with pod/create permissions which should reach all nodes
-	// since they are not namespaced
 	results, err := suite.g.V().
 		HasLabel("Role").
-		OutE().HasLabel("POD_CREATE").
-		InV().HasLabel("Node").
+		OutE().HasLabel("TOKEN_BRUTEFORCE").
+		InV().HasLabel("Identity").
 		Path().
 		By(__.ValueMap("name")).
 		ToList()
 
 	suite.NoError(err)
-	suite.GreaterOrEqual(len(results), 1)
+	suite.GreaterOrEqual(len(results), 7)
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-control-plane]",
-		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-worker]",
-		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-worker2]",
+		"path[map[name:[read-secrets]], map[], map[name:[pod-patch-sa]",
+		"path[map[name:[read-secrets]], map[], map[name:[impersonate-sa]",
+		"path[map[name:[read-secrets]], map[], map[name:[tokenlist-sa]",
+		"path[map[name:[read-secrets]], map[], map[name:[pod-exec-sa]",
+		"path[map[name:[read-secrets]], map[], map[name:[tokenget-sa]",
+		"path[map[name:[read-secrets]], map[], map[name:[rolebind-sa]",
+		"path[map[name:[read-secrets]], map[], map[name:[pod-create-sa]",
+		"path[map[name:[read-secrets]], map[], map[name:[system:kube-proxy]",
 	}
 	suite.Subset(paths, expected)
 }
