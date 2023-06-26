@@ -3,9 +3,13 @@ package edge
 import (
 	"context"
 
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -18,32 +22,46 @@ func init() {
 type SharedProcessNamespace struct {
 }
 
+// We want to map all the containers that shares the same process namespace
 type SharedProcessNamespaceContainers struct {
 	Pod        primitive.ObjectID   `bson:"_id" json:"pod"`
 	Containers []primitive.ObjectID `bson:"containers" json:"containers"`
+}
+
+func (e SharedProcessNamespace) BatchSize() int {
+	return DefaultBatchSize
 }
 
 func (e SharedProcessNamespace) Label() string {
 	return "SHARED_PS_NAMESPACE"
 }
 
-func (e SharedProcessNamespace) Traversal() EdgeTraversal {
-	return func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
-		return g.Inject(inserts).Unfold().As("ca").
-			V().HasLabel("Pod").Has("SharedProcessNamespace", true).Has("storeId", gremlin.T__.Select("ca").Select("pod")).As("pod").
-			V().HasLabel("Container").Has("storeId", gremlin.T__.Select("ca").Select("container")).As("container").
-			MergeE(e.Label()).From("pod").To("container")
+func (e SharedProcessNamespace) Traversal() Traversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+		return source.GetGraphTraversal().
+			Inject(inserts).
+			Unfold().As("sharedpns").
+			V().HasLabel(vertex.PodLabel).
+			Has("SharedProcessNamespace", true).
+			Has(
+				"storeID", __.Select("sharedpns").Select("pod")).As("pod").
+			V().HasLabel("Container").
+			Has(
+				"storeID", __.Select("sharedpns").Select("container")).As("container").
+			MergeE(e.Label()).
+			From("pod").
+			To("container")
 	}
 }
 
-func (e SharedProcessNamespace) Processor(ctx context.Context, entry DataContainer) (TraversalInput, error) {
-	return MongoProcessor[*SharedProcessNamespaceContainers](ctx, entry)
+func (e SharedProcessNamespace) Processor(ctx context.Context, entry any) (any, error) {
+	return adapter.GremlinInputProcessor[*SharedProcessNamespaceContainers](ctx, entry)
 }
 
-func (e SharedProcessNamespace) Stream(ctx context.Context, store storedb.Provider,
-	callback ProcessEntryCallback, complete CompleteQueryCallback) error {
+func (e SharedProcessNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
 	pipeline := []bson.M{
 		{"$group": bson.M{
 			"_id": "$pod_id",
@@ -60,5 +78,5 @@ func (e SharedProcessNamespace) Stream(ctx context.Context, store storedb.Provid
 	}
 	defer cur.Close(ctx)
 
-	return MongoCursorHandler[SharedProcessNamespaceContainers](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[SharedProcessNamespaceContainers](ctx, cur, callback, complete)
 }
