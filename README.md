@@ -24,6 +24,8 @@ URL: `https://127.0.0.1:8888`
 
 The Dockerfile is based on https://github.com/aws/graph-notebook
 
+The default password for the localhost instance is "admin", you should change it by changing the `NOTEBOOK_PASSWORD` env var.
+
 ## Build
 
 Build the application via:
