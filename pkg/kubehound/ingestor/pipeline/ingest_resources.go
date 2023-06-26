@@ -2,14 +2,17 @@ package pipeline
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -36,10 +39,10 @@ type resourceOptions struct {
 type IngestResourceOption func(ctx context.Context, oic *resourceOptions, deps *Dependencies) error
 
 // WithCacheWriter initializes a cache writer (and registers a cleanup function) for the ingest pipeline.
-func WithCacheWriter() IngestResourceOption {
+func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		var err error
-		rOpts.cacheWriter, err = deps.Cache.BulkWriter(ctx)
+		rOpts.cacheWriter, err = deps.Cache.BulkWriter(ctx, opts...)
 		if err != nil {
 			return err
 		}
@@ -66,7 +69,9 @@ func WithConverterCache() IngestResourceOption {
 // To access the writer use the storeWriter(c collections.Collection) function.
 func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		w, err := deps.StoreDB.BulkWriter(ctx, c)
+		tags := append(telemetry.BaseTags, telemetry.TagTypeMongodb)
+
+		w, err := deps.StoreDB.BulkWriter(ctx, c, storedb.WithTags(tags))
 		if err != nil {
 			return err
 		}
@@ -84,9 +89,10 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 
 // WithStoreWriter initializes a bulk graph writer (and registers a cleanup function) for the provided vertex.
 // To access the writer use the graphWriter(v vertex.Vertex) function.
-func WithGraphWriter[T vertex.Vertex](v T) IngestResourceOption {
+func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		w, err := deps.GraphDB.VertexWriter(ctx, v)
+		tags := []string{telemetry.TagTypeJanusGraph}
+		w, err := deps.GraphDB.VertexWriter(ctx, v, graphdb.WithTags(tags))
 		if err != nil {
 			return err
 		}
@@ -97,7 +103,6 @@ func WithGraphWriter[T vertex.Vertex](v T) IngestResourceOption {
 		})
 
 		rOpts.flush = append(rOpts.flush, w.Flush)
-
 		return nil
 	}
 }
@@ -107,14 +112,26 @@ type IngestResources struct {
 	resourceOptions
 }
 
-// storeWriter returns the registered store writer for the provided collection.
-func (i *IngestResources) storeWriter(c collections.Collection) storedb.AsyncWriter {
-	return i.storeWriters[c.Name()]
+// writeCache delegates a write to the cache writer.
+func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value string) error {
+	return i.cacheWriter.Queue(ctx, ck, value)
 }
 
-// graphWriter returns the registered graph writer for the provided collection.
-func (i *IngestResources) graphWriter(v vertex.Vertex) graphdb.AsyncVertexWriter {
-	return i.graphWriters[v.Label()]
+// writeStore delegates a write to the registered store writer.
+func (i *IngestResources) writeStore(ctx context.Context, c collections.Collection, model any) error {
+	return i.storeWriters[c.Name()].Queue(ctx, model)
+}
+
+// writeVertex delegates a write to the registered graph writer after invoking the vertex.Processor on the provided insert.
+func (i *IngestResources) writeVertex(ctx context.Context, v vertex.Builder, insert any) error {
+	w := i.graphWriters[v.Label()]
+
+	processed, err := v.Processor(ctx, insert)
+	if err != nil {
+		return fmt.Errorf("vertex processing: %w", err)
+	}
+
+	return w.Queue(ctx, processed)
 }
 
 // CreateResources handles the base initialization of service dependencies for an object ingest pipeline.

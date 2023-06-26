@@ -24,11 +24,12 @@ jobs:
             golang.org:443
             go.dev:443
             storage.googleapis.com:443
+            *.docker.io:443
             
       - name: Setup Golang
         uses: actions/setup-go@v4
         with:
-          go-version: 1.20.0
+          go-version: "1.20"
        
       - name: Checkout Git Repo
         uses: actions/checkout@v3

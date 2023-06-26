@@ -1,4 +1,21 @@
+storage:
+  retry_delay: 15s
+  retry: 6
 collector:
-  type: file-collector
-  file:
-    directory: kind-collect/
+  type: live-k8s-api-collector
+janusgraph:
+  url: "ws://localhost:8182/gremlin"
+  connection_timeout: 60s
+mongodb:
+  url: "mongodb://localhost:27017"
+  connection_timeout: 60s
+telemetry:
+  statsd:
+    url: "127.0.0.1:8125"
+  tracer:
+    url: "127.0.0.1:8126"
+  # this profiler block needs to set the period of cpu collection lower than the default 60s
+  # in order to be able to have the chance to run it once during a run against the kind cluster
+  profiler:
+    period: "5s"
+    cpu_duration: "5s"

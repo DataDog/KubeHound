@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+	mongotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go.mongodb.org/mongo-driver/mongo"
 )
 
 var _ Provider = (*MongoProvider)(nil)
@@ -16,14 +18,22 @@ var _ Provider = (*MongoProvider)(nil)
 type MongoProvider struct {
 	client *mongo.Client
 	db     *mongo.Database
+	tags   []string
 }
 
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
 	opts := options.Client()
-	opts.Monitor = otelmongo.NewMonitor()
+	opts.Monitor = mongotrace.NewMonitor()
 	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", connectionTimeout))
 
 	client, err := mongo.Connect(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, connectionTimeout)
+	defer cancel()
+	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {
 		return nil, err
 	}
@@ -32,6 +42,7 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	return &MongoProvider{
 		client: client,
 		db:     db,
+		tags:   []string{telemetry.TagTypeMongodb},
 	}, nil
 }
 
@@ -56,6 +67,6 @@ func (mp *MongoProvider) Close(ctx context.Context) error {
 }
 
 func (mp *MongoProvider) BulkWriter(ctx context.Context, collection collections.Collection, opts ...WriterOption) (AsyncWriter, error) {
-	writer := NewMongoAsyncWriter(ctx, mp, collection)
+	writer := NewMongoAsyncWriter(ctx, mp, collection, opts...)
 	return writer, nil
 }

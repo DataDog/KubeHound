@@ -1,94 +1,84 @@
 package graph
 
-type CompromiseType int
-
-const (
-	CompromiseNone CompromiseType = iota
-	CompromiseSimulated
-	CompromiseKnown
+import (
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 )
 
 type Container struct {
-	StoreId      string         `json:"store_id"`
-	Name         string         `json:"name"`
-	Image        string         `json:"image"`
-	Command      []string       `json:"command"`
-	Args         []string       `json:"args"`
-	Capabilities []string       `json:"capabilities"`
-	Privileged   bool           `json:"privileged"`
-	PrivEsc      bool           `json:"privesc"`
-	HostPID      bool           `json:"hostPid"`
-	HostPath     bool           `json:"hostPath"`
-	HostIPC      bool           `json:"hostIpc"`
-	HostNetwork  bool           `json:"hostNetwork"`
-	RunAsUser    int64          `json:"runAsUser"`
-	Ports        []int          `json:"ports"`
-	Pod          string         `json:"pod"`
-	Node         string         `json:"node"`
-	Compromised  CompromiseType `json:"compromised,omitempty"`
-	Critical     bool           `json:"critical,omitempty"`
+	StoreID      string                `json:"storeID" mapstructure:"storeID"`
+	Name         string                `json:"name" mapstructure:"name"`
+	Image        string                `json:"image" mapstructure:"image"`
+	Command      []string              `json:"command" mapstructure:"command"`
+	Args         []string              `json:"args" mapstructure:"args"`
+	Capabilities []string              `json:"capabilities" mapstructure:"capabilities"`
+	Privileged   bool                  `json:"privileged" mapstructure:"privileged"`
+	PrivEsc      bool                  `json:"privesc" mapstructure:"privesc"`
+	HostPID      bool                  `json:"hostPid" mapstructure:"hostPid"`
+	HostPath     bool                  `json:"hostPath" mapstructure:"hostPath"`
+	HostIPC      bool                  `json:"hostIpc" mapstructure:"hostIpc"`
+	HostNetwork  bool                  `json:"hostNetwork" mapstructure:"hostNetwork"`
+	RunAsUser    int64                 `json:"runAsUser" mapstructure:"runAsUser"`
+	Ports        []string              `json:"ports" mapstructure:"ports"`
+	Pod          string                `json:"pod" mapstructure:"pod"`
+	Node         string                `json:"node" mapstructure:"node"`
+	Compromised  shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
+	Critical     bool                  `json:"critical" mapstructure:"critical"`
 }
 
 type Group struct {
-	StoreId string `json:"store_id"`
-	Name    string `json:"name"`
+	StoreID string `json:"storeID" mapstructure:"storeID"`
+	Name    string `json:"name" mapstructure:"name"`
 }
 
 type Identity struct {
-	StoreId      string `json:"store_id"`
-	Name         string `json:"name"`
-	IsNamespaced bool   `json:"is_namespaced"`
-	Namespace    string `json:"namespace"`
-	Type         string `json:"type"`
+	StoreID      string `json:"storeID" mapstructure:"storeID"`
+	Name         string `json:"name" mapstructure:"name"`
+	IsNamespaced bool   `json:"isNamespaced" mapstructure:"isNamespaced"`
+	Namespace    string `json:"namespace" mapstructure:"namespace"`
+	Type         string `json:"type" mapstructure:"type"`
 }
 
 type Node struct {
-	StoreId      string         `json:"store_id"`
-	Name         string         `json:"name"`
-	IsNamespaced bool           `json:"is_namespaced"`
-	Namespace    string         `json:"namespace"`
-	Compromised  CompromiseType `json:"compromised,omitempty"`
-	Critical     bool           `json:"critical,omitempty"`
+	StoreID      string                `json:"storeID" mapstructure:"storeID"`
+	Name         string                `json:"name" mapstructure:"name"`
+	IsNamespaced bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
+	Namespace    string                `json:"namespace" mapstructure:"namespace"`
+	Compromised  shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
+	Critical     bool                  `json:"critical" mapstructure:"critical"`
 }
 
 type Pod struct {
-	StoreId                string         `json:"store_id"`
-	Name                   string         `json:"name"`
-	IsNamespaced           bool           `json:"is_namespaced"`
-	Namespace              string         `json:"namespace"`
-	SharedProcessNamespace bool           `json:"sharedProcessNamespace"`
-	ServiceAccount         string         `json:"serviceAccount"`
-	Node                   string         `json:"node"`
-	Compromised            CompromiseType `json:"compromised,omitempty"`
-	Critical               bool           `json:"critical,omitempty"`
+	StoreID                string                `json:"storeID" mapstructure:"storeID"`
+	Name                   string                `json:"name" mapstructure:"name"`
+	IsNamespaced           bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
+	Namespace              string                `json:"namespace" mapstructure:"namespace"`
+	SharedProcessNamespace bool                  `json:"sharedProcessNamespace" mapstructure:"sharedProcessNamespace"`
+	ServiceAccount         string                `json:"serviceAccount" mapstructure:"serviceAccount"`
+	Node                   string                `json:"node" mapstructure:"node"`
+	Compromised            shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
+	Critical               bool                  `json:"critical" mapstructure:"critical"`
 }
 
 type Role struct {
-	StoreId      string   `json:"store_id"`
-	Name         string   `json:"name"`
-	IsNamespaced bool     `json:"is_namespaced"`
-	Namespace    string   `json:"namespace"`
-	Rules        []string `json:"rules"`
+	StoreID      string   `json:"storeID" mapstructure:"storeID"`
+	Name         string   `json:"name" mapstructure:"name"`
+	IsNamespaced bool     `json:"isNamespaced" mapstructure:"isNamespaced"`
+	Namespace    string   `json:"namespace" mapstructure:"namespace"`
+	Rules        []string `json:"rules" mapstructure:"rules"`
 }
 
 type Token struct {
-	StoreId     string         `json:"store_id"`
-	Name        string         `json:"name"`
-	Type        string         `json:"type"`
-	Identity    string         `json:"identity"`
-	Path        string         `json:"path"`
-	Compromised CompromiseType `json:"compromised,omitempty"`
-	Critical    bool           `json:"critical,omitempty"`
+	Name        string                `json:"name" mapstructure:"name"`
+	Namespace   string                `json:"namespace"  mapstructure:"namespace"`
+	Type        string                `json:"type" mapstructure:"type"`
+	Identity    string                `json:"identity" mapstructure:"identity"`
+	Compromised shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
+	Critical    bool                  `json:"critical" mapstructure:"critical"`
 }
 
-const (
-	VolumeTypeHost      = "HostPath"
-	VolumeTypeProjected = "Projected"
-)
-
 type Volume struct {
-	StoreId string `json:"store_id"`
-	Name    string `json:"name"`
-	Type    string `json:"type"`
-	Path    string `json:"path"`
+	StoreID string `json:"storeID" mapstructure:"storeID"`
+	Name    string `json:"name" mapstructure:"name"`
+	Type    string `json:"type" mapstructure:"type"`
+	Path    string `json:"path" mapstructure:"path"`
 }

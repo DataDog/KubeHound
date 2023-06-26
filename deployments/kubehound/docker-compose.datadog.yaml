@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  datadog:
+    image: gcr.io/datadoghq/agent:7
+    restart: unless-stopped
+    container_name: datadog-agent
+    ports:
+      - "127.0.0.1:8125:8125"
+    environment:
+     - DD_API_KEY="${DD_API_KEY:?error}"
+     - DD_SITE=datadoghq.com
+    networks:
+      - kubenet
+
+networks:
+  kubenet:

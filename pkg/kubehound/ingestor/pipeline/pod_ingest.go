@@ -6,8 +6,9 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 const (
@@ -24,7 +25,7 @@ const (
 )
 
 type PodIngest struct {
-	v []vertex.Vertex
+	v []vertex.Builder
 	c []collections.Collection
 	r *IngestResources
 }
@@ -43,7 +44,7 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	// from the (container/init container lists). As such we need to intialize a list of the writers we need.
 	//
 
-	i.v = []vertex.Vertex{
+	i.v = []vertex.Builder{
 		vertex.Pod{},
 		vertex.Container{},
 		vertex.Volume{},
@@ -80,23 +81,24 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 	}
 
 	// Async write to store
-	if err := i.r.storeWriter(i.c[containerIndex]).Queue(ctx, sc); err != nil {
+	if err := i.r.writeStore(ctx, i.c[containerIndex], sc); err != nil {
 		return err
 	}
 
 	// Async write to cache
-	if err := i.r.cacheWriter.Queue(ctx, cache.ContainerKey(parent.K8.Name, sc.K8.Name), sc.Id.Hex()); err != nil {
+	if err := i.r.writeCache(ctx, cachekey.Container(parent.K8.Name, sc.K8.Name, parent.K8.Namespace),
+		sc.Id.Hex()); err != nil {
 		return err
 	}
 
 	// Transform store model to vertex input
-	vc, err := i.r.graphConvert.Container(sc)
+	insert, err := i.r.graphConvert.Container(sc)
 	if err != nil {
 		return err
 	}
 
 	// Aysnc write to graph
-	if err := i.r.graphWriter(i.v[containerIndex]).Queue(ctx, vc); err != nil {
+	if err := i.r.writeVertex(ctx, i.v[containerIndex], insert); err != nil {
 		return err
 	}
 
@@ -108,22 +110,23 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 	// Normalize volume to store object format
 	sv, err := i.r.storeConvert.Volume(ctx, volume, parent)
 	if err != nil {
-		return err
+		log.I.Errorf("process volume type: %v (continuing)", err)
+		return nil
 	}
 
 	// Async write to store
-	if err := i.r.storeWriter(i.c[volumeIndex]).Queue(ctx, sv); err != nil {
+	if err := i.r.writeStore(ctx, i.c[volumeIndex], sv); err != nil {
 		return err
 	}
 
 	// Transform store model to vertex input
-	vv, err := i.r.graphConvert.Volume(sv)
+	insert, err := i.r.graphConvert.Volume(sv, parent)
 	if err != nil {
 		return err
 	}
 
 	// Aysnc write to graph
-	if err := i.r.graphWriter(i.v[volumeIndex]).Queue(ctx, vv); err != nil {
+	if err := i.r.writeVertex(ctx, i.v[volumeIndex], insert); err != nil {
 		return err
 	}
 
@@ -141,18 +144,18 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	}
 
 	// Async write to store
-	if err := i.r.storeWriter(i.c[podIndex]).Queue(ctx, sp); err != nil {
+	if err := i.r.writeStore(ctx, i.c[podIndex], sp); err != nil {
 		return err
 	}
 
 	// Transform store model to vertex input
-	vp, err := i.r.graphConvert.Pod(sp)
+	insert, err := i.r.graphConvert.Pod(sp)
 	if err != nil {
 		return err
 	}
 
 	// Aysnc write to graph
-	if err := i.r.graphWriter(i.v[podIndex]).Queue(ctx, vp); err != nil {
+	if err := i.r.writeVertex(ctx, i.v[podIndex], insert); err != nil {
 		return err
 	}
 

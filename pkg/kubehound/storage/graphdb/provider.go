@@ -4,16 +4,24 @@ import (
 	"context"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage"
 )
 
 type writerOptions struct {
+	Tags []string
 }
 
 type WriterOption func(*writerOptions)
+
+func WithTags(tags []string) WriterOption {
+	return func(wo *writerOptions) {
+		wo.Tags = tags
+	}
+}
 
 // Provider defines the interface for implementations of the graphdb provider for storage of the calculated K8s attack graph.
 //
@@ -25,10 +33,13 @@ type Provider interface {
 	Raw() any
 
 	// VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
-	VertexWriter(ctx context.Context, v vertex.Vertex, opts ...WriterOption) (AsyncVertexWriter, error)
+	VertexWriter(ctx context.Context, v vertex.Builder, opts ...WriterOption) (AsyncVertexWriter, error)
 
 	// EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
-	EdgeWriter(ctx context.Context, e edge.Edge, opts ...WriterOption) (AsyncEdgeWriter, error)
+	EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error)
+
+	// PathWriter creates a new AsyncPathWriter instance to enable asynchronous bulk inserts of paths.
+	PathWriter(ctx context.Context, p path.Builder, opts ...WriterOption) (AsyncPathWriter, error)
 
 	// Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.
 	Close(ctx context.Context) error
@@ -62,7 +73,16 @@ type AsyncEdgeWriter interface {
 	Queue(ctx context.Context, e any) error
 }
 
+// AsyncPathWriter defines the interface for writer clients to queue aysnchronous, batched writes of paths to the graphdb.
+type AsyncPathWriter interface {
+	WriterBase
+
+	// Queue add a path model to an asynchronous write queue. Non-blocking.
+	Queue(ctx context.Context, e any) error
+}
+
 // Factory returns an initialized instance of a graphdb provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
-	return nil, globals.ErrNotImplemented
+	r := storage.Retrier(NewGraphDriver, cfg.Storage.Retry, cfg.Storage.RetryDelay)
+	return r(ctx, cfg.JanusGraph.URL, cfg.JanusGraph.ConnectionTimeout)
 }

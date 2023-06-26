@@ -4,6 +4,17 @@ A Kubernetes attack graph tool
 
 Full documentation available on confluence: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2871592134/KubeHound+1.0
 
+## Run
+
+To run the application, you can use docker image with the compose:
+* Copy `deployments/kubehound/.env.tpl` to `deployments/kubehound/.env`
+* Edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`)
+* Run `make backend-up`
+
+Note:
+* KUBEHOUND_ENV=prod will use prebuilt image from ghcr.io
+* KUBEHOUND_ENV=dev will build the images locally
+
 ## Build
 
 Build the application via:
@@ -32,17 +43,25 @@ The repository includes a suite of system tests that will do the following:
 
 The cluster setup and running instances can be found under [test/setup](./test/setup/)
 
+If you need to manually access the system test environement with kubectl and other commands, you'll need to set (assuming you are at the root dir):
+```bash
+cd test/setup/ && export KUBECONFIG=$(pwd)/.kube/config
+```
+
 ### Requirements
 
 + Kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager
 + Kubectl: https://kubernetes.io/docs/tasks/tools/
+
+#### Environment variable:
+- `DD_API_KEY` (optional): set to the datadog API key used to submit metrics and other observability data.
 
 ### Setup
 
 Setup the test kind cluster (you only need to do this once!) via:
 
 ```bash
-make local-cluster-setup
+make local-cluster-deploy
 ```
 
 Then run the system tests via:
@@ -56,6 +75,16 @@ To cleanup the environment you can destroy the cluster via:
 ```bash
 make local-cluster-destroy
 ```
+
+To list all the available commands, run:
+
+```bash
+make help
+```
+
+Note: if you are running on Linux but you dont want to run `sudo` for `kind` and `docker` command, you can overwrite this behavior by editing the following var in `test/setup/.config`:
+* `DOCKER_CMD="docker"` for docker command
+* `KIND_CMD="kind"` for kind command 
 
 ### CI Testing
 

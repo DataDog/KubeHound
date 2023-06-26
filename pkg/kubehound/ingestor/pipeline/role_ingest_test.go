@@ -7,6 +7,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/collector"
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
@@ -37,7 +38,7 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	// Cache setup
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cache.roleCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
+	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.roleCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
 	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
@@ -46,18 +47,35 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
 	roles := collections.Role{}
-	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).Return(nil).Once()
+	storeId := store.ObjectID()
+	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).
+		RunAndReturn(func(ctx context.Context, i any) error {
+			i.(*store.Role).Id = storeId
+			return nil
+		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, roles).Return(sw, nil)
+	sdb.EXPECT().BulkWriter(ctx, roles, mock.Anything).Return(sw, nil)
 
 	// Graph setup
+	vtxInsert := map[string]any{
+		"isNamespaced": false,
+		"name":         "test-reader",
+		"namespace":    "test-app",
+		"rules": []any{
+			"API()::R(pods)::N()::V(get,list)", "API()::R(configmaps)::N()::V(get)",
+			"API(apps)::R(statefulsets)::N()::V(get,list)",
+		},
+		"storeID": storeId.Hex(),
+	}
+
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
-	gw.EXPECT().Queue(ctx, mock.AnythingOfType("*graph.Role")).Return(nil).Once()
+
+	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Role")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Role"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,

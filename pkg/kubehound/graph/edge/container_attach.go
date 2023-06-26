@@ -3,9 +3,13 @@ package edge
 import (
 	"context"
 
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -18,7 +22,7 @@ func init() {
 type ContainerAttach struct {
 }
 
-type ContainerAttachGroup struct {
+type containerAttachGroup struct {
 	Pod        primitive.ObjectID   `bson:"_id" json:"pod"`
 	Containers []primitive.ObjectID `bson:"containers" json:"containers"`
 }
@@ -27,23 +31,45 @@ func (e ContainerAttach) Label() string {
 	return "CONTAINER_ATTACH"
 }
 
-func (e ContainerAttach) Traversal() EdgeTraversal {
-	return func(g *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
-		return g.Inject(inserts).Unfold().As("ca").
-			V().HasLabel("Pod").Has("storeId", gremlin.T__.Select("ca").Select("pod")).As("pod").
-			V().HasLabel("Container").Has("storeId", gremlin.T__.Select("ca").Select("container")).As("container").
-			MergeE(e.Label()).From("pod").To("container")
+func (e ContainerAttach) BatchSize() int {
+	return DefaultBatchSize
+}
+
+func (e ContainerAttach) Processor(ctx context.Context, entry any) (any, error) {
+	return adapter.GremlinInputProcessor[*containerAttachGroup](ctx, entry)
+}
+
+// Traversal expects a list of containerAttachGroup serialized as mapstructure for injection into the graph.
+// For each containerAttachGroup, the traversal will: 1) find the pod vertex with matching storeID, 2) find the
+// container vertices with matching storeIDs, and 3) add a CONTAINER_ATTACH edge between the pod and container vertices.
+func (e ContainerAttach) Traversal() Traversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+		g := source.GetGraphTraversal().
+			Inject(inserts).
+			Unfold().As("ca").
+			Select("containers").
+			Unfold().
+			As("c").
+			V().HasLabel(vertex.ContainerLabel).
+			Where(P.Eq("c")).
+			By("storeID").
+			By().
+			AddE(e.Label()).
+			From(
+				__.V().HasLabel(vertex.PodLabel).
+					Where(P.Eq("ca")).
+					By("storeID").
+					By("pod")).
+			Barrier().Limit(0)
+
+		return g
 	}
 }
 
-func (e ContainerAttach) Processor(ctx context.Context, entry DataContainer) (TraversalInput, error) {
-	return MongoProcessor[*ContainerAttachGroup](ctx, entry)
-}
+func (e ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-func (e ContainerAttach) Stream(ctx context.Context, store storedb.Provider,
-	callback ProcessEntryCallback, complete CompleteQueryCallback) error {
-
-	containers := MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
 	pipeline := []bson.M{
 		{"$group": bson.M{
 			"_id": "$pod_id",
@@ -60,5 +86,5 @@ func (e ContainerAttach) Stream(ctx context.Context, store storedb.Provider,
 	}
 	defer cur.Close(ctx)
 
-	return MongoCursorHandler[ContainerAttachGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[containerAttachGroup](ctx, cur, callback, complete)
 }

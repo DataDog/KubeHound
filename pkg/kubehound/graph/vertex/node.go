@@ -1,33 +1,49 @@
 package vertex
 
 import (
+	"context"
+
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/driver"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 const (
-	nodeLabel = "Node"
+	NodeLabel = "Node"
 )
 
-var _ Vertex = (*Node)(nil)
+var _ Builder = (*Node)(nil)
 
 type Node struct {
 }
 
 func (v Node) Label() string {
-	return nodeLabel
+	return NodeLabel
 }
 
-func (v Node) Traversal() VertexTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal()
+func (v Node) BatchSize() int {
+	return DefaultBatchSize
+}
 
-		for _, insert := range inserts {
-			i := insert.(*graph.Node)
-			g = g.AddV(v.Label()).
-				Property("id", i.StoreId).
-				Property("name", i.Name)
-		}
+func (v Node) Processor(ctx context.Context, entry any) (any, error) {
+	return adapter.GremlinInputProcessor[*graph.Node](ctx, entry)
+}
+
+func (v Node) Traversal() Traversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+		g := source.GetGraphTraversal().
+			Inject(inserts).
+			Unfold().As("nodes").
+			AddV(v.Label()).As("nodeVtx").
+			Property("class", v.Label()). // labels are not indexed - use a mirror property
+			SideEffect(
+				__.Select("nodes").
+					Unfold().As("kv").
+					Select("nodeVtx").
+					Property(
+						__.Select("kv").By(Column.Keys),
+						__.Select("kv").By(Column.Values)))
 
 		return g
 	}

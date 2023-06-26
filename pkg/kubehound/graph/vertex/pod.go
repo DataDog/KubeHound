@@ -1,18 +1,51 @@
 package vertex
 
-const (
-	podLabel = "Pod"
+import (
+	"context"
+
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
-var _ Vertex = (*Pod)(nil)
+const (
+	PodLabel = "Pod"
+)
+
+var _ Builder = (*Pod)(nil)
 
 type Pod struct {
 }
 
 func (v Pod) Label() string {
-	return podLabel
+	return PodLabel
 }
 
-func (v Pod) Traversal() VertexTraversal {
-	return nil
+func (v Pod) BatchSize() int {
+	return DefaultBatchSize
+}
+
+func (v Pod) Processor(ctx context.Context, entry any) (any, error) {
+	return adapter.GremlinInputProcessor[*graph.Pod](ctx, entry)
+}
+
+func (v Pod) Traversal() Traversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+		g := source.GetGraphTraversal().
+			Inject(inserts).
+			Unfold().As("pods").
+			AddV(v.Label()).As("podVtx").
+			Property("class", v.Label()). // labels are not indexed - use a mirror property
+			SideEffect(
+				__.Select("pods").
+					Unfold().As("kv").
+					Select("podVtx").
+					Property(
+						__.Select("kv").By(Column.Keys),
+						__.Select("kv").By(Column.Values))).
+			Barrier().Limit(0)
+
+		return g
+	}
 }

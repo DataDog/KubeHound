@@ -1,12 +1,22 @@
 name: KubeHound System Tests
 
-on: pull_request
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   system-test:
-    runs-on: ubuntu-latest
-
-    steps:       
+    runs-on:
+      group: Large Runner Shared Public 
+      labels: ubuntu-8-core-latest
+    environment: devenv
+    steps:
+      - uses: datadog/agent-github-action@v1.3
+        with:
+          api_key: ${{ secrets.DD_API_KEY }}
+          extra_env: DD_TRACE_DEBUG=1,DD_LOGS_ENABLED=true,DD_APM_ENABLED=true
       - name: Checkout Git Repo
         uses: actions/checkout@v3
 
@@ -16,17 +26,20 @@ jobs:
           cluster_name: kubehound.test.local
           config: test/setup/test-cluster/cluster.yaml
           wait: 5m
+        env:
+          KUBECONFIG: ./test/setup/.kube-config
         
       - name: Create K8s resources
-        working-directory: test/setup/
-        run: bash create-cluster-resources.sh
+        run: make local-cluster-resource-deploy
+        env:
+          KUBECONFIG: ./test/setup/.kube-config
       
       - name: Setup Golang
         uses: actions/setup-go@v4
         with:
-          go-version: 1.20.0
+          go-version: "1.20"
 
       - name: Run integration Tests
-        # Currently system tests are expected to fail as we do not have all service dependencies
-        # implemented. However, we still want to run the CI step. Always succeed for now :)
-        run: make system-test || true
+        run: make system-test
+        env:
+          KIND_KUBECONFIG: .kube-config

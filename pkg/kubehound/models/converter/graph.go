@@ -1,11 +1,15 @@
 package converter
 
 import (
+	"fmt"
+	"strconv"
 	"strings"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 
+	"github.com/DataDog/KubeHound/pkg/kube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 )
 
@@ -21,7 +25,7 @@ func NewGraph() *GraphConverter {
 // Container returns the graph representation of a container vertex from a store container model input.
 func (c *GraphConverter) Container(input *store.Container) (*graph.Container, error) {
 	output := &graph.Container{
-		StoreId:     input.Id.Hex(),
+		StoreID:     input.Id.Hex(),
 		Name:        input.K8.Name,
 		Image:       input.K8.Image,
 		Command:     input.K8.Command,
@@ -57,10 +61,11 @@ func (c *GraphConverter) Container(input *store.Container) (*graph.Container, er
 	}
 
 	// Exposed ports
-	output.Ports = make([]int, 0)
+	output.Ports = make([]string, 0)
 	if input.K8.Ports != nil {
 		for _, p := range input.K8.Ports {
-			output.Ports = append(output.Ports, int(p.HostPort))
+			// We map the integer port to a string to make our lives easier in the bullk gaph insert (#gremlin)
+			output.Ports = append(output.Ports, strconv.Itoa((int(p.HostPort))))
 		}
 	}
 
@@ -70,7 +75,7 @@ func (c *GraphConverter) Container(input *store.Container) (*graph.Container, er
 // Node returns the graph representation of a node vertex from a store node model input.
 func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 	output := &graph.Node{
-		StoreId: input.Id.Hex(),
+		StoreID: input.Id.Hex(),
 		Name:    input.K8.Name,
 	}
 
@@ -85,38 +90,40 @@ func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 // Pod returns the graph representation of a pod vertex from a store pod model input.
 func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 	output := &graph.Pod{
-		StoreId:        input.Id.Hex(),
+		StoreID:        input.Id.Hex(),
 		Name:           input.K8.Name,
 		Namespace:      input.K8.GetNamespace(),
 		ServiceAccount: input.K8.Spec.ServiceAccountName,
 		Node:           input.K8.Spec.NodeName,
 	}
-
 	if input.K8.Spec.ShareProcessNamespace != nil {
 		output.SharedProcessNamespace = *input.K8.Spec.ShareProcessNamespace
+	}
+	if output.Namespace != "" {
+		output.IsNamespaced = true
 	}
 
 	return output, nil
 }
 
 // Volume returns the graph representation of a volume vertex from a store volume model input.
-func (c *GraphConverter) Volume(input *store.Volume) (*graph.Volume, error) {
+func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.Volume, error) {
 	output := &graph.Volume{
-		StoreId: input.Id.Hex(),
+		StoreID: input.Id.Hex(),
 		Name:    input.Name,
 	}
 
 	switch {
 	case input.Source.HostPath != nil:
-		output.Type = graph.VolumeTypeHost
+		output.Type = shared.VolumeTypeHost
 		output.Path = input.Source.HostPath.Path
 	case input.Source.Projected != nil:
-		output.Type = graph.VolumeTypeProjected
+		output.Type = shared.VolumeTypeProjected
 
 		// Loop through looking for the service account token
 		for _, proj := range input.Source.Projected.Sources {
 			if proj.ServiceAccountToken != nil {
-				output.Path = proj.ServiceAccountToken.Path
+				output.Path = kube.ServiceAccountTokenPath(string(parent.K8.ObjectMeta.UID), input.Name)
 				break // assume only 1 entry
 			}
 		}
@@ -160,7 +167,7 @@ func (c *GraphConverter) flattenPolicyRules(input []rbacv1.PolicyRule) []string 
 // Role returns the graph representation of a role vertex from a store role model input.
 func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
 	output := &graph.Role{
-		StoreId:   input.Id.Hex(),
+		StoreID:   input.Id.Hex(),
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Rules:     c.flattenPolicyRules(input.Rules),
@@ -172,9 +179,28 @@ func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
 // Identity returns the graph representation of an identity vertex from a store identity model input.
 func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error) {
 	return &graph.Identity{
-		StoreId:   input.Id.Hex(),
+		StoreID:   input.Id.Hex(),
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Type:      input.Type,
+	}, nil
+}
+
+// Token returns the graph representation of a service account token vertex from a store projected volume model input.
+// NOTE: this currently only supports service account tokens from projected volumes.
+func (c *GraphConverter) Token(identityName string, identityNamespace string, volume *store.Volume) (*graph.Token, error) {
+	if volume.Type != shared.VolumeTypeProjected {
+		return nil, fmt.Errorf("invalid volume type for service account token: %s", volume.Type)
+	}
+
+	if volume.Source.VolumeSource.Projected == nil {
+		return nil, fmt.Errorf("missing projected volume data: %#v", volume.Source)
+	}
+
+	return &graph.Token{
+		Name:      volume.Name,
+		Namespace: identityNamespace,
+		Type:      shared.TokenTypeSA,
+		Identity:  identityName,
 	}, nil
 }
