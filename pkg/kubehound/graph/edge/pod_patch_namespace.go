@@ -50,21 +50,21 @@ func (e PodPatchNamespace) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
-			Unfold().As("ppg").
-			Select("nodes").
-			Unfold().
-			As("n").
+			Unfold().As("ppc").
+			V().
+			HasLabel(vertex.RoleLabel).
+			Has("critical", false). // Not out edges from critical assets
+			Has("storeID", __.Where(P.Eq("ppc")).By().By("role")).
+			As("r").
 			V().
 			HasLabel(vertex.NodeLabel).
 			Has("class", vertex.NodeLabel).
-			Has("storeID", __.Where(P.Eq("n"))).
+			Unfold().
 			AddE(e.Label()).
-			From(
-				__.V().
-					HasLabel(vertex.RoleLabel).
-					Has("critical", false). // Not out edges from critical assets
-					Has("storeID", __.Where(P.Eq("ppg")).By().By("role"))).
+			From(__.Select("r")).
 			Barrier().Limit(0)
+
+		return g
 
 		return g
 	}
@@ -112,7 +112,7 @@ func (e PodPatchNamespace) Stream(ctx context.Context, store storedb.Provider, _
 									"$k8.objectmeta.namespace", "$$roleNamespace",
 								},
 							}},
-							bson.M{"is_namespaced": false},
+							//bson.M{"is_namespaced": false},
 						}},
 					},
 					{

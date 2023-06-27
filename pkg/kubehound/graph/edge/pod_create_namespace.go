@@ -112,7 +112,7 @@ func (e PodCreateNamespace) Stream(ctx context.Context, store storedb.Provider, 
 									"$k8.objectmeta.namespace", "$$roleNamespace",
 								},
 							}},
-							bson.M{"is_namespaced": false},
+							//bson.M{"is_namespaced": false},
 						}},
 					},
 					{
