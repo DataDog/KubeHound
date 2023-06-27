@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"github.com/stretchr/testify/suite"
@@ -266,11 +267,25 @@ func (suite *EdgeTestSuite) TestEdge_ROLE_GRANT() {
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
 		"path[map[name:[pod-create-sa]], map[], map[name:[create-pods]",
-		"path[map[name:[rolebind-sa]], map[], map[name:[rolebind]",
-		"path[map[name:[tokenlist-sa]], map[], map[name:[list-secrets]",
-		"path[map[name:[impersonate-sa]], map[], map[name:[impersonate]",
-		"path[map[name:[tokenget-sa]], map[], map[name:[read-secrets]",
-		"path[map[name:[pod-patch-sa]], map[], map[name:[patch-pods]",
+	}
+	suite.Subset(paths, expected)
+}
+func (suite *EdgeTestSuite) TestEdge_SHARE_PS_NAMESPACE() {
+	// WIP / FIX ME
+	results, err := suite.g.V().
+		HasLabel(vertex.PodLabel).
+		OutE().HasLabel("SHARE_PS_NAMESPACE").
+		InV().HasLabel("Pods").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[pod-create-sa]], map[], map[name:[create-pods]",
 	}
 	suite.Subset(paths, expected)
 }

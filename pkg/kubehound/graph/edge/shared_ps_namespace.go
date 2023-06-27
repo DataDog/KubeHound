@@ -33,7 +33,7 @@ func (e shareProcessNamespace) BatchSize() int {
 }
 
 func (e shareProcessNamespace) Label() string {
-	return "SHARED_PS_NAMESPACE"
+	return "SHARE_PS_NAMESPACE"
 }
 
 func (e shareProcessNamespace) Traversal() Traversal {
