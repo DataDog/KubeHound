@@ -1,5 +1,6 @@
 // PLEASE DO NOT EDIT
 // THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-06-26 20:13
+
 //
 // Generate it with "go generate ./..."
 //

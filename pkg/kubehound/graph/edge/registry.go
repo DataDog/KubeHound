@@ -31,9 +31,5 @@ func Register(edge Builder) {
 		log.I.Fatalf("edge name collision: %s", edge.Name())
 	}
 
-	if edge.Name() != "TestEdge" {
-		return
-	}
-
 	registry[edge.Name()] = edge
 }
