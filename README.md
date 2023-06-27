@@ -20,7 +20,7 @@ Note:
 Kubehound has Jupyter Notebook setup provided in the docker compose.
 It allows user to perform query dynamically and display graphs visualization.
 
-URL: `https://127.0.0.1:8888`
+URL: `http://127.0.0.1:8888`
 
 The Dockerfile is based on https://github.com/aws/graph-notebook
 

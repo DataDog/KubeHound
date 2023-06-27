@@ -6,10 +6,6 @@ if [ ${GRAPH_NOTEBOOK_SSL} = "" ]; then
     GRAPH_NOTEBOOK_SSL="True"
 fi
 
-if [ ${PROVIDE_EXAMPLES} -eq 1 ]; then
-    python3 -m graph_notebook.notebooks.install --destination "${EXAMPLE_NOTEBOOK_DIR}"
-fi
-
 python3 -m graph_notebook.configuration.generate_config \
     --host "${GRAPH_NOTEBOOK_HOST}" \
     --port "${GRAPH_NOTEBOOK_PORT}" \
@@ -19,9 +15,7 @@ python3 -m graph_notebook.configuration.generate_config \
     --ssl "${GRAPH_NOTEBOOK_SSL}" \
     --iam_credentials_provider "${GRAPH_NOTEBOOK_IAM_PROVIDER}" \
     --load_from_s3_arn "${NEPTUNE_LOAD_FROM_S3_ROLE_ARN}" \
-    --aws_region "${AWS_REGION}" \
-
-
+    --aws_region "${AWS_REGION}"
 
 ##### Running The Notebook Service #####
 mkdir ~/.jupyter

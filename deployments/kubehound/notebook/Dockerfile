@@ -12,7 +12,6 @@ USER root
 ENV pipargs=""
 ENV WORKING_DIR="/root"
 ENV NOTEBOOK_DIR="${WORKING_DIR}/notebooks"
-ENV EXAMPLE_NOTEBOOK_DIR="${NOTEBOOK_DIR}/Example Notebooks"
 ENV NODE_VERSION=14.x
 ENV GRAPH_NOTEBOOK_AUTH_MODE="DEFAULT"
 ENV GRAPH_NOTEBOOK_HOST="neptune.cluster-XXXXXXXXXXXX.us-east-1.neptune.amazonaws.com"
@@ -35,7 +34,6 @@ STOPSIGNAL SIGUSR1
 
 RUN mkdir -p "${WORKING_DIR}" && \
     mkdir -p "${NOTEBOOK_DIR}" && \
-    mkdir -p "${EXAMPLE_NOTEBOOK_DIR}" && \
     # Yum Update and install dependencies
     yum update -y && \
     yum install tar gzip git amazon-linux-extras which -y && \
@@ -65,7 +63,6 @@ RUN mkdir -p "${WORKING_DIR}" && \
     pip3 install . && \
     # copy premade starter notebooks
     cd "${WORKING_DIR}/graph-notebook" && \
-    python3 -m graph_notebook.notebooks.install --destination "${EXAMPLE_NOTEBOOK_DIR}" && \
     jupyter nbextension enable  --py --sys-prefix graph_notebook.widgets && \
     # This allows for the `.ipython` to be set
     python -m graph_notebook.start_jupyterlab --jupyter-dir "${NOTEBOOK_DIR}" && \
