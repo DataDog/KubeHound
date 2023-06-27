@@ -24,6 +24,10 @@ func (e EscapeModuleLoad) Label() string {
 	return "CE_MODULE_LOAD"
 }
 
+func (e EscapeModuleLoad) Name() string {
+	return "ContainerEscapeModuleLoad"
+}
+
 func (e EscapeModuleLoad) BatchSize() int {
 	return DefaultBatchSize
 }

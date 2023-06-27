@@ -113,7 +113,6 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"capabilities": []any{},
 		"command":      any(nil),
 		"compromised":  float64(0),
-		"critical":     false,
 		"hostIpc":      false,
 		"hostNetwork":  false,
 		"hostPath":     false,

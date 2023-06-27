@@ -11,6 +11,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
+	"github.com/DataDog/KubeHound/pkg/kubehound/risk"
 )
 
 // GraphConverter enables converting between an input store model to its equivalent graph model.
@@ -75,8 +76,9 @@ func (c *GraphConverter) Container(input *store.Container) (*graph.Container, er
 // Node returns the graph representation of a node vertex from a store node model input.
 func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 	output := &graph.Node{
-		StoreID: input.Id.Hex(),
-		Name:    input.K8.Name,
+		StoreID:  input.Id.Hex(),
+		Name:     input.K8.Name,
+		Critical: risk.Engine().IsCritical(input),
 	}
 
 	if input.IsNamespaced {
@@ -95,6 +97,7 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 		Namespace:      input.K8.GetNamespace(),
 		ServiceAccount: input.K8.Spec.ServiceAccountName,
 		Node:           input.K8.Spec.NodeName,
+		Critical:       risk.Engine().IsCritical(input),
 	}
 	if input.K8.Spec.ShareProcessNamespace != nil {
 		output.SharedProcessNamespace = *input.K8.Spec.ShareProcessNamespace
@@ -171,6 +174,11 @@ func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Rules:     c.flattenPolicyRules(input.Rules),
+		Critical:  risk.Engine().IsCritical(input),
+	}
+
+	if output.Namespace != "" {
+		output.IsNamespaced = true
 	}
 
 	return output, nil
@@ -178,12 +186,19 @@ func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
 
 // Identity returns the graph representation of an identity vertex from a store identity model input.
 func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error) {
-	return &graph.Identity{
+	output := &graph.Identity{
 		StoreID:   input.Id.Hex(),
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Type:      input.Type,
-	}, nil
+		Critical:  risk.Engine().IsCritical(input),
+	}
+
+	if output.Namespace != "" {
+		output.IsNamespaced = true
+	}
+
+	return output, nil
 }
 
 // Token returns the graph representation of a service account token vertex from a store projected volume model input.
