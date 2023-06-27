@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	//Register(PodPatchNamespace{})
+	Register(PodPatchNamespace{})
 }
 
 // @@DOCLINK: TODO

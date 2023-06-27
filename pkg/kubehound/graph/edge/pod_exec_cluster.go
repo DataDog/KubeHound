@@ -20,7 +20,7 @@ const (
 )
 
 func init() {
-	//Register(PodExecCluster{})
+	Register(PodExecCluster{})
 }
 
 // @@DOCLINK: TODO
@@ -40,7 +40,7 @@ func (e PodExecCluster) Name() string {
 }
 
 func (e PodExecCluster) BatchSize() int {
-	return podExecBatchSize
+	return 1
 }
 
 func (e PodExecCluster) Processor(ctx context.Context, entry any) (any, error) {

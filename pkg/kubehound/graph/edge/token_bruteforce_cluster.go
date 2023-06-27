@@ -20,7 +20,7 @@ const (
 )
 
 func init() {
-	//Register(TokenBruteforceCluster{})
+	Register(TokenBruteforceCluster{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
@@ -58,10 +58,12 @@ func (e TokenBruteforceCluster) Traversal() Traversal {
 			V().
 			Has("critical", false). // Not out edges from critical assets
 			HasLabel(vertex.RoleLabel).
+			Has("class", vertex.RoleLabel).
 			Has("storeID", __.Where(P.Eq("tbc")).By().By("role")).
 			As("r").
 			V().
 			HasLabel(vertex.IdentityLabel).
+			Has("class", vertex.IdentityLabel).
 			Has("type", "ServiceAccount").
 			Unfold().
 			AddE(e.Label()).

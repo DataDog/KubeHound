@@ -20,7 +20,7 @@ const (
 )
 
 func init() {
-	//Register(PodCreateCluster{})
+	Register(PodCreateCluster{})
 }
 
 // @@DOCLINK: TODO
@@ -40,7 +40,7 @@ func (e PodCreateCluster) Name() string {
 }
 
 func (e PodCreateCluster) BatchSize() int {
-	return podCreateBatchSize
+	return 1
 }
 
 func (e PodCreateCluster) Processor(ctx context.Context, entry any) (any, error) {
@@ -55,7 +55,8 @@ func (e PodCreateCluster) Traversal() Traversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("pcc").
-			V().HasLabel(vertex.RoleLabel).
+			V().
+			HasLabel(vertex.RoleLabel).
 			Has("critical", false). // Not out edges from critical assets
 			Has("storeID", __.Where(P.Eq("pcc")).By().By("role")).
 			As("r").
