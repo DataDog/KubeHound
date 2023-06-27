@@ -58,11 +58,13 @@ func (e IdentityAssume) Traversal() Traversal {
 			Unfold().As("ig").
 			V().
 			HasLabel(vertex.ContainerLabel).
+			Has("class", vertex.ContainerLabel).
 			Has("storeID", __.Where(P.Eq("ig")).By().By("container")).
 			AddE(e.Label()).
 			To(
 				__.V().
 					HasLabel(vertex.IdentityLabel).
+					Has("class", vertex.IdentityLabel).
 					Has("storeID", __.Where(P.Eq("ig")).By().By("identity"))).
 			Barrier().Limit(0)
 

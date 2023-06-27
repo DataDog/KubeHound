@@ -36,7 +36,7 @@ func (e TokenBruteforceNamespace) Name() string {
 }
 
 func (e TokenBruteforceNamespace) BatchSize() int {
-	return DefaultBatchSize
+	return 1
 }
 
 func (e TokenBruteforceNamespace) Processor(ctx context.Context, entry any) (any, error) {
@@ -56,6 +56,7 @@ func (e TokenBruteforceNamespace) Traversal() Traversal {
 			As("id").
 			V().
 			HasLabel(vertex.IdentityLabel).
+			Has("class", vertex.IdentityLabel).
 			Has("storeID", __.Where(P.Eq("id"))).
 			As("i").
 			V().

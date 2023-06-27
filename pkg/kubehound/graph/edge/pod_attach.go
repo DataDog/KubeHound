@@ -56,11 +56,13 @@ func (e PodAttach) Traversal() Traversal {
 			As("p").
 			V().
 			HasLabel(vertex.PodLabel).
+			Has("class", vertex.PodLabel).
 			Has("storeID", __.Where(P.Eq("p"))).
 			AddE(e.Label()).
 			From(
 				__.V().
 					HasLabel(vertex.NodeLabel).
+					Has("class", vertex.NodeLabel).
 					Has("storeID", __.Where(P.Eq("pa")).By().By("node"))).
 			Barrier().Limit(0)
 

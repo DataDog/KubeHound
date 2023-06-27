@@ -22,10 +22,13 @@ func containerEscapeTraversal(edgeLabel string) Traversal {
 			Unfold().As("ce").
 			V().
 			HasLabel(vertex.ContainerLabel).
+			Has("class", vertex.ContainerLabel).
 			Has("storeID", __.Where(P.Eq("ce")).By().By("container")).
 			AddE(edgeLabel).
 			To(
-				__.V().HasLabel(vertex.NodeLabel).
+				__.V().
+					HasLabel(vertex.NodeLabel).
+					Has("class", vertex.NodeLabel).
 					Has("storeID", __.Where(P.Eq("ce")).By().By("node"))).
 			Barrier().Limit(0)
 

@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	Register(PodCreateNamespace{})
+	//Register(PodCreateNamespace{})
 }
 
 // @@DOCLINK: TODO
@@ -36,7 +36,7 @@ func (e PodCreateNamespace) Name() string {
 }
 
 func (e PodCreateNamespace) BatchSize() int {
-	return DefaultBatchSize
+	return 2
 }
 
 func (e PodCreateNamespace) Processor(ctx context.Context, entry any) (any, error) {
@@ -56,6 +56,7 @@ func (e PodCreateNamespace) Traversal() Traversal {
 			As("n").
 			V().
 			HasLabel(vertex.NodeLabel).
+			Has("class", vertex.NodeLabel).
 			Has("storeID", __.Where(P.Eq("n"))).
 			AddE(e.Label()).
 			From(

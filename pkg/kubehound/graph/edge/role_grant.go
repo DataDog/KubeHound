@@ -56,11 +56,13 @@ func (e RoleGrant) Traversal() Traversal {
 			As("id").
 			V().
 			HasLabel(vertex.IdentityLabel).
+			Has("class", vertex.IdentityLabel).
 			Has("storeID", __.Where(P.Eq("id"))).
 			AddE(e.Label()).
 			To(
 				__.V().
 					HasLabel(vertex.RoleLabel).
+					Has("class", vertex.RoleLabel).
 					Has("storeID", __.Where(P.Eq("rb")).By().By("role"))).
 			Barrier().Limit(0)
 

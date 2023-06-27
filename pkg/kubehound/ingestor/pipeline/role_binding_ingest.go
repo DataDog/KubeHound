@@ -5,6 +5,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
@@ -100,6 +101,9 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	// Normalize K8s role binding to store object format
 	o, err := i.r.storeConvert.RoleBinding(ctx, rb)
 	if err != nil {
+		if err == converter.ErrDanglingRoleBinding {
+			return nil
+		}
 		return err
 	}
 

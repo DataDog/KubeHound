@@ -5,6 +5,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
@@ -80,6 +81,9 @@ func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context,
 	// TODO We can get cache misses here if bindings remain with no corresponding role which happens is staging!
 	o, err := i.r.storeConvert.ClusterRoleBinding(ctx, crb)
 	if err != nil {
+		if err == converter.ErrDanglingRoleBinding {
+			return nil
+		}
 		return err
 	}
 

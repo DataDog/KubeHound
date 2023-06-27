@@ -62,6 +62,7 @@ func (e PodExecCluster) Traversal() Traversal {
 			As("r").
 			V().
 			HasLabel(vertex.PodLabel).
+			Has("class", vertex.PodLabel).
 			Unfold().
 			AddE(e.Label()).
 			From(__.Select("r")).

@@ -110,7 +110,7 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 	// Normalize volume to store object format
 	sv, err := i.r.storeConvert.Volume(ctx, volume, parent)
 	if err != nil {
-		log.I.Errorf("process volume type: %v (continuing)", err)
+		log.I.Debugf("process volume type: %v (continuing)", err)
 		return nil
 	}
 
@@ -137,6 +137,14 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 // The function ingests an input pod object into the cache/store/graph and then ingests
 // all child objects (containers, volumes, etc) through their own ingestion pipeline.
 func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
+
+	// If the pod is not running we don't want to save it
+	// TODO generalize this pattern! Preflight checks?
+	if pod.Status.Phase != "Running" {
+		log.I.Warnf("pod %s::%s not running, skipping ingest!", pod.Namespace, pod.Name)
+		return nil
+	}
+
 	// Normalize pod to store object format
 	sp, err := i.r.storeConvert.Pod(ctx, pod)
 	if err != nil {
