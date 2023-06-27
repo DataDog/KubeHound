@@ -42,7 +42,6 @@ ifneq (${DD_API_KEY},)
 endif
 
 UNAME_S := $(shell uname -s)
-DOCKER_CMD := docker
 ifndef DOCKER_CMD
 	ifeq ($(UNAME_S),Linux)
 		# https://docs.github.com/en/actions/learn-github-actions/variables
@@ -50,6 +49,8 @@ ifndef DOCKER_CMD
 			DOCKER_CMD := sudo docker
 		endif
 	endif
+else
+	DOCKER_CMD := ${DOCKER_CMD}
 endif
 
 RACE_FLAG_SYSTEM_TEST := "-race"
