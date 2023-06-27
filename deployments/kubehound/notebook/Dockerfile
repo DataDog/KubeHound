@@ -8,24 +8,17 @@ EXPOSE 8888
 EXPOSE 8889
 USER root
 
-# May need to be set to `pipargs=' -i https://pypi.tuna.tsinghua.edu.cn/simple '` for china regions
 ENV pipargs=""
 ENV WORKING_DIR="/root"
 ENV NOTEBOOK_DIR="${WORKING_DIR}/notebooks"
 ENV NODE_VERSION=14.x
 ENV GRAPH_NOTEBOOK_AUTH_MODE="DEFAULT"
-ENV GRAPH_NOTEBOOK_HOST="neptune.cluster-XXXXXXXXXXXX.us-east-1.neptune.amazonaws.com"
-ENV GRAPH_NOTEBOOK_PROXY_PORT="8192"
-ENV GRAPH_NOTEBOOK_PROXY_HOST=""
+ENV GRAPH_NOTEBOOK_HOST="localhost"
 ENV GRAPH_NOTEBOOK_PORT="8182"
-ENV NEPTUNE_LOAD_FROM_S3_ROLE_ARN=""
-ENV AWS_REGION="us-east-1"
 ENV NOTEBOOK_PORT="8888"
 ENV LAB_PORT="8889"
 ENV GRAPH_NOTEBOOK_SSL="True"
 ENV NOTEBOOK_PASSWORD="admin"
-ENV PROVIDE_EXAMPLES=1
-
 
 # "when the SIGTERM signal is sent to the docker process, it immediately quits and all established connections are closed"
 # "graceful stop is triggered when the SIGUSR1 signal is sent to the docker process"
