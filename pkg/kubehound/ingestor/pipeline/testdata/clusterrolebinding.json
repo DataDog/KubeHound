@@ -16,8 +16,7 @@
     "subjects": [
         {
             "kind": "ServiceAccount",
-            "name": "app-monitors",
-            "namespace": "test-app"
+            "name": "app-monitors"
         }
     ]
 }

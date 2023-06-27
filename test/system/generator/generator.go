@@ -339,7 +339,6 @@ func GenerateContainerTemplate() ([]byte, error) {
 			Pod:          "{{.Pod}}",
 			// Node:         "{{.Node}}",
 			Compromised:  0,
-			Critical:     {{.Critical}},
 		},{{ end }}
 	}
 `
