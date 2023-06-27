@@ -304,7 +304,7 @@ func GeneratePodTemplate() ([]byte, error) {
 			Namespace:    "{{.Namespace}}",
 			Compromised:  shared.CompromiseNone,
 			ServiceAccount: "{{.ServiceAccount}}",
-			shareProcessNamespace: {{.shareProcessNamespace}},
+			ShareProcessNamespace: {{.ShareProcessNamespace}},
 			Critical:     false,
 		},{{ end }}
 	}
