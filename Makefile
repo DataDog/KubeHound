@@ -50,8 +50,6 @@ ifndef DOCKER_CMD
 			DOCKER_CMD := sudo docker
 		endif
 	endif
-else
-	DOCKER_CMD := ${DOCKER_CMD}
 endif
 
 RACE_FLAG_SYSTEM_TEST := "-race"
