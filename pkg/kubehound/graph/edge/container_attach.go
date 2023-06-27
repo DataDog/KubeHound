@@ -54,16 +54,14 @@ func (e ContainerAttach) Traversal() Traversal {
 			Select("containers").
 			Unfold().
 			As("c").
-			V().HasLabel(vertex.ContainerLabel).
-			Where(P.Eq("c")).
-			By("storeID").
-			By().
+			V().
+			HasLabel(vertex.ContainerLabel).
+			Has("storeID", __.Where(P.Eq("c"))).
 			AddE(e.Label()).
 			From(
-				__.V().HasLabel(vertex.PodLabel).
-					Where(P.Eq("ca")).
-					By("storeID").
-					By("pod")).
+				__.V().
+					HasLabel(vertex.PodLabel).
+					Has("storeID", __.Where(P.Eq("ca")).By().By("pod"))).
 			Barrier().Limit(0)
 
 		return g

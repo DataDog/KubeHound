@@ -54,16 +54,15 @@ func (e PodExecNamespace) Traversal() Traversal {
 			Select("pods").
 			Unfold().
 			As("p").
-			V().HasLabel(vertex.PodLabel).
-			Where(P.Eq("p")).
-			By("storeID").
-			By().
+			V().
+			HasLabel(vertex.PodLabel).
+			Has("storeID", __.Where(P.Eq("p"))).
 			AddE(e.Label()).
 			From(
-				__.V().HasLabel(vertex.RoleLabel).
-					Where(P.Eq("peg")).
-					By("storeID").
-					By("role")).
+				__.V().
+					HasLabel(vertex.RoleLabel).
+					Has("critical", false). // Not out edges from critical assets
+					Has("storeID", __.Where(P.Eq("peg")).By().By("role"))).
 			Barrier().Limit(0)
 
 		return g

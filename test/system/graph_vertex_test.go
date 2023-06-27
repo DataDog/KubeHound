@@ -123,9 +123,6 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 		compromised, ok := converted["compromised"].(int32)
 		suite.True(ok, "failed to convert compromised field to CompromiseType")
 
-		critical, ok := converted["critical"].(bool)
-		suite.True(ok, "failed to convert critical field to bool")
-
 		privileged, ok := converted["privileged"].(bool)
 		suite.True(ok, "failed to convert privileged field to bool")
 
@@ -152,7 +149,6 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 			Pod:          podName,
 			// Node:         nodeName, // see comments for converted["node"].(string)
 			Compromised: shared.CompromiseType(compromised),
-			Critical:    critical,
 		}
 	}
 	suite.Equal(expectedContainers, resultsMap)

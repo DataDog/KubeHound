@@ -56,12 +56,11 @@ func (e PodCreateCluster) Traversal() Traversal {
 			Inject(inserts).
 			Unfold().As("pcc").
 			V().HasLabel(vertex.RoleLabel).
-			Where(P.Eq("pcc")).
-			By("storeID").
-			By("role").
+			Has("critical", false). // Not out edges from critical assets
+			Has("storeID", __.Where(P.Eq("pcc")).By().By("role")).
 			As("r").
-			V().HasLabel(vertex.NodeLabel).
-			Has("class", vertex.NodeLabel).
+			V().
+			HasLabel(vertex.NodeLabel).
 			Unfold().
 			AddE(e.Label()).
 			From(__.Select("r")).

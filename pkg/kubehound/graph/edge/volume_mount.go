@@ -48,36 +48,32 @@ func (e VolumeMount) Processor(ctx context.Context, entry any) (any, error) {
 // For each mountGroup, the traversal will: 1) find the node vertex with the same storeID as the mountGroup's node
 // field, 2) find the volume vertex with the same storeID as the mountGroup's volume field, 3) create an edge between
 // the node and volume vertices with the label "VOLUME_MOUNT", and 4) create an edge between each container vertex
-// with the label "CONTAINER_MOUNT" and the volume vertex.
+// with the label "VOLUME_MOUNT" and the volume vertex.
 func (e VolumeMount) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("mg").
 			SideEffect(
-				__.V().HasLabel(vertex.NodeLabel).
-					Where(P.Eq("mg")).
-					By("storeID").
-					By("node").
+				__.V().
+					HasLabel(vertex.NodeLabel).
+					Has("storeID", __.Where(P.Eq("mg")).By().By("node")).
 					AddE(e.Label()).
 					To(
-						__.V().HasLabel(vertex.VolumeLabel).
-							Where(P.Eq("mg")).
-							By("storeID").
-							By("volume"))).
+						__.V().
+							HasLabel(vertex.VolumeLabel).
+							Has("storeID", __.Where(P.Eq("mg")).By().By("volume")))).
 			Select("containers").
 			Unfold().
 			As("c").
-			V().HasLabel(vertex.ContainerLabel).
-			Where(P.Eq("c")).
-			By("storeID").
-			By().
+			V().
+			HasLabel(vertex.ContainerLabel).
+			Has("storeID", __.Where(P.Eq("c"))).
 			AddE(e.Label()).
 			To(
-				__.V().HasLabel(vertex.VolumeLabel).
-					Where(P.Eq("mg")).
-					By("storeID").
-					By("volume")).
+				__.V().
+					HasLabel(vertex.VolumeLabel).
+					Has("storeID", __.Where(P.Eq("mg")).By().By("volume"))).
 			Barrier().Limit(0)
 
 		return g

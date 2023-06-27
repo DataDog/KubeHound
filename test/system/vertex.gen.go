@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-06-22 13:46
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-06-23 18:16
 //
 // Generate it with "go generate ./..."
 //
@@ -222,7 +222,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "impersonate-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"modload-pod": {
 		StoreID:      "",
@@ -242,7 +241,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "modload-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"netadmin-pod": {
 		StoreID:      "",
@@ -262,7 +260,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "netadmin-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"nsenter-pod": {
 		StoreID:      "",
@@ -282,7 +279,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "nsenter-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"pod-create-pod": {
 		StoreID:      "",
@@ -302,7 +298,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "pod-create-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"pod-exec-pod": {
 		StoreID:      "",
@@ -322,7 +317,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "pod-exec-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"pod-patch-pod": {
 		StoreID:      "",
@@ -342,7 +336,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "pod-patch-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"priv-pod": {
 		StoreID:      "",
@@ -362,7 +355,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "priv-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"rolebind-pod": {
 		StoreID:      "",
@@ -382,7 +374,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "rolebind-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"sharedps-pod": {
 		StoreID:      "",
@@ -402,7 +393,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "sharedps-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"tokenget-pod": {
 		StoreID:      "",
@@ -422,7 +412,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "tokenget-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"tokenlist-pod": {
 		StoreID:      "",
@@ -442,7 +431,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "tokenlist-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"umh-core-pod": {
 		StoreID:      "",
@@ -462,7 +450,6 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "umh-core-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 	"varlog-pod": {
 		StoreID:      "",
@@ -482,6 +469,5 @@ var expectedContainers = map[string]graph.Container{
 		Pod:          "varlog-pod",
 		// Node:         "",
 		Compromised: 0,
-		Critical:    false,
 	},
 }
