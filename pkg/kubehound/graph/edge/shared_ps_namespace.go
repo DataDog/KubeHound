@@ -61,14 +61,20 @@ func (e SharedProcessNamespace) Processor(ctx context.Context, entry any) (any, 
 func (e SharedProcessNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(store).Collection(collections.PodName)
 	pipeline := []bson.M{
-		{"$group": bson.M{
-			"_id": "$pod_id",
-			"containers": bson.M{
-				"$push": "$_id",
-			},
+		// find pods that have sharedProcessNamespace set
+		{
+			"$match": bson.M{"sharedProcessNamespace": true},
 		},
+		// Gather pods ID and their related containers
+		{
+			"$group": bson.M{
+				"_id": "$pod_id",
+				"containers": bson.M{
+					"$push": "$_id",
+				},
+			},
 		},
 	}
 
