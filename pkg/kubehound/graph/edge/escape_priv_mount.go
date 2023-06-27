@@ -24,6 +24,10 @@ func (e EscapePrivMount) Label() string {
 	return "CE_PRIV_MOUNT"
 }
 
+func (e EscapePrivMount) Name() string {
+	return "ContainerEscapePrivilegedMount"
+}
+
 func (e EscapePrivMount) BatchSize() int {
 	return DefaultBatchSize
 }

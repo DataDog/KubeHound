@@ -22,12 +22,12 @@ type Container struct {
 	Pod          string                `json:"pod" mapstructure:"pod"`
 	Node         string                `json:"node" mapstructure:"node"`
 	Compromised  shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
-	Critical     bool                  `json:"critical" mapstructure:"critical"`
 }
 
 type Group struct {
-	StoreID string `json:"storeID" mapstructure:"storeID"`
-	Name    string `json:"name" mapstructure:"name"`
+	StoreID  string `json:"storeID" mapstructure:"storeID"`
+	Name     string `json:"name" mapstructure:"name"`
+	Critical bool   `json:"critical" mapstructure:"critical"`
 }
 
 type Identity struct {
@@ -36,6 +36,7 @@ type Identity struct {
 	IsNamespaced bool   `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string `json:"namespace" mapstructure:"namespace"`
 	Type         string `json:"type" mapstructure:"type"`
+	Critical     bool   `json:"critical" mapstructure:"critical"`
 }
 
 type Node struct {
@@ -65,6 +66,7 @@ type Role struct {
 	IsNamespaced bool     `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string   `json:"namespace" mapstructure:"namespace"`
 	Rules        []string `json:"rules" mapstructure:"rules"`
+	Critical     bool     `json:"critical" mapstructure:"critical"`
 }
 
 type Token struct {
@@ -73,7 +75,6 @@ type Token struct {
 	Type        string                `json:"type" mapstructure:"type"`
 	Identity    string                `json:"identity" mapstructure:"identity"`
 	Compromised shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
-	Critical    bool                  `json:"critical" mapstructure:"critical"`
 }
 
 type Volume struct {

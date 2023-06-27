@@ -82,18 +82,16 @@ func (p TokenSteal) Traversal() Traversal {
 			// Create the IDENTITY_ASSUME edge between the new token and an existing identity
 			AddE(edge.IdentityAssumeLabel).
 			To(
-				__.V().HasLabel(vertex.IdentityLabel).
-					Where(P.Eq("ts")).
-					By("storeID").
-					By("identity")).
+				__.V().
+					HasLabel(vertex.IdentityLabel).
+					Has("storeID", __.Where(P.Eq("ts")).By().By("identity"))).
 			// Create the TOKEN_STEAL edge between an existing volume and the new token
 			AddE(tokenStealLabel).
 			To(__.Select("tv")).
 			From(
-				__.V().HasLabel(vertex.VolumeLabel).
-					Where(P.Eq("ts")).
-					By("storeID").
-					By("volume")).
+				__.V().
+					HasLabel(vertex.VolumeLabel).
+					Has("storeID", __.Where(P.Eq("ts")).By().By("volume"))).
 			Barrier().Limit(0)
 
 		return g

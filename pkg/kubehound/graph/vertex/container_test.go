@@ -40,7 +40,6 @@ func TestContainer_Traversal(t *testing.T) {
 				Pod:          "test pod",
 				Node:         "test node",
 				Compromised:  1,
-				Critical:     true,
 			},
 		},
 	}

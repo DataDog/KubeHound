@@ -1,0 +1,45 @@
+# POD_EXEC edge
+# @@DOCLINK: TODO TODO
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-exec-sa
+  namespace: default
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: default
+  name: exec-pods
+rules:
+  - apiGroups: ["*"]
+    resources: ["pods"]
+    verbs: ["get", "list", "exec"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-exec-pods
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: exec-pods
+subjects:
+  - kind: ServiceAccount
+    name: pod-exec-sa
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-exec-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: pod-exec-sa
+  containers:
+    - name: pod-exec-pod
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

@@ -36,6 +36,10 @@ func (e IdentityAssume) Label() string {
 	return IdentityAssumeLabel
 }
 
+func (e IdentityAssume) Name() string {
+	return "IdentityAssume"
+}
+
 func (e IdentityAssume) BatchSize() int {
 	return DefaultBatchSize
 }
@@ -52,16 +56,14 @@ func (e IdentityAssume) Traversal() Traversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("ig").
-			V().HasLabel(vertex.ContainerLabel).
-			Where(P.Eq("ig")).
-			By("storeID").
-			By("container").
+			V().
+			HasLabel(vertex.ContainerLabel).
+			Has("storeID", __.Where(P.Eq("ig")).By().By("container")).
 			AddE(e.Label()).
 			To(
-				__.V().HasLabel(vertex.IdentityLabel).
-					Where(P.Eq("ig")).
-					By("storeID").
-					By("identity")).
+				__.V().
+					HasLabel(vertex.IdentityLabel).
+					Has("storeID", __.Where(P.Eq("ig")).By().By("identity"))).
 			Barrier().Limit(0)
 
 		return g
