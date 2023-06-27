@@ -15,34 +15,34 @@ import (
 )
 
 func init() {
-	Register(SharedProcessNamespace{})
+	Register(shareProcessNamespace{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880275294/SHARED+PS+NAMESPACE
-type SharedProcessNamespace struct {
+type shareProcessNamespace struct {
 }
 
 // We want to map all the containers that shares the same process namespace
-type SharedProcessNamespaceContainers struct {
+type shareProcessNamespaceContainers struct {
 	Pod        primitive.ObjectID   `bson:"_id" json:"pod"`
 	Containers []primitive.ObjectID `bson:"containers" json:"containers"`
 }
 
-func (e SharedProcessNamespace) BatchSize() int {
+func (e shareProcessNamespace) BatchSize() int {
 	return DefaultBatchSize
 }
 
-func (e SharedProcessNamespace) Label() string {
+func (e shareProcessNamespace) Label() string {
 	return "SHARED_PS_NAMESPACE"
 }
 
-func (e SharedProcessNamespace) Traversal() Traversal {
+func (e shareProcessNamespace) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		return source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("sharedpns").
 			V().HasLabel(vertex.PodLabel).
-			Has("SharedProcessNamespace", true).
+			Has("shareProcessNamespace", true).
 			Has(
 				"storeID", __.Select("sharedpns").Select("pod")).As("pod").
 			V().HasLabel("Container").
@@ -54,18 +54,18 @@ func (e SharedProcessNamespace) Traversal() Traversal {
 	}
 }
 
-func (e SharedProcessNamespace) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*SharedProcessNamespaceContainers](ctx, entry)
+func (e shareProcessNamespace) Processor(ctx context.Context, entry any) (any, error) {
+	return adapter.GremlinInputProcessor[*shareProcessNamespaceContainers](ctx, entry)
 }
 
-func (e SharedProcessNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e shareProcessNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.PodName)
 	pipeline := []bson.M{
-		// find pods that have sharedProcessNamespace set
+		// find pods that have shareProcessNamespace set
 		{
-			"$match": bson.M{"sharedProcessNamespace": true},
+			"$match": bson.M{"shareProcessNamespace": true},
 		},
 		// Gather pods ID and their related containers
 		{
@@ -84,5 +84,5 @@ func (e SharedProcessNamespace) Stream(ctx context.Context, store storedb.Provid
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[SharedProcessNamespaceContainers](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[shareProcessNamespaceContainers](ctx, cur, callback, complete)
 }

@@ -26,7 +26,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "impersonate-sa",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"modload-pod": {
@@ -36,7 +36,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "default",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"netadmin-pod": {
@@ -46,7 +46,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "default",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"nsenter-pod": {
@@ -56,7 +56,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "default",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"pod-create-pod": {
@@ -66,7 +66,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "pod-create-sa",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"pod-patch-pod": {
@@ -76,7 +76,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "pod-patch-sa",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"priv-pod": {
@@ -86,7 +86,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "default",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"rolebind-pod": {
@@ -96,7 +96,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "rolebind-sa",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"sharedps-pod": {
@@ -106,7 +106,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "default",
-		SharedProcessNamespace: true,
+		shareProcessNamespace: true,
 		Critical:               false,
 	},
 	"tokenget-pod": {
@@ -116,7 +116,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "tokenget-sa",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"tokenlist-pod": {
@@ -126,7 +126,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "tokenlist-sa",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"umh-core-pod": {
@@ -136,7 +136,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "default",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 	"varlog-pod": {
@@ -146,7 +146,7 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "default",
-		SharedProcessNamespace: false,
+		shareProcessNamespace: false,
 		Critical:               false,
 	},
 }

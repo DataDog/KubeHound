@@ -256,7 +256,7 @@ func TestConverter_PodPipeline(t *testing.T) {
 	assert.Equal(t, storePod.Id.Hex(), graphPod.StoreID)
 	assert.Equal(t, storePod.K8.Name, graphPod.Name)
 	assert.Equal(t, storePod.K8.Namespace, graphPod.Namespace)
-	assert.False(t, graphPod.SharedProcessNamespace)
+	assert.False(t, graphPod.shareProcessNamespace)
 	assert.Equal(t, storePod.K8.Spec.ServiceAccountName, graphPod.ServiceAccount)
 	assert.Equal(t, storePod.K8.Spec.NodeName, graphPod.Node)
 	assert.False(t, graphPod.Critical)

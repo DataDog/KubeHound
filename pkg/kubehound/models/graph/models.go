@@ -48,15 +48,15 @@ type Node struct {
 }
 
 type Pod struct {
-	StoreID                string                `json:"storeID" mapstructure:"storeID"`
-	Name                   string                `json:"name" mapstructure:"name"`
-	IsNamespaced           bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
-	Namespace              string                `json:"namespace" mapstructure:"namespace"`
-	SharedProcessNamespace bool                  `json:"sharedProcessNamespace" mapstructure:"sharedProcessNamespace"`
-	ServiceAccount         string                `json:"serviceAccount" mapstructure:"serviceAccount"`
-	Node                   string                `json:"node" mapstructure:"node"`
-	Compromised            shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
-	Critical               bool                  `json:"critical" mapstructure:"critical"`
+	StoreID               string                `json:"storeID" mapstructure:"storeID"`
+	Name                  string                `json:"name" mapstructure:"name"`
+	IsNamespaced          bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
+	Namespace             string                `json:"namespace" mapstructure:"namespace"`
+	shareProcessNamespace bool                  `json:"shareProcessNamespace" mapstructure:"shareProcessNamespace"`
+	ServiceAccount        string                `json:"serviceAccount" mapstructure:"serviceAccount"`
+	Node                  string                `json:"node" mapstructure:"node"`
+	Compromised           shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
+	Critical              bool                  `json:"critical" mapstructure:"critical"`
 }
 
 type Role struct {

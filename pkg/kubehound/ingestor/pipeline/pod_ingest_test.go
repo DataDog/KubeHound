@@ -90,15 +90,15 @@ func TestPodIngest_Pipeline(t *testing.T) {
 
 	// Graph setup - pods
 	pv := map[string]any{
-		"compromised":            float64(0),
-		"critical":               false,
-		"isNamespaced":           true,
-		"name":                   "app-monitors-client-78cb6d7899-j2rjp",
-		"namespace":              "test-app",
-		"node":                   "test-node.ec2.internal",
-		"serviceAccount":         "app-monitors",
-		"sharedProcessNamespace": false,
-		"storeID":                pid.Hex(),
+		"compromised":           float64(0),
+		"critical":              false,
+		"isNamespaced":          true,
+		"name":                  "app-monitors-client-78cb6d7899-j2rjp",
+		"namespace":             "test-app",
+		"node":                  "test-node.ec2.internal",
+		"serviceAccount":        "app-monitors",
+		"shareProcessNamespace": false,
+		"storeID":               pid.Hex(),
 	}
 
 	gdb := graphdb.NewProvider(t)
