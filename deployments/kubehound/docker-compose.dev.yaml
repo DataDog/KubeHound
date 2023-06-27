@@ -33,6 +33,17 @@ services:
       - kubenet
       - kind
 
+  notebook:
+    build: ./notebook/
+    restart: unless-stopped
+    container_name: ${COMPOSE_PROJECT_NAME}-notebook
+    ports:
+      - "127.0.0.1:8888:8888"
+    networks:
+      - kubenet
+    volumes:
+      - ./notebook/shared:/root/notebooks/shared
+
 volumes:
   mongodb_data:
   janusgraph_data:
