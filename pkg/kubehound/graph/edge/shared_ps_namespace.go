@@ -24,7 +24,6 @@ type shareProcessNamespace struct {
 
 // We want to map all the containers that shares the same process namespace
 type shareProcessNamespaceContainers struct {
-	Pod        primitive.ObjectID   `bson:"_id" json:"pod"`
 	Containers []primitive.ObjectID `bson:"containers" json:"containers"`
 }
 
@@ -36,11 +35,18 @@ func (e shareProcessNamespace) Label() string {
 	return "SHARE_PS_NAMESPACE"
 }
 
+func (e shareProcessNamespace) Name() string {
+	return "shareProcessNamespace"
+}
+
+// add an edge between all containers of a pod that has the shareProcessNamespace field set
+// inserts is: map["containers"] = []ObjectID{"container-id"}
 func (e shareProcessNamespace) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		return source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("sharedpns").
+			Select("pod").
 			V().HasLabel(vertex.PodLabel).
 			Has("shareProcessNamespace", true).
 			Has(
