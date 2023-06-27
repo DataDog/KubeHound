@@ -52,7 +52,7 @@ type Pod struct {
 	Name                  string                `json:"name" mapstructure:"name"`
 	IsNamespaced          bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace             string                `json:"namespace" mapstructure:"namespace"`
-	shareProcessNamespace bool                  `json:"shareProcessNamespace" mapstructure:"shareProcessNamespace"`
+	ShareProcessNamespace bool                  `json:"shareProcessNamespace" mapstructure:"shareProcessNamespace"`
 	ServiceAccount        string                `json:"serviceAccount" mapstructure:"serviceAccount"`
 	Node                  string                `json:"node" mapstructure:"node"`
 	Compromised           shared.CompromiseType `json:"compromised" mapstructure:"compromised"`

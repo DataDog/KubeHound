@@ -240,7 +240,7 @@ func (suite *VertexTestSuite) TestVertexPod() {
 			Name:                  podName,
 			ServiceAccount:        serviceAccount,
 			Compromised:           shared.CompromiseType(compromised),
-			shareProcessNamespace: shareProcessNamespace,
+			ShareProcessNamespace: shareProcessNamespace,
 			IsNamespaced:          isNamespaced,
 			Namespace:             namespace,
 			Critical:              critical,

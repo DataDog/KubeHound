@@ -29,7 +29,7 @@ func TestPod_Traversal(t *testing.T) {
 				Namespace:             "lol namespace",
 				Compromised:           1,
 				Critical:              true,
-				shareProcessNamespace: true,
+				ShareProcessNamespace: true,
 				ServiceAccount:        "some service account",
 				Node:                  "lol node",
 			},
