@@ -1,4 +1,4 @@
-FROM janusgraph/janusgraph:0.6.3
+FROM janusgraph/janusgraph:1.0.0-rc2
 LABEL org.opencontainers.image.source="https://github.com/DataDog/kubehound/"
 
 # Add our initialization script for the database schema to the startup directory

@@ -307,7 +307,6 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, storeContainer.Inherited.NodeName, graphContainer.Node)
 	assert.Equal(t, []string{"9200", "9300"}, graphContainer.Ports)
 	assert.Equal(t, shared.CompromiseNone, graphContainer.Compromised)
-	assert.False(t, graphContainer.Critical)
 
 	// Collector volume -> store volume
 	assert.Equal(t, 2, len(input.Spec.Volumes))

@@ -111,6 +111,47 @@ func (_c *Builder_Label_Call) RunAndReturn(run func() string) *Builder_Label_Cal
 	return _c
 }
 
+// Name provides a mock function with given fields:
+func (_m *Builder) Name() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// Builder_Name_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Name'
+type Builder_Name_Call struct {
+	*mock.Call
+}
+
+// Name is a helper method to define mock.On call
+func (_e *Builder_Expecter) Name() *Builder_Name_Call {
+	return &Builder_Name_Call{Call: _e.mock.On("Name")}
+}
+
+func (_c *Builder_Name_Call) Run(run func()) *Builder_Name_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Builder_Name_Call) Return(_a0 string) *Builder_Name_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Builder_Name_Call) RunAndReturn(run func() string) *Builder_Name_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Processor provides a mock function with given fields: _a0, _a1
 func (_m *Builder) Processor(_a0 context.Context, _a1 interface{}) (interface{}, error) {
 	ret := _m.Called(_a0, _a1)
