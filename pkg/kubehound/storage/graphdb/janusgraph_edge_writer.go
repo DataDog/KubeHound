@@ -12,7 +12,7 @@ import (
 var _ AsyncPathWriter = (*JanusGraphAsyncWriter[edge.Traversal])(nil)
 
 // NewJanusGraphAsyncEdgeWriter creates a new bulk edge writer instance.
-func NewJanusGraphAsyncEdgeWriter(ctx context.Context, dcp *DriverConnectionPool,
+func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemoteConnection,
 	e edge.Builder, opts ...WriterOption) (*JanusGraphAsyncWriter[edge.Traversal], error) {
 
 	options := &writerOptions{}
@@ -20,11 +20,7 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, dcp *DriverConnectionPool
 		opt(options)
 	}
 
-	// Creating a transaction modifies the connection pool, acquire the lock
-	dcp.Lock.Lock()
-	defer dcp.Lock.Unlock()
-
-	source := gremlingo.Traversal_().WithRemote(dcp.Driver)
+	source := gremlingo.Traversal_().WithRemote(drc)
 	tx := source.Tx()
 	gtx, err := tx.Begin()
 	if err != nil {
@@ -34,7 +30,7 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, dcp *DriverConnectionPool
 	jw := JanusGraphAsyncWriter[edge.Traversal]{
 		label:           e.Label(),
 		gremlin:         e.Traversal(),
-		dcp:             dcp,
+		drc:             drc,
 		inserts:         make([]types.TraversalInput, 0, e.BatchSize()),
 		traversalSource: gtx,
 		transaction:     tx,

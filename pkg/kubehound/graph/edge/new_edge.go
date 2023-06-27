@@ -93,20 +93,3 @@ func (e TestEdge) Stream(ctx context.Context, store storedb.Provider, _ cache.Ca
 
 	return adapter.MongoCursorHandler[testEdgeGroup](ctx, cur, callback, complete)
 }
-
-// structToMap creates a map from a simple input struct.
-func structToMap(in any) (map[string]any, error) {
-	var res map[string]any
-
-	tmp, err := json.Marshal(in)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(tmp, &res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
