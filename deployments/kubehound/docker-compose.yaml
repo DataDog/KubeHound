@@ -9,9 +9,9 @@ services:
       - "127.0.0.1:27017:27017"
     networks:
       - kubenet
-    depends_on:
-      janusgraph:
-        condition: service_healthy
+    # depends_on:
+    #   janusgraph:
+    #     condition: service_healthy
 
   janusgraph:
     build: ./janusgraph/
@@ -25,13 +25,15 @@ services:
       # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
       - janusgraph.schema.constraints=true
       - janusgraph.schema.default=none
-    healthcheck:
-      # Healthcheck parameters optimized to ensure fast system tests. DO NOT USE IN PRODUCTION!
-      test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
-      interval: 15s
-      timeout: 30s
-      retries: 5
-      start_period: 15s
+      - gremlinserver.maxContentLength=2097152
+      - gremlinserver.evaluationTimeout=60000
+    # healthcheck:
+    #   # Healthcheck parameters optimized to ensure fast system tests. DO NOT USE IN PRODUCTION!
+    #   test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
+    #   interval: 15s
+    #   timeout: 30s
+    #   retries: 5
+    #   start_period: 15s
 
 networks:
   kubenet:

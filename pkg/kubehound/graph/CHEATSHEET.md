@@ -13,5 +13,5 @@ g.V().hasLabel("Container").repeat(out().simplePath()).until(hasLabel("Node")).p
 Paths from container to any critical asset
 
 ```
-g.V().hasLabel("Container").repeat(out().simplePath()).until(has("critical", true)).path()
+g.V().hasLabel("Container").repeat(out().simplePath()).until(has("critical", true).or().loops().is(7)).has("critical", true).path()
 ```

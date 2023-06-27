@@ -36,7 +36,7 @@ func (e ContainerAttach) Name() string {
 }
 
 func (e ContainerAttach) BatchSize() int {
-	return 5
+	return DefaultBatchSize / 8
 }
 
 func (e ContainerAttach) Processor(ctx context.Context, entry any) (any, error) {
@@ -56,11 +56,13 @@ func (e ContainerAttach) Traversal() Traversal {
 			As("c").
 			V().
 			HasLabel(vertex.ContainerLabel).
+			Has("class", vertex.ContainerLabel).
 			Has("storeID", __.Where(P.Eq("c"))).
 			AddE(e.Label()).
 			From(
 				__.V().
 					HasLabel(vertex.PodLabel).
+					Has("class", vertex.PodLabel).
 					Has("storeID", __.Where(P.Eq("ca")).By().By("pod"))).
 			Barrier().Limit(0)
 

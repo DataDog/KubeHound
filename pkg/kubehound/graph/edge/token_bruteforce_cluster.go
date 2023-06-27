@@ -16,11 +16,11 @@ import (
 
 const (
 	// Use a small batch size here as each role will generate a significant number of edges
-	tokenBruteforceClusterBatchSize = 5
+	tokenBruteforceClusterBatchSize = 100
 )
 
 func init() {
-	Register(TokenBruteforceCluster{})
+	//Register(TokenBruteforceCluster{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
@@ -40,7 +40,7 @@ func (e TokenBruteforceCluster) Name() string {
 }
 
 func (e TokenBruteforceCluster) BatchSize() int {
-	return tokenBruteforceClusterBatchSize
+	return 1
 }
 
 func (e TokenBruteforceCluster) Processor(ctx context.Context, entry any) (any, error) {

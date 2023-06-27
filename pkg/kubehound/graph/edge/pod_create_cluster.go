@@ -16,11 +16,11 @@ import (
 
 const (
 	// Use a small batch size here as each role will generate a significant number of edges
-	podCreateBatchSize = 5
+	podCreateBatchSize = 100
 )
 
 func init() {
-	Register(PodCreateCluster{})
+	//Register(PodCreateCluster{})
 }
 
 // @@DOCLINK: TODO

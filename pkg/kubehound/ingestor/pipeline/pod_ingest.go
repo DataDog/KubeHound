@@ -141,7 +141,8 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	// If the pod is not running we don't want to save it
 	// TODO generalize this pattern! Preflight checks?
 	if pod.Status.Phase != "Running" {
-		log.I.Warnf("pod %s::%s not running, skipping ingest!", pod.Namespace, pod.Name)
+		log.I.Warnf("pod %s::%s not running (status=%s), skipping ingest!",
+			pod.Namespace, pod.Name, pod.Status.Phase)
 		return nil
 	}
 

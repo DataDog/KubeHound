@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	//Register(PodExecNamespace{})
+	Register(PodExecNamespace{})
 }
 
 // @@DOCLINK: TODO
@@ -36,7 +36,7 @@ func (e PodExecNamespace) Name() string {
 }
 
 func (e PodExecNamespace) BatchSize() int {
-	return DefaultBatchSize / 2
+	return 1
 }
 
 func (e PodExecNamespace) Processor(ctx context.Context, entry any) (any, error) {

@@ -20,7 +20,7 @@ const (
 )
 
 func init() {
-	Register(PodExecCluster{})
+	//Register(PodExecCluster{})
 }
 
 // @@DOCLINK: TODO

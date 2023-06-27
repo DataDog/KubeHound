@@ -7,10 +7,10 @@ collector:
     
 mongodb:
   url: "mongodb://localhost:27017"
-  connection_timeout: 5s
+  connection_timeout: 30s
 janusgraph:
   url: "ws://localhost:8182/gremlin"
-  connection_timeout: 5s
+  connection_timeout: 30s
 telemetry:
   statsd:
     url: "127.0.0.1:8125"

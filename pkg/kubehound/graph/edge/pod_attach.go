@@ -36,7 +36,7 @@ func (e PodAttach) Name() string {
 }
 
 func (e PodAttach) BatchSize() int {
-	return DefaultBatchSize
+	return DefaultBatchSize / 8
 }
 
 func (e PodAttach) Processor(ctx context.Context, entry any) (any, error) {

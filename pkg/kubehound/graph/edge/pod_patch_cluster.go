@@ -20,7 +20,7 @@ const (
 )
 
 func init() {
-	Register(PodPatchCluster{})
+	//Register(PodPatchCluster{})
 }
 
 // @@DOCLINK: TODO

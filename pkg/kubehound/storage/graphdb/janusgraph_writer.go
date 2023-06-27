@@ -22,18 +22,17 @@ type TWriterInput interface {
 }
 
 type JanusGraphAsyncWriter[T TWriterInput] struct {
-	label           string                          // Label of the graph entity being written
-	gremlin         T                               // Gremlin traversal generator function
-	dcp             *DriverConnectionPool           // Lock protected gremlin driver remote connection
-	traversalSource *gremlingo.GraphTraversalSource // Transacted graph traversal source
-	transaction     *gremlingo.Transaction          // Transaction holding all the writes done by this writer
-	inserts         []types.TraversalInput          // Object data to be inserted in the graph
-	mu              sync.Mutex                      // Mutex protecting access to the inserts array
-	consumerChan    chan []types.TraversalInput     // Channel consuming inserts for async writing
-	writingInFlight *sync.WaitGroup                 // Wait group tracking current unfinished writes
-	batchSize       int                             // Batchsize of graph DB inserts
-	qcounter        int32                           // Track items queued
-	wcounter        int32                           // Track items writtn
+	label           string                            // Label of the graph entity being written
+	gremlin         T                                 // Gremlin traversal generator function
+	drc             *gremlingo.DriverRemoteConnection // Gremlin driver remote connection
+	traversalSource *gremlingo.GraphTraversalSource   // Transacted graph traversal source
+	inserts         []types.TraversalInput            // Object data to be inserted in the graph
+	mu              sync.Mutex                        // Mutex protecting access to the inserts array
+	consumerChan    chan []types.TraversalInput       // Channel consuming inserts for async writing
+	writingInFlight *sync.WaitGroup                   // Wait group tracking current unfinished writes
+	batchSize       int                               // Batchsize of graph DB inserts
+	qcounter        int32                             // Track items queued
+	wcounter        int32                             // Track items writtn
 	tags            []string
 }
 
@@ -63,9 +62,16 @@ func (jgv *JanusGraphAsyncWriter[T]) startBackgroundWriter(ctx context.Context) 
 // batchWrite will write a batch of entries into the graph DB and block until the write completes.
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
 func (jgv *JanusGraphAsyncWriter[T]) batchWrite(ctx context.Context, data []types.TraversalInput) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite, tracer.Measured())
+	span, _ := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite, tracer.Measured())
 	span.SetTag(telemetry.TagKeyLabel, jgv.label)
 	defer span.Finish()
+
+	tx := jgv.traversalSource.Tx()
+	gtx, err := tx.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Close()
 
 	datalen := len(data)
 	_ = statsd.Gauge(telemetry.MetricGraphdbBatchWrite, float64(datalen), jgv.tags, 1)
@@ -74,29 +80,20 @@ func (jgv *JanusGraphAsyncWriter[T]) batchWrite(ctx context.Context, data []type
 	defer jgv.writingInFlight.Done()
 
 	atomic.AddInt32(&jgv.wcounter, int32(datalen))
-	op := jgv.gremlin(jgv.traversalSource, data)
+	op := jgv.gremlin(gtx, data)
 	promise := op.Iterate()
-	err := <-promise
+	err = <-promise
 	if err != nil {
-		// Rolling back a transaction modifies the connection pool, acquire the lock
-		jgv.dcp.Lock.Lock()
-		defer jgv.dcp.Lock.Unlock()
-
-		jgv.transaction.Rollback()
+		tx.Rollback()
 		return err
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 func (jgv *JanusGraphAsyncWriter[T]) Close(ctx context.Context) error {
 	close(jgv.consumerChan)
-
-	// Closing a transaction modifies the connection pool, acquire the lock
-	jgv.dcp.Lock.Lock()
-	defer jgv.dcp.Lock.Unlock()
-
-	return jgv.transaction.Close()
+	return nil
 }
 
 // Flush triggers writes of any remaining items in the queue.
@@ -127,15 +124,6 @@ func (jgv *JanusGraphAsyncWriter[T]) Flush(ctx context.Context) error {
 	}
 
 	jgv.writingInFlight.Wait()
-
-	// Committing a transaction modifies the connection pool, acquire the lock
-	jgv.dcp.Lock.Lock()
-	defer jgv.dcp.Lock.Unlock()
-
-	err := jgv.transaction.Commit()
-	if err != nil {
-		return err
-	}
 
 	// TODO replace with telemetry.metrics
 	log.I.Infof("%d %s queued", jgv.qcounter, jgv.label)
