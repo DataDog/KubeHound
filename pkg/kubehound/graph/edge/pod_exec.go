@@ -20,37 +20,37 @@ const (
 )
 
 func init() {
-	Register(PodExecCluster{})
+	Register(PodExec{})
 }
 
 // @@DOCLINK: TODO
-type PodExecCluster struct {
+type PodExec struct {
 }
 
-type podExecClusterGroup struct {
+type podExecGroup struct {
 	Role primitive.ObjectID `bson:"_id" json:"role"`
 }
 
-func (e PodExecCluster) Label() string {
+func (e PodExec) Label() string {
 	return "POD_EXEC"
 }
 
-func (e PodExecCluster) Name() string {
-	return "PodExecCluster"
+func (e PodExec) Name() string {
+	return "PodExec"
 }
 
-func (e PodExecCluster) BatchSize() int {
+func (e PodExec) BatchSize() int {
 	return 1
 }
 
-func (e PodExecCluster) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*podExecClusterGroup](ctx, entry)
+func (e PodExec) Processor(ctx context.Context, entry any) (any, error) {
+	return adapter.GremlinInputProcessor[*podExecGroup](ctx, entry)
 }
 
-// Traversal expects a list of podExecClusterGroup serialized as mapstructure for injection into the graph.
-// For each podExecClusterGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
+// Traversal expects a list of podExecGroup serialized as mapstructure for injection into the graph.
+// For each podExecGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
 // matching pods in the cluster 3) add a POD_EXEC edge between the vertices.
-func (e PodExecCluster) Traversal() Traversal {
+func (e PodExec) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
@@ -73,7 +73,7 @@ func (e PodExecCluster) Traversal() Traversal {
 }
 
 // Stream finds all roles that are NOT namespaced and have pod/exec or equivalent wildcard permissions.
-func (e PodExecCluster) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e PodExec) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roles := adapter.MongoDB(store).Collection(collections.RoleName)
@@ -111,5 +111,5 @@ func (e PodExecCluster) Stream(ctx context.Context, store storedb.Provider, _ ca
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[podExecClusterGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[podExecGroup](ctx, cur, callback, complete)
 }

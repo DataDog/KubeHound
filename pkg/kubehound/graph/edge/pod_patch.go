@@ -36,7 +36,7 @@ func (e PodPatchCluster) Label() string {
 }
 
 func (e PodPatchCluster) Name() string {
-	return "PodPatchCluster"
+	return "PodPatch"
 }
 
 func (e PodPatchCluster) BatchSize() int {
@@ -80,7 +80,7 @@ func (e PodPatchCluster) Stream(ctx context.Context, store storedb.Provider, _ c
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_namespaced": false,
+				//"is_namespaced": false,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{

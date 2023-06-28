@@ -2,7 +2,9 @@ package edge
 
 import (
 	"context"
+	"os"
 
+	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -15,7 +17,10 @@ import (
 )
 
 func init() {
-	Register(PodPatchNamespace{})
+	if _, ok := os.LookupEnv(globals.SwitchNamespacedNodes); ok {
+		// Only required if nodes are namespaced. Otherwise will create overly large queries and cause timeouts
+		Register(PodPatchNamespace{})
+	}
 }
 
 // @@DOCLINK: TODO
@@ -65,8 +70,6 @@ func (e PodPatchNamespace) Traversal() Traversal {
 			Barrier().Limit(0)
 
 		return g
-
-		return g
 	}
 }
 
@@ -112,7 +115,7 @@ func (e PodPatchNamespace) Stream(ctx context.Context, store storedb.Provider, _
 									"$k8.objectmeta.namespace", "$$roleNamespace",
 								},
 							}},
-							//bson.M{"is_namespaced": false},
+							bson.M{"is_namespaced": false},
 						}},
 					},
 					{

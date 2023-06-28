@@ -31,6 +31,7 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 	driver, err := gremlingo.NewDriverRemoteConnection(dbHost,
 		func(settings *gremlingo.DriverRemoteConnectionSettings) {
 			settings.ConnectionTimeout = timeout
+			settings.LogVerbosity = gremlingo.Warning
 		},
 	)
 	if err != nil {

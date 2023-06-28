@@ -22,7 +22,7 @@ func init() {
 type PodExecNamespace struct {
 }
 
-type podExecGroup struct {
+type podExecNamespaceGroup struct {
 	Role primitive.ObjectID   `bson:"_id" json:"role"`
 	Pods []primitive.ObjectID `bson:"podsInNamespace" json:"pods"`
 }
@@ -40,11 +40,11 @@ func (e PodExecNamespace) BatchSize() int {
 }
 
 func (e PodExecNamespace) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*podExecGroup](ctx, entry)
+	return adapter.GremlinInputProcessor[*podExecNamespaceGroup](ctx, entry)
 }
 
-// Traversal expects a list of podExecGroup serialized as mapstructure for injection into the graph.
-// For each podExecGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find the
+// Traversal expects a list of podExecNamespaceGroup serialized as mapstructure for injection into the graph.
+// For each podExecNamespaceGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find the
 // pod vertices for each matching storeID, and 3) add a POD_EXEC edge between the vertices.
 func (e PodExecNamespace) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
@@ -137,5 +137,5 @@ func (e PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _ 
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[podExecGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[podExecNamespaceGroup](ctx, cur, callback, complete)
 }
