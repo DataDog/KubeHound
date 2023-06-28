@@ -2,7 +2,9 @@ package edge
 
 import (
 	"context"
+	"os"
 
+	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -15,7 +17,10 @@ import (
 )
 
 func init() {
-	Register(PodCreateNamespace{})
+	if _, ok := os.LookupEnv(globals.SwitchNamespacedNodes); ok {
+		// Only required if nodes are namespaced. Otherwise will create overly large queries and cause timeouts
+		Register(PodCreateNamespace{})
+	}
 }
 
 // @@DOCLINK: TODO
@@ -36,7 +41,7 @@ func (e PodCreateNamespace) Name() string {
 }
 
 func (e PodCreateNamespace) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 func (e PodCreateNamespace) Processor(ctx context.Context, entry any) (any, error) {
@@ -56,6 +61,7 @@ func (e PodCreateNamespace) Traversal() Traversal {
 			As("n").
 			V().
 			HasLabel(vertex.NodeLabel).
+			Has("class", vertex.NodeLabel).
 			Has("storeID", __.Where(P.Eq("n"))).
 			AddE(e.Label()).
 			From(

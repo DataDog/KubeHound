@@ -14,54 +14,50 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const (
-	// Use a small batch size here as each role will generate a significant number of edges
-	podExecBatchSize = 5
-)
-
 func init() {
-	Register(PodExecCluster{})
+	Register(PodCreate{})
 }
 
 // @@DOCLINK: TODO
-type PodExecCluster struct {
+type PodCreate struct {
 }
 
-type podExecClusterGroup struct {
+type podCreateCluster struct {
 	Role primitive.ObjectID `bson:"_id" json:"role"`
 }
 
-func (e PodExecCluster) Label() string {
-	return "POD_EXEC"
+func (e PodCreate) Label() string {
+	return "POD_CREATE"
 }
 
-func (e PodExecCluster) Name() string {
-	return "PodExecCluster"
+func (e PodCreate) Name() string {
+	return "PodCreate"
 }
 
-func (e PodExecCluster) BatchSize() int {
-	return podExecBatchSize
+func (e PodCreate) BatchSize() int {
+	return BatchSizeClusterImpact
 }
 
-func (e PodExecCluster) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*podExecClusterGroup](ctx, entry)
+func (e PodCreate) Processor(ctx context.Context, entry any) (any, error) {
+	return adapter.GremlinInputProcessor[*podCreateCluster](ctx, entry)
 }
 
-// Traversal expects a list of podExecClusterGroup serialized as mapstructure for injection into the graph.
-// For each podExecClusterGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
-// matching pods in the cluster 3) add a POD_EXEC edge between the vertices.
-func (e PodExecCluster) Traversal() Traversal {
+// Traversal expects a list of podCreateClusterGroup serialized as mapstructure for injection into the graph.
+// For each podCreateClusterGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
+// matching nodes in the cluster 3) add a POD_CREATE edge between the vertices.
+func (e PodCreate) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
-			Unfold().As("pec").
+			Unfold().As("pcc").
 			V().
 			HasLabel(vertex.RoleLabel).
 			Has("critical", false). // Not out edges from critical assets
-			Has("storeID", __.Where(P.Eq("pec")).By().By("role")).
+			Has("storeID", __.Where(P.Eq("pcc")).By().By("role")).
 			As("r").
 			V().
-			HasLabel(vertex.PodLabel).
+			HasLabel(vertex.NodeLabel).
+			Has("class", vertex.NodeLabel).
 			Unfold().
 			AddE(e.Label()).
 			From(__.Select("r")).
@@ -71,15 +67,16 @@ func (e PodExecCluster) Traversal() Traversal {
 	}
 }
 
-// Stream finds all roles that are NOT namespaced and have pod/exec or equivalent wildcard permissions.
-func (e PodExecCluster) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+// Stream finds all roles that are NOT namespaced and have pod/create or equivalent wildcard permissions.
+func (e PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roles := adapter.MongoDB(store).Collection(collections.RoleName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_namespaced": false,
+				// TODO apply on SwitchNamespacedNodes switch
+				//"is_namespaced": false,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{
@@ -89,7 +86,7 @@ func (e PodExecCluster) Stream(ctx context.Context, store storedb.Provider, _ ca
 								bson.M{"resources": "*"},
 							}},
 							bson.M{"$or": bson.A{
-								bson.M{"verbs": "exec"},
+								bson.M{"verbs": "create"},
 								bson.M{"verbs": "*"},
 							}},
 						},
@@ -110,5 +107,5 @@ func (e PodExecCluster) Stream(ctx context.Context, store storedb.Provider, _ ca
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[podExecClusterGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[podCreateCluster](ctx, cur, callback, complete)
 }

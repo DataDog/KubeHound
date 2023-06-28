@@ -29,7 +29,7 @@ func (e EscapeNsenter) Name() string {
 }
 
 func (e EscapeNsenter) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 // Traversal delegates the traversal creation to the generic containerEscapeTraversal.

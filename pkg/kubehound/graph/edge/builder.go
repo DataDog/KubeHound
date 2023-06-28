@@ -10,7 +10,10 @@ import (
 )
 
 const (
-	DefaultBatchSize = 200
+	BatchSizeDefault       = 80
+	BatchSizeMedium        = BatchSizeDefault / 4
+	BatchSizeSmall         = BatchSizeDefault / 8
+	BatchSizeClusterImpact = 1
 )
 
 // Optional syntactic sugar.

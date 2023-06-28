@@ -12,7 +12,7 @@ import (
 var _ AsyncVertexWriter = (*JanusGraphAsyncWriter[vertex.Traversal])(nil)
 
 // NewJanusGraphAsyncVertexWriter creates a new bulk vertex writer instance.
-func NewJanusGraphAsyncVertexWriter(ctx context.Context, dcp *DriverConnectionPool,
+func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlingo.DriverRemoteConnection,
 	v vertex.Builder, opts ...WriterOption) (*JanusGraphAsyncWriter[vertex.Traversal], error) {
 
 	options := &writerOptions{}
@@ -20,24 +20,12 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, dcp *DriverConnectionPo
 		opt(options)
 	}
 
-	// Creating a transaction modifies the connection pool, acquire the lock
-	dcp.Lock.Lock()
-	defer dcp.Lock.Unlock()
-
-	source := gremlingo.Traversal_().WithRemote(dcp.Driver)
-	tx := source.Tx()
-	gtx, err := tx.Begin()
-	if err != nil {
-		return nil, err
-	}
-
 	jw := JanusGraphAsyncWriter[vertex.Traversal]{
 		label:           v.Label(),
 		gremlin:         v.Traversal(),
-		dcp:             dcp,
+		drc:             drc,
 		inserts:         make([]types.TraversalInput, 0, v.BatchSize()),
-		traversalSource: gtx,
-		transaction:     tx,
+		traversalSource: gremlingo.Traversal_().WithRemote(drc),
 		batchSize:       v.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []types.TraversalInput, v.BatchSize()*channelSizeBatchFactor),

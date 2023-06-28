@@ -14,11 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const (
-	// Use a small batch size here as each role will generate a significant number of edges
-	podPatchBatchSize = 5
-)
-
 func init() {
 	Register(PodPatchCluster{})
 }
@@ -36,11 +31,11 @@ func (e PodPatchCluster) Label() string {
 }
 
 func (e PodPatchCluster) Name() string {
-	return "PodPatchCluster"
+	return "PodPatch"
 }
 
 func (e PodPatchCluster) BatchSize() int {
-	return podPatchBatchSize
+	return BatchSizeClusterImpact
 }
 
 func (e PodPatchCluster) Processor(ctx context.Context, entry any) (any, error) {
@@ -62,6 +57,7 @@ func (e PodPatchCluster) Traversal() Traversal {
 			As("r").
 			V().
 			HasLabel(vertex.NodeLabel).
+			Has("class", vertex.NodeLabel).
 			Unfold().
 			AddE(e.Label()).
 			From(__.Select("r")).
@@ -79,7 +75,8 @@ func (e PodPatchCluster) Stream(ctx context.Context, store storedb.Provider, _ c
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_namespaced": false,
+				// TODO apply on SwitchNamespacedNodes switch
+				//"is_namespaced": false,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{
