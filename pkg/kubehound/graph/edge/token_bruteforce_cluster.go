@@ -14,11 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const (
-	// Use a small batch size here as each role will generate a significant number of edges
-	tokenBruteforceClusterBatchSize = 100
-)
-
 func init() {
 	Register(TokenBruteforceCluster{})
 }
@@ -40,7 +35,7 @@ func (e TokenBruteforceCluster) Name() string {
 }
 
 func (e TokenBruteforceCluster) BatchSize() int {
-	return 1
+	return ClusterImpactBatchSize
 }
 
 func (e TokenBruteforceCluster) Processor(ctx context.Context, entry any) (any, error) {

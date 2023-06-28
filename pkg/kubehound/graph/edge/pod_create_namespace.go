@@ -41,7 +41,7 @@ func (e PodCreateNamespace) Name() string {
 }
 
 func (e PodCreateNamespace) BatchSize() int {
-	return 1
+	return DefaultBatchSize
 }
 
 func (e PodCreateNamespace) Processor(ctx context.Context, entry any) (any, error) {

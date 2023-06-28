@@ -10,7 +10,10 @@ import (
 )
 
 const (
-	DefaultBatchSize = 75
+	DefaultBatchSize        = 80
+	ClusterImpactBatchSize  = 1
+	PodToContainerBatchSize = DefaultBatchSize / 8
+	NodeToPodBatchSize      = DefaultBatchSize / 8
 )
 
 // Optional syntactic sugar.

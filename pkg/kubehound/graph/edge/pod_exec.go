@@ -40,7 +40,7 @@ func (e PodExec) Name() string {
 }
 
 func (e PodExec) BatchSize() int {
-	return 1
+	return ClusterImpactBatchSize
 }
 
 func (e PodExec) Processor(ctx context.Context, entry any) (any, error) {

@@ -40,7 +40,7 @@ func (e PodCreate) Name() string {
 }
 
 func (e PodCreate) BatchSize() int {
-	return 1
+	return ClusterImpactBatchSize
 }
 
 func (e PodCreate) Processor(ctx context.Context, entry any) (any, error) {
@@ -80,6 +80,7 @@ func (e PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.C
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
+				// TODO apply on SwitchNamespacedNodes switch
 				//"is_namespaced": false,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
