@@ -49,10 +49,10 @@ func (jgv *JanusGraphAsyncWriter[T]) startBackgroundWriter(ctx context.Context) 
 				_ = statsd.Count(telemetry.MetricGraphdbBackgroundWriterCall, 1, jgv.tags, 1)
 				err := jgv.batchWrite(ctx, data)
 				if err != nil {
-					log.I.Errorf("write data in background batch writer: %v", err)
+					log.Trace(ctx).Errorf("write data in background batch writer: %v", err)
 				}
 			case <-ctx.Done():
-				log.I.Info("Closed background janusgraph worker on context cancel")
+				log.Trace(ctx).Info("Closed background janusgraph worker on context cancel")
 				return
 			}
 		}
@@ -76,7 +76,7 @@ func (jgv *JanusGraphAsyncWriter[T]) batchWrite(ctx context.Context, data []type
 	datalen := len(data)
 	_ = statsd.Gauge(telemetry.MetricGraphdbBatchWrite, float64(datalen), jgv.tags, 1)
 
-	log.I.Debugf("batch write JanusGraphAsyncVertexWriter with %d elements", datalen)
+	log.Trace(ctx).Debugf("batch write JanusGraphAsyncVertexWriter with %d elements", datalen)
 	defer jgv.writingInFlight.Done()
 
 	atomic.AddInt32(&jgv.wcounter, int32(datalen))
@@ -114,20 +114,20 @@ func (jgv *JanusGraphAsyncWriter[T]) Flush(ctx context.Context) error {
 		jgv.writingInFlight.Add(1)
 		err := jgv.batchWrite(ctx, jgv.inserts)
 		if err != nil {
-			log.I.Errorf("batch write %s: %+v", jgv.label, err)
+			log.Trace(ctx).Errorf("batch write %s: %+v", jgv.label, err)
 			jgv.writingInFlight.Wait()
 			return err
 		}
 
-		log.I.Infof("Done flushing %s writes. clearing the queue", jgv.label)
+		log.Trace(ctx).Infof("Done flushing %s writes. clearing the queue", jgv.label)
 		jgv.inserts = nil
 	}
 
 	jgv.writingInFlight.Wait()
 
 	// TODO replace with telemetry.metrics
-	log.I.Infof("%d %s queued", jgv.qcounter, jgv.label)
-	log.I.Infof("%d %s written", jgv.wcounter, jgv.label)
+	log.Trace(ctx).Infof("%d %s queued", jgv.qcounter, jgv.label)
+	log.Trace(ctx).Infof("%d %s written", jgv.wcounter, jgv.label)
 	return nil
 }
 
