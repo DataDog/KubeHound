@@ -5,8 +5,11 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 const (
@@ -76,10 +79,18 @@ func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *sto
 // The function ingests an input cluster role binding object into the store/graph and then ingests
 // all child objects (identites, etc) through their own ingestion pipeline.
 func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context, crb types.ClusterRoleBindingType) error {
+	if ok, err := preflight.CheckClusterRoleBinding(crb); !ok {
+		return err
+	}
+
 	// Normalize K8s cluster role binding to store object format
-	// TODO We can get cache misses here if bindings remain with no corresponding role which happens is staging!
 	o, err := i.r.storeConvert.ClusterRoleBinding(ctx, crb)
 	if err != nil {
+		if err == converter.ErrDanglingRoleBinding {
+			log.I.Debugf("%s : %s", err.Error(), crb.Name)
+			return nil
+		}
+
 		return err
 	}
 

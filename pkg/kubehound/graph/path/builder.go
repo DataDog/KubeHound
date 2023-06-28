@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DefaultBatchSize = 25
+	BatchSizeDefault = 25
 )
 
 // Optional syntactic sugar.

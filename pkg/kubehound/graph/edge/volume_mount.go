@@ -37,7 +37,7 @@ func (e VolumeMount) Name() string {
 }
 
 func (e VolumeMount) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeMedium
 }
 
 func (e VolumeMount) Processor(ctx context.Context, entry any) (any, error) {
@@ -57,22 +57,26 @@ func (e VolumeMount) Traversal() Traversal {
 			SideEffect(
 				__.V().
 					HasLabel(vertex.NodeLabel).
+					Has("class", vertex.NodeLabel).
 					Has("storeID", __.Where(P.Eq("mg")).By().By("node")).
 					AddE(e.Label()).
 					To(
 						__.V().
 							HasLabel(vertex.VolumeLabel).
+							Has("class", vertex.VolumeLabel).
 							Has("storeID", __.Where(P.Eq("mg")).By().By("volume")))).
 			Select("containers").
 			Unfold().
 			As("c").
 			V().
 			HasLabel(vertex.ContainerLabel).
+			Has("class", vertex.ContainerLabel).
 			Has("storeID", __.Where(P.Eq("c"))).
 			AddE(e.Label()).
 			To(
 				__.V().
 					HasLabel(vertex.VolumeLabel).
+					Has("class", vertex.VolumeLabel).
 					Has("storeID", __.Where(P.Eq("mg")).By().By("volume"))).
 			Barrier().Limit(0)
 

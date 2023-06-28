@@ -104,7 +104,7 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 		i := types.PodType(&item)
 		err = ingestor.IngestPod(ctx, i)
 		if err != nil {
-			return fmt.Errorf("processing K8s cluster role binding %s: %w", i.Name, err)
+			return fmt.Errorf("processing K8s pod %s: %w", i.Name, err)
 		}
 	}
 

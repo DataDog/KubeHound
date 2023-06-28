@@ -23,7 +23,7 @@ func (v Volume) Label() string {
 }
 
 func (v Volume) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 func (v Volume) Processor(ctx context.Context, entry any) (any, error) {

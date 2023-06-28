@@ -24,7 +24,7 @@ func (v Role) Label() string {
 }
 
 func (v Role) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 func (v Role) Processor(ctx context.Context, entry any) (any, error) {

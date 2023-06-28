@@ -23,7 +23,7 @@ func (v Identity) Label() string {
 }
 
 func (v Identity) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 func (v Identity) Processor(ctx context.Context, entry any) (any, error) {

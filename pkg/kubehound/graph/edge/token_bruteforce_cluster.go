@@ -14,11 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const (
-	// Use a small batch size here as each role will generate a significant number of edges
-	tokenBruteforceClusterBatchSize = 5
-)
-
 func init() {
 	Register(TokenBruteforceCluster{})
 }
@@ -40,7 +35,7 @@ func (e TokenBruteforceCluster) Name() string {
 }
 
 func (e TokenBruteforceCluster) BatchSize() int {
-	return tokenBruteforceClusterBatchSize
+	return BatchSizeClusterImpact
 }
 
 func (e TokenBruteforceCluster) Processor(ctx context.Context, entry any) (any, error) {
@@ -58,10 +53,12 @@ func (e TokenBruteforceCluster) Traversal() Traversal {
 			V().
 			Has("critical", false). // Not out edges from critical assets
 			HasLabel(vertex.RoleLabel).
+			Has("class", vertex.RoleLabel).
 			Has("storeID", __.Where(P.Eq("tbc")).By().By("role")).
 			As("r").
 			V().
 			HasLabel(vertex.IdentityLabel).
+			Has("class", vertex.IdentityLabel).
 			Has("type", "ServiceAccount").
 			Unfold().
 			AddE(e.Label()).
