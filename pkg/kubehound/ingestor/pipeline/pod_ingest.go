@@ -5,6 +5,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -74,6 +75,10 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 
 // processContainer will handle the ingestion pipeline for a container belonging to a processed K8s pod input.
 func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, container types.ContainerType) error {
+	if ok, err := preflight.CheckContainer(container); !ok {
+		return err
+	}
+
 	// Normalize container to store object format
 	sc, err := i.r.storeConvert.Container(ctx, container, parent)
 	if err != nil {
@@ -107,6 +112,10 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 
 // processVolume will handle the ingestion pipeline for a volume belonging to a processed K8s pod input.
 func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume types.VolumeType) error {
+	if ok, err := preflight.CheckVolume(volume); !ok {
+		return err
+	}
+
 	// Normalize volume to store object format
 	sv, err := i.r.storeConvert.Volume(ctx, volume, parent)
 	if err != nil {
@@ -137,13 +146,8 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 // The function ingests an input pod object into the cache/store/graph and then ingests
 // all child objects (containers, volumes, etc) through their own ingestion pipeline.
 func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
-
-	// If the pod is not running we don't want to save it
-	// TODO generalize this pattern! Preflight checks?
-	if pod.Status.Phase != "Running" {
-		log.I.Warnf("pod %s::%s not running (status=%s), skipping ingest!",
-			pod.Namespace, pod.Name, pod.Status.Phase)
-		return nil
+	if ok, err := preflight.CheckPod(pod); !ok {
+		return err
 	}
 
 	// Normalize pod to store object format

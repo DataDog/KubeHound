@@ -23,7 +23,7 @@ func (v Container) Label() string {
 }
 
 func (v Container) BatchSize() int {
-	return DefaultBatchSize / 2
+	return BatchSizeDefault / 2
 }
 
 func (v Container) Processor(ctx context.Context, entry any) (any, error) {

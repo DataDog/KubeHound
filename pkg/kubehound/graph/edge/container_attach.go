@@ -36,7 +36,7 @@ func (e ContainerAttach) Name() string {
 }
 
 func (e ContainerAttach) BatchSize() int {
-	return DefaultBatchSize / 8
+	return BatchSizeSmall
 }
 
 func (e ContainerAttach) Processor(ctx context.Context, entry any) (any, error) {

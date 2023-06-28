@@ -5,6 +5,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
@@ -98,12 +99,18 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 // The function ingests an input role binding object into the store/graph and then ingests
 // all child objects (identites, etc) through their own ingestion pipeline.
 func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.RoleBindingType) error {
+	if ok, err := preflight.CheckRoleBinding(rb); !ok {
+		return err
+	}
+
 	// Normalize K8s role binding to store object format
 	o, err := i.r.storeConvert.RoleBinding(ctx, rb)
 	if err != nil {
 		if err == converter.ErrDanglingRoleBinding {
+			log.I.Debugf("%s : %s", err.Error(), rb.Name)
 			return nil
 		}
+
 		return err
 	}
 

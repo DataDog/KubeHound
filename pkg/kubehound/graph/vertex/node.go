@@ -23,7 +23,7 @@ func (v Node) Label() string {
 }
 
 func (v Node) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 func (v Node) Processor(ctx context.Context, entry any) (any, error) {

@@ -35,7 +35,7 @@ func (e TokenBruteforceCluster) Name() string {
 }
 
 func (e TokenBruteforceCluster) BatchSize() int {
-	return ClusterImpactBatchSize
+	return BatchSizeClusterImpact
 }
 
 func (e TokenBruteforceCluster) Processor(ctx context.Context, entry any) (any, error) {

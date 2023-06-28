@@ -5,6 +5,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
@@ -45,6 +46,10 @@ func (i *ClusterRoleIngest) Initialize(ctx context.Context, deps *Dependencies) 
 // streamCallback is invoked by the collector for each cluster role collected.
 // The function ingests an input cluster role into the cache/store/graph databases asynchronously.
 func (i *ClusterRoleIngest) IngestClusterRole(ctx context.Context, role types.ClusterRoleType) error {
+	if ok, err := preflight.CheckClusterRole(role); !ok {
+		return err
+	}
+
 	// Normalize K8s cluster role to store object format. Cluster roles are treated as
 	// role within our model (with IsNamespaced flag set to false).
 	o, err := i.r.storeConvert.ClusterRole(ctx, role)

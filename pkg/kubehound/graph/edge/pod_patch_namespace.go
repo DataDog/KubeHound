@@ -41,7 +41,7 @@ func (e PodPatchNamespace) Name() string {
 }
 
 func (e PodPatchNamespace) BatchSize() int {
-	return ClusterImpactBatchSize
+	return BatchSizeClusterImpact
 }
 
 func (e PodPatchNamespace) Processor(ctx context.Context, entry any) (any, error) {

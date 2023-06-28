@@ -23,7 +23,7 @@ func (v Pod) Label() string {
 }
 
 func (v Pod) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 func (v Pod) Processor(ctx context.Context, entry any) (any, error) {

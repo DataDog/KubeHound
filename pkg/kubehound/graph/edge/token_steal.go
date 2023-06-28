@@ -44,7 +44,7 @@ func (e TokenSteal) Name() string {
 }
 
 func (e TokenSteal) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 func (e TokenSteal) Processor(ctx context.Context, entry any) (any, error) {

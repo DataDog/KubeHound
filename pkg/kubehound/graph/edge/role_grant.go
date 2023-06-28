@@ -36,7 +36,7 @@ func (e RoleGrant) Name() string {
 }
 
 func (e RoleGrant) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 func (e RoleGrant) Processor(ctx context.Context, entry any) (any, error) {

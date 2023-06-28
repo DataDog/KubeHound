@@ -37,7 +37,7 @@ func (e VolumeMount) Name() string {
 }
 
 func (e VolumeMount) BatchSize() int {
-	return DefaultBatchSize / 4
+	return BatchSizeMedium
 }
 
 func (e VolumeMount) Processor(ctx context.Context, entry any) (any, error) {

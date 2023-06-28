@@ -14,11 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const (
-	// Use a small batch size here as each role will generate a significant number of edges
-	podExecBatchSize = 5
-)
-
 func init() {
 	Register(PodExec{})
 }
@@ -40,7 +35,7 @@ func (e PodExec) Name() string {
 }
 
 func (e PodExec) BatchSize() int {
-	return ClusterImpactBatchSize
+	return BatchSizeClusterImpact
 }
 
 func (e PodExec) Processor(ctx context.Context, entry any) (any, error) {
