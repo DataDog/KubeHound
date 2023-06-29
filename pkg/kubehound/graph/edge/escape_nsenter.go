@@ -24,8 +24,12 @@ func (e EscapeNsenter) Label() string {
 	return "CE_NSENTER"
 }
 
+func (e EscapeNsenter) Name() string {
+	return "ContainerEscapeNsenter"
+}
+
 func (e EscapeNsenter) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 // Traversal delegates the traversal creation to the generic containerEscapeTraversal.

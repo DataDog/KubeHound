@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
@@ -52,7 +51,7 @@ func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) (stri
 	data, ok := m.data[computeKey(key)]
 	if !ok {
 		_ = statsd.Incr(telemetry.MetricCacheMiss, []string{}, 1)
-		err = errors.New("entry not found in cache")
+		err = fmt.Errorf("entry not found in cache: %s", computeKey(key))
 	} else {
 		_ = statsd.Incr(telemetry.MetricCacheHit, []string{}, 1)
 	}

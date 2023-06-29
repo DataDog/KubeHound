@@ -29,6 +29,10 @@ services:
       # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
       - janusgraph.schema.constraints=true
       - janusgraph.schema.default=none
+      # Bump content length of web-socket buffer to enable bulk insert queries
+      - gremlinserver.maxContentLength=2097152
+      # Bump evaluation timeout to support our large datasets
+      - gremlinserver.evaluationTimeout=60000
     healthcheck:
       # Healthcheck parameters optimized to ensure fast system tests. DO NOT USE IN PRODUCTION!
       test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]

@@ -20,16 +20,16 @@ func containerEscapeTraversal(edgeLabel string) Traversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("ce").
-			V().HasLabel(vertex.ContainerLabel).
-			Where(P.Eq("ce")).
-			By("storeID").
-			By("container").
+			V().
+			HasLabel(vertex.ContainerLabel).
+			Has("class", vertex.ContainerLabel).
+			Has("storeID", __.Where(P.Eq("ce")).By().By("container")).
 			AddE(edgeLabel).
 			To(
-				__.V().HasLabel(vertex.NodeLabel).
-					Where(P.Eq("ce")).
-					By("storeID").
-					By("node")).
+				__.V().
+					HasLabel(vertex.NodeLabel).
+					Has("class", vertex.NodeLabel).
+					Has("storeID", __.Where(P.Eq("ce")).By().By("node"))).
 			Barrier().Limit(0)
 
 		return g

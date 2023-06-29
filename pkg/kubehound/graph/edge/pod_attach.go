@@ -31,8 +31,12 @@ func (e PodAttach) Label() string {
 	return "POD_ATTACH"
 }
 
+func (e PodAttach) Name() string {
+	return "PodAttach"
+}
+
 func (e PodAttach) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeSmall
 }
 
 func (e PodAttach) Processor(ctx context.Context, entry any) (any, error) {
@@ -50,16 +54,16 @@ func (e PodAttach) Traversal() Traversal {
 			Select("pods").
 			Unfold().
 			As("p").
-			V().HasLabel(vertex.PodLabel).
-			Where(P.Eq("p")).
-			By("storeID").
-			By().
+			V().
+			HasLabel(vertex.PodLabel).
+			Has("class", vertex.PodLabel).
+			Has("storeID", __.Where(P.Eq("p"))).
 			AddE(e.Label()).
 			From(
-				__.V().HasLabel(vertex.NodeLabel).
-					Where(P.Eq("pa")).
-					By("storeID").
-					By("node")).
+				__.V().
+					HasLabel(vertex.NodeLabel).
+					Has("class", vertex.NodeLabel).
+					Has("storeID", __.Where(P.Eq("pa")).By().By("node"))).
 			Barrier().Limit(0)
 
 		return g

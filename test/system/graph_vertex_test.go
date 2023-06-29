@@ -95,12 +95,6 @@ func (suite *VertexTestSuite) SetupSuite() {
 	suite.g = gremlingo.Traversal_().WithRemote(suite.client)
 }
 
-func (suite *VertexTestSuite) TestVertexLargeInsert() {
-	// results, err := suite.g.V().HasLabel(vertex.NodeLabel).ElementMap().ToList()
-	// suite.NoError(err)
-	// TODO inserty then remove 1000 vertices
-}
-
 func (suite *VertexTestSuite) TestVertexContainer() {
 	results, err := suite.g.V().HasLabel(vertex.ContainerLabel).ElementMap().ToList()
 	suite.NoError(err)
@@ -129,9 +123,6 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 		compromised, ok := converted["compromised"].(int32)
 		suite.True(ok, "failed to convert compromised field to CompromiseType")
 
-		critical, ok := converted["critical"].(bool)
-		suite.True(ok, "failed to convert critical field to bool")
-
 		privileged, ok := converted["privileged"].(bool)
 		suite.True(ok, "failed to convert privileged field to bool")
 
@@ -158,7 +149,6 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 			Pod:          podName,
 			// Node:         nodeName, // see comments for converted["node"].(string)
 			Compromised: shared.CompromiseType(compromised),
-			Critical:    critical,
 		}
 	}
 	suite.Equal(expectedContainers, resultsMap)
@@ -271,20 +261,10 @@ func (suite *VertexTestSuite) TestVertexRole() {
 	suite.Equal(1, len(results))
 }
 
-func (suite *VertexTestSuite) TestVertexToken() {
-	results, err := suite.g.V().HasLabel(vertex.TokenLabel).Has("type", "ServiceAccount").ElementMap().ToList()
-	suite.NoError(err)
-	suite.Equal(6, len(results))
-
-	results, err = suite.g.V().HasLabel(vertex.TokenLabel).Has("type", "ServiceAccount").Has("identity", "pod-patch-sa").ElementMap().ToList()
-	suite.NoError(err)
-	suite.Equal(1, len(results))
-}
-
 func (suite *VertexTestSuite) TestVertexVolume() {
 	results, err := suite.g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
 	suite.NoError(err)
-	suite.Equal(54, len(results))
+	suite.Equal(55, len(results))
 
 	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("path", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
 	suite.NoError(err)

@@ -10,7 +10,10 @@ import (
 )
 
 const (
-	DefaultBatchSize = 200
+	BatchSizeDefault       = 80
+	BatchSizeMedium        = BatchSizeDefault / 4
+	BatchSizeSmall         = BatchSizeDefault / 8
+	BatchSizeClusterImpact = 1
 )
 
 // Optional syntactic sugar.
@@ -24,7 +27,10 @@ type Traversal func(source *gremlin.GraphTraversalSource, inserts []types.Traver
 
 //go:generate mockery --name Builder --output mocks --case underscore --filename edge.go --with-expecter
 type Builder interface {
-	// Label returns the label for the edge (convention is all uppercase i.e EDGE_NAME)
+	// Name returns the unique name for the edge builder. This must be unique.
+	Name() string
+
+	// Label returns the label for the edge (convention is all uppercase i.e EDGE_NAME).
 	Label() string
 
 	// BatchSize returns the batch size of bulk inserts (and threshold for triggering a flush).

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
@@ -21,7 +20,7 @@ const channelSizeBatchFactor = 4
 var _ Provider = (*JanusGraphProvider)(nil)
 
 type JanusGraphProvider struct {
-	pool *DriverConnectionPool
+	drc  *gremlingo.DriverRemoteConnection
 	tags []string
 }
 
@@ -32,6 +31,7 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 	driver, err := gremlingo.NewDriverRemoteConnection(dbHost,
 		func(settings *gremlingo.DriverRemoteConnectionSettings) {
 			settings.ConnectionTimeout = timeout
+			settings.LogVerbosity = gremlingo.Warning
 		},
 	)
 	if err != nil {
@@ -39,10 +39,7 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 	}
 
 	g := &JanusGraphProvider{
-		pool: &DriverConnectionPool{
-			Lock:   &sync.Mutex{},
-			Driver: driver,
-		},
+		drc:  driver,
 		tags: append(telemetry.BaseTags, telemetry.TagTypeJanusGraph),
 	}
 
@@ -58,10 +55,10 @@ func (jgp *JanusGraphProvider) Name() string {
 // from: https://stackoverflow.com/questions/59396980/gremlin-query-to-check-connection-health
 func (jgp *JanusGraphProvider) HealthCheck(ctx context.Context) (bool, error) {
 	wantValue := "1"
-	if jgp.pool.Driver == nil {
+	if jgp.drc == nil {
 		return false, errors.New("get janus graph client (nil)")
 	}
-	res, err := jgp.pool.Driver.Submit(wantValue)
+	res, err := jgp.drc.Submit(wantValue)
 	if err != nil {
 		return false, err
 	}
@@ -86,26 +83,26 @@ func (jgp *JanusGraphProvider) HealthCheck(ctx context.Context) (bool, error) {
 
 // Raw returns a handle to the underlying provider to allow implementation specific operations e.g graph queries.
 func (jgp *JanusGraphProvider) Raw() any {
-	return jgp.pool.Driver
+	return jgp.drc
 }
 
 // VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
 func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builder, opts ...WriterOption) (AsyncVertexWriter, error) {
-	return NewJanusGraphAsyncVertexWriter(ctx, jgp.pool, v, opts...)
+	return NewJanusGraphAsyncVertexWriter(ctx, jgp.drc, v, opts...)
 }
 
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
 func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error) {
-	return NewJanusGraphAsyncEdgeWriter(ctx, jgp.pool, e, opts...)
+	return NewJanusGraphAsyncEdgeWriter(ctx, jgp.drc, e, opts...)
 }
 
 // PathWriter creates a new AsyncPathWriter instance to enable asynchronous bulk inserts of paths.
 func (jgp *JanusGraphProvider) PathWriter(ctx context.Context, p path.Builder, opts ...WriterOption) (AsyncPathWriter, error) {
-	return NewJanusGraphAsyncPathWriter(ctx, jgp.pool, p, opts...)
+	return NewJanusGraphAsyncPathWriter(ctx, jgp.drc, p, opts...)
 }
 
 // Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.
 func (jgp *JanusGraphProvider) Close(ctx context.Context) error {
-	jgp.pool.Driver.Close()
+	jgp.drc.Close()
 	return nil
 }

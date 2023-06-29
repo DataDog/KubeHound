@@ -45,7 +45,7 @@ The cluster setup and running instances can be found under [test/setup](./test/s
 
 If you need to manually access the system test environement with kubectl and other commands, you'll need to set (assuming you are at the root dir):
 ```bash
-cd test/setup/ && export KUBECONFIG=$(pwd)/.kube/config
+cd test/setup/ && export KUBECONFIG=$(pwd)/.kube-config
 ```
 
 ### Requirements
@@ -89,3 +89,13 @@ Note: if you are running on Linux but you dont want to run `sudo` for `kind` and
 ### CI Testing
 
 System tests will be run in CI via the [system-test](./.github/workflows/system-test.yml) github action 
+
+### Sample Graph
+
+To view a sample graph demonstrating attacks in a very, very vulnerable cluster you can generate data via the system tests:
+
+```bash
+make local-cluster-deploy && make system-test
+```
+
+Then use a graph visualizer of choice (we recommend [gdotv](https://gdotv.com/)) to connect to localhost and view and query the sample data.
