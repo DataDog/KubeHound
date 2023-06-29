@@ -2,17 +2,15 @@ storage:
   retry_delay: 10s
   retry: 5
 collector:
-  type: live-k8s-api-collector
-  live:
-    page_size: 500
-    page_buffer_size: 10
-    rate_limit_per_second: 100
+  type: file-collector
+  file:
+    
 mongodb:
   url: "mongodb://localhost:27017"
-  connection_timeout: 5s
+  connection_timeout: 30s
 janusgraph:
   url: "ws://localhost:8182/gremlin"
-  connection_timeout: 5s
+  connection_timeout: 30s
 telemetry:
   statsd:
     url: "127.0.0.1:8125"

@@ -2,7 +2,9 @@ package edge
 
 import (
 	"context"
+	"os"
 
+	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -15,7 +17,10 @@ import (
 )
 
 func init() {
-	Register(PodPatchNamespace{})
+	if _, ok := os.LookupEnv(globals.SwitchNamespacedNodes); ok {
+		// Only required if nodes are namespaced. Otherwise will create overly large queries and cause timeouts
+		Register(PodPatchNamespace{})
+	}
 }
 
 // @@DOCLINK: TODO
@@ -36,7 +41,7 @@ func (e PodPatchNamespace) Name() string {
 }
 
 func (e PodPatchNamespace) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeClusterImpact
 }
 
 func (e PodPatchNamespace) Processor(ctx context.Context, entry any) (any, error) {
@@ -50,19 +55,18 @@ func (e PodPatchNamespace) Traversal() Traversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
-			Unfold().As("ppg").
-			Select("nodes").
-			Unfold().
-			As("n").
+			Unfold().As("ppc").
+			V().
+			HasLabel(vertex.RoleLabel).
+			Has("critical", false). // Not out edges from critical assets
+			Has("storeID", __.Where(P.Eq("ppc")).By().By("role")).
+			As("r").
 			V().
 			HasLabel(vertex.NodeLabel).
-			Has("storeID", __.Where(P.Eq("n"))).
+			Has("class", vertex.NodeLabel).
+			Unfold().
 			AddE(e.Label()).
-			From(
-				__.V().
-					HasLabel(vertex.RoleLabel).
-					Has("critical", false). // Not out edges from critical assets
-					Has("storeID", __.Where(P.Eq("ppg")).By().By("role"))).
+			From(__.Select("r")).
 			Barrier().Limit(0)
 
 		return g

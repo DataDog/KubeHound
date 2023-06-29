@@ -58,8 +58,8 @@ mgmt.addConnection(podPatch, role, node);
 podExec = mgmt.makeEdgeLabel('POD_EXEC').multiplicity(MULTI).make();
 mgmt.addConnection(podExec, role, pod);
 
-tokenSteal = mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(ONE2MANY).make();
-mgmt.addConnection(tokenSteal, volume, token);
+tokenSteal = mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(MULTI).make();
+mgmt.addConnection(tokenSteal, volume, identity);
 
 tokenBruteforce = mgmt.makeEdgeLabel('TOKEN_BRUTEFORCE').multiplicity(MULTI).make();
 mgmt.addConnection(tokenBruteforce, role, identity);

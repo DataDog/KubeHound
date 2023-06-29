@@ -261,16 +261,6 @@ func (suite *VertexTestSuite) TestVertexRole() {
 	suite.Equal(1, len(results))
 }
 
-func (suite *VertexTestSuite) TestVertexToken() {
-	results, err := suite.g.V().HasLabel(vertex.TokenLabel).Has("type", "ServiceAccount").ElementMap().ToList()
-	suite.NoError(err)
-	suite.Equal(7, len(results))
-
-	results, err = suite.g.V().HasLabel(vertex.TokenLabel).Has("type", "ServiceAccount").Has("identity", "pod-patch-sa").ElementMap().ToList()
-	suite.NoError(err)
-	suite.Equal(1, len(results))
-}
-
 func (suite *VertexTestSuite) TestVertexVolume() {
 	results, err := suite.g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
 	suite.NoError(err)

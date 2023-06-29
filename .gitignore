@@ -40,3 +40,4 @@ test/setup/.kube
 test/system/generator/generator
 *.env
 *.kube-config
+scripts/collectors/staging-data

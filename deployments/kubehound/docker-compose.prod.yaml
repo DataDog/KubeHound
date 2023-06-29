@@ -9,6 +9,14 @@ services:
     image: ghcr.io/datadog/kubehound/kubehound-janusgraph:latest
     volumes:
       - janusgraph_data:/data
+    environment:
+      # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
+      - janusgraph.schema.constraints=true
+      - janusgraph.schema.default=none
+      # Bump content length of web-socket buffer to enable bulk insert queries
+      - gremlinserver.maxContentLength=2097152
+      # Bump evaluation timeout to support our large datasets
+      - gremlinserver.evaluationTimeout=60000
 
   kubehound:
     container_name: ${COMPOSE_PROJECT_NAME}-core

@@ -29,7 +29,7 @@ func (e EscapeModuleLoad) Name() string {
 }
 
 func (e EscapeModuleLoad) BatchSize() int {
-	return DefaultBatchSize
+	return BatchSizeDefault
 }
 
 func (e EscapeModuleLoad) Processor(ctx context.Context, entry any) (any, error) {
