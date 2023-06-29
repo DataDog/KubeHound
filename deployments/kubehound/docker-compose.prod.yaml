@@ -12,6 +12,7 @@ services:
 
   kubehound:
     container_name: ${COMPOSE_PROJECT_NAME}-core
+    profiles: ["core"]
     restart: unless-stopped
     image: ghcr.io/datadog/kubehound/kubehound-core:latest
     environment:

@@ -1,0 +1,6 @@
+logs_config:
+  auto_multi_line_detection: true
+  auto_multi_line_extra_patterns:
+  - \d{2}:\d{2}:\d{2}
+  #  - \d{2}:\d{2}:\d{2} (WARN|FATAL|ERROR|WARN|INFO|DEBUG|TRACE)
+  #  - \((node)\:\d\)

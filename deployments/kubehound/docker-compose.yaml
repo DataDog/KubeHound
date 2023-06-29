@@ -4,6 +4,7 @@ services:
   mongodb:
     image: mongo:6.0.6
     restart: unless-stopped
+    profiles: ["infra"]
     container_name: ${COMPOSE_PROJECT_NAME}-storedb
     ports:
       - "127.0.0.1:27017:27017"
@@ -12,10 +13,13 @@ services:
     depends_on:
       janusgraph:
         condition: service_healthy
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "mongodb", "service": "kubehound"}]'
 
   janusgraph:
     build: ./janusgraph/
     restart: unless-stopped
+    profiles: ["infra"]
     container_name: ${COMPOSE_PROJECT_NAME}-graphdb
     ports:
       - "127.0.0.1:8182:8182"
@@ -32,6 +36,20 @@ services:
       timeout: 30s
       retries: 5
       start_period: 15s
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "janusgraph", "service": "kubehound"}]'
+      #com.datadoghq.ad.logs: '[{"app": "janusgraph", "service": "kubehound","log_processing_rules": [{"type": "multi_line","name": "log_start_with_date","pattern" : "\d{2}:\d{2}:\d{2}"}]}]'
+      # com.datadoghq.ad.logs: >
+      #   '[{
+      #     "app": "janusgraph",
+      #     "service": "kubehound",
+      #   }]'
+      # com.datadoghq.ad.logs: >-
+      #   [{
+      #     "source": "janusgraph",
+      #     "service": "kubehound",
+      #     "log_processing_rules": [{"type": "multi_line","name": "log_start_with_date","pattern" : "\d{2}:\d{2}:\d{2}"}]
+      #   }] 
 
 networks:
   kubenet:

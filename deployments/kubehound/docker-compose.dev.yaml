@@ -10,18 +10,24 @@ services:
       - janusgraph_data:/data
 
   mongo-express:
-    image: mongo-express:0.54.0
+    image: mongo-express:1.0.0-alpha
+    profiles: ["infra"]
+    container_name: ${COMPOSE_PROJECT_NAME}-mongo-express
     restart: unless-stopped
     depends_on:
       - mongodb
     ports:
       - "127.0.0.1:8081:8081"
+    networks:
+      - kubenet
     environment:
-      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "mongo-express", "service": "kubehound"}]'
   
   kubehound:
     container_name: ${COMPOSE_PROJECT_NAME}-core
-    restart: unless-stopped
+    profiles: ["core"]
     build:
       context: ../../
       dockerfile: Dockerfile
@@ -32,6 +38,8 @@ services:
     networks:
       - kubenet
       - kind
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "core", "service": "kubehound"}]'
 
 volumes:
   mongodb_data:
