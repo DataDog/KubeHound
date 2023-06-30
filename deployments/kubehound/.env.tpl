@@ -1,4 +1,3 @@
-DD_API_KEY=
-DD_SITE=api.datadoghq.com
-KUBEHOUND_ENV=prod
+DD_API_KEY= # not required
+KUBEHOUND_ENV=prod # prod or dev
 BUILDKIT_PROGRESS=auto # (default) auto, plain, tty
