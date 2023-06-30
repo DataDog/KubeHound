@@ -64,7 +64,13 @@ ifeq (${CI},true)
 endif
 
 DOCKER_HOSTNAME := $(shell hostname)
-DOCKER_CMD := DOCKER_HOSTNAME=$(DOCKER_HOSTNAME) $(DOCKER_CMD)
+ifneq (${CI},true)
+	DOCKER_CMD := DOCKER_HOSTNAME=$(DOCKER_HOSTNAME) $(DOCKER_CMD)
+endif
+
+ifeq (${CI},true)
+	DOCKER_COMPOSE_PROFILE := 
+endif
 
 all: build
 
