@@ -40,7 +40,9 @@ ifneq ($(MAKECMDGOALS),system-test)
 		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
 	endif
 else
-	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.testing.yaml
+	ifneq (${CI},true)
+		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.testing.yaml
+	endif
 endif
 
 UNAME_S := $(shell uname -s)
