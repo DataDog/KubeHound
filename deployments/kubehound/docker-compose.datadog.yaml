@@ -1,33 +1,25 @@
 version: "3.8"
 services:
   datadog:
-    image: gcr.io/datadoghq/agent:7
+    image: gcr.io/datadoghq/agent:7-jmx
     restart: unless-stopped
     profiles: ["infra"]
     container_name: ${COMPOSE_PROJECT_NAME}-datadog-agent
     ports:
-      - "127.0.0.1:8125:8125"
-      - "127.0.0.1:8126:8126"
+      - "127.0.0.1:8225:8125"
+      - "127.0.0.1:8226:8126"
     environment:
       - DD_API_KEY=${DD_API_KEY:?error}
-      #- DD_DD_URL=${DD_DD_URL:?error}
       - DD_HOSTNAME=${DOCKER_HOSTNAME:?error}
       - DD_ENV=${KUBEHOUND_ENV:-dev}
-      #- DD_SITE=datadoghq.eu
       - DD_TAGS="service:kubehound"
       - DD_APM_ENABLED=true
       - DD_LOGS_ENABLED=true
-      #- DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
-      #- DD_LOGS_CONFIG_DOCKER_CONTAINER_USE_FILE=true
       - DD_PROCESS_AGENT_ENABLED=true
       - DD_APM_NON_LOCAL_TRAFFIC=true
       - DD_CONTAINER_LABELS_AS_TAGS={"com.docker.compose.service":"+app"}
-      #- DD_LOGS_CONFIG_AUTO_MULTI_LINE_DETECTION=true
       - DD_CONTAINER_INCLUDE=name:kubehound-*
-      #- DD_CONTAINER_EXCLUDE=name:kubehound-*-mongo-express
-
-      #- DD_LOGS_INJECTION=true
-      #- DD_CONTAINER_LABELS_AS_TAGS=true
+      - DD_CONTAINER_EXCLUDE=name:kubehound-dev-mongo-express
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /proc/:/host/proc/:ro
@@ -35,6 +27,7 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./datadog/datadog.yaml:/etc/datadog-agent/datadog.yaml:ro
       - ./datadog/mongodb.yaml:/etc/datadog-agent/conf.d/mongo.d/conf.yaml:ro
+      - ./datadog/openmetrics.yaml:/etc/datadog-agent/conf.d/openmetrics.d/conf.yaml:ro
     networks:
       - kubenet
 

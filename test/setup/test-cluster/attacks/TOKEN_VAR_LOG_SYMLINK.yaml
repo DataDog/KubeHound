@@ -7,19 +7,6 @@ metadata:
   labels:
     app: kubehound-edge-test
 spec:
-  tolerations:
-    - key: "node"
-      operator: "Equal"
-      effect: "NoSchedule"
-      value: "nodeless"
-
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: "node-role.kubernetes.io/nodeless"
-                operator: Exists
   containers:
     - name: varlog-pod
       image: ubuntu

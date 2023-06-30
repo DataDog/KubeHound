@@ -1,5 +1,4 @@
-version: "3.7"
-name: kubehound-testing
+version: "3.8"
 services:
   mongodb:
     image: mongo:6.0.6
@@ -15,6 +14,13 @@ services:
         condition: service_healthy
     labels:
       com.datadoghq.ad.logs: '[{"app": "mongodb", "service": "kubehound"}]'
+    volumes:
+      - ./mongo/docker-healthcheck:/usr/local/bin/docker-healthcheck
+    healthcheck:
+      test:  ["CMD", "docker-healthcheck"]
+      interval: 10s
+      timeout: 2s
+      retries: 10
 
   janusgraph:
     build: ./janusgraph/
@@ -23,16 +29,13 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-graphdb
     ports:
       - "127.0.0.1:8182:8182"
+      - "127.0.0.1:8099:8099"
     networks:
       - kubenet
     environment:
       # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
       - janusgraph.schema.constraints=true
       - janusgraph.schema.default=none
-      # Bump content length of web-socket buffer to enable bulk insert queries
-      - gremlinserver.maxContentLength=2097152
-      # Bump evaluation timeout to support our large datasets
-      - gremlinserver.evaluationTimeout=60000
     healthcheck:
       # Healthcheck parameters optimized to ensure fast system tests. DO NOT USE IN PRODUCTION!
       test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
@@ -42,18 +45,6 @@ services:
       start_period: 15s
     labels:
       com.datadoghq.ad.logs: '[{"app": "janusgraph", "service": "kubehound"}]'
-      #com.datadoghq.ad.logs: '[{"app": "janusgraph", "service": "kubehound","log_processing_rules": [{"type": "multi_line","name": "log_start_with_date","pattern" : "\d{2}:\d{2}:\d{2}"}]}]'
-      # com.datadoghq.ad.logs: >
-      #   '[{
-      #     "app": "janusgraph",
-      #     "service": "kubehound",
-      #   }]'
-      # com.datadoghq.ad.logs: >-
-      #   [{
-      #     "source": "janusgraph",
-      #     "service": "kubehound",
-      #     "log_processing_rules": [{"type": "multi_line","name": "log_start_with_date","pattern" : "\d{2}:\d{2}:\d{2}"}]
-      #   }] 
 
 networks:
   kubenet:

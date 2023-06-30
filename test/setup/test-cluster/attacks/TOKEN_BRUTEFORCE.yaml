@@ -4,12 +4,12 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: tokenget-sa
-  # namespace: default
+  namespace: default
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  # namespace: default
+  namespace: default
   name: read-secrets
 rules:
   - apiGroups: ["*"]
@@ -20,7 +20,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: pod-get-secrets
-  # namespace: default
+  namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -28,7 +28,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: tokenget-sa
-    # namespace: default
+    namespace: default
 ---
 apiVersion: v1
 kind: Pod
@@ -37,19 +37,6 @@ metadata:
   labels:
     app: kubehound-edge-test
 spec:
-  tolerations:
-    - key: "node"
-      operator: "Equal"
-      effect: "NoSchedule"
-      value: "nodeless"
-
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: "node-role.kubernetes.io/nodeless"
-                operator: Exists
   serviceAccountName: tokenget-sa
   containers:
     - name: tokenget-pod

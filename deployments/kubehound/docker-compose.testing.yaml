@@ -1,0 +1,14 @@
+version: "3.8"
+name: kubehound-testing
+services:
+  mongodb:
+    ports:
+      - "127.0.0.1:27018:27017"
+  janusgraph:
+    ports:
+      - "127.0.0.1:8183:8182"
+      - "127.0.0.1:8100:8099"
+
+networks:
+  kind:
+    external: true

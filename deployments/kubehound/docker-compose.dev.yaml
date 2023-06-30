@@ -2,20 +2,17 @@ version: "3.8"
 name: kubehound-dev
 services:
   mongodb:
+    ports:
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongodb_data:/data/db
 
   janusgraph:
+    ports:
+      - "127.0.0.1:8182:8182"
+      - "127.0.0.1:8099:8099"
     volumes:
       - janusgraph_data:/data
-    environment:
-      # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
-      - janusgraph.schema.constraints=true
-      - janusgraph.schema.default=none
-      # Bump content length of web-socket buffer to enable bulk insert queries
-      - gremlinserver.maxContentLength=2097152
-      # Bump evaluation timeout to support our large datasets
-      - gremlinserver.evaluationTimeout=60000
 
   mongo-express:
     image: mongo-express:1.0.0-alpha

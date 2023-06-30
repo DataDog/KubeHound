@@ -35,11 +35,12 @@ ifneq ($(MAKECMDGOALS),system-test)
 	else ifeq (${KUBEHOUND_ENV}, dev)
 		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
 	endif
-endif
-
-# No API key is being set
-ifneq (${DD_API_KEY},)
-    DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
+	# No API key is being set
+	ifneq (${DD_API_KEY},)
+		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
+	endif
+else
+	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.testing.yaml
 endif
 
 UNAME_S := $(shell uname -s)
@@ -67,7 +68,7 @@ all: build
 
 .PHONY: generatebre
 generate: ## Generate code the application
-	go install github.com/vektra/mockery/v2@v2.30.1
+	#go install github.com/vektra/mockery/v2@v2.20.0
 	go generate $(BUILD_FLAGS) ./...
 
 .PHONY: build
@@ -93,7 +94,7 @@ test: ## Run the full suite of unit tests
 
 .PHONY: system-test
 system-test: | backend-reset ## Run the system tests
-	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test $(BUILD_FLAGS) -v -timeout "120s" -count=1 $(RACE_FLAG_SYSTEM_TEST) ./...
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 ./...
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 
 .PHONY: local-cluster-deploy
