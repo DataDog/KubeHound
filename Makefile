@@ -51,6 +51,8 @@ ifndef DOCKER_CMD
 		# https://docs.github.com/en/actions/learn-github-actions/variables
 		ifneq (${CI},true)
 			DOCKER_CMD := sudo docker
+		else
+			DOCKER_CMD := docker
 		endif
 	else
 		DOCKER_CMD := docker
@@ -66,10 +68,6 @@ endif
 DOCKER_HOSTNAME := $(shell hostname)
 ifneq (${CI},true)
 	DOCKER_CMD := DOCKER_HOSTNAME=$(DOCKER_HOSTNAME) $(DOCKER_CMD)
-endif
-
-ifeq (${CI},true)
-	DOCKER_COMPOSE_PROFILE := 
 endif
 
 all: build
