@@ -11,8 +11,5 @@ COPY --chown=janusgraph:janusgraph lib/jmx_prometheus_javaagent-0.18.0.jar ${JAN
 COPY --chown=janusgraph:janusgraph lib/exporter-config.yaml ${JANUS_HOME}/lib/exporter-config.yaml
 COPY --chown=janusgraph:janusgraph conf/jvm.options ${JANUS_HOME}/conf/jvm.options
 
-# Specific config file for Kubehound needs
-COPY --chown=janusgraph:janusgraph conf/gremlin-server.yaml ${JANUS_HOME}/conf/
-
 # Custom health check script
 COPY --chown=janusgraph:janusgraph scripts/health-check.groovy ${JANUS_HOME}/scripts/

@@ -12,6 +12,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 		profiler.WithService(globals.DDServiceName),
 		profiler.WithEnv(globals.DDEnv),
 		profiler.WithVersion(config.BuildVersion),
+		profiler.WithAgentAddr(cfg.Telemetry.Tracer.URL),
 		profiler.WithProfileTypes(
 			profiler.CPUProfile,
 			profiler.HeapProfile,
