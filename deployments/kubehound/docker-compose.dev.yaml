@@ -27,8 +27,6 @@ services:
       - kubenet
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongodb
-    labels:
-      com.datadoghq.ad.logs: '[{"app": "mongo-express", "service": "kubehound"}]'
   
   kubehound:
     container_name: ${COMPOSE_PROJECT_NAME}-core
