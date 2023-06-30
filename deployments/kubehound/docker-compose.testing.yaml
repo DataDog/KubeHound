@@ -7,8 +7,6 @@ services:
   janusgraph:
     ports:
       - "127.0.0.1:8183:8182"
-      - "127.0.0.1:8100:8099"
-
 networks:
   kind:
     external: true
