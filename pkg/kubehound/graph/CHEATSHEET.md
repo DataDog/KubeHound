@@ -14,7 +14,7 @@ View all the possible container escapes in the cluster:
 g.V().hasLabel("Container").outE().inV().hasLabel("Node").path()
 ```
 
-List the possible attacks in a cluster with count:
+List the names of all possible attacks in a cluster with total count:
 
 ```groovy
 g.E().groupCount().by(label)
@@ -86,9 +86,9 @@ g.V().hasLabel("Container", "Identity").repeat(out().simplePath()).until(has("cr
 
 ## Risk metrics
 
-**What is the shortest exploitable path between an exposed service and a critical?**
+**What is the shortest exploitable path between an exposed service and a critical asset?**
 
-In this case we can look for containers with specific properties e.g image/tag etc and query the minimum path size to reach a critical assets. In this case we use exposed ports as a proxy for a the container offering a service that can be exploited:
+In this case we can look for containers with specific properties e.g image/tag etc and query the minimum path size to reach a critical assets. In this example we use exposed ports as a proxy for a the container offering a service that can be exploited, in production consider filtering on tags/image/etc:
 
 ```groovy
 g.V().hasLabel("Container").has("ports", neq([])).repeat(out().simplePath()).until(has("critical", true).or().loops().is(7)).has("critical", true).path().count(local).min()
