@@ -8,23 +8,23 @@ Count the number of pods in the cluster:
 g.V().hasLabel("Pod").count()
 ```
 
-Count the number of container escapes in the cluster:
+View all the possible container escapes in the cluster:
 
 ```groovy
-g.V().hasLabel("Container").out().TODO TODO
+g.V().hasLabel("Container").outE().inV().hasLabel("Node").path()
 ```
 
-List the possible attacks in a cluster:
+List the possible attacks in a cluster with count:
 
 ```groovy
-TODO TODO
+g.E().groupCount().by(label)
 ```
 
 ## Basic path queries
 
 All paths between a volume and identity:
 
-```groovygit s
+```groovy
 g.V().hasLabel("Volume").repeat(out().simplePath()).until(hasLabel("Identity")).path()
 ```
 
@@ -62,14 +62,13 @@ Attack paths (up to 10 hops) from a known breached credential (in this case the 
 ```grovy
 g.V().hasLabel("Identity").has("name", "pod-patch-sa").repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).path()
 ```
-## Critical asset exposurer
+## Critical asset exposure
 
-All attack paths (up to 5 hops) to a specific critical asset (in this case the system:auth-delegator) role from containers/identities/nodes:
+All attack paths (up to 5 hops) to a specific critical asset (in this case the `system:auth-delegator`) role from containers/identities/nodes:
 
 ```groovy
 g.V().hasLabel("Container", "Identity", "Node").repeat(out().simplePath()).until(has("name", "system:auth-delegator").or().loops().is(5)).has("name", "system:auth-delegator").hasLabel("Role").path()
 ```
-
 
 ## Threat modelling
 
@@ -85,15 +84,52 @@ All unique attack paths by labels to a ANY critical asset:
 g.V().hasLabel("Container", "Identity").repeat(out().simplePath()).until(has("critical", true).or().loops().is(5)).has("critical", true).path().as("p").by(label).dedup().select("p").path()
 ```
 
-
 ## Risk metrics
 
-A) What is the shortest exploitable path between an internet facing service and a specific asset?
+**What is the shortest exploitable path between an exposed service and a specific asset?**
 
-B) What percentage of internet facing services have an exploitable path to a specific asset?
+In this case we can look for containers with specific properties e.g image/tag etc and query the minimum path size to reach a critical assets. In this case we use exposed ports as a proxy for a the container offering a service that can be exploited:
 
-C) What type of control would cut off the largest number of attack paths to a specific asset in our clusters?
+```groovy
+g.V().hasLabel("Container").has("ports", neq([])).repeat(out().simplePath()).until(has("critical", true).or().loops().is(7)).has("critical", true).path().count(local).min()
+```
 
-D) What percentage level of attack path reduction was achieved by the introduction of a control?
+**What percentage of internet facing services have an exploitable path to a specific asset?**
 
-(B(after) - B(before)) / B(before)
+
+
+**What percentage level of attack path reduction was achieved by the introduction of a control?**
+
+To verify concrete impact, this can be achieved by comparing the difference in the key risk metrics above, before and after the control change. To simulate the impact of introducing a control (e.g to evaluate ROI), we can add conditions to our path queries. For example if we wanted to evaluate the impact of adding a gatekeeper rule that would deny the use of `hostPid=true` we could do the following:
+
+```groovy
+// Calculate the base case
+g.V().hasLabel("Container").repeat(out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().count()
+
+// Calculate the impact of preventing CE_NSENTER attack
+g.V().hasLabel("Container").repeat(outE().not(hasLabel("CE_NSENTER")).inV().simplePath()).emit().until(has("critical", true).or().loops().is(6)).has("critical", true).path().count()
+```
+
+**What type of control would cut off the largest number of attack paths to a specific asset in our clusters?**
+
+We can count the number of instances of unique attack paths using:
+
+```groovy
+g.V().hasLabel("Container").repeat(outE().inV().simplePath()).emit().until(has("critical", true).or().loops().is(6)).has("critical", true).path().by(label).groupCount()
+```
+
+This gives an output of the form:
+
+```groovy
+{
+  "path[Container, CE_MODULE_LOAD, Node, POD_ATTACH, Pod, CONTAINER_ATTACH, Container, IDENTITY_ASSUME, Identity, ROLE_GRANT, Role]" : 18,
+  "path[Container, IDENTITY_ASSUME, Identity, ROLE_GRANT, Role, TOKEN_BRUTEFORCE, Identity, ROLE_GRANT, Role, TOKEN_BRUTEFORCE, Identity, ROLE_GRANT, Role]" : 1824,
+}
+```
+
+We can further reduce this to group by attacks, rather than full paths in post-processing or modifying the query.
+
+## Tips
+
++ Always put a max hop count on path queries or runtime can get very long
++ For queries to be displayed in the UI, try to limit the output to 1000 elements or less
