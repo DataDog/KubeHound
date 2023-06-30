@@ -59,7 +59,7 @@ g.V().hasLabel("Identity").repeat(out().simplePath()).until(has("critical", true
 
 Attack paths (up to 10 hops) from a known breached credential (in this case the `pod-patch-sa` service account) to a critical asset:
 
-```grovy
+```groovy
 g.V().hasLabel("Identity").has("name", "pod-patch-sa").repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).path()
 ```
 ## Critical asset exposure
@@ -86,7 +86,7 @@ g.V().hasLabel("Container", "Identity").repeat(out().simplePath()).until(has("cr
 
 ## Risk metrics
 
-**What is the shortest exploitable path between an exposed service and a specific asset?**
+**What is the shortest exploitable path between an exposed service and a critical?**
 
 In this case we can look for containers with specific properties e.g image/tag etc and query the minimum path size to reach a critical assets. In this case we use exposed ports as a proxy for a the container offering a service that can be exploited:
 
@@ -94,9 +94,17 @@ In this case we can look for containers with specific properties e.g image/tag e
 g.V().hasLabel("Container").has("ports", neq([])).repeat(out().simplePath()).until(has("critical", true).or().loops().is(7)).has("critical", true).path().count(local).min()
 ```
 
-**What percentage of internet facing services have an exploitable path to a specific asset?**
+**What percentage of internet facing services have an exploitable path to a critical asset?**
 
+Again using exposed ports as a proxy for a the container offering a service that can be exploited:
 
+```groovy
+// Base case
+g.V().hasLabel("Container").has("ports", neq([])).count()
+
+// Has a critical path
+g.V().hasLabel("Container").has("ports", neq([])).where(repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true)).count()
+```
 
 **What percentage level of attack path reduction was achieved by the introduction of a control?**
 
