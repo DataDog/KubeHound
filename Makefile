@@ -72,7 +72,7 @@ endif
 
 all: build
 
-.PHONY: generatebre
+.PHONY: generate
 generate: ## Generate code the application
 	#go install github.com/vektra/mockery/v2@v2.20.0
 	go generate $(BUILD_FLAGS) ./...
