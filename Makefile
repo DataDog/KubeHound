@@ -99,7 +99,7 @@ test: ## Run the full suite of unit tests
 	cd pkg && go test -race $(BUILD_FLAGS) ./...
 
 .PHONY: system-test
-system-test: | backend-d ## Run the system tests
+system-test: | backend-reset ## Run the system tests
 	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 ./...
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 
