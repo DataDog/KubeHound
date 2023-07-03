@@ -45,7 +45,7 @@ endif
 
 UNAME_S := $(shell uname -s)
 ifndef DOCKER_CMD
-ifeq ($(UNAME_S),Darwin)
+ifeq ($(UNAME_S),Linux)
 	# https://docs.github.com/en/actions/learn-github-actions/variables
 ifneq (${CI},true)
 	DOCKER_CMD := sudo docker
