@@ -42,12 +42,11 @@ services:
       - gremlinserver.metrics.graphiteReporter.enabled=false
       - gremlinserver.metrics.csvReporter.enabled=false
     healthcheck:
-      # Healthcheck parameters optimized to ensure fast system tests. DO NOT USE IN PRODUCTION!
       test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
       interval: 15s
-      timeout: 30s
+      timeout: 60s
       retries: 5
-      start_period: 15s
+      start_period: 30s
     labels:
       com.datadoghq.ad.logs: '[{"app": "janusgraph", "service": "kubehound"}]'
 

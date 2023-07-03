@@ -6,14 +6,26 @@ Full documentation available on confluence: https://datadoghq.atlassian.net/wiki
 
 ## Run
 
+### Prerequisites - set the infrastructure
 To run the application, you can use docker image with the compose:
-* Copy `deployments/kubehound/.env.tpl` to `deployments/kubehound/.env`
+* cp deployments/kubehound/.env.tpl deployments/kubehound/.env
 * Edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`)
-* Run `make backend-up`
+    * KUBEHOUND_ENV: `dev` or `prod`
+    * DD_API_KEY: api key you created from https://app.datadoghq.com/ website
+* Build the application: `make build`
+* Run the infrastructure (databases needed for Kubehound): `make backend-up`
 
 Note:
 * KUBEHOUND_ENV=prod will use prebuilt image from ghcr.io
 * KUBEHOUND_ENV=dev will build the images locally
+
+### Run kubehound from binary (not dockerised):
+
+You have 2 options to run `kubehound`:
+* To run it against your current selected cluster: 
+    * Select the targeted cluster: `kubectx` (need to be installed separtly)     
+    * Run kubehound: `./bin/kubehound -c configs/etc/kubehound.yaml`
+* To run it against a specific cluster using a Kubernetes config file: `KUBECONFIG=/root/.kube/config ./bin/kubehound -c configs/etc/kubehound.yaml`
 
 ## Build
 
