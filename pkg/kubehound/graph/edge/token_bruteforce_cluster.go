@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	Register(TokenBruteforceCluster{})
+	// Register(TokenBruteforceCluster{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE

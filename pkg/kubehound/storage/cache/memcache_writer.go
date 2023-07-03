@@ -29,7 +29,7 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, 
 		}
 
 		_ = statsd.Incr(telemetry.MetricCacheDuplicateEntry, []string{keyId}, 1)
-		log.I.Warnf("overwriting cache entry: [key]%s", keyId)
+		log.Trace(ctx).Warnf("overwriting cache entry: [key]%s", keyId)
 	}
 
 	m.data[keyId] = value

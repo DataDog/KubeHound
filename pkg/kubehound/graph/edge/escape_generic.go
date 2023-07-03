@@ -1,8 +1,12 @@
 package edge
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -20,18 +24,18 @@ func containerEscapeTraversal(edgeLabel string) Traversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("ce").
-			V().
-			HasLabel(vertex.ContainerLabel).
-			Has("class", vertex.ContainerLabel).
-			Has("storeID", __.Where(P.Eq("ce")).By().By("container")).
-			AddE(edgeLabel).
-			To(
-				__.V().
-					HasLabel(vertex.NodeLabel).
-					Has("class", vertex.NodeLabel).
-					Has("storeID", __.Where(P.Eq("ce")).By().By("node"))).
+			MergeE(__.Select("ce")).
 			Barrier().Limit(0)
 
 		return g
 	}
+}
+
+func containerEscapeProcessor(ctx context.Context, oic *converter.ObjectIdConverter, edgeLabel string, entry any) (any, error) {
+	typed, ok := entry.(*containerEscapeGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	return adapter.ConstructEdgeMerge(ctx, oic, edgeLabel, typed.Container.Hex(), typed.Node.Hex())
 }

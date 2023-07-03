@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	BatchSizeLarge         = 1000
 	BatchSizeDefault       = 80
 	BatchSizeMedium        = BatchSizeDefault / 4
 	BatchSizeSmall         = BatchSizeDefault / 8

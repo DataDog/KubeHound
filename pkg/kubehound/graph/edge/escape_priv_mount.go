@@ -30,7 +30,7 @@ func (e EscapePrivMount) Name() string {
 }
 
 func (e EscapePrivMount) BatchSize() int {
-	return BatchSizeDefault
+	return BatchSizeLarge
 }
 
 // Traversal delegates the traversal creation to the generic containerEscapeTraversal.
@@ -38,8 +38,9 @@ func (e EscapePrivMount) Traversal() Traversal {
 	return containerEscapeTraversal(e.Label())
 }
 
+// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
 func (e EscapePrivMount) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*containerEscapeGroup](ctx, entry)
+	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }
 
 func (e EscapePrivMount) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

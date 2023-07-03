@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	Register(PodExec{})
+	// Register(PodExec{})
 }
 
 // @@DOCLINK: TODO

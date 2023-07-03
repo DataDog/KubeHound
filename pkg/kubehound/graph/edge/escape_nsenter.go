@@ -2,7 +2,6 @@ package edge
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -10,7 +9,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -32,45 +30,17 @@ func (e EscapeNsenter) Name() string {
 }
 
 func (e EscapeNsenter) BatchSize() int {
-	return BatchSizeDefault
+	return BatchSizeLarge
 }
 
 // Traversal delegates the traversal creation to the generic containerEscapeTraversal.
 func (e EscapeNsenter) Traversal() Traversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal().
-			Inject(inserts).
-			Unfold().As("ce").
-			MergeE(__.Select("ce")).
-			Barrier().Limit(0)
-
-		return g
-	}
+	return containerEscapeTraversal(e.Label())
 }
 
+// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
 func (e EscapeNsenter) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	typed, ok := entry.(*containerEscapeGroup)
-	if !ok {
-		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
-	}
-
-	nid, err := oic.GraphId(ctx, typed.Node.Hex())
-	if err != nil {
-		return nil, err
-	}
-
-	cid, err := oic.GraphId(ctx, typed.Container.Hex())
-	if err != nil {
-		return nil, err
-	}
-
-	processed := map[any]any{
-		gremlin.T.Label:       e.Label(),
-		gremlin.Direction.In:  nid,
-		gremlin.Direction.Out: cid,
-	}
-
-	return processed, nil
+	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }
 
 func (e EscapeNsenter) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

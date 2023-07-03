@@ -2,10 +2,10 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
@@ -45,11 +45,16 @@ func (e TokenSteal) Name() string {
 }
 
 func (e TokenSteal) BatchSize() int {
-	return BatchSizeDefault
+	return BatchSizeLarge
 }
 
 func (e TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*tokenStealGroup](ctx, entry)
+	typed, ok := entry.(*tokenStealGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	return adapter.ConstructEdgeMerge(ctx, oic, e.Label(), typed.VolumeId, typed.IdentityId)
 }
 
 func (e TokenSteal) Traversal() Traversal {
@@ -57,16 +62,7 @@ func (e TokenSteal) Traversal() Traversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("ts").
-			V().
-			HasLabel(vertex.IdentityLabel).
-			Has("class", vertex.IdentityLabel).
-			Has("storeID", __.Where(P.Eq("ts")).By().By("identity")).
-			AddE(e.Label()).
-			From(
-				__.V().
-					HasLabel(vertex.VolumeLabel).
-					Has("class", vertex.VolumeLabel).
-					Has("storeID", __.Where(P.Eq("ts")).By().By("volume"))).
+			MergeE(__.Select("ts")).
 			Barrier().Limit(0)
 
 		return g

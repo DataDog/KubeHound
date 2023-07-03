@@ -20,7 +20,7 @@ import (
 func init() {
 	if _, ok := os.LookupEnv(globals.SwitchNamespacedNodes); ok {
 		// Only required if nodes are namespaced. Otherwise will create overly large queries and cause timeouts
-		Register(PodCreateNamespace{})
+		// Register(PodCreateNamespace{})
 	}
 }
 
