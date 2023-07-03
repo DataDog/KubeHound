@@ -30,34 +30,32 @@ ifneq (,$(wildcard $(DEV_ENV_FILE_PATH)))
 endif
 
 ifneq ($(MAKECMDGOALS),system-test)
-	ifeq (${KUBEHOUND_ENV}, prod)
-		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.prod.yaml
-	else ifeq (${KUBEHOUND_ENV}, dev)
-		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
-	endif
-	# No API key is being set
-	ifneq (${DD_API_KEY},)
-		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
-	endif
+ifeq (${KUBEHOUND_ENV}, prod)
+	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.prod.yaml
+else ifeq (${KUBEHOUND_ENV}, dev)
+	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
+endif
+# No API key is being set
+ifneq (${DD_API_KEY},)
+	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
+endif
 else
-
 	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.testing.yaml
-
 endif
 
 UNAME_S := $(shell uname -s)
 ifndef DOCKER_CMD
-	ifeq ($(UNAME_S),Linux)
-		# https://docs.github.com/en/actions/learn-github-actions/variables
-		ifneq (${CI},true)
-			DOCKER_CMD := sudo docker
-		else
-			DOCKER_CMD := docker
-		endif
-	else
-		DOCKER_CMD := docker
-	endif
-	DOCKER_CMD := ${DOCKER_CMD}
+ifeq ($(UNAME_S),Darwin)
+	# https://docs.github.com/en/actions/learn-github-actions/variables
+ifneq (${CI},true)
+	DOCKER_CMD := sudo docker
+else
+	DOCKER_CMD := docker
+endif
+else
+	DOCKER_CMD := docker
+endif
+DOCKER_CMD := ${DOCKER_CMD}
 endif
 
 RACE_FLAG_SYSTEM_TEST := "-race"
