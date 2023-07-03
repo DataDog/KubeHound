@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
@@ -40,7 +41,7 @@ type Builder interface {
 	Traversal() Traversal
 
 	// Processor transforms an object queued for writing to a format suitable for consumption by the Traversal function.
-	Processor(context.Context, any) (any, error)
+	Processor(context.Context, *converter.ObjectIdConverter, any) (any, error)
 
 	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
 	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput via a call to

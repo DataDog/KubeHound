@@ -6,6 +6,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
@@ -47,7 +48,7 @@ func (e TokenSteal) BatchSize() int {
 	return BatchSizeDefault
 }
 
-func (e TokenSteal) Processor(ctx context.Context, entry any) (any, error) {
+func (e TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*tokenStealGroup](ctx, entry)
 }
 

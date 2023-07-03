@@ -6,6 +6,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -39,7 +40,7 @@ func (e TokenBruteforceNamespace) BatchSize() int {
 	return BatchSizeClusterImpact
 }
 
-func (e TokenBruteforceNamespace) Processor(ctx context.Context, entry any) (any, error) {
+func (e TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*tokenBruteforceGroup](ctx, entry)
 }
 
