@@ -8,6 +8,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
@@ -86,8 +87,10 @@ func (jgp *JanusGraphProvider) Raw() any {
 }
 
 // VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
-func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builder, opts ...WriterOption) (AsyncVertexWriter, error) {
-	return NewJanusGraphAsyncVertexWriter(ctx, jgp.drc, v, opts...)
+func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builder,
+	c cache.CacheProvider, opts ...WriterOption) (AsyncVertexWriter, error) {
+
+	return NewJanusGraphAsyncVertexWriter(ctx, jgp.drc, v, c, opts...)
 }
 
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.

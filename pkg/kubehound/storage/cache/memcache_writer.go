@@ -11,12 +11,12 @@ import (
 )
 
 type MemCacheAsyncWriter struct {
-	data map[string]string
+	data map[string]any
 	mu   *sync.RWMutex
 	opts *writerOptions
 }
 
-func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, value string) error {
+func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, value any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -27,9 +27,11 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, 
 		if m.opts.Test {
 			return ErrCacheEntryOverwrite
 		}
+
 		_ = statsd.Incr(telemetry.MetricCacheDuplicateEntry, []string{keyId}, 1)
 		log.I.Warnf("overwriting cache entry: [key]%s", keyId)
 	}
+
 	m.data[keyId] = value
 	return nil
 }

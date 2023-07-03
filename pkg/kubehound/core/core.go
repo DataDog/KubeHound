@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
@@ -30,6 +29,7 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 		return fmt.Errorf("collector client creation: %w", err)
 	}
 	defer collect.Close(ctx)
+	log.I.Infof("Loaded %s collector client", collect.Name())
 
 	log.I.Info("Loading data ingestor")
 	ingest, err := ingestor.Factory(cfg, collect, cache, storedb, graphdb)
@@ -62,11 +62,8 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 	log.I.Info("Loading graph edge definitions")
 	edges := edge.Registered()
 
-	log.I.Info("Loading graph path definitions")
-	paths := path.Registered()
-
 	log.I.Info("Loading graph builder")
-	builder, err := graph.NewBuilder(cfg, storedb, graphdb, cache, edges, paths)
+	builder, err := graph.NewBuilder(cfg, storedb, graphdb, cache, edges)
 	if err != nil {
 		return fmt.Errorf("graph builder creation: %w", err)
 	}
@@ -126,6 +123,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 		return fmt.Errorf("cache client creation: %w", err)
 	}
 	defer cp.Close(ctx)
+	log.I.Infof("Loaded %s cache provider", cp.Name())
 
 	log.I.Info("Loading store database provider")
 	sp, err := storedb.Factory(ctx, cfg)
@@ -133,6 +131,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 		return fmt.Errorf("store database client creation: %w", err)
 	}
 	defer sp.Close(ctx)
+	log.I.Infof("Loaded %s store provider", sp.Name())
 
 	log.I.Info("Loading graph database provider")
 	gp, err := graphdb.Factory(ctx, cfg)
@@ -140,6 +139,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 		return fmt.Errorf("graph database client creation: %w", err)
 	}
 	defer gp.Close(ctx)
+	log.I.Infof("Loaded %s graph provider", gp.Name())
 
 	log.I.Info("Starting Kubernetes raw data ingest")
 	if err := ingestData(ctx, cfg, cp, sp, gp); err != nil {

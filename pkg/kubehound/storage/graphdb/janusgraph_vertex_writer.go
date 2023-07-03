@@ -81,7 +81,7 @@ func (jgv *JanusGraphVertexWriter) startBackgroundWriter(ctx context.Context) {
 				_ = statsd.Count(telemetry.MetricGraphdbBackgroundWriterCall, 1, jgv.tags, 1)
 				err := jgv.batchWrite(ctx, data)
 				if err != nil {
-					log.Trace(ctx).Errorf("write data in background batch writer: %v", err)
+					log.Trace(ctx).Errorf("Write data in background batch writer: %v", err)
 				}
 			case <-ctx.Done():
 				log.Trace(ctx).Info("Closed background janusgraph worker on context cancel")
@@ -101,8 +101,10 @@ func (jgv *JanusGraphVertexWriter) cacheIds(ctx context.Context, idMap []*gremli
 		storeID := idMap["storeID"].(string)
 		vertexId := idMap["id"].(int64)
 
-		// TODO typeconversionb
-		jgv.cache.Queue(ctx, cachekey.ObjectId(storeID), vertexId)
+		err := jgv.cache.Queue(ctx, cachekey.ObjectId(storeID), vertexId)
+		if err != nil {
+			return fmt.Errorf("vertex id cache write: %w", err)
+		}
 	}
 
 	return nil
@@ -149,7 +151,8 @@ func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []types.
 
 func (jgv *JanusGraphVertexWriter) Close(ctx context.Context) error {
 	close(jgv.consumerChan)
-	return nil
+
+	return jgv.cache.Close(ctx)
 }
 
 // Flush triggers writes of any remaining items in the queue.
@@ -180,6 +183,11 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 	}
 
 	jgv.writingInFlight.Wait()
+
+	err := jgv.cache.Flush(ctx)
+	if err != nil {
+		return fmt.Errorf("vertex id cacheflush: %w", err)
+	}
 
 	log.Trace(ctx).Infof("Batch writer %d %s queued", jgv.qcounter, jgv.label)
 	log.Trace(ctx).Infof("Batch writer %d %s written", jgv.wcounter, jgv.label)

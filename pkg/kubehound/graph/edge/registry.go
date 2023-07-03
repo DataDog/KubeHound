@@ -24,7 +24,7 @@ func Registered() Registry {
 
 // Register loads the provided edge into the registry.
 func Register(edge Builder) {
-	log.I.Infof("Registering edge builder edge %s -> %s", edge.Name(), edge.Label())
+	log.I.Debugf("Registering edge builder edge %s -> %s", edge.Name(), edge.Label())
 
 	registry := Registered()
 	if _, ok := registry[edge.Name()]; ok {

@@ -73,7 +73,7 @@ func (e TokenSteal) Traversal() Traversal {
 	}
 }
 
-func (e TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cache.CacheReader,
+func (e TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.CacheReader,
 	process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	volumes := adapter.MongoDB(sdb).Collection(collections.VolumeName)
@@ -131,17 +131,22 @@ func (e TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 		}
 
 		// Retrieve the associated identity store ID from the cache
-		said, err := cache.Get(ctx, cachekey.Identity(res.PodServiceAccount, res.PodNamespace))
-		if err != nil {
+		said, err := c.Get(ctx, cachekey.Identity(res.PodServiceAccount, res.PodNamespace)).ObjectID()
+		switch err {
+		case nil:
+			// We have a matching identity object in the store, create an edge.
+		case cache.ErrNoEntry:
 			// This is completely fine. Most pods will run under a default account with no permissions which we treat
 			// as having no identity. As such we do not want to create a token vertex here!
 			continue
+		default:
+			return err
 		}
 
 		// Create the container that holds all the data required by the traversal function
 		err = process(ctx, &tokenStealGroup{
 			VolumeId:   res.Volume.Id.Hex(),
-			IdentityId: said,
+			IdentityId: said.Hex(),
 		})
 		if err != nil {
 			return err

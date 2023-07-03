@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
@@ -76,19 +75,14 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 		return nil, ErrNoCacheInitialized
 	}
 
-	nid, err := c.cache.Get(ctx, cachekey.Node(input.Spec.NodeName))
-	if err != nil {
-		return nil, err
-	}
-
-	onid, err := primitive.ObjectIDFromHex(nid)
+	nid, err := c.cache.Get(ctx, cachekey.Node(input.Spec.NodeName)).ObjectID()
 	if err != nil {
 		return nil, err
 	}
 
 	output := &store.Pod{
 		Id:     store.ObjectID(),
-		NodeId: onid,
+		NodeId: nid,
 		K8:     corev1.Pod(*input),
 	}
 
@@ -130,18 +124,14 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 	for _, container := range parent.K8.Spec.Containers {
 		for _, mount := range container.VolumeMounts {
 			if mount.Name == output.Source.Name {
-				cid, err := c.cache.Get(ctx, cachekey.Container(parent.K8.Name, container.Name, parent.K8.Namespace))
-				if err != nil {
-					return nil, err
-				}
-
-				ocid, err := primitive.ObjectIDFromHex(cid)
+				cid, err := c.cache.Get(ctx,
+					cachekey.Container(parent.K8.Name, container.Name, parent.K8.Namespace)).ObjectID()
 				if err != nil {
 					return nil, err
 				}
 
 				output.Mounts = append(output.Mounts, store.VolumeMount{
-					ContainerId: ocid,
+					ContainerId: cid,
 					K8:          mount,
 				})
 			}
@@ -182,21 +172,16 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 
 	var output *store.RoleBinding
 
-	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace))
+	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace)).ObjectID()
 	if err != nil {
 		// We can get cache misses here if bindings remain with no corresponding role.
 		return nil, ErrDanglingRoleBinding
 	}
 
-	orid, err := primitive.ObjectIDFromHex(rid)
-	if err != nil {
-		return nil, err
-	}
-
 	subj := input.Subjects
 	output = &store.RoleBinding{
 		Id:           store.ObjectID(),
-		RoleId:       orid,
+		RoleId:       rid,
 		Name:         input.Name,
 		IsNamespaced: true,
 		Namespace:    input.Namespace,
@@ -222,21 +207,16 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 	var output *store.RoleBinding
 
-	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace))
+	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace)).ObjectID()
 	if err != nil {
 		// We can get cache misses here if bindings remain with no corresponding role.
 		return nil, ErrDanglingRoleBinding
 	}
 
-	orid, err := primitive.ObjectIDFromHex(rid)
-	if err != nil {
-		return nil, err
-	}
-
 	subj := input.Subjects
 	output = &store.RoleBinding{
 		Id:           store.ObjectID(),
-		RoleId:       orid,
+		RoleId:       rid,
 		Name:         input.Name,
 		IsNamespaced: false,
 		Namespace:    "",
