@@ -58,8 +58,8 @@ func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) *Cach
 	}
 
 	return &CacheResult{
-		value: data,
-		err:   err,
+		Value: data,
+		Err:   err,
 	}
 }
 

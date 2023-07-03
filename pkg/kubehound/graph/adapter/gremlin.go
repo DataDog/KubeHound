@@ -69,27 +69,27 @@ func ProcessEdgeOneToOne(ctx context.Context, oic *converter.ObjectIdConverter, 
 	return processed, nil
 }
 
-func ProcessEdgeManyToOne(ctx context.Context, oic *converter.ObjectIdConverter, label string,
-	out []primitive.ObjectID, in primitive.ObjectID) (map[any]any, error) {
+// func ProcessEdgeManyToOne(ctx context.Context, oic *converter.ObjectIdConverter, label string,
+// 	out []primitive.ObjectID, in primitive.ObjectID) (map[any]any, error) {
 
-	vidIn, err := oic.GraphId(ctx, in.Hex())
-	if err != nil {
-		return nil, err
-	}
+// 	vidIn, err := oic.GraphId(ctx, in.Hex())
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	vidOut, err := oic.GraphId(ctx, sidOut)
-	if err != nil {
-		return nil, err
-	}
+// 	vidOut, err := oic.GraphId(ctx, sidOut)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	processed := map[any]any{
-		gremlin.T.Label:       label,
-		gremlin.Direction.In:  vidIn,
-		gremlin.Direction.Out: vidOut,
-	}
+// 	processed := map[any]any{
+// 		gremlin.T.Label:       label,
+// 		gremlin.Direction.In:  vidIn,
+// 		gremlin.Direction.Out: vidOut,
+// 	}
 
-	return processed, nil
-}
+// 	return processed, nil
+// }
 
 func DefaultEdgeTraversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {

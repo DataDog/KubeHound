@@ -12,20 +12,20 @@ var (
 )
 
 type CacheResult struct {
-	value any
-	err   error
+	Value any
+	Err   error
 }
 
 func (r *CacheResult) Text() (string, error) {
-	if r.err != nil {
-		return "", r.err
+	if r.Err != nil {
+		return "", r.Err
 	}
 
-	if r.value == nil {
+	if r.Value == nil {
 		return "", ErrNoEntry
 	}
 
-	s, ok := r.value.(string)
+	s, ok := r.Value.(string)
 	if !ok {
 		return "", ErrInvalidType
 	}
@@ -34,15 +34,15 @@ func (r *CacheResult) Text() (string, error) {
 }
 
 func (r *CacheResult) Int64() (int64, error) {
-	if r.err != nil {
-		return -1, r.err
+	if r.Err != nil {
+		return -1, r.Err
 	}
 
-	if r.value == nil {
+	if r.Value == nil {
 		return -1, ErrNoEntry
 	}
 
-	i, ok := r.value.(int64)
+	i, ok := r.Value.(int64)
 	if !ok {
 		return -1, ErrInvalidType
 	}
@@ -51,15 +51,15 @@ func (r *CacheResult) Int64() (int64, error) {
 }
 
 func (r *CacheResult) ObjectID() (primitive.ObjectID, error) {
-	if r.err != nil {
-		return primitive.NilObjectID, r.err
+	if r.Err != nil {
+		return primitive.NilObjectID, r.Err
 	}
 
-	if r.value == nil {
+	if r.Value == nil {
 		return primitive.NilObjectID, ErrNoEntry
 	}
 
-	raw, ok := r.value.(string)
+	raw, ok := r.Value.(string)
 	if !ok {
 		return primitive.NilObjectID, ErrInvalidType
 	}

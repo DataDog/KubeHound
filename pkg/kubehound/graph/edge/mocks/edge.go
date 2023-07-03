@@ -9,8 +9,6 @@ import (
 
 	converter "github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 
-	edge "github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
-
 	mock "github.com/stretchr/testify/mock"
 
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
@@ -257,15 +255,15 @@ func (_c *Builder_Stream_Call) RunAndReturn(run func(context.Context, storedb.Pr
 }
 
 // Traversal provides a mock function with given fields:
-func (_m *Builder) Traversal() edge.Traversal {
+func (_m *Builder) Traversal() types.EdgeTraversal {
 	ret := _m.Called()
 
-	var r0 edge.Traversal
-	if rf, ok := ret.Get(0).(func() edge.Traversal); ok {
+	var r0 types.EdgeTraversal
+	if rf, ok := ret.Get(0).(func() types.EdgeTraversal); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(edge.Traversal)
+			r0 = ret.Get(0).(types.EdgeTraversal)
 		}
 	}
 
@@ -289,12 +287,12 @@ func (_c *Builder_Traversal_Call) Run(run func()) *Builder_Traversal_Call {
 	return _c
 }
 
-func (_c *Builder_Traversal_Call) Return(_a0 edge.Traversal) *Builder_Traversal_Call {
+func (_c *Builder_Traversal_Call) Return(_a0 types.EdgeTraversal) *Builder_Traversal_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *Builder_Traversal_Call) RunAndReturn(run func() edge.Traversal) *Builder_Traversal_Call {
+func (_c *Builder_Traversal_Call) RunAndReturn(run func() types.EdgeTraversal) *Builder_Traversal_Call {
 	_c.Call.Return(run)
 	return _c
 }

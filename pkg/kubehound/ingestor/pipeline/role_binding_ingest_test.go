@@ -8,7 +8,8 @@ import (
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	mockcache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -36,8 +37,11 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 		})
 
 	// Cache setup
-	c := cache.NewCacheProvider(t)
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.roleCacheKey")).Return(store.ObjectID().Hex(), nil)
+	c := mockcache.NewCacheProvider(t)
+	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.roleCacheKey")).Return(&cache.CacheResult{
+		Value: store.ObjectID().Hex(),
+		Err:   nil,
+	})
 
 	// Store setup -  rolebindings
 	sdb := storedb.NewProvider(t)
@@ -50,7 +54,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 
 	// Store setup -  identities
 	isw := storedb.NewAsyncWriter(t)
-	csw := cache.NewAsyncWriter(t)
+	csw := mockcache.NewAsyncWriter(t)
 	csw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.identityCacheKey"), mock.AnythingOfType("string")).Return(nil)
 	csw.EXPECT().Flush(ctx).Return(nil)
 	csw.EXPECT().Close(ctx).Return(nil)
@@ -81,7 +85,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Identity"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Identity"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
