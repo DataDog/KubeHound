@@ -30,7 +30,7 @@ func (v Pod) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*graph.Pod](ctx, entry)
 }
 
-func (v Pod) Traversal() Traversal {
+func (v Pod) Traversal() types.VertexTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).

@@ -22,9 +22,6 @@ const (
 var __ = gremlin.T__
 var P = gremlin.P
 
-// Traversal returns the function to create a graph database edge insert from an array of input objects.
-type Traversal func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal
-
 // Edge interface defines objects used to construct edges within our graph database through processing data from the intermediate store.
 
 //go:generate mockery --name Builder --output mocks --case underscore --filename edge.go --with-expecter
@@ -39,7 +36,7 @@ type Builder interface {
 	BatchSize() int
 
 	// Traversal returns a graph traversal function that enables creating edges from an input array of TraversalInput objects.
-	Traversal() Traversal
+	Traversal() types.EdgeTraversal
 
 	// Processor transforms an object queued for writing to a format suitable for consumption by the Traversal function.
 	Processor(context.Context, *converter.ObjectIdConverter, any) (any, error)

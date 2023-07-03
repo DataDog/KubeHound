@@ -46,7 +46,7 @@ func (e TokenBruteforceCluster) Processor(ctx context.Context, oic *converter.Ob
 // Traversal expects a list of TokenBruteforceCluster serialized as mapstructure for injection into the graph.
 // For each TokenBruteforceCluster, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
 // matching identities in the cluster 3) add a TOKEN_BRUTEFORCE edge between the vertices.
-func (e TokenBruteforceCluster) Traversal() Traversal {
+func (e TokenBruteforceCluster) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).

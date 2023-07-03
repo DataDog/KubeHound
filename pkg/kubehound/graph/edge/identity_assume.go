@@ -10,7 +10,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -51,19 +50,11 @@ func (e IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIdCo
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.ConstructEdgeMerge(ctx, oic, e.Label(), typed.Container.Hex(), typed.Identity.Hex())
+	return adapter.ProcessEdgeOneToOne(ctx, oic, e.Label(), typed.Container, typed.Identity)
 }
 
-func (e IdentityAssume) Traversal() Traversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal().
-			Inject(inserts).
-			Unfold().As("ig").
-			MergeE(__.Select("ig")).
-			Barrier().Limit(0)
-
-		return g
-	}
+func (e IdentityAssume) Traversal() types.EdgeTraversal {
+	return adapter.DefaultEdgeTraversal()
 }
 
 func (e IdentityAssume) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

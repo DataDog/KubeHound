@@ -20,7 +20,7 @@ var _ AsyncEdgeWriter = (*JanusGraphEdgeWriter)(nil)
 
 type JanusGraphEdgeWriter struct {
 	label           string                            // Label of the graph entity being written
-	gremlin         edge.Traversal                    // Gremlin traversal generator function
+	gremlin         types.EdgeTraversal               // Gremlin traversal generator function
 	drc             *gremlingo.DriverRemoteConnection // Gremlin driver remote connection
 	traversalSource *gremlingo.GraphTraversalSource   // Transacted graph traversal source
 	inserts         []types.TraversalInput            // Object data to be inserted in the graph

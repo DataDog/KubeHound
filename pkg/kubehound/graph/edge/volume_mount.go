@@ -50,7 +50,7 @@ func (e VolumeMount) Processor(ctx context.Context, oic *converter.ObjectIdConve
 // field, 2) find the volume vertex with the same storeID as the mountGroup's volume field, 3) create an edge between
 // the node and volume vertices with the label "VOLUME_MOUNT", and 4) create an edge between each container vertex
 // with the label "VOLUME_MOUNT" and the volume vertex.
-func (e VolumeMount) Traversal() Traversal {
+func (e VolumeMount) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).

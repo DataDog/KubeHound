@@ -22,7 +22,7 @@ var _ AsyncVertexWriter = (*JanusGraphVertexWriter)(nil)
 
 type JanusGraphVertexWriter struct {
 	label           string                          // Label of the graph entity being written
-	gremlin         vertex.Traversal                // Gremlin traversal generator function
+	gremlin         types.VertexTraversal           // Gremlin traversal generator function
 	drc             *gremlin.DriverRemoteConnection // Gremlin driver remote connection
 	traversalSource *gremlin.GraphTraversalSource   // Transacted graph traversal source
 	inserts         []types.TraversalInput          // Object data to be inserted in the graph

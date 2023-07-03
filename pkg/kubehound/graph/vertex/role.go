@@ -31,7 +31,7 @@ func (v Role) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*graph.Role](ctx, entry)
 }
 
-func (v Role) Traversal() Traversal {
+func (v Role) Traversal() types.VertexTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).

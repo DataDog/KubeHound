@@ -47,7 +47,7 @@ func (e ContainerAttach) Processor(ctx context.Context, oic *converter.ObjectIdC
 // Traversal expects a list of containerAttachGroup serialized as mapstructure for injection into the graph.
 // For each containerAttachGroup, the traversal will: 1) find the pod vertex with matching storeID, 2) find the
 // container vertices with matching storeIDs, and 3) add a CONTAINER_ATTACH edge between the pod and container vertices.
-func (e ContainerAttach) Traversal() Traversal {
+func (e ContainerAttach) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).

@@ -46,7 +46,7 @@ func (e PodExec) Processor(ctx context.Context, oic *converter.ObjectIdConverter
 // Traversal expects a list of podExecGroup serialized as mapstructure for injection into the graph.
 // For each podExecGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
 // matching pods in the cluster 3) add a POD_EXEC edge between the vertices.
-func (e PodExec) Traversal() Traversal {
+func (e PodExec) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).

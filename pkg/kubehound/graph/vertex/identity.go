@@ -30,7 +30,7 @@ func (v Identity) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinInputProcessor[*graph.Identity](ctx, entry)
 }
 
-func (v Identity) Traversal() Traversal {
+func (v Identity) Traversal() types.VertexTraversal {
 	return func(source *gremlingo.GraphTraversalSource, inserts []types.TraversalInput) *gremlingo.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).

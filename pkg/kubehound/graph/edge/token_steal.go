@@ -12,7 +12,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -28,8 +27,8 @@ type volumeQueryResult struct {
 }
 
 type tokenStealGroup struct {
-	VolumeId   string `bson:"volume" json:"volume"`
-	IdentityId string `bson:"identity" json:"identity"`
+	Volume   primitive.ObjectID `bson:"volume" json:"volume"`
+	Identity primitive.ObjectID `bson:"identity" json:"identity"`
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891284481/TOKEN+STEAL
@@ -54,19 +53,11 @@ func (e TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIdConver
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.ConstructEdgeMerge(ctx, oic, e.Label(), typed.VolumeId, typed.IdentityId)
+	return adapter.ProcessEdgeOneToOne(ctx, oic, e.Label(), typed.Volume, typed.Identity)
 }
 
-func (e TokenSteal) Traversal() Traversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal().
-			Inject(inserts).
-			Unfold().As("ts").
-			MergeE(__.Select("ts")).
-			Barrier().Limit(0)
-
-		return g
-	}
+func (e TokenSteal) Traversal() types.EdgeTraversal {
+	return adapter.DefaultEdgeTraversal()
 }
 
 func (e TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.CacheReader,
@@ -141,8 +132,8 @@ func (e TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.Ca
 
 		// Create the container that holds all the data required by the traversal function
 		err = process(ctx, &tokenStealGroup{
-			VolumeId:   res.Volume.Id.Hex(),
-			IdentityId: said.Hex(),
+			Volume:   res.Volume.Id,
+			Identity: said,
 		})
 		if err != nil {
 			return err

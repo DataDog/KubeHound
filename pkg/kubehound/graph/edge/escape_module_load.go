@@ -34,8 +34,8 @@ func (e EscapeModuleLoad) BatchSize() int {
 }
 
 // Traversal delegates the traversal creation to the generic containerEscapeTraversal.
-func (e EscapeModuleLoad) Traversal() Traversal {
-	return containerEscapeTraversal(e.Label())
+func (e EscapeModuleLoad) Traversal() types.EdgeTraversal {
+	return adapter.DefaultEdgeTraversal()
 }
 
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
