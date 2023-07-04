@@ -20,5 +20,5 @@ func containerEscapeProcessor(ctx context.Context, oic *converter.ObjectIdConver
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.ProcessEdgeOneToOne(ctx, oic, edgeLabel, typed.Container, typed.Node)
+	return adapter.GremlinEdgeProcessor(ctx, oic, edgeLabel, typed.Container, typed.Node)
 }

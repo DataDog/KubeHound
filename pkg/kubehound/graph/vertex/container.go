@@ -27,7 +27,7 @@ func (v Container) BatchSize() int {
 }
 
 func (v Container) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*graph.Container](ctx, entry)
+	return adapter.GremlinVertexProcessor[*graph.Container](ctx, entry)
 }
 
 func (v Container) Traversal() types.VertexTraversal {

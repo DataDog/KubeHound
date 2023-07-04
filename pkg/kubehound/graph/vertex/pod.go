@@ -27,7 +27,7 @@ func (v Pod) BatchSize() int {
 }
 
 func (v Pod) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*graph.Pod](ctx, entry)
+	return adapter.GremlinVertexProcessor[*graph.Pod](ctx, entry)
 }
 
 func (v Pod) Traversal() types.VertexTraversal {

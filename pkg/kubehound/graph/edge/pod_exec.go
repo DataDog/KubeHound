@@ -40,7 +40,7 @@ func (e PodExec) BatchSize() int {
 }
 
 func (e PodExec) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*podExecGroup](ctx, entry)
+	return adapter.GremlinVertexProcessor[*podExecGroup](ctx, entry)
 }
 
 // Traversal expects a list of podExecGroup serialized as mapstructure for injection into the graph.

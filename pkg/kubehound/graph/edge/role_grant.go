@@ -41,7 +41,7 @@ func (e RoleGrant) BatchSize() int {
 }
 
 func (e RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*roleBindingGroup](ctx, entry)
+	return adapter.GremlinVertexProcessor[*roleBindingGroup](ctx, entry)
 }
 
 // Traversal expects a list of roleBindings objects serialized as map structures for injection into the graph.

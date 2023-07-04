@@ -50,7 +50,7 @@ func (e IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIdCo
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.ProcessEdgeOneToOne(ctx, oic, e.Label(), typed.Container, typed.Identity)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Identity)
 }
 
 func (e IdentityAssume) Traversal() types.EdgeTraversal {

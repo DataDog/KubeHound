@@ -53,7 +53,7 @@ func (e TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIdConver
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.ProcessEdgeOneToOne(ctx, oic, e.Label(), typed.Volume, typed.Identity)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Volume, typed.Identity)
 }
 
 func (e TokenSteal) Traversal() types.EdgeTraversal {

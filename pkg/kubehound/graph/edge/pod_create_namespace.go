@@ -46,7 +46,7 @@ func (e PodCreateNamespace) BatchSize() int {
 }
 
 func (e PodCreateNamespace) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*podCreateGroup](ctx, entry)
+	return adapter.GremlinVertexProcessor[*podCreateGroup](ctx, entry)
 }
 
 // Traversal expects a list of podCreateGroup serialized as mapstructure for injection into the graph.

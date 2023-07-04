@@ -40,7 +40,7 @@ func (e TokenBruteforceCluster) BatchSize() int {
 }
 
 func (e TokenBruteforceCluster) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*tokenBruteforceClusterGroup](ctx, entry)
+	return adapter.GremlinVertexProcessor[*tokenBruteforceClusterGroup](ctx, entry)
 }
 
 // Traversal expects a list of TokenBruteforceCluster serialized as mapstructure for injection into the graph.

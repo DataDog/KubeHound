@@ -2,17 +2,17 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
@@ -24,8 +24,8 @@ type ContainerAttach struct {
 }
 
 type containerAttachGroup struct {
-	Pod        primitive.ObjectID   `bson:"_id" json:"pod"`
-	Containers []primitive.ObjectID `bson:"containers" json:"containers"`
+	Pod       primitive.ObjectID `bson:"pod_id" json:"pod"`
+	Container primitive.ObjectID `bson:"_id" json:"container"`
 }
 
 func (e ContainerAttach) Label() string {
@@ -33,59 +33,35 @@ func (e ContainerAttach) Label() string {
 }
 
 func (e ContainerAttach) Name() string {
-	return "ContainerAttacher"
+	return "ContainerAttach"
 }
 
 func (e ContainerAttach) BatchSize() int {
-	return BatchSizeSmall
+	return BatchSizeLarge
 }
 
 func (e ContainerAttach) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*containerAttachGroup](ctx, entry)
+	typed, ok := entry.(*containerAttachGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Pod, typed.Container)
 }
 
-// Traversal expects a list of containerAttachGroup serialized as mapstructure for injection into the graph.
-// For each containerAttachGroup, the traversal will: 1) find the pod vertex with matching storeID, 2) find the
-// container vertices with matching storeIDs, and 3) add a CONTAINER_ATTACH edge between the pod and container vertices.
 func (e ContainerAttach) Traversal() types.EdgeTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal().
-			Inject(inserts).
-			Unfold().As("ca").
-			Select("containers").
-			Unfold().
-			As("c").
-			V().
-			HasLabel(vertex.ContainerLabel).
-			Has("class", vertex.ContainerLabel).
-			Has("storeID", __.Where(P.Eq("c"))).
-			AddE(e.Label()).
-			From(
-				__.V().
-					HasLabel(vertex.PodLabel).
-					Has("class", vertex.PodLabel).
-					Has("storeID", __.Where(P.Eq("ca")).By().By("pod"))).
-			Barrier().Limit(0)
-
-		return g
-	}
+	return adapter.DefaultEdgeTraversal()
 }
 
 func (e ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
-	pipeline := []bson.M{
-		{"$group": bson.M{
-			"_id": "$pod_id",
-			"containers": bson.M{
-				"$push": "$_id",
-			},
-		},
-		},
-	}
 
-	cur, err := containers.Aggregate(context.Background(), pipeline)
+	// We just need a 1:1 mapping of the container and pod to create this edge
+	projection := bson.M{"_id": 1, "pod_id": 1}
+
+	cur, err := containers.Find(context.Background(), bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}

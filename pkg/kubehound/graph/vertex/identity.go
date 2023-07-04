@@ -27,7 +27,7 @@ func (v Identity) BatchSize() int {
 }
 
 func (v Identity) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*graph.Identity](ctx, entry)
+	return adapter.GremlinVertexProcessor[*graph.Identity](ctx, entry)
 }
 
 func (v Identity) Traversal() types.VertexTraversal {
