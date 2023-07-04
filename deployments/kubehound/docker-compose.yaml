@@ -43,8 +43,8 @@ services:
       - gremlinserver.metrics.csvReporter.enabled=false
     healthcheck:
       test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
-      interval: 15s
-      timeout: 60s
+      interval: 60s
+      timeout: 30s
       retries: 5
       start_period: 30s
     labels:
