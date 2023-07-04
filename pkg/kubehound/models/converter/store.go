@@ -189,8 +189,20 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 	}
 
 	for _, s := range subj {
+		// Check if identity already exists and use that ID, otherwise generate a new one
+		sid, err := c.cache.Get(ctx, cachekey.Identity(s.Name, s.Namespace)).ObjectID()
+		switch err {
+		case nil:
+			// Entry already exists, use the cached id value
+		case cache.ErrNoEntry:
+			// Entry does not exist, create a new id value
+			sid = store.ObjectID()
+		default:
+			return nil, err
+		}
+
 		output.Subjects = append(output.Subjects, store.BindSubject{
-			IdentityId: store.ObjectID(),
+			IdentityId: sid,
 			Subject:    s,
 		})
 	}

@@ -52,12 +52,12 @@ func GremlinEdgeProcessor(ctx context.Context, oic *converter.ObjectIdConverter,
 
 	vidIn, err := oic.GraphId(ctx, in.Hex())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s edge IN id convert: %w", label, err)
 	}
 
 	vidOut, err := oic.GraphId(ctx, out.Hex())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s edge OUT id convert: %w", label, err)
 	}
 
 	processed := map[any]any{

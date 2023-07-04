@@ -28,7 +28,7 @@ func (c *ObjectIdConverter) GraphId(ctx context.Context, storeID string) (int64,
 
 	vid, err := c.cache.Get(ctx, cachekey.ObjectId(storeID)).Int64()
 	if err != nil {
-		return -1, fmt.Errorf("graph id cache fetch: %w", err)
+		return -1, fmt.Errorf("graph id cache fetch (storeID=%s): %w", storeID, err)
 	}
 
 	return vid, nil
