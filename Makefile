@@ -3,6 +3,7 @@ ROOT_DIR := $(dir $(MAKEFILE_PATH))
 
 DOCKER_COMPOSE_FILE_PATH := -f deployments/kubehound/docker-compose.yaml
 DOCKER_COMPOSE_ENV_FILE_PATH := deployments/kubehound/.env
+DOCKER_COMPOSE_PROFILE := --profile infra
 DEV_ENV_FILE_PATH := test/setup/.config
 
 
@@ -29,30 +30,42 @@ ifneq (,$(wildcard $(DEV_ENV_FILE_PATH)))
 endif
 
 ifneq ($(MAKECMDGOALS),system-test)
-	ifeq (${KUBEHOUND_ENV}, prod)
-		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.prod.yaml
-	else ifeq (${KUBEHOUND_ENV}, dev)
-		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
-	endif
+ifeq (${KUBEHOUND_ENV}, prod)
+	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.prod.yaml
+else ifeq (${KUBEHOUND_ENV}, dev)
+	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
 endif
-
 # No API key is being set
 ifneq (${DD_API_KEY},)
-    DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
+	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
+endif
+else
+	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.testing.yaml
 endif
 
 UNAME_S := $(shell uname -s)
-DOCKER_CMD := docker
+ifndef DOCKER_CMD
 ifeq ($(UNAME_S),Linux)
 	# https://docs.github.com/en/actions/learn-github-actions/variables
-	ifneq (${CI},true)
-		DOCKER_CMD := sudo docker
-	endif
+ifneq (${CI},true)
+	DOCKER_CMD := sudo docker
+else
+	DOCKER_CMD := docker
+endif
+else
+	DOCKER_CMD := docker
+endif
+DOCKER_CMD := ${DOCKER_CMD}
 endif
 
 RACE_FLAG_SYSTEM_TEST := "-race"
 ifeq (${CI},true)
 	RACE_FLAG_SYSTEM_TEST := ""
+endif
+
+DOCKER_HOSTNAME := $(shell hostname)
+ifneq (${CI},true)
+	DOCKER_CMD := DOCKER_HOSTNAME=$(DOCKER_HOSTNAME) $(DOCKER_CMD)
 endif
 
 all: build
@@ -65,18 +78,22 @@ generate: ## Generate code the application
 build: generate ## Build the application
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
 
+.PHONY: run
+run: | backend-reset build ## Run kubehound (deploy backend, build go binary and run it locally)
+	KUBECONFIG=${KUBECONFIG} ./bin/kubehound -c configs/etc/kubehound.yaml
+
 .PHONY: backend-rm
 backend-rm: ## Delete the kubehound stack
-	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
+	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 
 .PHONY: backend-up
 backend-up: ## Spawn the kubehound stack
-	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
+	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d 
 
 .PHONY: backend-reset
 backend-reset: ## Spawn the testing stack
-	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) rm -fvs 
-	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) up --force-recreate --build -d
+	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
+	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d
 
 .PHONY: test
 test: ## Run the full suite of unit tests 

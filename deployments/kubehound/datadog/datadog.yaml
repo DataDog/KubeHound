@@ -1,0 +1,6 @@
+log_level: INFO
+logs_config:
+  auto_multi_line_detection: true
+  auto_multi_line_default_match_threshold: 0.3
+  auto_multi_line_extra_patterns:
+  - \d{2}:\d{2}:\d{2}
