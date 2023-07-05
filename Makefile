@@ -72,12 +72,15 @@ all: build
 
 .PHONY: generate
 generate: ## Generate code the application
-	#go install github.com/vektra/mockery/v2@v2.20.0
 	go generate $(BUILD_FLAGS) ./...
 
 .PHONY: build
 build: generate ## Build the application
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
+
+.PHONY: run
+run: | backend-reset build ## Run kubehound (deploy backend, build go binary and run it locally)
+	KUBECONFIG=${KUBECONFIG} ./bin/kubehound -c configs/etc/kubehound.yaml
 
 .PHONY: backend-rm
 backend-rm: ## Delete the kubehound stack
