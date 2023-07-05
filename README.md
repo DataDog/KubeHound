@@ -12,20 +12,26 @@ To run the application, you can use docker image with the compose:
 * Edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`)
     * KUBEHOUND_ENV: `dev` or `prod`
     * DD_API_KEY: api key you created from https://app.datadoghq.com/ website
-* Build the application: `make build`
-* Run the infrastructure (databases needed for Kubehound): `make backend-up`
 
 Note:
 * KUBEHOUND_ENV=prod will use prebuilt image from ghcr.io
 * KUBEHOUND_ENV=dev will build the images locally
 
-### Run kubehound from binary (not dockerised):
-
-You have 2 options to run `kubehound`:
-* To run it against your current selected cluster: 
-    * Select the targeted cluster: `kubectx` (need to be installed separtly)     
+To target a specific cluster there is 2 way:
+* Select the targeted cluster: `kubectx` (need to be installed separtly)     
     * Run kubehound: `./bin/kubehound -c configs/etc/kubehound.yaml`
-* To run it against a specific cluster using a Kubernetes config file: `KUBECONFIG=/root/.kube/config ./bin/kubehound -c configs/etc/kubehound.yaml`
+* Use a specific kubeconfig file by exporting the env variable: `EXPORT KUBECONFIG=/your/path/to/.kube/config`
+
+### Run Kubehound - Automated way
+To run kubehound the easy way, just run : `make run`
+
+### Run Kubehound - Manual way
+Here are the steps being done by the automated way:
+* Build the application: `make build`
+* Run the infrastructure (databases needed for Kubehound): `make backend-up`
+* Run the kubehound (from local binary):
+    * Against current cluster: `./bin/kubehound -c configs/etc/kubehound.yaml`
+    * Against a specific cluster: `KUBECONFIG=/your/path/to/.kube/config ./bin/kubehound -c configs/etc/kubehound.yaml`
 
 ## Build
 
