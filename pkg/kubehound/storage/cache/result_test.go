@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -8,6 +9,7 @@ import (
 )
 
 func TestCacheResult_ObjectID(t *testing.T) {
+	objectId := primitive.NewObjectID()
 	type fields struct {
 		Value any
 		Err   error
@@ -18,7 +20,51 @@ func TestCacheResult_ObjectID(t *testing.T) {
 		want    primitive.ObjectID
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "success case",
+			fields: fields{
+				Value: objectId.Hex(),
+				Err:   nil,
+			},
+			want:    objectId,
+			wantErr: false,
+		},
+		{
+			name: "error result case",
+			fields: fields{
+				Value: primitive.NilObjectID,
+				Err:   errors.New("test error"),
+			},
+			want:    primitive.NilObjectID,
+			wantErr: true,
+		},
+		{
+			name: "type error case",
+			fields: fields{
+				Value: -1,
+				Err:   nil,
+			},
+			want:    primitive.NilObjectID,
+			wantErr: true,
+		},
+		{
+			name: "nil value case",
+			fields: fields{
+				Value: nil,
+				Err:   nil,
+			},
+			want:    primitive.NilObjectID,
+			wantErr: true,
+		},
+		{
+			name: "object ID convert test",
+			fields: fields{
+				Value: "notandobjid",
+				Err:   nil,
+			},
+			want:    primitive.NilObjectID,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -49,7 +95,42 @@ func TestCacheResult_Int64(t *testing.T) {
 		want    int64
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "success case",
+			fields: fields{
+				Value: int64(1337),
+				Err:   nil,
+			},
+			want:    1337,
+			wantErr: false,
+		},
+		{
+			name: "error result case",
+			fields: fields{
+				Value: int64(-1),
+				Err:   errors.New("test error"),
+			},
+			want:    int64(-1),
+			wantErr: true,
+		},
+		{
+			name: "type error case",
+			fields: fields{
+				Value: "hello",
+				Err:   nil,
+			},
+			want:    int64(-1),
+			wantErr: true,
+		},
+		{
+			name: "nil value case",
+			fields: fields{
+				Value: nil,
+				Err:   nil,
+			},
+			want:    int64(-1),
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -80,7 +161,42 @@ func TestCacheResult_Text(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "success case",
+			fields: fields{
+				Value: "hello world",
+				Err:   nil,
+			},
+			want:    "hello world",
+			wantErr: false,
+		},
+		{
+			name: "error result case",
+			fields: fields{
+				Value: "",
+				Err:   errors.New("test error"),
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "type error case",
+			fields: fields{
+				Value: -1,
+				Err:   nil,
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "nil value case",
+			fields: fields{
+				Value: nil,
+				Err:   nil,
+			},
+			want:    "",
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
