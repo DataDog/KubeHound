@@ -106,7 +106,6 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []types.Tr
 	promise := op.Iterate()
 	err = <-promise
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("%s vertex insert: %w", jgv.builder, err)
 	}
 
@@ -141,13 +140,13 @@ func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 			return err
 		}
 
-		log.Trace(ctx).Infof("Done flushing %s writes. clearing the queue", jgv.builder)
+		log.Trace(ctx).Debugf("Done flushing %s writes. clearing the queue", jgv.builder)
 		jgv.inserts = nil
 	}
 
 	jgv.writingInFlight.Wait()
 
-	log.Trace(ctx).Infof("Edge writer %d %s queued", jgv.qcounter, jgv.builder)
+	log.Trace(ctx).Debugf("Edge writer %d %s queued", jgv.qcounter, jgv.builder)
 	log.Trace(ctx).Infof("Edge writer %d %s written", jgv.wcounter, jgv.builder)
 	return nil
 }

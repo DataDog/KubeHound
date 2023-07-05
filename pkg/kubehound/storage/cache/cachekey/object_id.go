@@ -8,7 +8,7 @@ type objectIdCacheKey struct {
 	storeID string
 }
 
-var _ CacheKey = (*nodeCacheKey)(nil) // Ensure interface compliance
+var _ CacheKey = (*objectIdCacheKey)(nil) // Ensure interface compliance
 
 func ObjectId(storeID string) *objectIdCacheKey {
 	return &objectIdCacheKey{

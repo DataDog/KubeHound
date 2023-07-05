@@ -11,11 +11,13 @@ var (
 	ErrInvalidType = errors.New("cache entry value cannot be converted to requested type")
 )
 
+// CacheResult provides syntactic sugar around retrieval and type casting of entries from the cache.
 type CacheResult struct {
 	Value any
 	Err   error
 }
 
+// Text returns the result value as a string alongside any errors.
 func (r *CacheResult) Text() (string, error) {
 	if r.Err != nil {
 		return "", r.Err
@@ -33,6 +35,7 @@ func (r *CacheResult) Text() (string, error) {
 	return s, nil
 }
 
+// Int64 returns the result value as a int64 alongside any errors.
 func (r *CacheResult) Int64() (int64, error) {
 	if r.Err != nil {
 		return -1, r.Err
@@ -50,6 +53,7 @@ func (r *CacheResult) Int64() (int64, error) {
 	return i, nil
 }
 
+// ObjectID returns the result value as a bson ObjectID alongside any errors.
 func (r *CacheResult) ObjectID() (primitive.ObjectID, error) {
 	if r.Err != nil {
 		return primitive.NilObjectID, r.Err

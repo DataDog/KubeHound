@@ -136,7 +136,6 @@ func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []types.
 		By("storeID").
 		ToList()
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("%s vertex insert: %w", jgv.builder, err)
 	}
 
@@ -178,7 +177,7 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 			return err
 		}
 
-		log.Trace(ctx).Infof("Done flushing %s writes. clearing the queue", jgv.builder)
+		log.Trace(ctx).Debugf("Done flushing %s writes. clearing the queue", jgv.builder)
 		jgv.inserts = nil
 	}
 
@@ -189,7 +188,7 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 		return fmt.Errorf("vertex id cacheflush: %w", err)
 	}
 
-	log.Trace(ctx).Infof("Batch writer %d %s queued", jgv.qcounter, jgv.builder)
+	log.Trace(ctx).Debugf("Batch writer %d %s queued", jgv.qcounter, jgv.builder)
 	log.Trace(ctx).Infof("Batch writer %d %s written", jgv.wcounter, jgv.builder)
 	return nil
 }
