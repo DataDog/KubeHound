@@ -2,6 +2,7 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -16,7 +17,7 @@ import (
 )
 
 func init() {
-	// Register(PodExec{})
+	Register(PodExec{})
 }
 
 // @@DOCLINK: TODO
@@ -40,26 +41,36 @@ func (e PodExec) BatchSize() int {
 }
 
 func (e PodExec) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	return adapter.GremlinVertexProcessor[*podExecGroup](ctx, entry)
+	typed, ok := entry.(*podExecGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	rid, err := oic.GraphId(ctx, typed.Role.Hex())
+	if err != nil {
+		return nil, fmt.Errorf("%s edge role id convert: %w", e.Label(), err)
+	}
+
+	processed := map[any]any{
+		gremlin.T.Label: vertex.RoleLabel,
+		gremlin.T.Id:    rid,
+	}
+
+	return processed, nil
 }
 
-// Traversal expects a list of podExecGroup serialized as mapstructure for injection into the graph.
-// For each podExecGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
-// matching pods in the cluster 3) add a POD_EXEC edge between the vertices.
 func (e PodExec) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
-			Unfold().As("pec").
-			V().
-			HasLabel(vertex.RoleLabel).
-			Has("critical", false). // Not out edges from critical assets
-			Has("storeID", __.Where(P.Eq("pec")).By().By("role")).
+			Unfold().
+			As("rpe").
+			MergeV(__.Select("rpe")).
+			Option(gremlin.Merge.OnCreate, __.Fail("missing role vertex on POD_EXEC insert")).
+			Has("critical", false). // No out edges from critical assets
 			As("r").
 			V().
-			HasLabel(vertex.PodLabel).
-			Has("class", vertex.PodLabel).
-			Unfold().
+			HasLabel("Pod").
 			AddE(e.Label()).
 			From(__.Select("r")).
 			Barrier().Limit(0)

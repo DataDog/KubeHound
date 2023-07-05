@@ -19,7 +19,7 @@ import (
 var _ AsyncEdgeWriter = (*JanusGraphEdgeWriter)(nil)
 
 type JanusGraphEdgeWriter struct {
-	label           string                            // Label of the graph entity being written
+	builder         string                            // Qualified name of the edge being written
 	gremlin         types.EdgeTraversal               // Gremlin traversal generator function
 	drc             *gremlingo.DriverRemoteConnection // Gremlin driver remote connection
 	traversalSource *gremlingo.GraphTraversalSource   // Transacted graph traversal source
@@ -30,7 +30,7 @@ type JanusGraphEdgeWriter struct {
 	batchSize       int                               // Batchsize of graph DB inserts
 	qcounter        int32                             // Track items queued
 	wcounter        int32                             // Track items writtn
-	tags            []string
+	tags            []string                          // Telemetry tags
 }
 
 // NewJanusGraphAsyncEdgeWriter creates a new bulk edge writer instance.
@@ -43,7 +43,7 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 	}
 
 	jw := JanusGraphEdgeWriter{
-		label:           e.Label(),
+		builder:         fmt.Sprintf("%s::%s", e.Name(), e.Label()),
 		gremlin:         e.Traversal(),
 		drc:             drc,
 		inserts:         make([]types.TraversalInput, 0, e.BatchSize()),
@@ -86,14 +86,14 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
 func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []types.TraversalInput) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite, tracer.Measured())
-	span.SetTag(telemetry.TagKeyLabel, jgv.label)
+	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
 	defer span.Finish()
 	defer jgv.writingInFlight.Done()
 
 	tx := jgv.traversalSource.Tx()
 	gtx, err := tx.Begin()
 	if err != nil {
-		return fmt.Errorf("%s edge insert transaction create: %w", jgv.label, err)
+		return fmt.Errorf("%s edge insert transaction create: %w", jgv.builder, err)
 	}
 	defer tx.Close()
 
@@ -107,7 +107,7 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []types.Tr
 	err = <-promise
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("%s vertex insert: %w", jgv.label, err)
+		return fmt.Errorf("%s vertex insert: %w", jgv.builder, err)
 	}
 
 	return tx.Commit()
@@ -122,7 +122,7 @@ func (jgv *JanusGraphEdgeWriter) Close(ctx context.Context) error {
 // This is blocking
 func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationFlush, tracer.Measured())
-	span.SetTag(telemetry.TagKeyLabel, jgv.label)
+	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
 	defer span.Finish()
 
 	jgv.mu.Lock()
@@ -136,19 +136,19 @@ func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 		jgv.writingInFlight.Add(1)
 		err := jgv.batchWrite(ctx, jgv.inserts)
 		if err != nil {
-			log.Trace(ctx).Errorf("batch write %s: %+v", jgv.label, err)
+			log.Trace(ctx).Errorf("batch write %s: %+v", jgv.builder, err)
 			jgv.writingInFlight.Wait()
 			return err
 		}
 
-		log.Trace(ctx).Infof("Done flushing %s writes. clearing the queue", jgv.label)
+		log.Trace(ctx).Infof("Done flushing %s writes. clearing the queue", jgv.builder)
 		jgv.inserts = nil
 	}
 
 	jgv.writingInFlight.Wait()
 
-	log.Trace(ctx).Infof("Edge writer %d %s queued", jgv.qcounter, jgv.label)
-	log.Trace(ctx).Infof("Edge writer %d %s written", jgv.wcounter, jgv.label)
+	log.Trace(ctx).Infof("Edge writer %d %s queued", jgv.qcounter, jgv.builder)
+	log.Trace(ctx).Infof("Edge writer %d %s written", jgv.wcounter, jgv.builder)
 	return nil
 }
 

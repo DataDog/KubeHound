@@ -37,7 +37,7 @@ func (e PodAttach) Name() string {
 }
 
 func (e PodAttach) BatchSize() int {
-	return BatchSizeLarge
+	return BatchSizeDefault
 }
 
 func (e PodAttach) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {

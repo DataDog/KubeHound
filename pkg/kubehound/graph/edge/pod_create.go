@@ -2,6 +2,7 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -16,14 +17,14 @@ import (
 )
 
 func init() {
-	// Register(PodCreate{})
+	Register(PodCreate{})
 }
 
 // @@DOCLINK: TODO
 type PodCreate struct {
 }
 
-type podCreateCluster struct {
+type podCreateGroup struct {
 	Role primitive.ObjectID `bson:"_id" json:"role"`
 }
 
@@ -40,26 +41,36 @@ func (e PodCreate) BatchSize() int {
 }
 
 func (e PodCreate) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	return adapter.GremlinVertexProcessor[*podCreateCluster](ctx, entry)
+	typed, ok := entry.(*podCreateGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	rid, err := oic.GraphId(ctx, typed.Role.Hex())
+	if err != nil {
+		return nil, fmt.Errorf("%s edge role id convert: %w", e.Label(), err)
+	}
+
+	processed := map[any]any{
+		gremlin.T.Label: vertex.RoleLabel,
+		gremlin.T.Id:    rid,
+	}
+
+	return processed, nil
 }
 
-// Traversal expects a list of podCreateClusterGroup serialized as mapstructure for injection into the graph.
-// For each podCreateClusterGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
-// matching nodes in the cluster 3) add a POD_CREATE edge between the vertices.
 func (e PodCreate) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
-			Unfold().As("pcc").
-			V().
-			HasLabel(vertex.RoleLabel).
-			Has("critical", false). // Not out edges from critical assets
-			Has("storeID", __.Where(P.Eq("pcc")).By().By("role")).
+			Unfold().
+			As("rpc").
+			MergeV(__.Select("rpc")).
+			Option(gremlin.Merge.OnCreate, __.Fail("missing role vertex on POD_CREATE insert")).
+			Has("critical", false). // No out edges from critical assets
 			As("r").
 			V().
-			HasLabel(vertex.NodeLabel).
-			Has("class", vertex.NodeLabel).
-			Unfold().
+			HasLabel("Node").
 			AddE(e.Label()).
 			From(__.Select("r")).
 			Barrier().Limit(0)
@@ -68,7 +79,7 @@ func (e PodCreate) Traversal() types.EdgeTraversal {
 	}
 }
 
-// Stream finds all roles that are NOT namespaced and have pod/create or equivalent wildcard permissions.
+// Stream finds all roles that have pod/create or equivalent wildcard permissions.
 func (e PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
@@ -76,8 +87,6 @@ func (e PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.C
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				// TODO apply on SwitchNamespacedNodes switch
-				//"is_namespaced": false,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{
@@ -108,5 +117,5 @@ func (e PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.C
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[podCreateCluster](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[podCreateGroup](ctx, cur, callback, complete)
 }

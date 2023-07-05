@@ -2,6 +2,7 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -16,52 +17,60 @@ import (
 )
 
 func init() {
-	// Register(TokenBruteforceCluster{})
+	Register(TokenBruteforce{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
-type TokenBruteforceCluster struct {
+type TokenBruteforce struct {
 }
 
-type tokenBruteforceClusterGroup struct {
+type tokenBruteforceGroup struct {
 	Role primitive.ObjectID `bson:"_id" json:"role"`
 }
 
-func (e TokenBruteforceCluster) Label() string {
+func (e TokenBruteforce) Label() string {
 	return "TOKEN_BRUTEFORCE"
 }
 
-func (e TokenBruteforceCluster) Name() string {
+func (e TokenBruteforce) Name() string {
 	return "TokenBruteforceCluster"
 }
 
-func (e TokenBruteforceCluster) BatchSize() int {
+func (e TokenBruteforce) BatchSize() int {
 	return BatchSizeClusterImpact
 }
 
-func (e TokenBruteforceCluster) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
-	return adapter.GremlinVertexProcessor[*tokenBruteforceClusterGroup](ctx, entry)
+func (e TokenBruteforce) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
+	typed, ok := entry.(*tokenBruteforceGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	rid, err := oic.GraphId(ctx, typed.Role.Hex())
+	if err != nil {
+		return nil, fmt.Errorf("%s edge role id convert: %w", e.Label(), err)
+	}
+
+	processed := map[any]any{
+		gremlin.T.Label: vertex.RoleLabel,
+		gremlin.T.Id:    rid,
+	}
+
+	return processed, nil
 }
 
-// Traversal expects a list of TokenBruteforceCluster serialized as mapstructure for injection into the graph.
-// For each TokenBruteforceCluster, the traversal will: 1) find the role vertex with matching storeID, 2) find ALL
-// matching identities in the cluster 3) add a TOKEN_BRUTEFORCE edge between the vertices.
-func (e TokenBruteforceCluster) Traversal() types.EdgeTraversal {
+func (e TokenBruteforce) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
-			Unfold().As("tbc").
-			V().
-			Has("critical", false). // Not out edges from critical assets
-			HasLabel(vertex.RoleLabel).
-			Has("class", vertex.RoleLabel).
-			Has("storeID", __.Where(P.Eq("tbc")).By().By("role")).
+			Unfold().
+			As("rtb").
+			MergeV(__.Select("rtb")).
+			Option(gremlin.Merge.OnCreate, __.Fail("missing role vertex on TOKEN_BRUTEFORCE insert")).
+			Has("critical", false). // No out edges from critical assets
 			As("r").
 			V().
-			HasLabel(vertex.IdentityLabel).
-			Has("class", vertex.IdentityLabel).
-			Has("type", "ServiceAccount").
-			Unfold().
+			HasLabel("Identity").
 			AddE(e.Label()).
 			From(__.Select("r")).
 			Barrier().Limit(0)
@@ -71,7 +80,7 @@ func (e TokenBruteforceCluster) Traversal() types.EdgeTraversal {
 }
 
 // Stream finds all roles that are NOT namespaced and have secrets/get or equivalent wildcard permissions.
-func (e TokenBruteforceCluster) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e TokenBruteforce) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roles := adapter.MongoDB(store).Collection(collections.RoleName)
@@ -109,5 +118,5 @@ func (e TokenBruteforceCluster) Stream(ctx context.Context, store storedb.Provid
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[tokenBruteforceClusterGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[tokenBruteforceGroup](ctx, cur, callback, complete)
 }

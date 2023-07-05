@@ -21,7 +21,7 @@ import (
 var _ AsyncVertexWriter = (*JanusGraphVertexWriter)(nil)
 
 type JanusGraphVertexWriter struct {
-	label           string                          // Label of the graph entity being written
+	builder         string                          // Name of the graph entity being written
 	gremlin         types.VertexTraversal           // Gremlin traversal generator function
 	drc             *gremlin.DriverRemoteConnection // Gremlin driver remote connection
 	traversalSource *gremlin.GraphTraversalSource   // Transacted graph traversal source
@@ -51,7 +51,7 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlin.DriverRemo
 	}
 
 	jw := JanusGraphVertexWriter{
-		label:           v.Label(),
+		builder:         v.Label(),
 		gremlin:         v.Traversal(),
 		drc:             drc,
 		inserts:         make([]types.TraversalInput, 0, v.BatchSize()),
@@ -114,14 +114,14 @@ func (jgv *JanusGraphVertexWriter) cacheIds(ctx context.Context, idMap []*gremli
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
 func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []types.TraversalInput) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite, tracer.Measured())
-	span.SetTag(telemetry.TagKeyLabel, jgv.label)
+	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
 	defer span.Finish()
 	defer jgv.writingInFlight.Done()
 
 	tx := jgv.traversalSource.Tx()
 	gtx, err := tx.Begin()
 	if err != nil {
-		return fmt.Errorf("%s vertex insert transaction create: %w", jgv.label, err)
+		return fmt.Errorf("%s vertex insert transaction create: %w", jgv.builder, err)
 	}
 	defer tx.Close()
 
@@ -137,7 +137,7 @@ func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []types.
 		ToList()
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("%s vertex insert: %w", jgv.label, err)
+		return fmt.Errorf("%s vertex insert: %w", jgv.builder, err)
 	}
 
 	// Gremlin will return a list of maps containing and vertex id and store id values for each vertex inserted.
@@ -159,7 +159,7 @@ func (jgv *JanusGraphVertexWriter) Close(ctx context.Context) error {
 // This is blocking
 func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationFlush, tracer.Measured())
-	span.SetTag(telemetry.TagKeyLabel, jgv.label)
+	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
 	defer span.Finish()
 
 	jgv.mu.Lock()
@@ -173,12 +173,12 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 		jgv.writingInFlight.Add(1)
 		err := jgv.batchWrite(ctx, jgv.inserts)
 		if err != nil {
-			log.Trace(ctx).Errorf("batch write %s: %+v", jgv.label, err)
+			log.Trace(ctx).Errorf("batch write %s: %+v", jgv.builder, err)
 			jgv.writingInFlight.Wait()
 			return err
 		}
 
-		log.Trace(ctx).Infof("Done flushing %s writes. clearing the queue", jgv.label)
+		log.Trace(ctx).Infof("Done flushing %s writes. clearing the queue", jgv.builder)
 		jgv.inserts = nil
 	}
 
@@ -189,8 +189,8 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 		return fmt.Errorf("vertex id cacheflush: %w", err)
 	}
 
-	log.Trace(ctx).Infof("Batch writer %d %s queued", jgv.qcounter, jgv.label)
-	log.Trace(ctx).Infof("Batch writer %d %s written", jgv.wcounter, jgv.label)
+	log.Trace(ctx).Infof("Batch writer %d %s queued", jgv.qcounter, jgv.builder)
+	log.Trace(ctx).Infof("Batch writer %d %s written", jgv.wcounter, jgv.builder)
 	return nil
 }
 

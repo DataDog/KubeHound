@@ -41,7 +41,7 @@ func (e IdentityAssume) Name() string {
 }
 
 func (e IdentityAssume) BatchSize() int {
-	return BatchSizeLarge
+	return BatchSizeDefault
 }
 
 func (e IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {

@@ -30,7 +30,7 @@ func (e EscapePrivMount) Name() string {
 }
 
 func (e EscapePrivMount) BatchSize() int {
-	return BatchSizeLarge
+	return BatchSizeDefault
 }
 
 // Traversal delegates the traversal creation to the generic containerEscapeTraversal.

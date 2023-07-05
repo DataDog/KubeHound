@@ -11,11 +11,10 @@ import (
 )
 
 const (
-	BatchSizeLarge         = 1000
-	BatchSizeDefault       = 80
+	BatchSizeDefault       = 1000
 	BatchSizeMedium        = BatchSizeDefault / 4
 	BatchSizeSmall         = BatchSizeDefault / 8
-	BatchSizeClusterImpact = 1
+	BatchSizeClusterImpact = BatchSizeDefault / 200
 )
 
 // Optional syntactic sugar.

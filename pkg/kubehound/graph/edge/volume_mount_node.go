@@ -37,7 +37,7 @@ func (e VolumeMountNode) Name() string {
 }
 
 func (e VolumeMountNode) BatchSize() int {
-	return BatchSizeLarge
+	return BatchSizeDefault
 }
 
 func (e VolumeMountNode) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
