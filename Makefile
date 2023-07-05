@@ -80,7 +80,7 @@ backend-reset: ## Spawn the testing stack
 
 .PHONY: test
 test: ## Run the full suite of unit tests 
-	cd pkg && go test -race $(BUILD_FLAGS) ./...
+	cd pkg && go test -count=1 -race $(BUILD_FLAGS) ./...
 
 .PHONY: system-test
 system-test: | backend-reset ## Run the system tests

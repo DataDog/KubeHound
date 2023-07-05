@@ -9,6 +9,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	mockcache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
@@ -38,10 +39,15 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 
 	// Cache setup
 	c := mockcache.NewCacheProvider(t)
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.roleCacheKey")).Return(&cache.CacheResult{
+
+	c.EXPECT().Get(ctx, cachekey.Identity("app-monitors", "test-app")).Return(&cache.CacheResult{
+		Value: nil,
+		Err:   cache.ErrNoEntry,
+	}).Once()
+	c.EXPECT().Get(ctx, cachekey.Role("test-reader", "test-app")).Return(&cache.CacheResult{
 		Value: store.ObjectID().Hex(),
 		Err:   nil,
-	})
+	}).Once()
 
 	// Store setup -  rolebindings
 	sdb := storedb.NewProvider(t)

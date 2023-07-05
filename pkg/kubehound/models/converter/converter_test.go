@@ -130,11 +130,14 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.NoError(t, err, "role binding load error")
 
 	c := mocks.NewCacheReader(t)
-	k := cachekey.Role("test-reader", "test-app")
 	id := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, k).Return(&cache.CacheResult{
+	c.EXPECT().Get(mock.Anything, cachekey.Role("test-reader", "test-app")).Return(&cache.CacheResult{
 		Value: id,
 		Err:   nil,
+	})
+	c.EXPECT().Get(mock.Anything, cachekey.Identity("app-monitors", "test-app")).Return(&cache.CacheResult{
+		Value: nil,
+		Err:   cache.ErrNoEntry,
 	})
 
 	// Collector input -> store rolebinding
@@ -177,11 +180,14 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.NoError(t, err, "cluster role binding load error")
 
 	c := mocks.NewCacheReader(t)
-	k := cachekey.Role("test-reader", "")
 	id := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, k).Return(&cache.CacheResult{
+	c.EXPECT().Get(mock.Anything, cachekey.Role("test-reader", "")).Return(&cache.CacheResult{
 		Value: id,
 		Err:   nil,
+	})
+	c.EXPECT().Get(mock.Anything, cachekey.Identity("app-monitors-cluster", "test-app")).Return(&cache.CacheResult{
+		Value: nil,
+		Err:   cache.ErrNoEntry,
 	})
 
 	// Collector input -> store rolebinding

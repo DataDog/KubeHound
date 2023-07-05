@@ -3,8 +3,10 @@ package converter
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
@@ -163,6 +165,25 @@ func (c *StoreConverter) ClusterRole(_ context.Context, input types.ClusterRoleT
 	}, nil
 }
 
+func (c *StoreConverter) convertSubject(ctx context.Context, subj rbacv1.Subject) (store.BindSubject, error) {
+	// Check if identity already exists and use that ID, otherwise generate a new one
+	sid, err := c.cache.Get(ctx, cachekey.Identity(subj.Name, subj.Namespace)).ObjectID()
+	switch err {
+	case nil:
+		// Entry already exists, use the cached id value
+	case cache.ErrNoEntry:
+		// Entry does not exist, create a new id value
+		sid = store.ObjectID()
+	default:
+		return store.BindSubject{}, err
+	}
+
+	return store.BindSubject{
+		IdentityId: sid,
+		Subject:    subj,
+	}, nil
+}
+
 // RoleBinding returns the store representation of a K8s role binding from an input K8s RoleBinding object.
 // NOTE: requires cache access (RoleKey).
 func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindingType) (*store.RoleBinding, error) {
@@ -189,22 +210,12 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 	}
 
 	for _, s := range subj {
-		// Check if identity already exists and use that ID, otherwise generate a new one
-		sid, err := c.cache.Get(ctx, cachekey.Identity(s.Name, s.Namespace)).ObjectID()
-		switch err {
-		case nil:
-			// Entry already exists, use the cached id value
-		case cache.ErrNoEntry:
-			// Entry does not exist, create a new id value
-			sid = store.ObjectID()
-		default:
-			return nil, err
+		s, err := c.convertSubject(ctx, s)
+		if err != nil {
+			return nil, fmt.Errorf("role binding subject convert: %w", err)
 		}
 
-		output.Subjects = append(output.Subjects, store.BindSubject{
-			IdentityId: sid,
-			Subject:    s,
-		})
+		output.Subjects = append(output.Subjects, s)
 	}
 
 	return output, nil
@@ -236,10 +247,12 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 	}
 
 	for _, s := range subj {
-		output.Subjects = append(output.Subjects, store.BindSubject{
-			IdentityId: store.ObjectID(),
-			Subject:    s,
-		})
+		s, err := c.convertSubject(ctx, s)
+		if err != nil {
+			return nil, fmt.Errorf("cluster role binding subject convert: %w", err)
+		}
+
+		output.Subjects = append(output.Subjects, s)
 	}
 
 	return output, nil

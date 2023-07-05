@@ -348,7 +348,7 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 	suite.Equal(volumeCount, pathCount)
 }
 
-func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFOCE() {
+func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFORCE() {
 	results, err := suite.g.V().
 		HasLabel("Role").
 		OutE().HasLabel("TOKEN_BRUTEFORCE").
@@ -378,9 +378,11 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_STEAL() {
 	g := gremlingo.Traversal_().WithRemote(suite.client)
 
 	rawCount, err := g.V().
-		Has("class", vertex.VolumeLabel).
+		HasLabel(vertex.VolumeLabel).
 		Repeat(__.Out().SimplePath()).
-		Until(__.Has("class", vertex.IdentityLabel)).
+		Until(
+			__.HasLabel(vertex.IdentityLabel).
+				Has("namespace", "default")).
 		Path().
 		Count().
 		Next()

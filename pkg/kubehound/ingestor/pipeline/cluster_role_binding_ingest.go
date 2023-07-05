@@ -8,6 +8,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
@@ -37,6 +39,7 @@ func (i *ClusterRoleBindingIngest) Initialize(ctx context.Context, deps *Depende
 	i.rolebinding = collections.RoleBinding{}
 
 	i.r, err = CreateResources(ctx, deps,
+		WithCacheWriter(cache.WithTest()),
 		WithConverterCache(),
 		WithStoreWriter(i.identity),
 		WithStoreWriter(i.rolebinding),
@@ -48,11 +51,28 @@ func (i *ClusterRoleBindingIngest) Initialize(ctx context.Context, deps *Depende
 	return nil
 }
 
-// processSubject will handle the ingestion pipeline for a role binding subject belonging to a processed K8s role binding input.
+// processSubject will handle the ingestion pipeline for a cluster role binding subject belonging to a processed K8s cluster role binding input.
+// We create identities via indirectly accessing role binding subjects rather than direct access (e.g k get serviceAccounts -A -o json)
+// as this is the only way to discover non-serviceaccount users. However, this can create duplicate entries so lookup in cache before
+// writing to the store.
+// See reference: https://stackoverflow.com/questions/69932281/kubectl-command-to-return-a-list-of-all-user-accounts-from-kubernetes
 func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *store.BindSubject) error {
 	// Normalize K8s bind subject to store identity object format
 	sid, err := i.r.storeConvert.Identity(ctx, subj)
 	if err != nil {
+		return err
+	}
+
+	// Async write to cache. If entry is already present skip further processing.
+	ck := cachekey.Identity(sid.Name, sid.Namespace)
+	err = i.r.writeCache(ctx, ck, sid.Id.Hex())
+	switch err {
+	case cache.ErrCacheEntryOverwrite:
+		log.I.Debugf("identity cache entry %#v already exists, skipping inserts", ck)
+		return nil
+	case nil:
+		// NOP
+	default:
 		return err
 	}
 
