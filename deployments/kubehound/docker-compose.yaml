@@ -1,41 +1,54 @@
-version: "3.7"
-name: kubehound-testing
+version: "3.8"
 services:
   mongodb:
     image: mongo:6.0.6
     restart: unless-stopped
+    profiles: ["infra"]
     container_name: ${COMPOSE_PROJECT_NAME}-storedb
-    ports:
-      - "127.0.0.1:27017:27017"
     networks:
       - kubenet
     depends_on:
       janusgraph:
         condition: service_healthy
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "mongodb", "service": "kubehound"}]'
+    volumes:
+      - ./mongo/docker-healthcheck:/usr/local/bin/docker-healthcheck
+    healthcheck:
+      test:  ["CMD", "docker-healthcheck"]
+      interval: 10s
+      timeout: 2s
+      retries: 10
 
   janusgraph:
     build: ./janusgraph/
     restart: unless-stopped
+    profiles: ["infra"]
     container_name: ${COMPOSE_PROJECT_NAME}-graphdb
-    ports:
-      - "127.0.0.1:8182:8182"
     networks:
       - kubenet
     environment:
-      # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
+       # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
       - janusgraph.schema.constraints=true
       - janusgraph.schema.default=none
       # Bump content length of web-socket buffer to enable bulk insert queries
       - gremlinserver.maxContentLength=2097152
       # Bump evaluation timeout to support our large datasets
       - gremlinserver.evaluationTimeout=60000
+      # enabling metrics only for jmxReporter
+      - gremlinserver.metrics.jmxReporter.enabled=true
+      - gremlinserver.metrics.consoleReporter.enabled=false
+      - gremlinserver.metrics.slf4jReporter.enabled=false
+      - gremlinserver.metrics.graphiteReporter.enabled=false
+      - gremlinserver.metrics.csvReporter.enabled=false
     healthcheck:
-      # Healthcheck parameters optimized to ensure fast system tests. DO NOT USE IN PRODUCTION!
       test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
-      interval: 15s
+      interval: 60s
       timeout: 30s
       retries: 5
-      start_period: 15s
+      start_period: 30s
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "janusgraph", "service": "kubehound"}]'
 
 networks:
   kubenet:

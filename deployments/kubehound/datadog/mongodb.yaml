@@ -1,0 +1,15 @@
+
+init_config:
+    service: kubehound
+instances:
+  - hosts:
+      - mongodb:27017
+    connection_scheme: mongodb
+    dbnames:
+       - kubehound
+    additional_metrics:
+       - metrics.commands
+       - tcmalloc
+       - top
+       - collection
+       - jumbo_chunks
