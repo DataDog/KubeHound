@@ -4,10 +4,10 @@ storage:
 collector:
   type: live-k8s-api-collector
 janusgraph:
-  url: "ws://localhost:8182/gremlin"
+  url: "ws://localhost:8183/gremlin"
   connection_timeout: 60s
 mongodb:
-  url: "mongodb://localhost:27017"
+  url: "mongodb://localhost:27018"
   connection_timeout: 60s
 telemetry:
   statsd:

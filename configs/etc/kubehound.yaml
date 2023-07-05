@@ -2,9 +2,7 @@ storage:
   retry_delay: 10s
   retry: 5
 collector:
-  type: file-collector
-  file:
-    
+  type: live-k8s-api-collector
 mongodb:
   url: "mongodb://localhost:27017"
   connection_timeout: 30s
@@ -13,6 +11,6 @@ janusgraph:
   connection_timeout: 30s
 telemetry:
   statsd:
-    url: "127.0.0.1:8125"
+    url: "127.0.0.1:8225"
   tracer:
-    url: "127.0.0.1:8126"
+    url: "127.0.0.1:8226"
