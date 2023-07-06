@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	DefaultPoolSize     = 10
+	DefaultPoolSize     = 5
 	DefaultPoolCapacity = 100
 	DefaultWaitTimeout  = 30 * time.Second
 )

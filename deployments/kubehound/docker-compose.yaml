@@ -41,9 +41,12 @@ services:
       - gremlinserver.metrics.slf4jReporter.enabled=false
       - gremlinserver.metrics.graphiteReporter.enabled=false
       - gremlinserver.metrics.csvReporter.enabled=false
+      # Performance tweaks based on: https://www.sailpoint.com/blog/souping-up-the-gremlin/
+      - gremlinserver.gremlinPool=0 # will default to Runtime.availableProcessors()
+      - gremlinserver.threadPoolWorker=8 # should be 2x VCPU (TODO: can we set dynamically?)
     healthcheck:
       test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
-      interval: 60s
+      interval: 30s
       timeout: 30s
       retries: 5
       start_period: 30s

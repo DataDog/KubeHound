@@ -95,6 +95,11 @@ backend-reset: ## Spawn the testing stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d
 
+.PHONY: wipe
+wipe: # Wipe the persisted backend data
+	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_mongodb_data
+	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_janusgraph_data
+
 .PHONY: test
 test: ## Run the full suite of unit tests 
 	cd pkg && go test -count=1 -race $(BUILD_FLAGS) ./...

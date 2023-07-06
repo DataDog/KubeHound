@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	BatchSizeDefault       = 1000
+	BatchSizeDefault       = 250
 	BatchSizeMedium        = BatchSizeDefault / 4
 	BatchSizeSmall         = BatchSizeDefault / 8
-	BatchSizeClusterImpact = BatchSizeDefault / 200
+	BatchSizeClusterImpact = 1
 )
 
 // Optional syntactic sugar.
@@ -25,6 +25,8 @@ var P = gremlin.P
 
 //go:generate mockery --name Builder --output mocks --case underscore --filename edge.go --with-expecter
 type Builder interface {
+	Initialize(cfg)
+
 	// Name returns the unique name for the edge builder. This must be unique.
 	Name() string
 

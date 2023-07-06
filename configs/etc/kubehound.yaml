@@ -2,7 +2,9 @@ storage:
   retry_delay: 10s
   retry: 5
 collector:
-  type: live-k8s-api-collector
+  type: file-collector
+  file:
+    directory: /Users/jeremy.fox/go/src/github.com/DataDog/KubeHound/scripts/collectors/muk-data/muk.eu1.staging.dog
 mongodb:
   url: "mongodb://localhost:27017"
   connection_timeout: 30s
