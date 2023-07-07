@@ -25,6 +25,7 @@ type KubehoundConfig struct {
 	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // JanusGraph configuration
 	Storage    StorageConfig    `mapstructure:"storage"`    // Global param for all storage provider
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
+	Builder    BuilderConfig    `mapstructure:"builder"`    // Graph builder  configuration
 }
 
 // MustLoadDefaultConfig loads the default application configuration, treating all errors as fatal.

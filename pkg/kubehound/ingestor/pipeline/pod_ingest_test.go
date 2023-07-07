@@ -117,6 +117,8 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	// Graph setup - containers
 	cv := map[string]any{
 		"args":         any(nil),
+		"isNamespaced": true,
+		"namespace":    "test-app",
 		"capabilities": []any{},
 		"command":      any(nil),
 		"compromised":  float64(0),
@@ -142,10 +144,12 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	// Graph setup - volumes
 
 	vv := map[string]any{
-		"name":    "kube-api-access-4x9fz",
-		"path":    "/var/lib/kubelet/pods//volumes/kubernetes.io~projected/kube-api-access-4x9fz/token",
-		"storeID": vid.Hex(),
-		"type":    "Projected",
+		"name":         "kube-api-access-4x9fz",
+		"isNamespaced": true,
+		"namespace":    "test-app",
+		"path":         "/var/lib/kubelet/pods//volumes/kubernetes.io~projected/kube-api-access-4x9fz/token",
+		"storeID":      vid.Hex(),
+		"type":         "Projected",
 	}
 	vgw := graphdb.NewAsyncVertexWriter(t)
 	vgw.EXPECT().Queue(ctx, vv).Return(nil).Once()

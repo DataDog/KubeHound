@@ -19,7 +19,6 @@ identity = mgmt.makeVertexLabel('Identity').make();
 node = mgmt.makeVertexLabel('Node').make();
 pod = mgmt.makeVertexLabel('Pod').make();
 role = mgmt.makeVertexLabel('Role').make();
-token = mgmt.makeVertexLabel('Token').make();
 volume = mgmt.makeVertexLabel('Volume').make();
 
 // Create our edge labels and connections
@@ -115,14 +114,13 @@ ports = mgmt.makePropertyKey('ports').dataType(String.class).cardinality(Cardina
 identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 
 // Define properties for each vertex 
-mgmt.addProperties(container, cls, storeID, name, image, privileged, privesc, hostPid, hostPath, hostIpc, hostNetwork, runAsUser, 
-podName, nodeName, compromised, command, args, capabilities, ports);
+mgmt.addProperties(container, cls, storeID, isNamespaced, namespace, name, image, privileged, privesc, hostPid, hostPath, 
+    hostIpc, hostNetwork, runAsUser, podName, nodeName, compromised, command, args, capabilities, ports);
 mgmt.addProperties(identity, cls, storeID, name, isNamespaced, namespace, type, critical);
 mgmt.addProperties(node, cls, storeID, name, isNamespaced, namespace, compromised, critical);
 mgmt.addProperties(pod, cls, storeID, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
 mgmt.addProperties(role, cls, storeID, name, isNamespaced, namespace, rules, critical);
-mgmt.addProperties(token, cls, name, namespace, type, identityName, compromised, critical);
-mgmt.addProperties(volume, cls, storeID, name, type, path);
+mgmt.addProperties(volume, cls, storeID, name, isNamespaced, namespace, type, path);
 
 
 // Create the indexes on vertex properties

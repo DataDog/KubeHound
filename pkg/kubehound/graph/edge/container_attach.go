@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -21,11 +22,16 @@ func init() {
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2883354625/CONTAINER+ATTACH
 type ContainerAttach struct {
+	cfg *config.EdgeBuilderConfig
 }
 
 type containerAttachGroup struct {
 	Pod       primitive.ObjectID `bson:"pod_id" json:"pod"`
 	Container primitive.ObjectID `bson:"_id" json:"container"`
+}
+
+func (e ContainerAttach) Initialize(cfg *config.EdgeBuilderConfig) error {
+	return nil
 }
 
 func (e ContainerAttach) Label() string {
@@ -37,7 +43,7 @@ func (e ContainerAttach) Name() string {
 }
 
 func (e ContainerAttach) BatchSize() int {
-	return BatchSizeDefault
+	return e.cfg.BatchSize
 }
 
 func (e ContainerAttach) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {

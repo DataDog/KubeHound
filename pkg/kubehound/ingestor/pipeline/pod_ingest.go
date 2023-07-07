@@ -97,7 +97,7 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Container(sc)
+	insert, err := i.r.graphConvert.Container(sc, parent)
 	if err != nil {
 		return err
 	}
