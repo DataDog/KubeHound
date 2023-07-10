@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"github.com/stretchr/testify/suite"
@@ -347,7 +348,7 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 	suite.Equal(volumeCount, pathCount)
 }
 
-func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFOCE() {
+func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFORCE() {
 	results, err := suite.g.V().
 		HasLabel("Role").
 		OutE().HasLabel("TOKEN_BRUTEFORCE").
@@ -371,6 +372,42 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFOCE() {
 		"path[map[name:[read-secrets]], map[], map[name:[system:kube-proxy]",
 	}
 	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_TOKEN_STEAL() {
+	g := gremlingo.Traversal_().WithRemote(suite.client)
+
+	rawCount, err := g.V().
+		HasLabel(vertex.VolumeLabel).
+		Repeat(__.Out().SimplePath()).
+		Until(
+			__.HasLabel(vertex.IdentityLabel).
+				Has("namespace", "default")).
+		Path().
+		Count().
+		Next()
+
+	suite.NoError(err)
+	pathCount, err := rawCount.GetInt()
+	suite.NoError(err)
+	suite.NotEqual(pathCount, 0)
+
+	// Every pod in our test cluster should have projected volume holding a token. BUT we only
+	// save those with a non-default service account token as shown below.
+	//
+	// $ kubectl get sa
+	// NAME             SECRETS   AGE
+	// default          0         28h
+	// impersonate-sa   0         28h
+	// pod-create-sa    0         28h
+	// pod-exec-sa      0         28h
+	// pod-patch-sa     0         28h
+	// rolebind-sa      0         28h
+	// tokenget-sa      0         28h
+	// tokenlist-sa     0         28h
+	const expectedTokenCount = 7
+
+	suite.Equal(expectedTokenCount, pathCount)
 }
 
 func TestEdgeTestSuite(t *testing.T) {

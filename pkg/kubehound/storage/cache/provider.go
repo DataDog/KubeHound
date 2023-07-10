@@ -23,7 +23,7 @@ type CacheReader interface {
 	CacheDriver
 
 	// Get fetches an entry from the cache for the provided cache key.
-	Get(ctx context.Context, key cachekey.CacheKey) (string, error)
+	Get(ctx context.Context, key cachekey.CacheKey) *CacheResult
 }
 
 // CacheProvider defines the interface for reading and writing data from the cache provider.
@@ -41,7 +41,7 @@ type CacheProvider interface {
 //go:generate mockery --name AsyncWriter --output mocks --case underscore --filename cache_writer.go --with-expecter
 type AsyncWriter interface {
 	// Queue add a model to an asynchronous write queue. Non-blocking.
-	Queue(ctx context.Context, key cachekey.CacheKey, value string) error
+	Queue(ctx context.Context, key cachekey.CacheKey, value any) error
 
 	// Flush triggers writes of any remaining items in the queue. Blocks until operation completes
 	Flush(ctx context.Context) error

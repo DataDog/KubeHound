@@ -136,27 +136,19 @@ func (_c *CacheProvider_Close_Call) RunAndReturn(run func(context.Context) error
 }
 
 // Get provides a mock function with given fields: ctx, key
-func (_m *CacheProvider) Get(ctx context.Context, key cachekey.CacheKey) (string, error) {
+func (_m *CacheProvider) Get(ctx context.Context, key cachekey.CacheKey) *cache.CacheResult {
 	ret := _m.Called(ctx, key)
 
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, cachekey.CacheKey) (string, error)); ok {
-		return rf(ctx, key)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, cachekey.CacheKey) string); ok {
+	var r0 *cache.CacheResult
+	if rf, ok := ret.Get(0).(func(context.Context, cachekey.CacheKey) *cache.CacheResult); ok {
 		r0 = rf(ctx, key)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*cache.CacheResult)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, cachekey.CacheKey) error); ok {
-		r1 = rf(ctx, key)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // CacheProvider_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
@@ -178,12 +170,12 @@ func (_c *CacheProvider_Get_Call) Run(run func(ctx context.Context, key cachekey
 	return _c
 }
 
-func (_c *CacheProvider_Get_Call) Return(_a0 string, _a1 error) *CacheProvider_Get_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *CacheProvider_Get_Call) Return(_a0 *cache.CacheResult) *CacheProvider_Get_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *CacheProvider_Get_Call) RunAndReturn(run func(context.Context, cachekey.CacheKey) (string, error)) *CacheProvider_Get_Call {
+func (_c *CacheProvider_Get_Call) RunAndReturn(run func(context.Context, cachekey.CacheKey) *cache.CacheResult) *CacheProvider_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -18,8 +18,6 @@ const (
 
 const (
 	KubeHoundConfigPath = "kubehound.yaml"
-	CollectorScriptPath = "./kind-collect.sh"
-	CollectorOutputDir  = "kind-collect"
 )
 
 // Optional syntactic sugar.

@@ -7,8 +7,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
@@ -26,12 +26,11 @@ type Builder struct {
 	graphdb graphdb.Provider
 	cache   cache.CacheReader
 	edges   edge.Registry
-	paths   path.Registry
 }
 
 // NewBuilder returns a new builder instance from the provided application config and service dependencies.
 func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider, graph graphdb.Provider,
-	cache cache.CacheReader, edges edge.Registry, paths path.Registry) (*Builder, error) {
+	cache cache.CacheReader, edges edge.Registry) (*Builder, error) {
 
 	n := &Builder{
 		cfg:     cfg,
@@ -39,7 +38,6 @@ func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider, graph graph
 		graphdb: graph,
 		cache:   cache,
 		edges:   edges,
-		paths:   paths,
 	}
 
 	return n, nil
@@ -50,39 +48,13 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 	return services.HealthCheck(ctx, []services.Dependency{
 		b.storedb,
 		b.graphdb,
+		b.cache,
 	})
-}
-
-// buildPath inserts a class of paths (combination of new vertices and edges) into the graph database.
-func (b *Builder) buildPath(ctx context.Context, p path.Builder) error {
-	tags := append(telemetry.BaseTags, telemetry.TagTypeJanusGraph)
-	w, err := b.graphdb.PathWriter(ctx, p, graphdb.WithTags(tags))
-	if err != nil {
-		return err
-	}
-
-	err = p.Stream(ctx, b.storedb, b.cache,
-		func(ctx context.Context, entry types.DataContainer) error {
-			insert, err := p.Processor(ctx, entry)
-			if err != nil {
-				return err
-			}
-
-			return w.Queue(ctx, insert)
-
-		},
-		func(ctx context.Context) error {
-			return w.Flush(ctx)
-		})
-
-	w.Close(ctx)
-
-	return err
 }
 
 // buildEdge inserts a class of edges into the graph database.
 // NOTE: function is blocking and expected to be called from within a goroutine.
-func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
+func (b *Builder) buildEdge(ctx context.Context, e edge.Builder, oic *converter.ObjectIDConverter) error {
 	tags := append(telemetry.BaseTags, telemetry.TagTypeJanusGraph)
 	w, err := b.graphdb.EdgeWriter(ctx, e, graphdb.WithTags(tags))
 	if err != nil {
@@ -91,7 +63,7 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder) error {
 
 	err = e.Stream(ctx, b.storedb, b.cache,
 		func(ctx context.Context, entry types.DataContainer) error {
-			insert, err := e.Processor(ctx, entry)
+			insert, err := e.Processor(ctx, oic, entry)
 			if err != nil {
 				return err
 			}
@@ -114,18 +86,6 @@ func (b *Builder) Run(ctx context.Context) error {
 	defer span.Finish()
 	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
 
-	// Paths can have dependencies so must be built in sequence
-	l.Info("Starting path construction")
-	for label, p := range b.paths {
-		l.Infof("Building path %s", label)
-
-		err := b.buildPath(ctx, p)
-		if err != nil {
-			l.Errorf("building path %s: %v", label, err)
-			continue
-		}
-	}
-
 	// Edges can be built in parallel
 	l.Info("Creating edge builder worker pool")
 	wp, err := worker.PoolFactory(b.cfg)
@@ -139,6 +99,7 @@ func (b *Builder) Run(ctx context.Context) error {
 	}
 
 	l.Info("Starting edge construction")
+	oic := converter.NewObjectID(b.cache)
 	for label, e := range b.edges {
 		e := e
 		label := label
@@ -146,7 +107,7 @@ func (b *Builder) Run(ctx context.Context) error {
 		wp.Submit(func() error {
 			l.Infof("Building edge %s", label)
 
-			err := b.buildEdge(workCtx, e)
+			err := b.buildEdge(workCtx, e, oic)
 			if err != nil {
 				l.Errorf("building edge %s: %v", label, err)
 				return err

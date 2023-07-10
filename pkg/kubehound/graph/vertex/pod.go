@@ -27,10 +27,10 @@ func (v Pod) BatchSize() int {
 }
 
 func (v Pod) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*graph.Pod](ctx, entry)
+	return adapter.GremlinVertexProcessor[*graph.Pod](ctx, entry)
 }
 
-func (v Pod) Traversal() Traversal {
+func (v Pod) Traversal() types.VertexTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
@@ -43,8 +43,7 @@ func (v Pod) Traversal() Traversal {
 					Select("podVtx").
 					Property(
 						__.Select("kv").By(Column.Keys),
-						__.Select("kv").By(Column.Values))).
-			Barrier().Limit(0)
+						__.Select("kv").By(Column.Values)))
 
 		return g
 	}

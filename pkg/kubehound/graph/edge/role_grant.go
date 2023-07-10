@@ -2,14 +2,14 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -22,9 +22,9 @@ func init() {
 type RoleGrant struct {
 }
 
-type roleBindingGroup struct {
-	Role       primitive.ObjectID   `bson:"role_id" json:"role"`
-	Identities []primitive.ObjectID `bson:"identity_ids" json:"identities"`
+type roleGrantGroup struct {
+	Role     primitive.ObjectID `bson:"role_id" json:"role"`
+	Identity primitive.ObjectID `bson:"identity_id" json:"identity"`
 }
 
 func (e RoleGrant) Label() string {
@@ -39,58 +39,44 @@ func (e RoleGrant) BatchSize() int {
 	return BatchSizeDefault
 }
 
-func (e RoleGrant) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*roleBindingGroup](ctx, entry)
-}
-
-// Traversal expects a list of roleBindings objects serialized as map structures for injection into the graph.
-// For each roleBindings, the traversal will: 1) find the container vertex with matching storeID, 2) find the
-// identity vertex with matching storeID, and 3) add a ROLE_GRANT edge between the two vertices.
-func (e RoleGrant) Traversal() Traversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal().
-			Inject(inserts).
-			Unfold().As("rb").
-			Select("identities").
-			Unfold().
-			As("id").
-			V().
-			HasLabel(vertex.IdentityLabel).
-			Has("class", vertex.IdentityLabel).
-			Has("storeID", __.Where(P.Eq("id"))).
-			AddE(e.Label()).
-			To(
-				__.V().
-					HasLabel(vertex.RoleLabel).
-					Has("class", vertex.RoleLabel).
-					Has("storeID", __.Where(P.Eq("rb")).By().By("role"))).
-			Barrier().Limit(0)
-
-		return g
+func (e RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*roleGrantGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
+
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Identity, typed.Role)
 }
 
-func (e RoleGrant) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e RoleGrant) Traversal() types.EdgeTraversal {
+	return adapter.DefaultEdgeTraversal()
+}
+
+func (e RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roleBindings := adapter.MongoDB(store).Collection(collections.RoleBindingName)
-	pipeline := bson.A{
-		bson.M{
-			"$unwind": "$subjects",
-		},
-		bson.M{
-			"$group": bson.M{
-				"_id": "$role_id",
-				"identity_ids": bson.M{
-					"$addToSet": "$subjects.identity_id",
+
+	pipeline := []bson.M{
+		// Match bindings that have at least one subject
+		{
+			"$match": bson.M{
+				"subjects": bson.M{
+					"$exists": true,
+					"$ne":     bson.A{},
 				},
 			},
 		},
-		bson.M{
+		// Flatten the subjects set
+		{
+			"$unwind": "$subjects",
+		},
+		// Project a role id / identity id pair
+		{
 			"$project": bson.M{
-				"role_id":      "$_id",
-				"identity_ids": 1,
-				"_id":          0,
+				"_id":         0,
+				"role_id":     1,
+				"identity_id": "$subjects.identity_id",
 			},
 		},
 	}
@@ -100,6 +86,6 @@ func (e RoleGrant) Stream(ctx context.Context, store storedb.Provider, _ cache.C
 		return err
 	}
 	defer cur.Close(ctx)
-	// TODO not all identities exist! check cache first
-	return adapter.MongoCursorHandler[roleBindingGroup](ctx, cur, callback, complete)
+
+	return adapter.MongoCursorHandler[roleGrantGroup](ctx, cur, callback, complete)
 }

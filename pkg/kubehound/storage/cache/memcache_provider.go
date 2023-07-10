@@ -7,11 +7,12 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 )
 
 type MemCacheProvider struct {
-	data map[string]string
+	data map[string]any
 	mu   *sync.RWMutex
 }
 
@@ -19,7 +20,7 @@ type MemCacheProvider struct {
 func NewMemCacheProvider(ctx context.Context) (*MemCacheProvider, error) {
 	var mu sync.RWMutex
 	cacheProvider := &MemCacheProvider{
-		data: make(map[string]string),
+		data: make(map[string]any),
 		mu:   &mu,
 	}
 
@@ -36,7 +37,7 @@ func (mp *MemCacheProvider) Name() string {
 }
 
 func (m *MemCacheProvider) Close(ctx context.Context) error {
-	m.data = make(map[string]string)
+	m.data = make(map[string]any)
 	return nil
 }
 
@@ -44,19 +45,22 @@ func (m *MemCacheProvider) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) (string, error) {
+func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) *CacheResult {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	var err error
 	data, ok := m.data[computeKey(key)]
 	if !ok {
 		_ = statsd.Incr(telemetry.MetricCacheMiss, []string{}, 1)
-		err = fmt.Errorf("entry not found in cache: %s", computeKey(key))
+		log.Trace(ctx).Debugf("entry not found in cache: %s", computeKey(key))
 	} else {
 		_ = statsd.Incr(telemetry.MetricCacheHit, []string{}, 1)
 	}
 
-	return data, err
+	return &CacheResult{
+		Value: data,
+		Err:   err,
+	}
 }
 
 func (m *MemCacheProvider) BulkWriter(ctx context.Context, opts ...WriterOption) (AsyncWriter, error) {

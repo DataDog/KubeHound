@@ -5,10 +5,10 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 )
 
 type writerOptions struct {
@@ -33,13 +33,10 @@ type Provider interface {
 	Raw() any
 
 	// VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
-	VertexWriter(ctx context.Context, v vertex.Builder, opts ...WriterOption) (AsyncVertexWriter, error)
+	VertexWriter(ctx context.Context, v vertex.Builder, c cache.CacheProvider, opts ...WriterOption) (AsyncVertexWriter, error)
 
 	// EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
 	EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error)
-
-	// PathWriter creates a new AsyncPathWriter instance to enable asynchronous bulk inserts of paths.
-	PathWriter(ctx context.Context, p path.Builder, opts ...WriterOption) (AsyncPathWriter, error)
 
 	// Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.
 	Close(ctx context.Context) error
@@ -70,14 +67,6 @@ type AsyncEdgeWriter interface {
 	WriterBase
 
 	// Queue add an edge model to an asynchronous write queue. Non-blocking.
-	Queue(ctx context.Context, e any) error
-}
-
-// AsyncPathWriter defines the interface for writer clients to queue aysnchronous, batched writes of paths to the graphdb.
-type AsyncPathWriter interface {
-	WriterBase
-
-	// Queue add a path model to an asynchronous write queue. Non-blocking.
 	Queue(ctx context.Context, e any) error
 }
 

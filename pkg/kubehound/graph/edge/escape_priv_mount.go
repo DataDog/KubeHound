@@ -5,6 +5,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -33,12 +34,13 @@ func (e EscapePrivMount) BatchSize() int {
 }
 
 // Traversal delegates the traversal creation to the generic containerEscapeTraversal.
-func (e EscapePrivMount) Traversal() Traversal {
-	return containerEscapeTraversal(e.Label())
+func (e EscapePrivMount) Traversal() types.EdgeTraversal {
+	return adapter.DefaultEdgeTraversal()
 }
 
-func (e EscapePrivMount) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*containerEscapeGroup](ctx, entry)
+// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
+func (e EscapePrivMount) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }
 
 func (e EscapePrivMount) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

@@ -15,7 +15,7 @@ func TestNode_Traversal(t *testing.T) {
 
 	tests := []struct {
 		name string
-		want Traversal
+		want types.VertexTraversal
 		data graph.Node
 	}{
 		{

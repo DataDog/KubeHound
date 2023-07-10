@@ -15,7 +15,7 @@
     "subjects": [
         {
             "kind": "ServiceAccount",
-            "name": "app-monitors",
+            "name": "app-monitors-cluster",
             "namespace": "test-app"
         }
     ]

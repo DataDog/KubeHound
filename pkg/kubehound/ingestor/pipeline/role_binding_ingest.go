@@ -54,7 +54,7 @@ func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) 
 // processSubject will handle the ingestion pipeline for a role binding subject belonging to a processed K8s role binding input.
 // We create identities via indirectly accessing role binding subjects rather than direct access (e.g k get serviceAccounts -A -o json)
 // as this is the only way to discover non-serviceaccount users. However, this can create duplicate entries so lookup in cache before
-// writing to the store via an atomic test and set operation.
+// writing to the store.
 // See reference: https://stackoverflow.com/questions/69932281/kubectl-command-to-return-a-list-of-all-user-accounts-from-kubernetes
 func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.BindSubject) error {
 	// Normalize K8s bind subject to store identity object format

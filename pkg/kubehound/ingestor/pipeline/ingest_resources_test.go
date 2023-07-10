@@ -100,7 +100,7 @@ func TestIngestResources_Initializer(t *testing.T) {
 	gw.EXPECT().Close(ctx).Return(nil)
 
 	vtx := vertex.Node{}
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Node"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Node"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	oi, err = CreateResources(ctx, deps, WithGraphWriter(vtx))
 	assert.NoError(t, err)

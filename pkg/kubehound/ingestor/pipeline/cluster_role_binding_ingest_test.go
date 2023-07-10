@@ -8,7 +8,9 @@ import (
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
+	mockcache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -36,8 +38,20 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 		})
 
 	// Cache setup
-	c := cache.NewCacheProvider(t)
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.roleCacheKey")).Return(store.ObjectID().Hex(), nil)
+	c := mockcache.NewCacheProvider(t)
+	c.EXPECT().Get(ctx, cachekey.Identity("app-monitors-cluster", "")).Return(&cache.CacheResult{
+		Value: nil,
+		Err:   cache.ErrNoEntry,
+	}).Once()
+	c.EXPECT().Get(ctx, cachekey.Role("test-reader", "")).Return(&cache.CacheResult{
+		Value: store.ObjectID().Hex(),
+		Err:   nil,
+	}).Once()
+	cw := mockcache.NewAsyncWriter(t)
+	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.identityCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
+	cw.EXPECT().Flush(ctx).Return(nil)
+	cw.EXPECT().Close(ctx).Return(nil)
+	c.EXPECT().BulkWriter(ctx, mock.AnythingOfType("cache.WriterOption")).Return(cw, nil)
 
 	// Store setup -  rolebindings
 	sdb := storedb.NewProvider(t)
@@ -65,7 +79,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	vtxInsert := map[string]any{
 		"critical":     false,
 		"isNamespaced": false,
-		"name":         "app-monitors",
+		"name":         "app-monitors-cluster",
 		"namespace":    "",
 		"storeID":      storeId.Hex(),
 		"type":         "ServiceAccount",
@@ -75,7 +89,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Identity"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Identity"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,

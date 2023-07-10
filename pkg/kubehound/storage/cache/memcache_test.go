@@ -33,7 +33,7 @@ func TestMemCacheProvider_Get(t *testing.T) {
 	fakeProvider, fakeCache := fakeCacheBuilder(ctx, 3)
 
 	type fields struct {
-		data map[string]string
+		data map[string]any
 		mu   *sync.RWMutex
 	}
 	type args struct {
@@ -68,7 +68,7 @@ func TestMemCacheProvider_Get(t *testing.T) {
 			}
 
 			for key, val := range tt.args.fakeCache {
-				got, err := m.Get(tt.args.ctx, key)
+				got, err := m.Get(tt.args.ctx, key).Text()
 				if (err != nil) != tt.wantErr {
 					t.Errorf("MemCacheProvider.Get() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -162,7 +162,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 					t.Errorf("MemCacheAsyncWriter.Queue() error = %v, wantErr %v", err, tt.wantErr)
 				}
 
-				got, err := tt.fields.MemCacheProvider.Get(tt.args.ctx, key)
+				got, err := tt.fields.MemCacheProvider.Get(tt.args.ctx, key).Text()
 				if err != nil {
 					t.Errorf("MemCacheProvider.Get() error = %v", err)
 					return

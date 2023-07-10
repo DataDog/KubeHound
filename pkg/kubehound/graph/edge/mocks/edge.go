@@ -7,7 +7,7 @@ import (
 
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 
-	edge "github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
+	converter "github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -152,25 +152,25 @@ func (_c *Builder_Name_Call) RunAndReturn(run func() string) *Builder_Name_Call 
 	return _c
 }
 
-// Processor provides a mock function with given fields: _a0, _a1
-func (_m *Builder) Processor(_a0 context.Context, _a1 interface{}) (interface{}, error) {
-	ret := _m.Called(_a0, _a1)
+// Processor provides a mock function with given fields: _a0, _a1, _a2
+func (_m *Builder) Processor(_a0 context.Context, _a1 *converter.ObjectIDConverter, _a2 interface{}) (interface{}, error) {
+	ret := _m.Called(_a0, _a1, _a2)
 
 	var r0 interface{}
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, interface{}) (interface{}, error)); ok {
-		return rf(_a0, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, *converter.ObjectIDConverter, interface{}) (interface{}, error)); ok {
+		return rf(_a0, _a1, _a2)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, interface{}) interface{}); ok {
-		r0 = rf(_a0, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, *converter.ObjectIDConverter, interface{}) interface{}); ok {
+		r0 = rf(_a0, _a1, _a2)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(interface{})
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, interface{}) error); ok {
-		r1 = rf(_a0, _a1)
+	if rf, ok := ret.Get(1).(func(context.Context, *converter.ObjectIDConverter, interface{}) error); ok {
+		r1 = rf(_a0, _a1, _a2)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -185,14 +185,15 @@ type Builder_Processor_Call struct {
 
 // Processor is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 interface{}
-func (_e *Builder_Expecter) Processor(_a0 interface{}, _a1 interface{}) *Builder_Processor_Call {
-	return &Builder_Processor_Call{Call: _e.mock.On("Processor", _a0, _a1)}
+//   - _a1 *converter.ObjectIDConverter
+//   - _a2 interface{}
+func (_e *Builder_Expecter) Processor(_a0 interface{}, _a1 interface{}, _a2 interface{}) *Builder_Processor_Call {
+	return &Builder_Processor_Call{Call: _e.mock.On("Processor", _a0, _a1, _a2)}
 }
 
-func (_c *Builder_Processor_Call) Run(run func(_a0 context.Context, _a1 interface{})) *Builder_Processor_Call {
+func (_c *Builder_Processor_Call) Run(run func(_a0 context.Context, _a1 *converter.ObjectIDConverter, _a2 interface{})) *Builder_Processor_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(interface{}))
+		run(args[0].(context.Context), args[1].(*converter.ObjectIDConverter), args[2].(interface{}))
 	})
 	return _c
 }
@@ -202,7 +203,7 @@ func (_c *Builder_Processor_Call) Return(_a0 interface{}, _a1 error) *Builder_Pr
 	return _c
 }
 
-func (_c *Builder_Processor_Call) RunAndReturn(run func(context.Context, interface{}) (interface{}, error)) *Builder_Processor_Call {
+func (_c *Builder_Processor_Call) RunAndReturn(run func(context.Context, *converter.ObjectIDConverter, interface{}) (interface{}, error)) *Builder_Processor_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -254,15 +255,15 @@ func (_c *Builder_Stream_Call) RunAndReturn(run func(context.Context, storedb.Pr
 }
 
 // Traversal provides a mock function with given fields:
-func (_m *Builder) Traversal() edge.Traversal {
+func (_m *Builder) Traversal() types.EdgeTraversal {
 	ret := _m.Called()
 
-	var r0 edge.Traversal
-	if rf, ok := ret.Get(0).(func() edge.Traversal); ok {
+	var r0 types.EdgeTraversal
+	if rf, ok := ret.Get(0).(func() types.EdgeTraversal); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(edge.Traversal)
+			r0 = ret.Get(0).(types.EdgeTraversal)
 		}
 	}
 
@@ -286,12 +287,12 @@ func (_c *Builder_Traversal_Call) Run(run func()) *Builder_Traversal_Call {
 	return _c
 }
 
-func (_c *Builder_Traversal_Call) Return(_a0 edge.Traversal) *Builder_Traversal_Call {
+func (_c *Builder_Traversal_Call) Return(_a0 types.EdgeTraversal) *Builder_Traversal_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *Builder_Traversal_Call) RunAndReturn(run func() edge.Traversal) *Builder_Traversal_Call {
+func (_c *Builder_Traversal_Call) RunAndReturn(run func() types.EdgeTraversal) *Builder_Traversal_Call {
 	_c.Call.Return(run)
 	return _c
 }

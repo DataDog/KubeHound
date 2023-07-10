@@ -27,10 +27,10 @@ func (v Identity) BatchSize() int {
 }
 
 func (v Identity) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*graph.Identity](ctx, entry)
+	return adapter.GremlinVertexProcessor[*graph.Identity](ctx, entry)
 }
 
-func (v Identity) Traversal() Traversal {
+func (v Identity) Traversal() types.VertexTraversal {
 	return func(source *gremlingo.GraphTraversalSource, inserts []types.TraversalInput) *gremlingo.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
@@ -43,8 +43,7 @@ func (v Identity) Traversal() Traversal {
 					Select("idVtx").
 					Property(
 						__.Select("kv").By(Column.Keys),
-						__.Select("kv").By(Column.Values))).
-			Barrier().Limit(0)
+						__.Select("kv").By(Column.Values)))
 
 		return g
 	}

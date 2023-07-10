@@ -5,12 +5,13 @@ package mocks
 import (
 	context "context"
 
+	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+
 	edge "github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
+
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 
 	mock "github.com/stretchr/testify/mock"
-
-	path "github.com/DataDog/KubeHound/pkg/kubehound/graph/path"
 
 	vertex "github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 )
@@ -233,76 +234,6 @@ func (_c *Provider_Name_Call) RunAndReturn(run func() string) *Provider_Name_Cal
 	return _c
 }
 
-// PathWriter provides a mock function with given fields: ctx, p, opts
-func (_m *Provider) PathWriter(ctx context.Context, p path.Builder, opts ...graphdb.WriterOption) (graphdb.AsyncPathWriter, error) {
-	_va := make([]interface{}, len(opts))
-	for _i := range opts {
-		_va[_i] = opts[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, ctx, p)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
-
-	var r0 graphdb.AsyncPathWriter
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, path.Builder, ...graphdb.WriterOption) (graphdb.AsyncPathWriter, error)); ok {
-		return rf(ctx, p, opts...)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, path.Builder, ...graphdb.WriterOption) graphdb.AsyncPathWriter); ok {
-		r0 = rf(ctx, p, opts...)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(graphdb.AsyncPathWriter)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, path.Builder, ...graphdb.WriterOption) error); ok {
-		r1 = rf(ctx, p, opts...)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Provider_PathWriter_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PathWriter'
-type Provider_PathWriter_Call struct {
-	*mock.Call
-}
-
-// PathWriter is a helper method to define mock.On call
-//   - ctx context.Context
-//   - p path.Builder
-//   - opts ...graphdb.WriterOption
-func (_e *Provider_Expecter) PathWriter(ctx interface{}, p interface{}, opts ...interface{}) *Provider_PathWriter_Call {
-	return &Provider_PathWriter_Call{Call: _e.mock.On("PathWriter",
-		append([]interface{}{ctx, p}, opts...)...)}
-}
-
-func (_c *Provider_PathWriter_Call) Run(run func(ctx context.Context, p path.Builder, opts ...graphdb.WriterOption)) *Provider_PathWriter_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]graphdb.WriterOption, len(args)-2)
-		for i, a := range args[2:] {
-			if a != nil {
-				variadicArgs[i] = a.(graphdb.WriterOption)
-			}
-		}
-		run(args[0].(context.Context), args[1].(path.Builder), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *Provider_PathWriter_Call) Return(_a0 graphdb.AsyncPathWriter, _a1 error) *Provider_PathWriter_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Provider_PathWriter_Call) RunAndReturn(run func(context.Context, path.Builder, ...graphdb.WriterOption) (graphdb.AsyncPathWriter, error)) *Provider_PathWriter_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Raw provides a mock function with given fields:
 func (_m *Provider) Raw() interface{} {
 	ret := _m.Called()
@@ -346,32 +277,32 @@ func (_c *Provider_Raw_Call) RunAndReturn(run func() interface{}) *Provider_Raw_
 	return _c
 }
 
-// VertexWriter provides a mock function with given fields: ctx, v, opts
-func (_m *Provider) VertexWriter(ctx context.Context, v vertex.Builder, opts ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error) {
+// VertexWriter provides a mock function with given fields: ctx, v, c, opts
+func (_m *Provider) VertexWriter(ctx context.Context, v vertex.Builder, c cache.CacheProvider, opts ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, v)
+	_ca = append(_ca, ctx, v, c)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 graphdb.AsyncVertexWriter
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, vertex.Builder, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)); ok {
-		return rf(ctx, v, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, vertex.Builder, cache.CacheProvider, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)); ok {
+		return rf(ctx, v, c, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, vertex.Builder, ...graphdb.WriterOption) graphdb.AsyncVertexWriter); ok {
-		r0 = rf(ctx, v, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, vertex.Builder, cache.CacheProvider, ...graphdb.WriterOption) graphdb.AsyncVertexWriter); ok {
+		r0 = rf(ctx, v, c, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(graphdb.AsyncVertexWriter)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, vertex.Builder, ...graphdb.WriterOption) error); ok {
-		r1 = rf(ctx, v, opts...)
+	if rf, ok := ret.Get(1).(func(context.Context, vertex.Builder, cache.CacheProvider, ...graphdb.WriterOption) error); ok {
+		r1 = rf(ctx, v, c, opts...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -387,21 +318,22 @@ type Provider_VertexWriter_Call struct {
 // VertexWriter is a helper method to define mock.On call
 //   - ctx context.Context
 //   - v vertex.Builder
+//   - c cache.CacheProvider
 //   - opts ...graphdb.WriterOption
-func (_e *Provider_Expecter) VertexWriter(ctx interface{}, v interface{}, opts ...interface{}) *Provider_VertexWriter_Call {
+func (_e *Provider_Expecter) VertexWriter(ctx interface{}, v interface{}, c interface{}, opts ...interface{}) *Provider_VertexWriter_Call {
 	return &Provider_VertexWriter_Call{Call: _e.mock.On("VertexWriter",
-		append([]interface{}{ctx, v}, opts...)...)}
+		append([]interface{}{ctx, v, c}, opts...)...)}
 }
 
-func (_c *Provider_VertexWriter_Call) Run(run func(ctx context.Context, v vertex.Builder, opts ...graphdb.WriterOption)) *Provider_VertexWriter_Call {
+func (_c *Provider_VertexWriter_Call) Run(run func(ctx context.Context, v vertex.Builder, c cache.CacheProvider, opts ...graphdb.WriterOption)) *Provider_VertexWriter_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]graphdb.WriterOption, len(args)-2)
-		for i, a := range args[2:] {
+		variadicArgs := make([]graphdb.WriterOption, len(args)-3)
+		for i, a := range args[3:] {
 			if a != nil {
 				variadicArgs[i] = a.(graphdb.WriterOption)
 			}
 		}
-		run(args[0].(context.Context), args[1].(vertex.Builder), variadicArgs...)
+		run(args[0].(context.Context), args[1].(vertex.Builder), args[2].(cache.CacheProvider), variadicArgs...)
 	})
 	return _c
 }
@@ -411,7 +343,7 @@ func (_c *Provider_VertexWriter_Call) Return(_a0 graphdb.AsyncVertexWriter, _a1 
 	return _c
 }
 
-func (_c *Provider_VertexWriter_Call) RunAndReturn(run func(context.Context, vertex.Builder, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)) *Provider_VertexWriter_Call {
+func (_c *Provider_VertexWriter_Call) RunAndReturn(run func(context.Context, vertex.Builder, cache.CacheProvider, ...graphdb.WriterOption) (graphdb.AsyncVertexWriter, error)) *Provider_VertexWriter_Call {
 	_c.Call.Return(run)
 	return _c
 }

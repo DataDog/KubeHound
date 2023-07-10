@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	"github.com/stretchr/testify/assert"
@@ -129,9 +130,15 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.NoError(t, err, "role binding load error")
 
 	c := mocks.NewCacheReader(t)
-	k := cachekey.Role("test-reader", "test-app")
 	id := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
+	c.EXPECT().Get(mock.Anything, cachekey.Role("test-reader", "test-app")).Return(&cache.CacheResult{
+		Value: id,
+		Err:   nil,
+	})
+	c.EXPECT().Get(mock.Anything, cachekey.Identity("app-monitors", "test-app")).Return(&cache.CacheResult{
+		Value: nil,
+		Err:   cache.ErrNoEntry,
+	})
 
 	// Collector input -> store rolebinding
 	storeBinding, err := NewStoreWithCache(c).RoleBinding(context.TODO(), input)
@@ -173,9 +180,15 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.NoError(t, err, "cluster role binding load error")
 
 	c := mocks.NewCacheReader(t)
-	k := cachekey.Role("test-reader", "")
 	id := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
+	c.EXPECT().Get(mock.Anything, cachekey.Role("test-reader", "")).Return(&cache.CacheResult{
+		Value: id,
+		Err:   nil,
+	})
+	c.EXPECT().Get(mock.Anything, cachekey.Identity("app-monitors-cluster", "test-app")).Return(&cache.CacheResult{
+		Value: nil,
+		Err:   cache.ErrNoEntry,
+	})
 
 	// Collector input -> store rolebinding
 	storeBinding, err := NewStoreWithCache(c).ClusterRoleBinding(context.TODO(), input)
@@ -214,7 +227,10 @@ func TestConverter_RoleCacheFailure(t *testing.T) {
 	t.Parallel()
 
 	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, mock.Anything).Return("", errors.New("not found")).Twice()
+	c.EXPECT().Get(mock.Anything, mock.Anything).Return(&cache.CacheResult{
+		Value: "",
+		Err:   errors.New("not found"),
+	}).Twice()
 
 	rb, err := loadTestObject[types.RoleBindingType]("testdata/rolebinding.json")
 	assert.NoError(t, err, "role binding load error")
@@ -238,7 +254,10 @@ func TestConverter_PodPipeline(t *testing.T) {
 	c := mocks.NewCacheReader(t)
 	k := cachekey.Node("test-node.ec2.internal")
 	id := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, k).Return(id, nil)
+	c.EXPECT().Get(mock.Anything, k).Return(&cache.CacheResult{
+		Value: id,
+		Err:   nil,
+	})
 
 	// Collector input -> store pod
 	storePod, err := NewStoreWithCache(c).Pod(context.TODO(), input)
@@ -272,11 +291,17 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	c := mocks.NewCacheReader(t)
 	nk := cachekey.Node("test-node.ec2.internal")
 	nid := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, nk).Return(nid, nil)
+	c.EXPECT().Get(mock.Anything, nk).Return(&cache.CacheResult{
+		Value: nid,
+		Err:   nil,
+	})
 
 	ck := cachekey.Container("app-monitors-client-78cb6d7899-j2rjp", "elasticsearch", "test-app")
 	cid := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, ck).Return(cid, nil)
+	c.EXPECT().Get(mock.Anything, ck).Return(&cache.CacheResult{
+		Value: cid,
+		Err:   nil,
+	})
 
 	// Collector input -> store pod
 	storePod, err := NewStoreWithCache(c).Pod(context.TODO(), input)
@@ -350,7 +375,10 @@ func TestConverter_PodCacheFailure(t *testing.T) {
 	t.Parallel()
 
 	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, mock.Anything).Return("", errors.New("not found"))
+	c.EXPECT().Get(mock.Anything, mock.Anything).Return(&cache.CacheResult{
+		Value: "",
+		Err:   errors.New("not found"),
+	})
 
 	input, err := loadTestObject[types.PodType]("testdata/pod.json")
 	assert.NoError(t, err, "pod load error")
