@@ -37,7 +37,6 @@ mgmt.addConnection(containerAttach, pod, container);
 
 idAssume = mgmt.makeEdgeLabel('IDENTITY_ASSUME').multiplicity(MANY2ONE).make();
 mgmt.addConnection(idAssume, container, identity);
-mgmt.addConnection(idAssume, token, identity);
 
 idImpersonate = mgmt.makeEdgeLabel('IDENTITY_IMPERSONATE').multiplicity(MANY2ONE).make();
 mgmt.addConnection(idImpersonate, role, identity);
@@ -67,7 +66,7 @@ tokenList = mgmt.makeEdgeLabel('TOKEN_LIST').multiplicity(MULTI).make();
 mgmt.addConnection(tokenBruteforce, role, identity);
 
 tokenVarLog = mgmt.makeEdgeLabel('TOKEN_VAR_LOG_SYMLINK').multiplicity(ONE2MANY).make();
-mgmt.addConnection(tokenVarLog, container, token);
+mgmt.addConnection(tokenVarLog, container, volume);
 
 nsenter = mgmt.makeEdgeLabel('CE_NSENTER').multiplicity(MANY2ONE).make();
 mgmt.addConnection(nsenter, container, node);

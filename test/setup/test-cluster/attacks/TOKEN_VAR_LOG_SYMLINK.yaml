@@ -4,6 +4,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: varlog-pod
+  namespace: default
   labels:
     app: kubehound-edge-test
 spec:
@@ -15,7 +16,39 @@ spec:
         name: nodelog
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
+  serviceAccountName: varlog
   volumes:
     - name: nodelog
       hostPath:
         path: /var/log
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: varlog
+  namespace: default
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: varlog
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods/log", "pods", "nodes", "nodes/log"]
+  verbs: ["get","list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: varlog
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: varlog
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: varlog
+  apiGroup: ""

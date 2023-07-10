@@ -18,7 +18,7 @@ import (
 
 func init() {
 	// TODO just mark critical if large cluster switch
-	//Register(TokenBruteforce{})
+	Register(TokenBruteforce{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE

@@ -31,6 +31,7 @@ type containerAttachGroup struct {
 }
 
 func (e ContainerAttach) Initialize(cfg *config.EdgeBuilderConfig) error {
+	e.cfg = cfg
 	return nil
 }
 
@@ -43,7 +44,8 @@ func (e ContainerAttach) Name() string {
 }
 
 func (e ContainerAttach) BatchSize() int {
-	return e.cfg.BatchSize
+	return BatchSizeDefault
+	//return e.cfg.BatchSizeDefault
 }
 
 func (e ContainerAttach) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {

@@ -60,6 +60,10 @@ func SetDefaultValues(c *viper.Viper) {
 	// Profiler values
 	c.SetDefault("telemetry.profiler.period", globals.DefaultProfilerPeriod)
 	c.SetDefault("telemetry.profiler.cpu_duration", globals.DefaultProfilerCPUDuration)
+
+	// Default values for graph builder
+	// TODO TODO
+	c.SetDefault("collector.live.page_size", globals.DefaultK8sAPIPageSize)
 }
 
 // NewConfig creates a new config instance from the provided file using viper.

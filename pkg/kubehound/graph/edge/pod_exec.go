@@ -18,7 +18,7 @@ import (
 
 func init() {
 	// TODO just mark critical if large cluster switch
-	//Register(PodExec{})
+	Register(PodExec{})
 }
 
 // @@DOCLINK: TODO
