@@ -3,6 +3,7 @@ package edge
 import (
 	"context"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
@@ -14,7 +15,7 @@ const (
 	BatchSizeDefault       = 250
 	BatchSizeMedium        = BatchSizeDefault / 4
 	BatchSizeSmall         = BatchSizeDefault / 8
-	BatchSizeClusterImpact = 1
+	BatchSizeClusterImpact = BatchSizeDefault / 200
 )
 
 // Optional syntactic sugar.
@@ -26,7 +27,7 @@ var P = gremlin.P
 //go:generate mockery --name Builder --output mocks --case underscore --filename edge.go --with-expecter
 type Builder interface {
 	// Initialize intializes an edge builder from the application config
-	//Initialize(cfg *config.EdgeBuilderConfig) error
+	Initialize(cfg *config.EdgeBuilderConfig) error
 
 	// Name returns the unique name for the edge builder. This must be unique.
 	Name() string

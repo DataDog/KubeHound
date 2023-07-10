@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-07-07 10:23
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-07-10 09:30
 //
 // Generate it with "go generate ./..."
 //
@@ -155,7 +155,7 @@ var expectedPods = map[string]graph.Pod{
 		IsNamespaced:           true,
 		Namespace:              "default",
 		Compromised:            shared.CompromiseNone,
-		ServiceAccount:         "default",
+		ServiceAccount:         "varlog",
 		SharedProcessNamespace: false,
 		Critical:               false,
 	},
