@@ -44,7 +44,7 @@ func (e IdentityAssume) BatchSize() int {
 	return BatchSizeDefault
 }
 
-func (e IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
+func (e IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*identityGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)

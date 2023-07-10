@@ -40,13 +40,13 @@ func (e PodPatch) BatchSize() int {
 	return BatchSizeClusterImpact
 }
 
-func (e PodPatch) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
+func (e PodPatch) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*podPatchGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	rid, err := oic.GraphId(ctx, typed.Role.Hex())
+	rid, err := oic.GraphID(ctx, typed.Role.Hex())
 	if err != nil {
 		return nil, fmt.Errorf("%s edge role id convert: %w", e.Label(), err)
 	}

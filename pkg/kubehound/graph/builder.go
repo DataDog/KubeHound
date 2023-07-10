@@ -54,7 +54,7 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 
 // buildEdge inserts a class of edges into the graph database.
 // NOTE: function is blocking and expected to be called from within a goroutine.
-func (b *Builder) buildEdge(ctx context.Context, e edge.Builder, oic *converter.ObjectIdConverter) error {
+func (b *Builder) buildEdge(ctx context.Context, e edge.Builder, oic *converter.ObjectIDConverter) error {
 	tags := append(telemetry.BaseTags, telemetry.TagTypeJanusGraph)
 	w, err := b.graphdb.EdgeWriter(ctx, e, graphdb.WithTags(tags))
 	if err != nil {
@@ -99,7 +99,7 @@ func (b *Builder) Run(ctx context.Context) error {
 	}
 
 	l.Info("Starting edge construction")
-	oic := converter.NewObjectId(b.cache)
+	oic := converter.NewObjectID(b.cache)
 	for label, e := range b.edges {
 		e := e
 		label := label

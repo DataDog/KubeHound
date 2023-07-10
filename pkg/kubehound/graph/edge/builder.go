@@ -41,7 +41,7 @@ type Builder interface {
 	Traversal() types.EdgeTraversal
 
 	// Processor transforms an object queued for writing to a format suitable for consumption by the Traversal function.
-	Processor(context.Context, *converter.ObjectIdConverter, any) (any, error)
+	Processor(context.Context, *converter.ObjectIDConverter, any) (any, error)
 
 	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
 	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput via a call to

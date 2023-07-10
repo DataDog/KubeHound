@@ -39,7 +39,7 @@ func (e VolumeMountContainer) BatchSize() int {
 	return BatchSizeDefault
 }
 
-func (e VolumeMountContainer) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
+func (e VolumeMountContainer) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*containerMountGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)

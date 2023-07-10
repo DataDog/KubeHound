@@ -48,7 +48,7 @@ func (e ContainerAttach) BatchSize() int {
 	//return e.cfg.BatchSizeDefault
 }
 
-func (e ContainerAttach) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
+func (e ContainerAttach) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*containerAttachGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)

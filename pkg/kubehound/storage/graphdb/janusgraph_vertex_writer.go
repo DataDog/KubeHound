@@ -101,7 +101,7 @@ func (jgv *JanusGraphVertexWriter) cacheIds(ctx context.Context, idMap []*gremli
 		storeID := idMap["storeID"].(string)
 		vertexId := idMap["id"].(int64)
 
-		err := jgv.cache.Queue(ctx, cachekey.ObjectId(storeID), vertexId)
+		err := jgv.cache.Queue(ctx, cachekey.ObjectID(storeID), vertexId)
 		if err != nil {
 			return fmt.Errorf("vertex id cache write: %w", err)
 		}

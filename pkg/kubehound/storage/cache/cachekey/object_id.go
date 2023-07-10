@@ -4,22 +4,22 @@ const (
 	objectIdCacheName = "store-graph-id"
 )
 
-type objectIdCacheKey struct {
+type objectIDCacheKey struct {
 	storeID string
 }
 
-var _ CacheKey = (*objectIdCacheKey)(nil) // Ensure interface compliance
+var _ CacheKey = (*objectIDCacheKey)(nil) // Ensure interface compliance
 
-func ObjectId(storeID string) *objectIdCacheKey {
-	return &objectIdCacheKey{
+func ObjectID(storeID string) *objectIDCacheKey {
+	return &objectIDCacheKey{
 		storeID: storeID,
 	}
 }
 
-func (k *objectIdCacheKey) Shard() string {
+func (k *objectIDCacheKey) Shard() string {
 	return objectIdCacheName
 }
 
-func (k *objectIdCacheKey) Key() string {
+func (k *objectIDCacheKey) Key() string {
 	return k.storeID
 }

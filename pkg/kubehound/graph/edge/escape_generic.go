@@ -14,7 +14,7 @@ type containerEscapeGroup struct {
 	Container primitive.ObjectID `bson:"_id" json:"container"`
 }
 
-func containerEscapeProcessor(ctx context.Context, oic *converter.ObjectIdConverter, edgeLabel string, entry any) (any, error) {
+func containerEscapeProcessor(ctx context.Context, oic *converter.ObjectIDConverter, edgeLabel string, entry any) (any, error) {
 	typed, ok := entry.(*containerEscapeGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
