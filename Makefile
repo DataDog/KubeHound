@@ -82,8 +82,8 @@ build: generate ## Build the application
 run: | backend-reset build ## Run kubehound (deploy backend, build go binary and run it locally)
 	KUBECONFIG=${KUBECONFIG} ./bin/kubehound -c configs/etc/kubehound.yaml
 
-.PHONY: backend-rm
-backend-rm: ## Delete the kubehound stack
+.PHONY: backend-down
+backend-down: ## Delete the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 
 .PHONY: backend-up
@@ -91,21 +91,27 @@ backend-up: ## Spawn the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d 
 
 .PHONY: backend-reset
-backend-reset: ## Spawn the testing stack
+backend-reset: ## Restart the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d
 
-.PHONY: wipe
-wipe: # Wipe the persisted backend data
+.PHONY: backend-wipe
+backend-wipe: # Wipe the persisted backend data
+ifndef KUBEHOUND_ENV
+	$(error KUBEHOUND_ENV is undefined)
+endif
 	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_mongodb_data
 	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_janusgraph_data
+
+.PHONY: backend-reset-hard
+backend-reset-hard: backend-down backend-wipe backend-up ## Restart the kubehound stack and wipe all data
 
 .PHONY: test
 test: ## Run the full suite of unit tests 
 	cd pkg && go test -count=1 -race $(BUILD_FLAGS) ./...
 
 .PHONY: system-test
-system-test: | backend-reset ## Run the system tests
+system-test: | backend-reset-hear ## Run the system tests
 	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 ./...
 
 .PHONY: local-cluster-deploy

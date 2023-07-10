@@ -91,12 +91,16 @@ func (e PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.Ca
 					"$elemMatch": bson.M{
 						"$and": bson.A{
 							bson.M{"$or": bson.A{
+								bson.M{"apigroups": ""},
+								bson.M{"apigroups": "*"},
+							}},
+							bson.M{"$or": bson.A{
 								bson.M{"resources": "pods"},
-								bson.M{"resources": "pods/*"},
 								bson.M{"resources": "*"},
 							}},
 							bson.M{"$or": bson.A{
 								bson.M{"verbs": "patch"},
+								bson.M{"verbs": "update"},
 								bson.M{"verbs": "*"},
 							}},
 						},

@@ -93,8 +93,11 @@ func (e TokenBruteforce) Stream(ctx context.Context, store storedb.Provider, _ c
 					"$elemMatch": bson.M{
 						"$and": bson.A{
 							bson.M{"$or": bson.A{
+								bson.M{"apigroups": ""},
+								bson.M{"apigroups": "*"},
+							}},
+							bson.M{"$or": bson.A{
 								bson.M{"resources": "secrets"},
-								bson.M{"resources": "secrets/*"},
 								bson.M{"resources": "*"},
 							}},
 							bson.M{"$or": bson.A{

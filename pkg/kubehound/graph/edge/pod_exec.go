@@ -93,12 +93,16 @@ func (e PodExec) Stream(ctx context.Context, store storedb.Provider, _ cache.Cac
 					"$elemMatch": bson.M{
 						"$and": bson.A{
 							bson.M{"$or": bson.A{
-								bson.M{"resources": "pods"},
+								bson.M{"apigroups": ""},
+								bson.M{"apigroups": "*"},
+							}},
+							bson.M{"$or": bson.A{
+								bson.M{"resources": "pods/exec"},
 								bson.M{"resources": "pods/*"},
 								bson.M{"resources": "*"},
 							}},
 							bson.M{"$or": bson.A{
-								bson.M{"verbs": "exec"},
+								bson.M{"verbs": "create"},
 								bson.M{"verbs": "*"},
 							}},
 						},

@@ -91,8 +91,11 @@ func (e PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.C
 					"$elemMatch": bson.M{
 						"$and": bson.A{
 							bson.M{"$or": bson.A{
+								bson.M{"apigroups": ""},
+								bson.M{"apigroups": "*"},
+							}},
+							bson.M{"$or": bson.A{
 								bson.M{"resources": "pods"},
-								bson.M{"resources": "pods/*"},
 								bson.M{"resources": "*"},
 							}},
 							bson.M{"$or": bson.A{
