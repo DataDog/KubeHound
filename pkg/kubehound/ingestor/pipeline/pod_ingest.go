@@ -46,9 +46,9 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	//
 
 	i.v = []vertex.Builder{
-		vertex.Pod{},
-		vertex.Container{},
-		vertex.Volume{},
+		&vertex.Pod{},
+		&vertex.Container{},
+		&vertex.Volume{},
 	}
 
 	i.c = []collections.Collection{

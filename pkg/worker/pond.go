@@ -4,14 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/alitto/pond"
 )
 
 const (
-	DefaultPoolSize     = 5
-	DefaultPoolCapacity = 100
-	DefaultWaitTimeout  = 30 * time.Second
+	DefaultWaitTimeout = 30 * time.Second
 )
 
 // PondWorkerPool implements a worker pool based on https://github.com/alitto/pond
@@ -22,10 +19,10 @@ type PondWorkerPool struct {
 
 // newPond creates a new PondWorkerPool instance.
 // This function should not be called directly, but invoked via the factory method.
-func newPond(cfg *config.KubehoundConfig) WorkerPool {
+func newPond(size int, capacity int) WorkerPool {
 	// TODO override defaults from configuration
 	return &PondWorkerPool{
-		pool: pond.New(DefaultPoolSize, DefaultPoolCapacity, pond.Strategy(pond.Eager())),
+		pool: pond.New(size, capacity, pond.Strategy(pond.Eager())),
 	}
 }
 

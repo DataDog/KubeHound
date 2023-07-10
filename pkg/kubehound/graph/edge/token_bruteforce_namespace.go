@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -15,11 +16,12 @@ import (
 )
 
 func init() {
-	Register(TokenBruteforceNamespace{})
+	Register(&TokenBruteforceNamespace{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
 type TokenBruteforceNamespace struct {
+	cfg *config.EdgeBuilderConfig
 }
 
 type tokenBruteforceNSGroup struct {
@@ -27,19 +29,24 @@ type tokenBruteforceNSGroup struct {
 	Identity primitive.ObjectID `bson:"identity" json:"identity"`
 }
 
-func (e TokenBruteforceNamespace) Label() string {
+func (e *TokenBruteforceNamespace) Initialize(cfg *config.EdgeBuilderConfig) error {
+	e.cfg = cfg
+	return nil
+}
+
+func (e *TokenBruteforceNamespace) Label() string {
 	return "TOKEN_BRUTEFORCE"
 }
 
-func (e TokenBruteforceNamespace) Name() string {
+func (e *TokenBruteforceNamespace) Name() string {
 	return "TokenBruteforceNamespace"
 }
 
-func (e TokenBruteforceNamespace) BatchSize() int {
-	return BatchSizeDefault
+func (e *TokenBruteforceNamespace) BatchSize() int {
+	return e.cfg.BatchSize
 }
 
-func (e TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*tokenBruteforceNSGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -48,13 +55,13 @@ func (e TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter.
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Role, typed.Identity)
 }
 
-func (e TokenBruteforceNamespace) Traversal() types.EdgeTraversal {
+func (e *TokenBruteforceNamespace) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()
 }
 
 // Stream finds all roles that are namespaced and have secrets/get or equivalent wildcard permissions and matching identities.
 // Matching identities are defined as namespaced identities that share the role namespace or non-namespaced identities.
-func (e TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roles := adapter.MongoDB(store).Collection(collections.RoleName)

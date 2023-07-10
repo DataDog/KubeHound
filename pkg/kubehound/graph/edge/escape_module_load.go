@@ -3,6 +3,7 @@ package edge
 import (
 	"context"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -14,36 +15,42 @@ import (
 )
 
 func init() {
-	Register(EscapeModuleLoad{})
+	Register(&EscapeModuleLoad{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2890006884/CE+MODULE+LOAD
 type EscapeModuleLoad struct {
+	cfg *config.EdgeBuilderConfig
 }
 
-func (e EscapeModuleLoad) Label() string {
+func (e *EscapeModuleLoad) Initialize(cfg *config.EdgeBuilderConfig) error {
+	e.cfg = cfg
+	return nil
+}
+
+func (e *EscapeModuleLoad) Label() string {
 	return "CE_MODULE_LOAD"
 }
 
-func (e EscapeModuleLoad) Name() string {
+func (e *EscapeModuleLoad) Name() string {
 	return "ContainerEscapeModuleLoad"
 }
 
-func (e EscapeModuleLoad) BatchSize() int {
-	return BatchSizeDefault
+func (e *EscapeModuleLoad) BatchSize() int {
+	return e.cfg.BatchSize
 }
 
 // Traversal delegates the traversal creation to the generic containerEscapeTraversal.
-func (e EscapeModuleLoad) Traversal() types.EdgeTraversal {
+func (e *EscapeModuleLoad) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()
 }
 
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
-func (e EscapeModuleLoad) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *EscapeModuleLoad) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }
 
-func (e EscapeModuleLoad) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *EscapeModuleLoad) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)

@@ -62,8 +62,12 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("telemetry.profiler.cpu_duration", globals.DefaultProfilerCPUDuration)
 
 	// Default values for graph builder
-	// TODO TODO
-	c.SetDefault("collector.live.page_size", globals.DefaultK8sAPIPageSize)
+	c.SetDefault("builder.vertex.batch_size", DefaultVertexBatchSize)
+	c.SetDefault("builder.edge.worker_pool_size", DefaultEdgeWorkerPoolSize)
+	c.SetDefault("builder.edge.worker_pool_capacity", DefaultEdgeWorkerPoolCapacity)
+	c.SetDefault("builder.edge.batch_size", DefaultEdgeBatchSize)
+	c.SetDefault("builder.edge.batch_size_small", DefaultEdgeBatchSizeSmall)
+	c.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
 }
 
 // NewConfig creates a new config instance from the provided file using viper.

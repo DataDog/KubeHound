@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -17,30 +18,36 @@ import (
 )
 
 func init() {
-	Register(PodPatch{})
+	Register(&PodPatch{})
 }
 
 // @@DOCLINK: TODO
 type PodPatch struct {
+	cfg *config.EdgeBuilderConfig
 }
 
 type podPatchGroup struct {
 	Role primitive.ObjectID `bson:"_id" json:"role"`
 }
 
-func (e PodPatch) Label() string {
+func (e *PodPatch) Initialize(cfg *config.EdgeBuilderConfig) error {
+	e.cfg = cfg
+	return nil
+}
+
+func (e *PodPatch) Label() string {
 	return "POD_PATCH"
 }
 
-func (e PodPatch) Name() string {
+func (e *PodPatch) Name() string {
 	return "PodPatch"
 }
 
-func (e PodPatch) BatchSize() int {
-	return BatchSizeClusterImpact
+func (e *PodPatch) BatchSize() int {
+	return e.cfg.BatchSizeClusterImpact
 }
 
-func (e PodPatch) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *PodPatch) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*podPatchGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -59,7 +66,7 @@ func (e PodPatch) Processor(ctx context.Context, oic *converter.ObjectIDConverte
 	return processed, nil
 }
 
-func (e PodPatch) Traversal() types.EdgeTraversal {
+func (e *PodPatch) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
@@ -80,7 +87,7 @@ func (e PodPatch) Traversal() types.EdgeTraversal {
 }
 
 // Stream finds all roles that have pod/patch or equivalent wildcard permissions.
-func (e PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roles := adapter.MongoDB(store).Collection(collections.RoleName)

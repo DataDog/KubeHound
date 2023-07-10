@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -15,11 +16,12 @@ import (
 )
 
 func init() {
-	Register(VolumeMountContainer{})
+	Register(&VolumeMountContainer{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891251713/VOLUME+MOUNT
 type VolumeMountContainer struct {
+	cfg *config.EdgeBuilderConfig
 }
 
 type containerMountGroup struct {
@@ -27,19 +29,24 @@ type containerMountGroup struct {
 	Container primitive.ObjectID `bson:"container_id" json:"container"`
 }
 
-func (e VolumeMountContainer) Label() string {
+func (e *VolumeMountContainer) Initialize(cfg *config.EdgeBuilderConfig) error {
+	e.cfg = cfg
+	return nil
+}
+
+func (e *VolumeMountContainer) Label() string {
 	return "VOLUME_MOUNT"
 }
 
-func (e VolumeMountContainer) Name() string {
+func (e *VolumeMountContainer) Name() string {
 	return "VolumeMountContainer"
 }
 
-func (e VolumeMountContainer) BatchSize() int {
-	return BatchSizeDefault
+func (e *VolumeMountContainer) BatchSize() int {
+	return e.cfg.BatchSize
 }
 
-func (e VolumeMountContainer) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *VolumeMountContainer) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*containerMountGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -48,11 +55,11 @@ func (e VolumeMountContainer) Processor(ctx context.Context, oic *converter.Obje
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Volume)
 }
 
-func (e VolumeMountContainer) Traversal() types.EdgeTraversal {
+func (e *VolumeMountContainer) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()
 }
 
-func (e VolumeMountContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *VolumeMountContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)

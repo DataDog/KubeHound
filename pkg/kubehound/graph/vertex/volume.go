@@ -3,6 +3,7 @@ package vertex
 import (
 	"context"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
@@ -16,21 +17,27 @@ const (
 var _ Builder = (*Volume)(nil)
 
 type Volume struct {
+	cfg *config.VertexBuilderConfig
 }
 
-func (v Volume) Label() string {
+func (v *Volume) Initialize(cfg *config.VertexBuilderConfig) error {
+	v.cfg = cfg
+	return nil
+}
+
+func (v *Volume) Label() string {
 	return VolumeLabel
 }
 
-func (v Volume) BatchSize() int {
+func (v *Volume) BatchSize() int {
 	return BatchSizeDefault
 }
 
-func (v Volume) Processor(ctx context.Context, entry any) (any, error) {
+func (v *Volume) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinVertexProcessor[*graph.Volume](ctx, entry)
 }
 
-func (v Volume) Traversal() types.VertexTraversal {
+func (v *Volume) Traversal() types.VertexTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).

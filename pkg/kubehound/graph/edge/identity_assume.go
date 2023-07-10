@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -21,10 +22,11 @@ const (
 )
 
 func init() {
-	Register(IdentityAssume{})
+	Register(&IdentityAssume{})
 }
 
 type IdentityAssume struct {
+	cfg *config.EdgeBuilderConfig
 }
 
 type identityGroup struct {
@@ -32,19 +34,24 @@ type identityGroup struct {
 	Identity  primitive.ObjectID `bson:"identity_id" json:"identity"`
 }
 
-func (e IdentityAssume) Label() string {
+func (e *IdentityAssume) Initialize(cfg *config.EdgeBuilderConfig) error {
+	e.cfg = cfg
+	return nil
+}
+
+func (e *IdentityAssume) Label() string {
 	return IdentityAssumeLabel
 }
 
-func (e IdentityAssume) Name() string {
+func (e *IdentityAssume) Name() string {
 	return "IdentityAssume"
 }
 
-func (e IdentityAssume) BatchSize() int {
-	return BatchSizeDefault
+func (e *IdentityAssume) BatchSize() int {
+	return e.cfg.BatchSize
 }
 
-func (e IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*identityGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -53,11 +60,11 @@ func (e IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIDCo
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Identity)
 }
 
-func (e IdentityAssume) Traversal() types.EdgeTraversal {
+func (e *IdentityAssume) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()
 }
 
-func (e IdentityAssume) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *IdentityAssume) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)

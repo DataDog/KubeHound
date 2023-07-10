@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -18,30 +19,36 @@ import (
 
 func init() {
 	// TODO just mark critical if large cluster switch
-	Register(TokenBruteforce{})
+	Register(&TokenBruteforce{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
 type TokenBruteforce struct {
+	cfg *config.EdgeBuilderConfig
 }
 
 type tokenBruteforceGroup struct {
 	Role primitive.ObjectID `bson:"_id" json:"role"`
 }
 
-func (e TokenBruteforce) Label() string {
+func (e *TokenBruteforce) Initialize(cfg *config.EdgeBuilderConfig) error {
+	e.cfg = cfg
+	return nil
+}
+
+func (e *TokenBruteforce) Label() string {
 	return "TOKEN_BRUTEFORCE"
 }
 
-func (e TokenBruteforce) Name() string {
+func (e *TokenBruteforce) Name() string {
 	return "TokenBruteforceCluster"
 }
 
-func (e TokenBruteforce) BatchSize() int {
-	return BatchSizeClusterImpact
+func (e *TokenBruteforce) BatchSize() int {
+	return e.cfg.BatchSizeClusterImpact
 }
 
-func (e TokenBruteforce) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *TokenBruteforce) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*tokenBruteforceGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -60,7 +67,7 @@ func (e TokenBruteforce) Processor(ctx context.Context, oic *converter.ObjectIDC
 	return processed, nil
 }
 
-func (e TokenBruteforce) Traversal() types.EdgeTraversal {
+func (e *TokenBruteforce) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
@@ -81,7 +88,7 @@ func (e TokenBruteforce) Traversal() types.EdgeTraversal {
 }
 
 // Stream finds all roles that are NOT namespaced and have secrets/get or equivalent wildcard permissions.
-func (e TokenBruteforce) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *TokenBruteforce) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roles := adapter.MongoDB(store).Collection(collections.RoleName)

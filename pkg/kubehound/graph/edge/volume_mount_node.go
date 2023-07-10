@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -16,11 +17,12 @@ import (
 )
 
 func init() {
-	Register(VolumeMountNode{})
+	Register(&VolumeMountNode{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891251713/VOLUME+MOUNT
 type VolumeMountNode struct {
+	cfg *config.EdgeBuilderConfig
 }
 
 type nodeMountGroup struct {
@@ -28,19 +30,24 @@ type nodeMountGroup struct {
 	Node   primitive.ObjectID `bson:"node_id" json:"node"`
 }
 
-func (e VolumeMountNode) Label() string {
+func (e *VolumeMountNode) Initialize(cfg *config.EdgeBuilderConfig) error {
+	e.cfg = cfg
+	return nil
+}
+
+func (e *VolumeMountNode) Label() string {
 	return "VOLUME_MOUNT"
 }
 
-func (e VolumeMountNode) Name() string {
+func (e *VolumeMountNode) Name() string {
 	return "VolumeMountNode"
 }
 
-func (e VolumeMountNode) BatchSize() int {
-	return BatchSizeDefault
+func (e *VolumeMountNode) BatchSize() int {
+	return e.cfg.BatchSize
 }
 
-func (e VolumeMountNode) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *VolumeMountNode) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*nodeMountGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -49,11 +56,11 @@ func (e VolumeMountNode) Processor(ctx context.Context, oic *converter.ObjectIDC
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Node, typed.Volume)
 }
 
-func (e VolumeMountNode) Traversal() types.EdgeTraversal {
+func (e *VolumeMountNode) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()
 }
 
-func (e VolumeMountNode) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *VolumeMountNode) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)

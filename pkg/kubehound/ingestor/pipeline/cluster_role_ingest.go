@@ -15,7 +15,7 @@ const (
 )
 
 type ClusterRoleIngest struct {
-	vertex     vertex.Role
+	vertex     *vertex.Role
 	collection collections.Role
 	r          *IngestResources
 }
@@ -29,7 +29,7 @@ func (i *ClusterRoleIngest) Name() string {
 func (i *ClusterRoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
-	i.vertex = vertex.Role{}
+	i.vertex = &vertex.Role{}
 	i.collection = collections.Role{}
 
 	i.r, err = CreateResources(ctx, deps,

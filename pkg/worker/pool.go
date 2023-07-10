@@ -2,8 +2,6 @@ package worker
 
 import (
 	"context"
-
-	"github.com/DataDog/KubeHound/pkg/config"
 )
 
 // WorkerPool provides a worker pool for parallelised processing tasks.
@@ -22,6 +20,6 @@ type WorkerPool interface {
 }
 
 // PoolFactory creates a new worker pool instance from the provided config.
-func PoolFactory(cfg *config.KubehoundConfig) (WorkerPool, error) {
-	return newPond(cfg), nil
+func PoolFactory(size int, capacity int) (WorkerPool, error) {
+	return newPond(size, capacity), nil
 }

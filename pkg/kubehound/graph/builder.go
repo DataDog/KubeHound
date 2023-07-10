@@ -88,7 +88,7 @@ func (b *Builder) Run(ctx context.Context) error {
 
 	// Edges can be built in parallel
 	l.Info("Creating edge builder worker pool")
-	wp, err := worker.PoolFactory(b.cfg)
+	wp, err := worker.PoolFactory(b.cfg.Builder.Edge.WorkerPoolSize, b.cfg.Builder.Edge.WorkerPoolCapacity)
 	if err != nil {
 		return fmt.Errorf("graph builder worker pool create: %w", err)
 	}
@@ -106,6 +106,11 @@ func (b *Builder) Run(ctx context.Context) error {
 
 		wp.Submit(func() error {
 			l.Infof("Building edge %s", label)
+
+			if err := e.Initialize(&b.cfg.Builder.Edge); err != nil {
+				l.Errorf("initializing edge %s: %v", label, err)
+				return err
+			}
 
 			err := b.buildEdge(workCtx, e, oic)
 			if err != nil {

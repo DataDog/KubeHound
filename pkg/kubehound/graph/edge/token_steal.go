@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -17,7 +18,7 @@ import (
 )
 
 func init() {
-	Register(TokenSteal{})
+	Register(&TokenSteal{})
 }
 
 type volumeQueryResult struct {
@@ -33,21 +34,27 @@ type tokenStealGroup struct {
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891284481/TOKEN+STEAL
 type TokenSteal struct {
+	cfg *config.EdgeBuilderConfig
 }
 
-func (e TokenSteal) Label() string {
+func (e *TokenSteal) Initialize(cfg *config.EdgeBuilderConfig) error {
+	e.cfg = cfg
+	return nil
+}
+
+func (e *TokenSteal) Label() string {
 	return "TOKEN_STEAL"
 }
 
-func (e TokenSteal) Name() string {
+func (e *TokenSteal) Name() string {
 	return "TokenSteal"
 }
 
-func (e TokenSteal) BatchSize() int {
-	return BatchSizeDefault
+func (e *TokenSteal) BatchSize() int {
+	return e.cfg.BatchSize
 }
 
-func (e TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*tokenStealGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -56,11 +63,11 @@ func (e TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIDConver
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Volume, typed.Identity)
 }
 
-func (e TokenSteal) Traversal() types.EdgeTraversal {
+func (e *TokenSteal) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()
 }
 
-func (e TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.CacheReader,
+func (e *TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.CacheReader,
 	process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	volumes := adapter.MongoDB(sdb).Collection(collections.VolumeName)

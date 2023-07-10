@@ -3,6 +3,7 @@ package edge
 import (
 	"context"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -14,36 +15,42 @@ import (
 )
 
 func init() {
-	Register(EscapeNsenter{})
+	Register(&EscapeNsenter{})
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2897872074/CE+NSENTER
 type EscapeNsenter struct {
+	cfg *config.EdgeBuilderConfig
 }
 
-func (e EscapeNsenter) Label() string {
+func (e *EscapeNsenter) Initialize(cfg *config.EdgeBuilderConfig) error {
+	e.cfg = cfg
+	return nil
+}
+
+func (e *EscapeNsenter) Label() string {
 	return "CE_NSENTER"
 }
 
-func (e EscapeNsenter) Name() string {
+func (e *EscapeNsenter) Name() string {
 	return "ContainerEscapeNsenter"
 }
 
-func (e EscapeNsenter) BatchSize() int {
-	return BatchSizeDefault
+func (e *EscapeNsenter) BatchSize() int {
+	return e.cfg.BatchSize
 }
 
 // Traversal delegates the traversal creation to the generic containerEscapeTraversal.
-func (e EscapeNsenter) Traversal() types.EdgeTraversal {
+func (e *EscapeNsenter) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()
 }
 
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
-func (e EscapeNsenter) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *EscapeNsenter) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }
 
-func (e EscapeNsenter) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *EscapeNsenter) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
