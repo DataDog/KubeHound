@@ -99,6 +99,10 @@ func (b *Builder) Run(ctx context.Context) error {
 	}
 
 	l.Info("Starting edge construction")
+	if b.cfg.Builder.Edge.LargeClusterOptimizations {
+		log.I.Warnf("Using large cluster optimizations in graph construction")
+	}
+
 	oic := converter.NewObjectID(b.cache)
 	for label, e := range b.edges {
 		e := e
