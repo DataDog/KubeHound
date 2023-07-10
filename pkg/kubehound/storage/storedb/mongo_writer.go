@@ -65,7 +65,7 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 					log.I.Errorf("write data in background batch writer: %v", err)
 				}
 			case <-ctx.Done():
-				log.I.Info("Closed background mongodb worker")
+				log.I.Debug("Closed background mongodb worker")
 				return
 			}
 		}

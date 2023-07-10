@@ -2,14 +2,14 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -44,32 +44,17 @@ func (e IdentityAssume) BatchSize() int {
 	return BatchSizeDefault
 }
 
-func (e IdentityAssume) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*identityGroup](ctx, entry)
+func (e IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*identityGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Identity)
 }
 
-// Traversal expects a list of identityGroup serialized as mapstructure for injection into the graph.
-// For each identityGroup, the traversal will: 1) find the container with matching storeID, 2) find the
-// identity vertex with matching storeID, and 3) add a IDENTITY_ASSUME edge between the two vertices.
-func (e IdentityAssume) Traversal() Traversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal().
-			Inject(inserts).
-			Unfold().As("ig").
-			V().
-			HasLabel(vertex.ContainerLabel).
-			Has("class", vertex.ContainerLabel).
-			Has("storeID", __.Where(P.Eq("ig")).By().By("container")).
-			AddE(e.Label()).
-			To(
-				__.V().
-					HasLabel(vertex.IdentityLabel).
-					Has("class", vertex.IdentityLabel).
-					Has("storeID", __.Where(P.Eq("ig")).By().By("identity"))).
-			Barrier().Limit(0)
-
-		return g
-	}
+func (e IdentityAssume) Traversal() types.EdgeTraversal {
+	return adapter.DefaultEdgeTraversal()
 }
 
 func (e IdentityAssume) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

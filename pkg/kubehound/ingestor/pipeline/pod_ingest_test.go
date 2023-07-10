@@ -8,7 +8,8 @@ import (
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	mockcache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -36,15 +37,21 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		})
 
 	// Cache setup
-	c := cache.NewCacheProvider(t)
-	cw := cache.NewAsyncWriter(t)
+	c := mockcache.NewCacheProvider(t)
+	cw := mockcache.NewAsyncWriter(t)
 	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.containerCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
 
 	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.nodeCacheKey")).Return(store.ObjectID().Hex(), nil)
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.containerCacheKey")).Return(store.ObjectID().Hex(), nil)
+	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.nodeCacheKey")).Return(&cache.CacheResult{
+		Value: store.ObjectID().Hex(),
+		Err:   nil,
+	})
+	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.containerCacheKey")).Return(&cache.CacheResult{
+		Value: store.ObjectID().Hex(),
+		Err:   nil,
+	})
 
 	// Store setup - pods
 	sdb := storedb.NewProvider(t)
@@ -145,9 +152,9 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	vgw.EXPECT().Flush(ctx).Return(nil)
 	vgw.EXPECT().Close(ctx).Return(nil)
 
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Pod"), mock.AnythingOfType("graphdb.WriterOption")).Return(pgw, nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Container"), mock.AnythingOfType("graphdb.WriterOption")).Return(cgw, nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Volume"), mock.AnythingOfType("graphdb.WriterOption")).Return(vgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Pod"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(pgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Container"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(cgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Volume"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(vgw, nil)
 
 	deps := &Dependencies{
 		Collector: client,

@@ -2,16 +2,16 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -27,8 +27,8 @@ type volumeQueryResult struct {
 }
 
 type tokenStealGroup struct {
-	VolumeId   string `bson:"volume" json:"volume"`
-	IdentityId string `bson:"identity" json:"identity"`
+	Volume   primitive.ObjectID `bson:"volume" json:"volume"`
+	Identity primitive.ObjectID `bson:"identity" json:"identity"`
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891284481/TOKEN+STEAL
@@ -47,32 +47,20 @@ func (e TokenSteal) BatchSize() int {
 	return BatchSizeDefault
 }
 
-func (e TokenSteal) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*tokenStealGroup](ctx, entry)
-}
-
-func (e TokenSteal) Traversal() Traversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal().
-			Inject(inserts).
-			Unfold().As("ts").
-			V().
-			HasLabel(vertex.IdentityLabel).
-			Has("class", vertex.IdentityLabel).
-			Has("storeID", __.Where(P.Eq("ts")).By().By("identity")).
-			AddE(e.Label()).
-			From(
-				__.V().
-					HasLabel(vertex.VolumeLabel).
-					Has("class", vertex.VolumeLabel).
-					Has("storeID", __.Where(P.Eq("ts")).By().By("volume"))).
-			Barrier().Limit(0)
-
-		return g
+func (e TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*tokenStealGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
+
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Volume, typed.Identity)
 }
 
-func (e TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cache.CacheReader,
+func (e TokenSteal) Traversal() types.EdgeTraversal {
+	return adapter.DefaultEdgeTraversal()
+}
+
+func (e TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.CacheReader,
 	process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	volumes := adapter.MongoDB(sdb).Collection(collections.VolumeName)
@@ -130,17 +118,22 @@ func (e TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, cache cach
 		}
 
 		// Retrieve the associated identity store ID from the cache
-		said, err := cache.Get(ctx, cachekey.Identity(res.PodServiceAccount, res.PodNamespace))
-		if err != nil {
+		said, err := c.Get(ctx, cachekey.Identity(res.PodServiceAccount, res.PodNamespace)).ObjectID()
+		switch err {
+		case nil:
+			// We have a matching identity object in the store, create an edge.
+		case cache.ErrNoEntry:
 			// This is completely fine. Most pods will run under a default account with no permissions which we treat
 			// as having no identity. As such we do not want to create a token vertex here!
 			continue
+		default:
+			return err
 		}
 
 		// Create the container that holds all the data required by the traversal function
 		err = process(ctx, &tokenStealGroup{
-			VolumeId:   res.Volume.Id.Hex(),
-			IdentityId: said,
+			Volume:   res.Volume.Id,
+			Identity: said,
 		})
 		if err != nil {
 			return err

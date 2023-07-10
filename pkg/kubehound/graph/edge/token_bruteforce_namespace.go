@@ -2,14 +2,14 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -22,9 +22,9 @@ func init() {
 type TokenBruteforceNamespace struct {
 }
 
-type tokenBruteforceGroup struct {
-	Role       primitive.ObjectID   `bson:"_id" json:"role"`
-	Identities []primitive.ObjectID `bson:"idsInNamespace" json:"identities"`
+type tokenBruteforceNSGroup struct {
+	Role     primitive.ObjectID `bson:"_id" json:"role"`
+	Identity primitive.ObjectID `bson:"identity" json:"identity"`
 }
 
 func (e TokenBruteforceNamespace) Label() string {
@@ -36,41 +36,20 @@ func (e TokenBruteforceNamespace) Name() string {
 }
 
 func (e TokenBruteforceNamespace) BatchSize() int {
-	return BatchSizeClusterImpact
+	return BatchSizeDefault
 }
 
-func (e TokenBruteforceNamespace) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinInputProcessor[*tokenBruteforceGroup](ctx, entry)
-}
-
-// Traversal expects a list of tokenBruteforceGroup serialized as mapstructure for injection into the graph.
-// For each tokenBruteforceGroup, the traversal will: 1) find the role vertex with matching storeID, 2) find the
-// identity vertices for each matching storeID, and 3) add a TOKEN_BRUTEFORCE edge between the vertices.
-func (e TokenBruteforceNamespace) Traversal() Traversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal().
-			Inject(inserts).
-			Unfold().As("tbg").
-			Select("identities").
-			Unfold().
-			As("id").
-			V().
-			HasLabel(vertex.IdentityLabel).
-			Has("class", vertex.IdentityLabel).
-			Has("storeID", __.Where(P.Eq("id"))).
-			As("i").
-			V().
-			HasLabel(vertex.RoleLabel).
-			Has("critical", false). // No out edges from critical assets
-			Has("storeID", __.Where(P.Eq("tbg")).By().By("role")).
-			As("r").
-			AddE(e.Label()).
-			From(__.Select("r")).
-			To(__.Select("i")).
-			Barrier().Limit(0)
-
-		return g
+func (e TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*tokenBruteforceNSGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
+
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Role, typed.Identity)
+}
+
+func (e TokenBruteforceNamespace) Traversal() types.EdgeTraversal {
+	return adapter.DefaultEdgeTraversal()
 }
 
 // Stream finds all roles that are namespaced and have secrets/get or equivalent wildcard permissions and matching identities.
@@ -133,9 +112,12 @@ func (e TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Prov
 			},
 		},
 		{
+			"$unwind": "$idsInNamespace",
+		},
+		{
 			"$project": bson.M{
-				"_id":            1,
-				"idsInNamespace": "$idsInNamespace._id",
+				"_id":      1,
+				"identity": "$idsInNamespace._id",
 			},
 		},
 	}
@@ -146,5 +128,5 @@ func (e TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Prov
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[tokenBruteforceGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[tokenBruteforceNSGroup](ctx, cur, callback, complete)
 }

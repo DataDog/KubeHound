@@ -69,14 +69,6 @@ type Role struct {
 	Critical     bool     `json:"critical" mapstructure:"critical"`
 }
 
-type Token struct {
-	Name        string                `json:"name" mapstructure:"name"`
-	Namespace   string                `json:"namespace"  mapstructure:"namespace"`
-	Type        string                `json:"type" mapstructure:"type"`
-	Identity    string                `json:"identity" mapstructure:"identity"`
-	Compromised shared.CompromiseType `json:"compromised" mapstructure:"compromised"`
-}
-
 type Volume struct {
 	StoreID string `json:"storeID" mapstructure:"storeID"`
 	Name    string `json:"name" mapstructure:"name"`
