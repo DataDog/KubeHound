@@ -153,15 +153,15 @@ func (_c *Builder_Name_Call) RunAndReturn(run func() string) *Builder_Name_Call 
 }
 
 // Processor provides a mock function with given fields: _a0, _a1, _a2
-func (_m *Builder) Processor(_a0 context.Context, _a1 *converter.ObjectIdConverter, _a2 interface{}) (interface{}, error) {
+func (_m *Builder) Processor(_a0 context.Context, _a1 *converter.ObjectIDConverter, _a2 interface{}) (interface{}, error) {
 	ret := _m.Called(_a0, _a1, _a2)
 
 	var r0 interface{}
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *converter.ObjectIdConverter, interface{}) (interface{}, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *converter.ObjectIDConverter, interface{}) (interface{}, error)); ok {
 		return rf(_a0, _a1, _a2)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *converter.ObjectIdConverter, interface{}) interface{}); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *converter.ObjectIDConverter, interface{}) interface{}); ok {
 		r0 = rf(_a0, _a1, _a2)
 	} else {
 		if ret.Get(0) != nil {
@@ -169,7 +169,7 @@ func (_m *Builder) Processor(_a0 context.Context, _a1 *converter.ObjectIdConvert
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *converter.ObjectIdConverter, interface{}) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *converter.ObjectIDConverter, interface{}) error); ok {
 		r1 = rf(_a0, _a1, _a2)
 	} else {
 		r1 = ret.Error(1)
@@ -185,15 +185,15 @@ type Builder_Processor_Call struct {
 
 // Processor is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 *converter.ObjectIdConverter
+//   - _a1 *converter.ObjectIDConverter
 //   - _a2 interface{}
 func (_e *Builder_Expecter) Processor(_a0 interface{}, _a1 interface{}, _a2 interface{}) *Builder_Processor_Call {
 	return &Builder_Processor_Call{Call: _e.mock.On("Processor", _a0, _a1, _a2)}
 }
 
-func (_c *Builder_Processor_Call) Run(run func(_a0 context.Context, _a1 *converter.ObjectIdConverter, _a2 interface{})) *Builder_Processor_Call {
+func (_c *Builder_Processor_Call) Run(run func(_a0 context.Context, _a1 *converter.ObjectIDConverter, _a2 interface{})) *Builder_Processor_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*converter.ObjectIdConverter), args[2].(interface{}))
+		run(args[0].(context.Context), args[1].(*converter.ObjectIDConverter), args[2].(interface{}))
 	})
 	return _c
 }
@@ -203,7 +203,7 @@ func (_c *Builder_Processor_Call) Return(_a0 interface{}, _a1 error) *Builder_Pr
 	return _c
 }
 
-func (_c *Builder_Processor_Call) RunAndReturn(run func(context.Context, *converter.ObjectIdConverter, interface{}) (interface{}, error)) *Builder_Processor_Call {
+func (_c *Builder_Processor_Call) RunAndReturn(run func(context.Context, *converter.ObjectIDConverter, interface{}) (interface{}, error)) *Builder_Processor_Call {
 	_c.Call.Return(run)
 	return _c
 }
