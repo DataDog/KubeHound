@@ -47,15 +47,15 @@ func structToMap(in any) (map[string]any, error) {
 }
 
 // GremlinEdgeProcessor transforms the inputs into a map suitable for bulk edge insert using the MergeE API.
-func GremlinEdgeProcessor(ctx context.Context, oic *converter.ObjectIdConverter, label string,
+func GremlinEdgeProcessor(ctx context.Context, oic *converter.ObjectIDConverter, label string,
 	out primitive.ObjectID, in primitive.ObjectID) (map[any]any, error) {
 
-	vidIn, err := oic.GraphId(ctx, in.Hex())
+	vidIn, err := oic.GraphID(ctx, in.Hex())
 	if err != nil {
 		return nil, fmt.Errorf("%s edge IN id convert: %w", label, err)
 	}
 
-	vidOut, err := oic.GraphId(ctx, out.Hex())
+	vidOut, err := oic.GraphID(ctx, out.Hex())
 	if err != nil {
 		return nil, fmt.Errorf("%s edge OUT id convert: %w", label, err)
 	}

@@ -39,7 +39,7 @@ func (e EscapeNsenter) Traversal() types.EdgeTraversal {
 }
 
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
-func (e EscapeNsenter) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
+func (e EscapeNsenter) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }
 

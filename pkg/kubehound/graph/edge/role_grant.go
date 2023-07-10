@@ -39,7 +39,7 @@ func (e RoleGrant) BatchSize() int {
 	return BatchSizeDefault
 }
 
-func (e RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
+func (e RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*roleGrantGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)

@@ -40,7 +40,7 @@ func (e PodAttach) BatchSize() int {
 	return BatchSizeDefault
 }
 
-func (e PodAttach) Processor(ctx context.Context, oic *converter.ObjectIdConverter, entry any) (any, error) {
+func (e PodAttach) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*podAttachGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
