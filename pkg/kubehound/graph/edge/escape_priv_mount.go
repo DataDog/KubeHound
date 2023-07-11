@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	Register(&EscapePrivMount{})
+	Register(&EscapePrivMount{}, RegisterDefault)
 }
 
 // @@DOCLINK: TODO

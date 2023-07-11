@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	Register(&RoleGrant{})
+	Register(&RoleGrant{}, RegisterDefault)
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880471602/ROLE+GRANT

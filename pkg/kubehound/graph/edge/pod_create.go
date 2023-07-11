@@ -18,7 +18,7 @@ import (
 )
 
 func init() {
-	Register(&PodCreate{})
+	Register(&PodCreate{}, RegisterGraphMutation)
 }
 
 // @@DOCLINK: TODO
@@ -44,6 +44,11 @@ func (e *PodCreate) Name() string {
 }
 
 func (e *PodCreate) BatchSize() int {
+	if e.cfg.LargeClusterOptimizations {
+		// Under optimization this becomes a very cheap operation
+		return e.cfg.BatchSize
+	}
+
 	return e.cfg.BatchSizeClusterImpact
 }
 

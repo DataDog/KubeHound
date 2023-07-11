@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	Register(&PodAttach{})
+	Register(&PodAttach{}, RegisterDefault)
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880668080/POD+ATTACH

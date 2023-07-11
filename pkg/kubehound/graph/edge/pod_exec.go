@@ -18,8 +18,7 @@ import (
 )
 
 func init() {
-	// TODO just mark critical if large cluster switch
-	Register(&PodExec{})
+	Register(&PodExec{}, RegisterGraphMutation)
 }
 
 // @@DOCLINK: TODO
@@ -45,6 +44,11 @@ func (e *PodExec) Name() string {
 }
 
 func (e *PodExec) BatchSize() int {
+	if e.cfg.LargeClusterOptimizations {
+		// Under optimization this becomes a very cheap operation
+		return e.cfg.BatchSize
+	}
+
 	return e.cfg.BatchSizeClusterImpact
 }
 

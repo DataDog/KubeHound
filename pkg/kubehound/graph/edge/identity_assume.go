@@ -22,7 +22,7 @@ const (
 )
 
 func init() {
-	Register(&IdentityAssume{})
+	Register(&IdentityAssume{}, RegisterDefault)
 }
 
 type IdentityAssume struct {

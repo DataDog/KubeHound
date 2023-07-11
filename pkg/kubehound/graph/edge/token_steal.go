@@ -18,7 +18,7 @@ import (
 )
 
 func init() {
-	Register(&TokenSteal{})
+	Register(&TokenSteal{}, RegisterDefault)
 }
 
 type volumeQueryResult struct {

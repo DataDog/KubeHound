@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	Register(&ContainerAttach{})
+	Register(&ContainerAttach{}, RegisterDefault)
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2883354625/CONTAINER+ATTACH

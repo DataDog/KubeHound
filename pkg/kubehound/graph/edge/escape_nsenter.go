@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	Register(&EscapeNsenter{})
+	Register(&EscapeNsenter{}, RegisterDefault)
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2897872074/CE+NSENTER

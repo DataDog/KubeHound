@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	Register(&VolumeMountNode{})
+	Register(&VolumeMountNode{}, RegisterDefault)
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891251713/VOLUME+MOUNT
