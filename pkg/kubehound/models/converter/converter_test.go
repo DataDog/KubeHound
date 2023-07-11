@@ -230,7 +230,7 @@ func TestConverter_RoleCacheFailure(t *testing.T) {
 	c.EXPECT().Get(mock.Anything, mock.Anything).Return(&cache.CacheResult{
 		Value: "",
 		Err:   errors.New("not found"),
-	}).Twice()
+	}).Times(4)
 
 	rb, err := loadTestObject[types.RoleBindingType]("testdata/rolebinding.json")
 	assert.NoError(t, err, "role binding load error")

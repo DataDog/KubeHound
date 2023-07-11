@@ -76,6 +76,7 @@ func (e *PodCreate) Traversal() types.EdgeTraversal {
 		g := source.GetGraphTraversal()
 		if e.cfg.LargeClusterOptimizations {
 			// In large clusters this can explode the number of edges and we can safely assume this is a critical issue
+			//TODO this approach sort of sucks as you lose the attack path. Suggest we add a notional object to attach to which is critical
 			g.
 				Inject(inserts).
 				Unfold().
@@ -84,6 +85,9 @@ func (e *PodCreate) Traversal() types.EdgeTraversal {
 				Option(gremlin.Merge.OnCreate, __.Fail("missing role vertex on POD_CREATE insert")).
 				Option(gremlin.Merge.OnMatch, map[any]any{
 					"critical": true,
+				}).
+				MergeE(map[any]any{
+					gremlin.T.Label: e.Label(), // Ensure we add the attack in the graph (self-referencing edge)
 				}).
 				Barrier().Limit(0)
 		} else {

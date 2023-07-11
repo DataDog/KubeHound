@@ -9,3 +9,14 @@ mongodb:
 telemetry:
   statsd:
     url: "127.0.0.1:8125"
+builder:
+  vertex:
+    batch_size: 1000
+
+  edge:
+    large_cluster_optimizations: true
+    worker_pool_size: 5
+    worker_pool_capacity: 50
+    batch_size: 1000
+    batch_size_small: 100
+    batch_size_cluster_impact: 5

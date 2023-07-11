@@ -53,6 +53,19 @@ func TestMustLoadConfig(t *testing.T) {
 						CPUDuration: globals.DefaultProfilerCPUDuration,
 					},
 				},
+				Builder: BuilderConfig{
+					Vertex: VertexBuilderConfig{
+						BatchSize: 500,
+					},
+					Edge: EdgeBuilderConfig{
+						LargeClusterOptimizations: false,
+						WorkerPoolSize:            10,
+						WorkerPoolCapacity:        100,
+						BatchSize:                 500,
+						BatchSizeSmall:            62,
+						BatchSizeClusterImpact:    1,
+					},
+				},
 			},
 			wantErr: false,
 		},
@@ -85,6 +98,19 @@ func TestMustLoadConfig(t *testing.T) {
 					Profiler: ProfilerConfig{
 						Period:      globals.DefaultProfilerPeriod,
 						CPUDuration: globals.DefaultProfilerCPUDuration,
+					},
+				},
+				Builder: BuilderConfig{
+					Vertex: VertexBuilderConfig{
+						BatchSize: 1000,
+					},
+					Edge: EdgeBuilderConfig{
+						LargeClusterOptimizations: true,
+						WorkerPoolSize:            5,
+						WorkerPoolCapacity:        50,
+						BatchSize:                 1000,
+						BatchSizeSmall:            100,
+						BatchSizeClusterImpact:    5,
 					},
 				},
 			},
