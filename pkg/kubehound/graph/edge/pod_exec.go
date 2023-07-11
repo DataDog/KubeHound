@@ -95,11 +95,11 @@ func (e *PodExec) Traversal() types.EdgeTraversal {
 				MergeV(__.Select("rpe")).
 				Option(gremlin.Merge.OnCreate, __.Fail("missing role vertex on POD_EXEC insert")).
 				Has("critical", false). // No out edges from critical assets
-				As("r").
-				V().
-				HasLabel("Pod").
 				AddE(e.Label()).
-				From(__.Select("r")).
+				To(
+					__.V().
+						HasLabel("Pod").
+						Has("class", "Pod").Unfold()).
 				Barrier().Limit(0)
 		}
 
