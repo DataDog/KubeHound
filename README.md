@@ -35,9 +35,12 @@ Here are the steps being done by the automated way:
 
 ### Using KubeHound Data
 
-To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop.apache.org/gremlin.html) query language. See the provided [cheatsheet](./pkg/kubehound/graph/CHEATSHEET.md) for examples of useful queries for various use cases.
+To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop.apache.org/gremlin.html) query language via an API call or dedicated graph query UI. A number of graph query UIs are availble, but we recommend [gdotv](https://gdotv.com/). To access the KubeHound graph using `gdotv`:
 
-[gdotv](https://gdotv.com/)
++ Download and install the application from https://gdotv.com/
++ Create a connection to the local janusgraph instance by following the steps here https://docs.gdotv.com/connection-management/ and using `hostname=localhost`
++ Navigate to the query editor and enter a sample query e.g `g.V().count()`. See detailed instructions here: https://docs.gdotv.com/query-editor/#run-your-query
++ See the provided [cheatsheet](./pkg/kubehound/graph/CHEATSHEET.md) for examples of useful queries for various use cases.
 
 
 ## Build
