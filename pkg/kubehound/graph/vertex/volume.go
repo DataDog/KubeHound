@@ -8,6 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 const (
@@ -38,7 +39,7 @@ func (v *Volume) Processor(ctx context.Context, entry any) (any, error) {
 }
 
 func (v *Volume) Traversal() types.VertexTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+	return func(source *gremlingo.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("volumes").

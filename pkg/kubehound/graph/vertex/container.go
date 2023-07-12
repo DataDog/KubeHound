@@ -38,7 +38,7 @@ func (v *Container) Processor(ctx context.Context, entry any) (any, error) {
 }
 
 func (v *Container) Traversal() types.VertexTraversal {
-	return func(source *gremlingo.GraphTraversalSource, inserts []types.TraversalInput) *gremlingo.GraphTraversal {
+	return func(source *gremlingo.GraphTraversalSource, inserts []any) *gremlingo.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("containers").

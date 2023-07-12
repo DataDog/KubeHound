@@ -4,8 +4,8 @@ import (
 	"context"
 )
 
-// An object to be consumed by a vertex traversal function to insert a vertex into the graph database.
-type TraversalInput any
+// // An object to be consumed by a vertex traversal function to insert a vertex into the graph database.
+// type TraversalInput any
 
 // An object to encapsulate the raw data required to create one or more edges. For example a pod id and a node id.
 type DataContainer any

@@ -71,7 +71,7 @@ func GremlinEdgeProcessor(ctx context.Context, oic *converter.ObjectIDConverter,
 
 // DefaultEdgeTraversal returns the traversal to insert a set of edges from a map using the MergeE API.
 func DefaultEdgeTraversal() types.EdgeTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("em").
