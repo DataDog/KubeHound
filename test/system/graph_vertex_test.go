@@ -264,7 +264,7 @@ func (suite *VertexTestSuite) TestVertexRole() {
 func (suite *VertexTestSuite) TestVertexVolume() {
 	results, err := suite.g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
 	suite.NoError(err)
-	suite.Equal(55, len(results))
+	suite.Equal(56, len(results))
 
 	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("path", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
 	suite.NoError(err)
