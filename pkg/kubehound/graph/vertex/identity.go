@@ -6,7 +6,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 const (
@@ -16,22 +16,19 @@ const (
 var _ Builder = (*Identity)(nil)
 
 type Identity struct {
+	BaseVertex
 }
 
-func (v Identity) Label() string {
+func (v *Identity) Label() string {
 	return IdentityLabel
 }
 
-func (v Identity) BatchSize() int {
-	return BatchSizeDefault
-}
-
-func (v Identity) Processor(ctx context.Context, entry any) (any, error) {
+func (v *Identity) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinVertexProcessor[*graph.Identity](ctx, entry)
 }
 
-func (v Identity) Traversal() types.VertexTraversal {
-	return func(source *gremlingo.GraphTraversalSource, inserts []types.TraversalInput) *gremlingo.GraphTraversal {
+func (v *Identity) Traversal() types.VertexTraversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("ids").

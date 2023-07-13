@@ -6,6 +6,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
@@ -117,6 +118,8 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	// Graph setup - containers
 	cv := map[string]any{
 		"args":         any(nil),
+		"isNamespaced": true,
+		"namespace":    "test-app",
 		"capabilities": []any{},
 		"command":      any(nil),
 		"compromised":  float64(0),
@@ -142,25 +145,32 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	// Graph setup - volumes
 
 	vv := map[string]any{
-		"name":    "kube-api-access-4x9fz",
-		"path":    "/var/lib/kubelet/pods//volumes/kubernetes.io~projected/kube-api-access-4x9fz/token",
-		"storeID": vid.Hex(),
-		"type":    "Projected",
+		"name":         "kube-api-access-4x9fz",
+		"isNamespaced": true,
+		"namespace":    "test-app",
+		"path":         "/var/lib/kubelet/pods//volumes/kubernetes.io~projected/kube-api-access-4x9fz/token",
+		"storeID":      vid.Hex(),
+		"type":         "Projected",
 	}
 	vgw := graphdb.NewAsyncVertexWriter(t)
 	vgw.EXPECT().Queue(ctx, vv).Return(nil).Once()
 	vgw.EXPECT().Flush(ctx).Return(nil)
 	vgw.EXPECT().Close(ctx).Return(nil)
 
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Pod"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(pgw, nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Container"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(cgw, nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Volume"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(vgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Pod"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(pgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Container"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(cgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Volume"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(vgw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
 		Cache:     c,
 		GraphDB:   gdb,
 		StoreDB:   sdb,
+		Config: &config.KubehoundConfig{
+			Builder: config.BuilderConfig{
+				Edge: config.EdgeBuilderConfig{},
+			},
+		},
 	}
 
 	// Initialize

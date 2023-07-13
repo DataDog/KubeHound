@@ -19,7 +19,6 @@ identity = mgmt.makeVertexLabel('Identity').make();
 node = mgmt.makeVertexLabel('Node').make();
 pod = mgmt.makeVertexLabel('Pod').make();
 role = mgmt.makeVertexLabel('Role').make();
-token = mgmt.makeVertexLabel('Token').make();
 volume = mgmt.makeVertexLabel('Volume').make();
 
 // Create our edge labels and connections
@@ -38,7 +37,6 @@ mgmt.addConnection(containerAttach, pod, container);
 
 idAssume = mgmt.makeEdgeLabel('IDENTITY_ASSUME').multiplicity(MANY2ONE).make();
 mgmt.addConnection(idAssume, container, identity);
-mgmt.addConnection(idAssume, token, identity);
 
 idImpersonate = mgmt.makeEdgeLabel('IDENTITY_IMPERSONATE').multiplicity(MANY2ONE).make();
 mgmt.addConnection(idImpersonate, role, identity);
@@ -68,7 +66,7 @@ tokenList = mgmt.makeEdgeLabel('TOKEN_LIST').multiplicity(MULTI).make();
 mgmt.addConnection(tokenBruteforce, role, identity);
 
 tokenVarLog = mgmt.makeEdgeLabel('TOKEN_VAR_LOG_SYMLINK').multiplicity(ONE2MANY).make();
-mgmt.addConnection(tokenVarLog, container, token);
+mgmt.addConnection(tokenVarLog, container, volume);
 
 nsenter = mgmt.makeEdgeLabel('CE_NSENTER').multiplicity(MANY2ONE).make();
 mgmt.addConnection(nsenter, container, node);
@@ -115,14 +113,13 @@ ports = mgmt.makePropertyKey('ports').dataType(String.class).cardinality(Cardina
 identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 
 // Define properties for each vertex 
-mgmt.addProperties(container, cls, storeID, name, image, privileged, privesc, hostPid, hostPath, hostIpc, hostNetwork, runAsUser, 
-podName, nodeName, compromised, command, args, capabilities, ports);
+mgmt.addProperties(container, cls, storeID, isNamespaced, namespace, name, image, privileged, privesc, hostPid, hostPath, 
+    hostIpc, hostNetwork, runAsUser, podName, nodeName, compromised, command, args, capabilities, ports);
 mgmt.addProperties(identity, cls, storeID, name, isNamespaced, namespace, type, critical);
 mgmt.addProperties(node, cls, storeID, name, isNamespaced, namespace, compromised, critical);
 mgmt.addProperties(pod, cls, storeID, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
 mgmt.addProperties(role, cls, storeID, name, isNamespaced, namespace, rules, critical);
-mgmt.addProperties(token, cls, name, namespace, type, identityName, compromised, critical);
-mgmt.addProperties(volume, cls, storeID, name, type, path);
+mgmt.addProperties(volume, cls, storeID, name, isNamespaced, namespace, type, path);
 
 
 // Create the indexes on vertex properties

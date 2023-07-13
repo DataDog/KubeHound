@@ -46,9 +46,9 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	//
 
 	i.v = []vertex.Builder{
-		vertex.Pod{},
-		vertex.Container{},
-		vertex.Volume{},
+		&vertex.Pod{},
+		&vertex.Container{},
+		&vertex.Volume{},
 	}
 
 	i.c = []collections.Collection{
@@ -97,7 +97,7 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Container(sc)
+	insert, err := i.r.graphConvert.Container(sc, parent)
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,8 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	// Normalize pod to store object format
 	sp, err := i.r.storeConvert.Pod(ctx, pod)
 	if err != nil {
-		return err
+		log.Trace(ctx).Warnf("process pod %s error (continuing): %v", pod.Name, err)
+		return nil
 	}
 
 	// Async write to store

@@ -230,7 +230,7 @@ func TestConverter_RoleCacheFailure(t *testing.T) {
 	c.EXPECT().Get(mock.Anything, mock.Anything).Return(&cache.CacheResult{
 		Value: "",
 		Err:   errors.New("not found"),
-	}).Twice()
+	}).Times(4)
 
 	rb, err := loadTestObject[types.RoleBindingType]("testdata/rolebinding.json")
 	assert.NoError(t, err, "role binding load error")
@@ -320,7 +320,7 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, storeContainer.Inherited.ServiceAccount, storePod.K8.Spec.ServiceAccountName)
 
 	// Store container -> graph container
-	graphContainer, err := NewGraph().Container(storeContainer)
+	graphContainer, err := NewGraph().Container(storeContainer, storePod)
 	assert.NoError(t, err, "graph container convert error")
 
 	assert.Equal(t, storeContainer.Id.Hex(), graphContainer.StoreID)

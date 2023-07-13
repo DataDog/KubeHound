@@ -16,22 +16,19 @@ const (
 var _ Builder = (*Node)(nil)
 
 type Node struct {
+	BaseVertex
 }
 
-func (v Node) Label() string {
+func (v *Node) Label() string {
 	return NodeLabel
 }
 
-func (v Node) BatchSize() int {
-	return BatchSizeDefault
-}
-
-func (v Node) Processor(ctx context.Context, entry any) (any, error) {
+func (v *Node) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinVertexProcessor[*graph.Node](ctx, entry)
 }
 
-func (v Node) Traversal() types.VertexTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+func (v *Node) Traversal() types.VertexTraversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("nodes").

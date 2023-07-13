@@ -25,9 +25,9 @@ type JanusGraphVertexWriter struct {
 	gremlin         types.VertexTraversal           // Gremlin traversal generator function
 	drc             *gremlin.DriverRemoteConnection // Gremlin driver remote connection
 	traversalSource *gremlin.GraphTraversalSource   // Transacted graph traversal source
-	inserts         []types.TraversalInput          // Object data to be inserted in the graph
+	inserts         []any                           // Object data to be inserted in the graph
 	mu              sync.Mutex                      // Mutex protecting access to the inserts array
-	consumerChan    chan []types.TraversalInput     // Channel consuming inserts for async writing
+	consumerChan    chan []any                      // Channel consuming inserts for async writing
 	writingInFlight *sync.WaitGroup                 // Wait group tracking current unfinished writes
 	batchSize       int                             // Batchsize of graph DB inserts
 	qcounter        int32                           // Track items queued
@@ -54,11 +54,11 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlin.DriverRemo
 		builder:         v.Label(),
 		gremlin:         v.Traversal(),
 		drc:             drc,
-		inserts:         make([]types.TraversalInput, 0, v.BatchSize()),
+		inserts:         make([]any, 0, v.BatchSize()),
 		traversalSource: gremlin.Traversal_().WithRemote(drc),
 		batchSize:       v.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
-		consumerChan:    make(chan []types.TraversalInput, v.BatchSize()*channelSizeBatchFactor),
+		consumerChan:    make(chan []any, v.BatchSize()*channelSizeBatchFactor),
 		tags:            options.Tags,
 		cache:           cw,
 	}
@@ -112,7 +112,7 @@ func (jgv *JanusGraphVertexWriter) cacheIds(ctx context.Context, idMap []*gremli
 
 // batchWrite will write a batch of entries into the graph DB and block until the write completes.
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
-func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []types.TraversalInput) error {
+func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []any) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite, tracer.Measured())
 	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
 	defer span.Finish()
@@ -203,7 +203,7 @@ func (jgv *JanusGraphVertexWriter) Queue(ctx context.Context, v any) error {
 	_ = statsd.Gauge(telemetry.MetricGraphdbQueueSize, float64(len(jgv.inserts)), jgv.tags, 1)
 
 	if len(jgv.inserts) > jgv.batchSize {
-		copied := make([]types.TraversalInput, len(jgv.inserts))
+		copied := make([]any, len(jgv.inserts))
 		copy(copied, jgv.inserts)
 
 		jgv.writingInFlight.Add(1)

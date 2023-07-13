@@ -15,10 +15,14 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 )
 
+const (
+	EmptyNamespace = ""
+)
+
 var (
 	ErrUnsupportedVolume   = errors.New("provided volume is not currently supported")
-	ErrDanglingRoleBinding = errors.New("role binding found with no matching role")
 	ErrNoCacheInitialized  = errors.New("cache reader required for conversion")
+	ErrDanglingRoleBinding = errors.New("role binding found with no matching role")
 )
 
 // StoreConverter enables converting between an input K8s model to its equivalent store model.
@@ -195,8 +199,11 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 
 	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace)).ObjectID()
 	if err != nil {
-		// We can get cache misses here if bindings remain with no corresponding role.
-		return nil, ErrDanglingRoleBinding
+		// We can get cache misses here if binding corresponds to a cluster role
+		rid, err = c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, EmptyNamespace)).ObjectID()
+		if err != nil {
+			return nil, ErrDanglingRoleBinding
+		}
 	}
 
 	subj := input.Subjects
@@ -232,8 +239,11 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace)).ObjectID()
 	if err != nil {
-		// We can get cache misses here if bindings remain with no corresponding role.
-		return nil, ErrDanglingRoleBinding
+		// We can get cache misses here if binding corresponds to a cluster role
+		rid, err = c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, EmptyNamespace)).ObjectID()
+		if err != nil {
+			return nil, ErrDanglingRoleBinding
+		}
 	}
 
 	subj := input.Subjects

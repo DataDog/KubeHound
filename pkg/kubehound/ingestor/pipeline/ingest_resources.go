@@ -91,6 +91,10 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 // To access the writer use the graphWriter(v vertex.Vertex) function.
 func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
+		if err := v.Initialize(&deps.Config.Builder.Vertex); err != nil {
+			return err
+		}
+
 		tags := []string{telemetry.TagTypeJanusGraph}
 		w, err := deps.GraphDB.VertexWriter(ctx, v, deps.Cache, graphdb.WithTags(tags))
 		if err != nil {

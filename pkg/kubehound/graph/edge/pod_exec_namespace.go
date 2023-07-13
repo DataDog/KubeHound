@@ -15,11 +15,12 @@ import (
 )
 
 func init() {
-	Register(PodExecNamespace{})
+	Register(&PodExecNamespace{}, RegisterDefault)
 }
 
 // @@DOCLINK: TODO
 type PodExecNamespace struct {
+	BaseEdge
 }
 
 type podExecNSGroup struct {
@@ -27,19 +28,15 @@ type podExecNSGroup struct {
 	Pod  primitive.ObjectID `bson:"pod" json:"pod"`
 }
 
-func (e PodExecNamespace) Label() string {
+func (e *PodExecNamespace) Label() string {
 	return "POD_EXEC"
 }
 
-func (e PodExecNamespace) Name() string {
+func (e *PodExecNamespace) Name() string {
 	return "PodExecNamespace"
 }
 
-func (e PodExecNamespace) BatchSize() int {
-	return BatchSizeDefault
-}
-
-func (e PodExecNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *PodExecNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*podExecNSGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -48,13 +45,9 @@ func (e PodExecNamespace) Processor(ctx context.Context, oic *converter.ObjectID
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Role, typed.Pod)
 }
 
-func (e PodExecNamespace) Traversal() types.EdgeTraversal {
-	return adapter.DefaultEdgeTraversal()
-}
-
 // Stream finds all roles that are namespaced and have pod/exec or equivalent wildcard permissions and matching pods.
 // Matching pods are defined as all pods that share the role namespace or non-namespaced pods.
-func (e PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roles := adapter.MongoDB(store).Collection(collections.RoleName)
@@ -66,12 +59,16 @@ func (e PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _ 
 					"$elemMatch": bson.M{
 						"$and": bson.A{
 							bson.M{"$or": bson.A{
-								bson.M{"resources": "pods"},
+								bson.M{"apigroups": ""},
+								bson.M{"apigroups": "*"},
+							}},
+							bson.M{"$or": bson.A{
+								bson.M{"resources": "pods/exec"},
 								bson.M{"resources": "pods/*"},
 								bson.M{"resources": "*"},
 							}},
 							bson.M{"$or": bson.A{
-								bson.M{"verbs": "exec"},
+								bson.M{"verbs": "create"},
 								bson.M{"verbs": "*"},
 							}},
 						},

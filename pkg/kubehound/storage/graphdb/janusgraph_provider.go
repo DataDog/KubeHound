@@ -11,7 +11,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 // TODO maybe move that into a config file?
@@ -20,7 +20,7 @@ const channelSizeBatchFactor = 4
 var _ Provider = (*JanusGraphProvider)(nil)
 
 type JanusGraphProvider struct {
-	drc  *gremlingo.DriverRemoteConnection
+	drc  *gremlin.DriverRemoteConnection
 	tags []string
 }
 
@@ -28,10 +28,10 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 	if dbHost == "" {
 		return nil, errors.New("JanusGraph DB URL is not set")
 	}
-	driver, err := gremlingo.NewDriverRemoteConnection(dbHost,
-		func(settings *gremlingo.DriverRemoteConnectionSettings) {
+	driver, err := gremlin.NewDriverRemoteConnection(dbHost,
+		func(settings *gremlin.DriverRemoteConnectionSettings) {
 			settings.ConnectionTimeout = timeout
-			settings.LogVerbosity = gremlingo.Warning
+			settings.LogVerbosity = gremlin.Warning
 		},
 	)
 	if err != nil {

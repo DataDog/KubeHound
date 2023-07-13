@@ -25,12 +25,12 @@ type Builder struct {
 	storedb storedb.Provider
 	graphdb graphdb.Provider
 	cache   cache.CacheReader
-	edges   edge.Registry
+	edges   *edge.Registry
 }
 
 // NewBuilder returns a new builder instance from the provided application config and service dependencies.
 func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider, graph graphdb.Provider,
-	cache cache.CacheReader, edges edge.Registry) (*Builder, error) {
+	cache cache.CacheReader, edges *edge.Registry) (*Builder, error) {
 
 	n := &Builder{
 		cfg:     cfg,
@@ -53,8 +53,13 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 }
 
 // buildEdge inserts a class of edges into the graph database.
-// NOTE: function is blocking and expected to be called from within a goroutine.
-func (b *Builder) buildEdge(ctx context.Context, e edge.Builder, oic *converter.ObjectIDConverter) error {
+func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, oic *converter.ObjectIDConverter, l *log.KubehoundLogger) error {
+	l.Infof("Building edge %s", label)
+
+	if err := e.Initialize(&b.cfg.Builder.Edge); err != nil {
+		return err
+	}
+
 	tags := append(telemetry.BaseTags, telemetry.TagTypeJanusGraph)
 	w, err := b.graphdb.EdgeWriter(ctx, e, graphdb.WithTags(tags))
 	if err != nil {
@@ -84,11 +89,26 @@ func (b *Builder) buildEdge(ctx context.Context, e edge.Builder, oic *converter.
 func (b *Builder) Run(ctx context.Context) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationRun, tracer.Measured())
 	defer span.Finish()
-	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
 
-	// Edges can be built in parallel
+	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
+	oic := converter.NewObjectID(b.cache)
+
+	if b.cfg.Builder.Edge.LargeClusterOptimizations {
+		log.I.Warnf("Using large cluster optimizations in graph construction")
+	}
+
+	// Mutating edges must be built first, sequentially
+	l.Info("Starting mutating edge construction")
+	for label, e := range b.edges.Mutating() {
+		err := b.buildEdge(ctx, label, e, oic, l)
+		if err != nil {
+			return fmt.Errorf("building mutating edge %s: %w", label, err)
+		}
+	}
+
+	// Simple edges can be built in parallel
 	l.Info("Creating edge builder worker pool")
-	wp, err := worker.PoolFactory(b.cfg)
+	wp, err := worker.PoolFactory(b.cfg.Builder.Edge.WorkerPoolSize, b.cfg.Builder.Edge.WorkerPoolCapacity)
 	if err != nil {
 		return fmt.Errorf("graph builder worker pool create: %w", err)
 	}
@@ -98,18 +118,15 @@ func (b *Builder) Run(ctx context.Context) error {
 		return fmt.Errorf("graph builder worker pool start: %w", err)
 	}
 
-	l.Info("Starting edge construction")
-	oic := converter.NewObjectID(b.cache)
-	for label, e := range b.edges {
+	l.Info("Starting simple edge construction")
+	for label, e := range b.edges.Simple() {
 		e := e
 		label := label
 
 		wp.Submit(func() error {
-			l.Infof("Building edge %s", label)
-
-			err := b.buildEdge(workCtx, e, oic)
+			err := b.buildEdge(workCtx, label, e, oic, l)
 			if err != nil {
-				l.Errorf("building edge %s: %v", label, err)
+				l.Errorf("building simple edge %s: %v", label, err)
 				return err
 			}
 

@@ -19,7 +19,7 @@ const (
 )
 
 type RoleBindingIngest struct {
-	vertex      vertex.Identity
+	vertex      *vertex.Identity
 	identity    collections.Identity
 	rolebinding collections.RoleBinding
 	r           *IngestResources
@@ -34,7 +34,7 @@ func (i *RoleBindingIngest) Name() string {
 func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
-	i.vertex = vertex.Identity{}
+	i.vertex = &vertex.Identity{}
 	i.identity = collections.Identity{}
 	i.rolebinding = collections.RoleBinding{}
 
@@ -107,7 +107,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	o, err := i.r.storeConvert.RoleBinding(ctx, rb)
 	if err != nil {
 		if err == converter.ErrDanglingRoleBinding {
-			log.I.Debugf("%s : %s", err.Error(), rb.Name)
+			log.I.Warnf("%s : %s", err.Error(), rb.Name)
 			return nil
 		}
 

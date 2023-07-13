@@ -41,7 +41,7 @@ func TestNode_Traversal(t *testing.T) {
 			g := gremlingo.GraphTraversalSource{}
 
 			vertexTraversal := v.Traversal()
-			inserts := []types.TraversalInput{&tt.data}
+			inserts := []any{&tt.data}
 
 			traversal := vertexTraversal(&g, inserts)
 			// This is ugly but doesn't need to write to the DB

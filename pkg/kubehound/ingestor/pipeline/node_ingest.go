@@ -15,7 +15,7 @@ const (
 )
 
 type NodeIngest struct {
-	vertex     vertex.Node
+	vertex     *vertex.Node
 	collection collections.Node
 	r          *IngestResources
 }
@@ -29,7 +29,7 @@ func (i *NodeIngest) Name() string {
 func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
-	i.vertex = vertex.Node{}
+	i.vertex = &vertex.Node{}
 	i.collection = collections.Node{}
 
 	i.r, err = CreateResources(ctx, deps,

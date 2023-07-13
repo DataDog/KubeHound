@@ -5,7 +5,7 @@ import (
 )
 
 // EdgeTraversal returns the function to create a graph database edge insert from an array of input objects.
-type EdgeTraversal func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal
+type EdgeTraversal func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal
 
 // VertexTraversal returns the function to create a graph database vertex insert from an array of input objects.
-type VertexTraversal func(source *gremlin.GraphTraversalSource, inserts []TraversalInput) *gremlin.GraphTraversal
+type VertexTraversal func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal

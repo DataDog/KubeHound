@@ -79,11 +79,11 @@ build: generate ## Build the application
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
 
 .PHONY: run
-run: | backend-reset build ## Run kubehound (deploy backend, build go binary and run it locally)
+run: | backend-reset-hard build ## Run kubehound (deploy backend, build go binary and run it locally)
 	KUBECONFIG=${KUBECONFIG} ./bin/kubehound -c configs/etc/kubehound.yaml
 
-.PHONY: backend-rm
-backend-rm: ## Delete the kubehound stack
+.PHONY: backend-down
+backend-down: ## Tear down the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 
 .PHONY: backend-up
@@ -91,9 +91,20 @@ backend-up: ## Spawn the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d 
 
 .PHONY: backend-reset
-backend-reset: ## Spawn the testing stack
+backend-reset: ## Restart the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d
+
+.PHONY: backend-wipe
+backend-wipe: # Wipe the persisted backend data
+ifndef KUBEHOUND_ENV
+	$(error KUBEHOUND_ENV is undefined)
+endif
+	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_mongodb_data
+	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_janusgraph_data
+
+.PHONY: backend-reset-hard
+backend-reset-hard: backend-down backend-wipe backend-up ## Restart the kubehound stack and wipe all data
 
 .PHONY: test
 test: ## Run the full suite of unit tests 
