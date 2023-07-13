@@ -110,6 +110,14 @@ func (suite *EdgeTestSuite) TestEdge_CE_PRIV_MOUNT() {
 	suite._testContainerEscape("CE_PRIV_MOUNT", DefaultContainerEscapeNodes, containers)
 }
 
+func (suite *EdgeTestSuite) TestEdge_CE_SYS_PTRACE() {
+	containers := map[string]bool{
+		"sys-ptrace-pod": true,
+	}
+
+	suite._testContainerEscape("CE_SYS_PTRACE", DefaultContainerEscapeNodes, containers)
+}
+
 func (suite *EdgeTestSuite) TestEdge_CONTAINER_ATTACH() {
 	// Every container should have a CONTAINER_ATTACH incoming from a pod
 	rawCount, err := suite.g.V().
@@ -358,7 +366,7 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFORCE() {
 		ToList()
 
 	suite.NoError(err)
-	suite.GreaterOrEqual(len(results), 7)
+	suite.GreaterOrEqual(len(results), 8)
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
@@ -370,6 +378,32 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFORCE() {
 		"path[map[name:[read-secrets]], map[], map[name:[rolebind-sa]",
 		"path[map[name:[read-secrets]], map[], map[name:[pod-create-sa]",
 		"path[map[name:[read-secrets]], map[], map[name:[system:kube-proxy]",
+	}
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_TOKEN_LIST() {
+	results, err := suite.g.V().
+		HasLabel("Role").
+		OutE().HasLabel("TOKEN_LIST").
+		InV().HasLabel("Identity").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 8)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[list-secrets]], map[], map[name:[pod-patch-sa]",
+		"path[map[name:[list-secrets]], map[], map[name:[impersonate-sa]",
+		"path[map[name:[list-secrets]], map[], map[name:[tokenlist-sa]",
+		"path[map[name:[list-secrets]], map[], map[name:[pod-exec-sa]",
+		"path[map[name:[list-secrets]], map[], map[name:[tokenget-sa]",
+		"path[map[name:[list-secrets]], map[], map[name:[rolebind-sa]",
+		"path[map[name:[list-secrets]], map[], map[name:[pod-create-sa]",
+		"path[map[name:[list-secrets]], map[], map[name:[system:kube-proxy]",
 	}
 	suite.Subset(paths, expected)
 }
