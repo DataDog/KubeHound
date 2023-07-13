@@ -23,15 +23,15 @@ func TestPod_Traversal(t *testing.T) {
 			// We set the values to all field with non default values
 			// so we are sure all are correctly propagated.
 			data: graph.Pod{
-				StoreID:                "test id",
-				Name:                   "test name pod",
-				IsNamespaced:           true,
-				Namespace:              "lol namespace",
-				Compromised:            1,
-				Critical:               true,
-				SharedProcessNamespace: true,
-				ServiceAccount:         "some service account",
-				Node:                   "lol node",
+				StoreID:               "test id",
+				Name:                  "test name pod",
+				IsNamespaced:          true,
+				Namespace:             "lol namespace",
+				Compromised:           1,
+				Critical:              true,
+				ShareProcessNamespace: true,
+				ServiceAccount:        "some service account",
+				Node:                  "lol node",
 			},
 		},
 	}
