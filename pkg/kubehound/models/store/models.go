@@ -25,6 +25,7 @@ type Container struct {
 	NodeId    primitive.ObjectID `bson:"node_id,omitempty"`
 	Inherited ContainerInherited `bson:"inherited,omitempty"`
 	K8        corev1.Container   `bson:"k8,omitempty"`
+	Ownership OwnershipInfo      `bson:"ownership,omitempty"`
 }
 
 type Pod struct {
@@ -32,28 +33,32 @@ type Pod struct {
 	NodeId       primitive.ObjectID `bson:"node_id,omitempty"`
 	IsNamespaced bool               `bson:"is_namespaced"`
 	K8           corev1.Pod         `bson:"k8,omitempty"`
+	Ownership    OwnershipInfo      `bson:"ownership,omitempty"`
 }
 
 type Node struct {
 	Id           primitive.ObjectID `bson:"_id,omitempty"`
 	IsNamespaced bool               `bson:"is_namespaced"`
 	K8           corev1.Node        `bson:"k8,omitempty"`
+	Ownership    OwnershipInfo      `bson:"ownership,omitempty"`
 }
 
 type VolumeMount struct {
 	ContainerId primitive.ObjectID `bson:"container_id"`
 	K8          corev1.VolumeMount `bson:"k8"`
+	Ownership   OwnershipInfo      `bson:"ownership,omitempty"`
 }
 
 type Volume struct {
-	Id       primitive.ObjectID `bson:"_id"`
-	NodeId   primitive.ObjectID `bson:"node_id"`
-	PodId    primitive.ObjectID `bson:"pod_id"`
-	Name     string             `bson:"name"`
-	Type     string             `bson:"type"`
-	Source   corev1.Volume      `bson:"source"`
-	Mounts   []VolumeMount      `bson:"mounts"`
-	ReadOnly bool               `bson:"readonly"`
+	Id        primitive.ObjectID `bson:"_id"`
+	NodeId    primitive.ObjectID `bson:"node_id"`
+	PodId     primitive.ObjectID `bson:"pod_id"`
+	Name      string             `bson:"name"`
+	Type      string             `bson:"type"`
+	Source    corev1.Volume      `bson:"source"`
+	Mounts    []VolumeMount      `bson:"mounts"`
+	ReadOnly  bool               `bson:"readonly"`
+	Ownership OwnershipInfo      `bson:"ownership,omitempty"`
 }
 
 type Role struct {
@@ -62,6 +67,7 @@ type Role struct {
 	IsNamespaced bool                `bson:"is_namespaced"`
 	Namespace    string              `bson:"namespace"`
 	Rules        []rbacv1.PolicyRule `bson:"rules"`
+	Ownership    OwnershipInfo       `bson:"ownership,omitempty"`
 }
 
 type BindSubject struct {
@@ -76,6 +82,7 @@ type RoleBinding struct {
 	IsNamespaced bool               `bson:"is_namespaced"`
 	Namespace    string             `bson:"namespace"`
 	Subjects     []BindSubject      `bson:"subjects"`
+	Ownership    OwnershipInfo      `bson:"ownership,omitempty"`
 }
 
 type Identity struct {
@@ -84,4 +91,5 @@ type Identity struct {
 	IsNamespaced bool               `bson:"is_namespaced"`
 	Namespace    string             `bson:"namespace"`
 	Type         string             `bson:"type"`
+	Ownership    OwnershipInfo      `bson:"ownership,omitempty"`
 }

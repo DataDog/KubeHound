@@ -56,9 +56,9 @@ func (i *ClusterRoleBindingIngest) Initialize(ctx context.Context, deps *Depende
 // as this is the only way to discover non-serviceaccount users. However, this can create duplicate entries so lookup in cache before
 // writing to the store.
 // See reference: https://stackoverflow.com/questions/69932281/kubectl-command-to-return-a-list-of-all-user-accounts-from-kubernetes
-func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *store.BindSubject) error {
+func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *store.BindSubject, parent *store.RoleBinding) error {
 	// Normalize K8s bind subject to store identity object format
-	sid, err := i.r.storeConvert.Identity(ctx, subj)
+	sid, err := i.r.storeConvert.Identity(ctx, subj, parent)
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context,
 	// included in the store & graph as identity objects/vertices.
 	for _, subj := range o.Subjects {
 		s := subj
-		err := i.processSubject(ctx, &s)
+		err := i.processSubject(ctx, &s, o)
 		if err != nil {
 			return err
 		}
