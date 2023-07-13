@@ -408,6 +408,25 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_LIST() {
 	suite.Subset(paths, expected)
 }
 
+func (suite *EdgeTestSuite) TestEdge_SHARED_PS_NAMESPACE() {
+	results, err := suite.g.V().
+		HasLabel("Container").
+		OutE().HasLabel("SHARE_PS_NAMESPACE").
+		InV().HasLabel("Container").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		//CHANGEME
+	}
+	suite.Subset(paths, expected)
+}
+
 func (suite *EdgeTestSuite) TestEdge_TOKEN_STEAL() {
 	g := gremlingo.Traversal_().WithRemote(suite.client)
 
