@@ -247,7 +247,7 @@ func AddContainerToList(Container *corev1.Container, storePod *store.Pod) error 
 		K8: *Container,
 	}
 	conv := converter.GraphConverter{}
-	convertedContainer, err := conv.Container(&storeContainer)
+	convertedContainer, err := conv.Container(&storeContainer, storePod)
 	if err != nil {
 		return err
 	}

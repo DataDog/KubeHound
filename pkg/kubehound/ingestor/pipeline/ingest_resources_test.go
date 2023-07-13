@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	collector "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -53,6 +54,11 @@ func TestIngestResources_Initializer(t *testing.T) {
 		Cache:     c,
 		GraphDB:   gdb,
 		StoreDB:   sdb,
+		Config: &config.KubehoundConfig{
+			Builder: config.BuilderConfig{
+				Edge: config.EdgeBuilderConfig{},
+			},
+		},
 	}
 
 	// Test default initialization
@@ -99,8 +105,8 @@ func TestIngestResources_Initializer(t *testing.T) {
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
 
-	vtx := vertex.Node{}
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Node"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
+	vtx := &vertex.Node{}
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Node"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	oi, err = CreateResources(ctx, deps, WithGraphWriter(vtx))
 	assert.NoError(t, err)
@@ -159,6 +165,11 @@ func TestIngestResources_CloseErrors(t *testing.T) {
 		Cache:     c,
 		GraphDB:   gdb,
 		StoreDB:   sdb,
+		Config: &config.KubehoundConfig{
+			Builder: config.BuilderConfig{
+				Edge: config.EdgeBuilderConfig{},
+			},
+		},
 	}
 
 	// Set cache to succeed
@@ -193,6 +204,11 @@ func TestIngestResources_CloseIdempotent(t *testing.T) {
 		Cache:     c,
 		GraphDB:   gdb,
 		StoreDB:   sdb,
+		Config: &config.KubehoundConfig{
+			Builder: config.BuilderConfig{
+				Edge: config.EdgeBuilderConfig{},
+			},
+		},
 	}
 
 	cw := cache.NewAsyncWriter(t)

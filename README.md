@@ -33,6 +33,16 @@ Here are the steps being done by the automated way:
     * Against current cluster: `./bin/kubehound -c configs/etc/kubehound.yaml`
     * Against a specific cluster: `KUBECONFIG=/your/path/to/.kube/config ./bin/kubehound -c configs/etc/kubehound.yaml`
 
+### Using KubeHound Data
+
+To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop.apache.org/gremlin.html) query language via an API call or dedicated graph query UI. A number of graph query UIs are availble, but we recommend [gdotv](https://gdotv.com/). To access the KubeHound graph using `gdotv`:
+
++ Download and install the application from https://gdotv.com/
++ Create a connection to the local janusgraph instance by following the steps here https://docs.gdotv.com/connection-management/ and using `hostname=localhost`
++ Navigate to the query editor and enter a sample query e.g `g.V().count()`. See detailed instructions here: https://docs.gdotv.com/query-editor/#run-your-query
++ See the provided [cheatsheet](./pkg/kubehound/graph/CHEATSHEET.md) for examples of useful queries for various use cases.
+
+
 ## Build
 
 Build the application via:
@@ -118,6 +128,3 @@ make local-cluster-deploy && make system-test
 
 Then use a graph visualizer of choice (we recommend [gdotv](https://gdotv.com/)) to connect to localhost and view and query the sample data.
 
-### Querying Kubehound
-
-To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop.apache.org/gremlin.html) query language. See the provided [cheatsheet](./pkg/kubehound/graph/CHEATSHEET.md) for examples of useful queries for various use cases.

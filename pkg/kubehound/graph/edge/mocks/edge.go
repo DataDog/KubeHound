@@ -3,9 +3,10 @@
 package mocks
 
 import (
-	context "context"
-
+	config "github.com/DataDog/KubeHound/pkg/config"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+
+	context "context"
 
 	converter "github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 
@@ -66,6 +67,48 @@ func (_c *Builder_BatchSize_Call) Return(_a0 int) *Builder_BatchSize_Call {
 }
 
 func (_c *Builder_BatchSize_Call) RunAndReturn(run func() int) *Builder_BatchSize_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Initialize provides a mock function with given fields: cfg
+func (_m *Builder) Initialize(cfg *config.EdgeBuilderConfig) error {
+	ret := _m.Called(cfg)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*config.EdgeBuilderConfig) error); ok {
+		r0 = rf(cfg)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Builder_Initialize_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Initialize'
+type Builder_Initialize_Call struct {
+	*mock.Call
+}
+
+// Initialize is a helper method to define mock.On call
+//   - cfg *config.EdgeBuilderConfig
+func (_e *Builder_Expecter) Initialize(cfg interface{}) *Builder_Initialize_Call {
+	return &Builder_Initialize_Call{Call: _e.mock.On("Initialize", cfg)}
+}
+
+func (_c *Builder_Initialize_Call) Run(run func(cfg *config.EdgeBuilderConfig)) *Builder_Initialize_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(*config.EdgeBuilderConfig))
+	})
+	return _c
+}
+
+func (_c *Builder_Initialize_Call) Return(_a0 error) *Builder_Initialize_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Builder_Initialize_Call) RunAndReturn(run func(*config.EdgeBuilderConfig) error) *Builder_Initialize_Call {
 	_c.Call.Return(run)
 	return _c
 }

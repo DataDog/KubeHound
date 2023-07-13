@@ -16,11 +16,12 @@ import (
 )
 
 func init() {
-	Register(ContainerAttach{})
+	Register(&ContainerAttach{}, RegisterDefault)
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2883354625/CONTAINER+ATTACH
 type ContainerAttach struct {
+	BaseEdge
 }
 
 type containerAttachGroup struct {
@@ -28,19 +29,15 @@ type containerAttachGroup struct {
 	Container primitive.ObjectID `bson:"_id" json:"container"`
 }
 
-func (e ContainerAttach) Label() string {
+func (e *ContainerAttach) Label() string {
 	return "CONTAINER_ATTACH"
 }
 
-func (e ContainerAttach) Name() string {
+func (e *ContainerAttach) Name() string {
 	return "ContainerAttach"
 }
 
-func (e ContainerAttach) BatchSize() int {
-	return BatchSizeDefault
-}
-
-func (e ContainerAttach) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *ContainerAttach) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*containerAttachGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -49,11 +46,11 @@ func (e ContainerAttach) Processor(ctx context.Context, oic *converter.ObjectIDC
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Pod, typed.Container)
 }
 
-func (e ContainerAttach) Traversal() types.EdgeTraversal {
+func (e *ContainerAttach) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()
 }
 
-func (e ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)

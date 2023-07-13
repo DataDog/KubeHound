@@ -15,11 +15,12 @@ import (
 )
 
 func init() {
-	Register(RoleGrant{})
+	Register(&RoleGrant{}, RegisterDefault)
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880471602/ROLE+GRANT
 type RoleGrant struct {
+	BaseEdge
 }
 
 type roleGrantGroup struct {
@@ -27,19 +28,15 @@ type roleGrantGroup struct {
 	Identity primitive.ObjectID `bson:"identity_id" json:"identity"`
 }
 
-func (e RoleGrant) Label() string {
+func (e *RoleGrant) Label() string {
 	return "ROLE_GRANT"
 }
 
-func (e RoleGrant) Name() string {
+func (e *RoleGrant) Name() string {
 	return "RoleGrant"
 }
 
-func (e RoleGrant) BatchSize() int {
-	return BatchSizeDefault
-}
-
-func (e RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*roleGrantGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -48,11 +45,7 @@ func (e RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIDConvert
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Identity, typed.Role)
 }
 
-func (e RoleGrant) Traversal() types.EdgeTraversal {
-	return adapter.DefaultEdgeTraversal()
-}
-
-func (e RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	roleBindings := adapter.MongoDB(store).Collection(collections.RoleBindingName)

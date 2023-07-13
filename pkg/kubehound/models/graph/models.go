@@ -6,6 +6,8 @@ import (
 
 type Container struct {
 	StoreID      string                `json:"storeID" mapstructure:"storeID"`
+	IsNamespaced bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
+	Namespace    string                `json:"namespace" mapstructure:"namespace"`
 	Name         string                `json:"name" mapstructure:"name"`
 	Image        string                `json:"image" mapstructure:"image"`
 	Command      []string              `json:"command" mapstructure:"command"`
@@ -25,16 +27,18 @@ type Container struct {
 }
 
 type Group struct {
-	StoreID  string `json:"storeID" mapstructure:"storeID"`
-	Name     string `json:"name" mapstructure:"name"`
-	Critical bool   `json:"critical" mapstructure:"critical"`
+	StoreID      string `json:"storeID" mapstructure:"storeID"`
+	IsNamespaced bool   `json:"isNamespaced" mapstructure:"isNamespaced"`
+	Namespace    string `json:"namespace" mapstructure:"namespace"`
+	Name         string `json:"name" mapstructure:"name"`
+	Critical     bool   `json:"critical" mapstructure:"critical"`
 }
 
 type Identity struct {
 	StoreID      string `json:"storeID" mapstructure:"storeID"`
-	Name         string `json:"name" mapstructure:"name"`
 	IsNamespaced bool   `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string `json:"namespace" mapstructure:"namespace"`
+	Name         string `json:"name" mapstructure:"name"`
 	Type         string `json:"type" mapstructure:"type"`
 	Critical     bool   `json:"critical" mapstructure:"critical"`
 }
@@ -70,8 +74,10 @@ type Role struct {
 }
 
 type Volume struct {
-	StoreID string `json:"storeID" mapstructure:"storeID"`
-	Name    string `json:"name" mapstructure:"name"`
-	Type    string `json:"type" mapstructure:"type"`
-	Path    string `json:"path" mapstructure:"path"`
+	StoreID      string `json:"storeID" mapstructure:"storeID"`
+	IsNamespaced bool   `json:"isNamespaced" mapstructure:"isNamespaced"`
+	Namespace    string `json:"namespace" mapstructure:"namespace"`
+	Name         string `json:"name" mapstructure:"name"`
+	Type         string `json:"type" mapstructure:"type"`
+	Path         string `json:"path" mapstructure:"path"`
 }

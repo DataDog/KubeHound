@@ -12,7 +12,7 @@ services:
       - "127.0.0.1:8182:8182"
       - "127.0.0.1:8099:8099"
     volumes:
-      - janusgraph_data:/data
+      - janusgraph_data:/var/lib/janusgraph
 
   mongo-express:
     image: mongo-express:1.0.0-alpha

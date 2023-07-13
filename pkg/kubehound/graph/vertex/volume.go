@@ -16,22 +16,19 @@ const (
 var _ Builder = (*Volume)(nil)
 
 type Volume struct {
+	BaseVertex
 }
 
-func (v Volume) Label() string {
+func (v *Volume) Label() string {
 	return VolumeLabel
 }
 
-func (v Volume) BatchSize() int {
-	return BatchSizeDefault
-}
-
-func (v Volume) Processor(ctx context.Context, entry any) (any, error) {
+func (v *Volume) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinVertexProcessor[*graph.Volume](ctx, entry)
 }
 
-func (v Volume) Traversal() types.VertexTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+func (v *Volume) Traversal() types.VertexTraversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("volumes").

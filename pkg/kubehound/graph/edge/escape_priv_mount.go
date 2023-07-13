@@ -14,36 +14,28 @@ import (
 )
 
 func init() {
-	Register(EscapePrivMount{})
+	Register(&EscapePrivMount{}, RegisterDefault)
 }
 
 // @@DOCLINK: TODO
 type EscapePrivMount struct {
+	BaseContainerEscape
 }
 
-func (e EscapePrivMount) Label() string {
+func (e *EscapePrivMount) Label() string {
 	return "CE_PRIV_MOUNT"
 }
 
-func (e EscapePrivMount) Name() string {
+func (e *EscapePrivMount) Name() string {
 	return "ContainerEscapePrivilegedMount"
 }
 
-func (e EscapePrivMount) BatchSize() int {
-	return BatchSizeDefault
-}
-
-// Traversal delegates the traversal creation to the generic containerEscapeTraversal.
-func (e EscapePrivMount) Traversal() types.EdgeTraversal {
-	return adapter.DefaultEdgeTraversal()
-}
-
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
-func (e EscapePrivMount) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *EscapePrivMount) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }
 
-func (e EscapePrivMount) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *EscapePrivMount) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)

@@ -16,22 +16,19 @@ const (
 var _ Builder = (*Pod)(nil)
 
 type Pod struct {
+	BaseVertex
 }
 
-func (v Pod) Label() string {
+func (v *Pod) Label() string {
 	return PodLabel
 }
 
-func (v Pod) BatchSize() int {
-	return BatchSizeDefault
-}
-
-func (v Pod) Processor(ctx context.Context, entry any) (any, error) {
+func (v *Pod) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinVertexProcessor[*graph.Pod](ctx, entry)
 }
 
-func (v Pod) Traversal() types.VertexTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+func (v *Pod) Traversal() types.VertexTraversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("pods").

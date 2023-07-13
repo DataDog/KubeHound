@@ -17,22 +17,19 @@ const (
 var _ Builder = (*Role)(nil)
 
 type Role struct {
+	BaseVertex
 }
 
-func (v Role) Label() string {
+func (v *Role) Label() string {
 	return RoleLabel
 }
 
-func (v Role) BatchSize() int {
-	return BatchSizeDefault
-}
-
-func (v Role) Processor(ctx context.Context, entry any) (any, error) {
+func (v *Role) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinVertexProcessor[*graph.Role](ctx, entry)
 }
 
-func (v Role) Traversal() types.VertexTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []types.TraversalInput) *gremlin.GraphTraversal {
+func (v *Role) Traversal() types.VertexTraversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("roles").

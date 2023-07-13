@@ -23,9 +23,9 @@ type JanusGraphEdgeWriter struct {
 	gremlin         types.EdgeTraversal               // Gremlin traversal generator function
 	drc             *gremlingo.DriverRemoteConnection // Gremlin driver remote connection
 	traversalSource *gremlingo.GraphTraversalSource   // Transacted graph traversal source
-	inserts         []types.TraversalInput            // Object data to be inserted in the graph
+	inserts         []any                             // Object data to be inserted in the graph
 	mu              sync.Mutex                        // Mutex protecting access to the inserts array
-	consumerChan    chan []types.TraversalInput       // Channel consuming inserts for async writing
+	consumerChan    chan []any                        // Channel consuming inserts for async writing
 	writingInFlight *sync.WaitGroup                   // Wait group tracking current unfinished writes
 	batchSize       int                               // Batchsize of graph DB inserts
 	qcounter        int32                             // Track items queued
@@ -46,11 +46,11 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 		builder:         fmt.Sprintf("%s::%s", e.Name(), e.Label()),
 		gremlin:         e.Traversal(),
 		drc:             drc,
-		inserts:         make([]types.TraversalInput, 0, e.BatchSize()),
+		inserts:         make([]any, 0, e.BatchSize()),
 		traversalSource: gremlingo.Traversal_().WithRemote(drc),
 		batchSize:       e.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
-		consumerChan:    make(chan []types.TraversalInput, e.BatchSize()*channelSizeBatchFactor),
+		consumerChan:    make(chan []any, e.BatchSize()*channelSizeBatchFactor),
 		tags:            options.Tags,
 	}
 
@@ -84,7 +84,7 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 
 // batchWrite will write a batch of entries into the graph DB and block until the write completes.
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
-func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []types.TraversalInput) error {
+func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite, tracer.Measured())
 	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
 	defer span.Finish()
@@ -161,7 +161,7 @@ func (jgv *JanusGraphEdgeWriter) Queue(ctx context.Context, v any) error {
 	_ = statsd.Gauge(telemetry.MetricGraphdbQueueSize, float64(len(jgv.inserts)), jgv.tags, 1)
 
 	if len(jgv.inserts) > jgv.batchSize {
-		copied := make([]types.TraversalInput, len(jgv.inserts))
+		copied := make([]any, len(jgv.inserts))
 		copy(copied, jgv.inserts)
 
 		jgv.writingInFlight.Add(1)

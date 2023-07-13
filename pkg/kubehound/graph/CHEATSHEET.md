@@ -49,6 +49,13 @@ Attack paths (up to 10 hops) from a known breached container (in this case the `
 g.V().hasLabel("Container").has("name", "nsenter-pod").repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).path()
 ```
 
+Attack paths (up to 10 hops) from a known backdoored container image (in this case the `config-file-writer-go:` container) to any critical asset:
+
+```groovy
+g.V().hasLabel("Container").has("image", TextP.containing("eu.gcr.io/datadog-staging/config-file-writer-go")).repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).path()
+```
+
+
 ### Credentials
 
 All attack paths (up to 6 hops) from any compomised credential to a critical asset:

@@ -23,9 +23,10 @@ func NewGraph() *GraphConverter {
 }
 
 // Container returns the graph representation of a container vertex from a store container model input.
-func (c *GraphConverter) Container(input *store.Container) (*graph.Container, error) {
+func (c *GraphConverter) Container(input *store.Container, parent *store.Pod) (*graph.Container, error) {
 	output := &graph.Container{
 		StoreID:     input.Id.Hex(),
+		Namespace:   parent.K8.Namespace,
 		Name:        input.K8.Name,
 		Image:       input.K8.Image,
 		Command:     input.K8.Command,
@@ -67,6 +68,10 @@ func (c *GraphConverter) Container(input *store.Container) (*graph.Container, er
 			// We map the integer port to a string to make our lives easier in the bullk gaph insert (#gremlin)
 			output.Ports = append(output.Ports, strconv.Itoa((int(p.ContainerPort))))
 		}
+	}
+
+	if output.Namespace != "" {
+		output.IsNamespaced = true
 	}
 
 	return output, nil
@@ -111,8 +116,9 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 // Volume returns the graph representation of a volume vertex from a store volume model input.
 func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.Volume, error) {
 	output := &graph.Volume{
-		StoreID: input.Id.Hex(),
-		Name:    input.Name,
+		StoreID:   input.Id.Hex(),
+		Name:      input.Name,
+		Namespace: parent.K8.Namespace,
 	}
 
 	switch {
@@ -131,6 +137,10 @@ func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.
 		}
 	default:
 		// other volume types are currently unsupported
+	}
+
+	if output.Namespace != "" {
+		output.IsNamespaced = true
 	}
 
 	return output, nil

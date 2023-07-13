@@ -6,30 +6,69 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
-// Registry holds details of edges (i.e attacks) registered in KubeHound.
-type Registry map[string]Builder
+type RegistrationFlag uint8
 
-// EdgeRegistry singleton support
-var registryInstance Registry
+const (
+	RegisterDefault       RegistrationFlag = 1 << iota // Default edge
+	RegisterGraphMutation                              // Edge can mutate the graph
+)
+
+// Registry holds details of edges (i.e attacks) registered in KubeHound.
+type Registry struct {
+	mutating map[string]Builder
+	simple   map[string]Builder
+}
+
+// newRegistry creates a new registry instance. This should not be called directly.
+func newRegistry() *Registry {
+	r := &Registry{
+		mutating: make(map[string]Builder),
+		simple:   make(map[string]Builder),
+	}
+
+	return r
+}
+
+// Registry singleton support
+var registryInstance *Registry
 var erOnce sync.Once
 
 // Registered returns the edge registry singleton.
-func Registered() Registry {
+func Registered() *Registry {
 	erOnce.Do(func() {
-		registryInstance = make(Registry)
+		registryInstance = newRegistry()
 	})
 
 	return registryInstance
 }
 
+// Mutating returns the map of registered mutating edge builders.
+func (r *Registry) Mutating() map[string]Builder {
+	return r.mutating
+}
+
+// Simple returns the map of registered edge builders.
+func (r *Registry) Simple() map[string]Builder {
+	return r.simple
+}
+
 // Register loads the provided edge into the registry.
-func Register(edge Builder) {
-	log.I.Debugf("Registering edge builder edge %s -> %s", edge.Name(), edge.Label())
-
+func Register(edge Builder, flags RegistrationFlag) {
 	registry := Registered()
-	if _, ok := registry[edge.Name()]; ok {
-		log.I.Fatalf("edge name collision: %s", edge.Name())
-	}
+	if flags&RegisterGraphMutation != 0 {
+		log.I.Debugf("Registering mutating edge builder %s -> %s", edge.Name(), edge.Label())
 
-	registry[edge.Name()] = edge
+		if _, ok := registry.mutating[edge.Name()]; ok {
+			log.I.Fatalf("edge name collision: %s", edge.Name())
+		}
+
+		registry.mutating[edge.Name()] = edge
+	} else {
+		log.I.Debugf("Registering default edge builder %s -> %s", edge.Name(), edge.Label())
+		if _, ok := registry.simple[edge.Name()]; ok {
+			log.I.Fatalf("edge name collision: %s", edge.Name())
+		}
+
+		registry.simple[edge.Name()] = edge
+	}
 }
