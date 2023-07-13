@@ -304,7 +304,7 @@ func GeneratePodTemplate() ([]byte, error) {
 			Namespace:    "{{.Namespace}}",
 			Compromised:  shared.CompromiseNone,
 			ServiceAccount: "{{.ServiceAccount}}",
-			ShareProcessNamespace: {{.shareProcessNamespace}},
+			ShareProcessNamespace: {{.ShareProcessNamespace}},
 			Critical:     false,
 		},{{ end }}
 	}
@@ -379,7 +379,7 @@ func WriteTemplatesToFile(path string, templates ...[]byte) error {
 	// The formatting is not as strict as our editors config & linter
 	clean, err := format.Source(in)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to format source code: %w, source code: %s", err, in)
 	}
 	_, err = f.Write(clean)
 	if err != nil {
