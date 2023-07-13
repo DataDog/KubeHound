@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-07-13 11:15
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-07-13 14:56
 //
 // Generate it with "go generate ./..."
 //
@@ -117,6 +117,16 @@ var expectedPods = map[string]graph.Pod{
 		Compromised:            shared.CompromiseNone,
 		ServiceAccount:         "default",
 		SharedProcessNamespace: true,
+		Critical:               false,
+	},
+	"sys-ptrace-pod": {
+		StoreID:                "",
+		Name:                   "sys-ptrace-pod",
+		IsNamespaced:           true,
+		Namespace:              "default",
+		Compromised:            shared.CompromiseNone,
+		ServiceAccount:         "default",
+		SharedProcessNamespace: false,
 		Critical:               false,
 	},
 	"tokenget-pod": {
@@ -391,6 +401,25 @@ var expectedContainers = map[string]graph.Container{
 		RunAsUser:    0,
 		Ports:        []string{},
 		Pod:          "sharedps-pod",
+		// Node:         "",
+		Compromised: 0,
+	},
+	"sys-ptrace-pod": {
+		StoreID:      "",
+		Name:         "sys-ptrace-pod",
+		Image:        "ubuntu",
+		Command:      []string{},
+		Args:         []string{},
+		Capabilities: []string{},
+		Privileged:   false,
+		PrivEsc:      false,
+		HostPID:      false,
+		HostPath:     false,
+		HostIPC:      false,
+		HostNetwork:  false,
+		RunAsUser:    0,
+		Ports:        []string{},
+		Pod:          "sys-ptrace-pod",
 		// Node:         "",
 		Compromised: 0,
 	},

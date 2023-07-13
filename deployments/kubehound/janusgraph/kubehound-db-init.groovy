@@ -63,7 +63,7 @@ tokenBruteforce = mgmt.makeEdgeLabel('TOKEN_BRUTEFORCE').multiplicity(MULTI).mak
 mgmt.addConnection(tokenBruteforce, role, identity);
 
 tokenList = mgmt.makeEdgeLabel('TOKEN_LIST').multiplicity(MULTI).make();
-mgmt.addConnection(tokenBruteforce, role, identity);
+mgmt.addConnection(tokenList, role, identity);
 
 tokenVarLog = mgmt.makeEdgeLabel('TOKEN_VAR_LOG_SYMLINK').multiplicity(ONE2MANY).make();
 mgmt.addConnection(tokenVarLog, container, volume);
@@ -79,6 +79,9 @@ mgmt.addConnection(umhCorePattern, container, node);
 
 privMount = mgmt.makeEdgeLabel('CE_PRIV_MOUNT').multiplicity(MANY2ONE).make();
 mgmt.addConnection(privMount, container, node);
+
+sysPtrace = mgmt.makeEdgeLabel('CE_SYS_PTRACE').multiplicity(MANY2ONE).make();
+mgmt.addConnection(sysPtrace, container, node);
 
 
 // All properties we will index on

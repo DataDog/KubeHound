@@ -1,0 +1,20 @@
+# CE_SYS_PTRACE edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/3087665799/CE+SYS+PTRACE
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sys-ptrace-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  hostPID: true
+  containers:
+    - name: sys-ptrace-pod
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+      securityContext:
+        capabilities:
+          add:
+          - SYS_PTRACE
+          - SYS_ADMIN
