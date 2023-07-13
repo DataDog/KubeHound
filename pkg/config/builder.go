@@ -4,8 +4,8 @@ const (
 	DefaultEdgeWorkerPoolSize         = 10
 	DefaultEdgeWorkerPoolCapacity     = 100
 	DefaultEdgeBatchSize              = 500
-	DefaultEdgeBatchSizeSmall         = DefaultEdgeBatchSize / 8
-	DefaultEdgeBatchSizeClusterImpact = 1
+	DefaultEdgeBatchSizeSmall         = DefaultEdgeBatchSize / 5
+	DefaultEdgeBatchSizeClusterImpact = 20
 
 	DefaultVertexBatchSize = 500
 )

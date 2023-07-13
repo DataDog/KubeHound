@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -26,17 +25,12 @@ func init() {
 }
 
 type IdentityAssume struct {
-	cfg *config.EdgeBuilderConfig
+	BaseEdge
 }
 
 type identityGroup struct {
 	Container primitive.ObjectID `bson:"container_id" json:"container"`
 	Identity  primitive.ObjectID `bson:"identity_id" json:"identity"`
-}
-
-func (e *IdentityAssume) Initialize(cfg *config.EdgeBuilderConfig) error {
-	e.cfg = cfg
-	return nil
 }
 
 func (e *IdentityAssume) Label() string {
@@ -47,10 +41,6 @@ func (e *IdentityAssume) Name() string {
 	return "IdentityAssume"
 }
 
-func (e *IdentityAssume) BatchSize() int {
-	return e.cfg.BatchSize
-}
-
 func (e *IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*identityGroup)
 	if !ok {
@@ -58,10 +48,6 @@ func (e *IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIDC
 	}
 
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Identity)
-}
-
-func (e *IdentityAssume) Traversal() types.EdgeTraversal {
-	return adapter.DefaultEdgeTraversal()
 }
 
 func (e *IdentityAssume) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

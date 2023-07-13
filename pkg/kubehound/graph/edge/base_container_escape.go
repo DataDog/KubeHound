@@ -5,9 +5,14 @@ import (
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+type BaseContainerEscape struct {
+	BaseEdge
+}
 
 type containerEscapeGroup struct {
 	Node      primitive.ObjectID `bson:"node_id" json:"node"`
@@ -21,4 +26,7 @@ func containerEscapeProcessor(ctx context.Context, oic *converter.ObjectIDConver
 	}
 
 	return adapter.GremlinEdgeProcessor(ctx, oic, edgeLabel, typed.Container, typed.Node)
+}
+func (e *BaseContainerEscape) Traversal() types.EdgeTraversal {
+	return adapter.DefaultEdgeTraversal()
 }

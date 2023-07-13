@@ -3,7 +3,6 @@ package edge
 import (
 	"context"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -20,12 +19,7 @@ func init() {
 
 // @@DOCLINK: TODO
 type EscapePrivMount struct {
-	cfg *config.EdgeBuilderConfig
-}
-
-func (e *EscapePrivMount) Initialize(cfg *config.EdgeBuilderConfig) error {
-	e.cfg = cfg
-	return nil
+	BaseContainerEscape
 }
 
 func (e *EscapePrivMount) Label() string {
@@ -34,15 +28,6 @@ func (e *EscapePrivMount) Label() string {
 
 func (e *EscapePrivMount) Name() string {
 	return "ContainerEscapePrivilegedMount"
-}
-
-func (e *EscapePrivMount) BatchSize() int {
-	return e.cfg.BatchSize
-}
-
-// Traversal delegates the traversal creation to the generic containerEscapeTraversal.
-func (e *EscapePrivMount) Traversal() types.EdgeTraversal {
-	return adapter.DefaultEdgeTraversal()
 }
 
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.

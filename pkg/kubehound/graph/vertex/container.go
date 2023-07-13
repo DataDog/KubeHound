@@ -3,7 +3,6 @@ package vertex
 import (
 	"context"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
@@ -17,20 +16,11 @@ const (
 var _ Builder = (*Container)(nil)
 
 type Container struct {
-	cfg *config.VertexBuilderConfig
-}
-
-func (v *Container) Initialize(cfg *config.VertexBuilderConfig) error {
-	v.cfg = cfg
-	return nil
+	BaseVertex
 }
 
 func (v *Container) Label() string {
 	return ContainerLabel
-}
-
-func (v *Container) BatchSize() int {
-	return BatchSizeDefault / 2
 }
 
 func (v *Container) Processor(ctx context.Context, entry any) (any, error) {

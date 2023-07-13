@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -21,17 +20,12 @@ func init() {
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880471602/ROLE+GRANT
 type RoleGrant struct {
-	cfg *config.EdgeBuilderConfig
+	BaseEdge
 }
 
 type roleGrantGroup struct {
 	Role     primitive.ObjectID `bson:"role_id" json:"role"`
 	Identity primitive.ObjectID `bson:"identity_id" json:"identity"`
-}
-
-func (e *RoleGrant) Initialize(cfg *config.EdgeBuilderConfig) error {
-	e.cfg = cfg
-	return nil
 }
 
 func (e *RoleGrant) Label() string {
@@ -42,10 +36,6 @@ func (e *RoleGrant) Name() string {
 	return "RoleGrant"
 }
 
-func (e *RoleGrant) BatchSize() int {
-	return e.cfg.BatchSize
-}
-
 func (e *RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*roleGrantGroup)
 	if !ok {
@@ -53,10 +43,6 @@ func (e *RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIDConver
 	}
 
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Identity, typed.Role)
-}
-
-func (e *RoleGrant) Traversal() types.EdgeTraversal {
-	return adapter.DefaultEdgeTraversal()
 }
 
 func (e *RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -23,16 +22,11 @@ func init() {
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
 type TokenBruteforce struct {
-	cfg *config.EdgeBuilderConfig
+	BaseEdge
 }
 
 type tokenBruteforceGroup struct {
 	Role primitive.ObjectID `bson:"_id" json:"role"`
-}
-
-func (e *TokenBruteforce) Initialize(cfg *config.EdgeBuilderConfig) error {
-	e.cfg = cfg
-	return nil
 }
 
 func (e *TokenBruteforce) Label() string {

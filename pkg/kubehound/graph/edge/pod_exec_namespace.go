@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -21,17 +20,12 @@ func init() {
 
 // @@DOCLINK: TODO
 type PodExecNamespace struct {
-	cfg *config.EdgeBuilderConfig
+	BaseEdge
 }
 
 type podExecNSGroup struct {
 	Role primitive.ObjectID `bson:"_id" json:"role"`
 	Pod  primitive.ObjectID `bson:"pod" json:"pod"`
-}
-
-func (e *PodExecNamespace) Initialize(cfg *config.EdgeBuilderConfig) error {
-	e.cfg = cfg
-	return nil
 }
 
 func (e *PodExecNamespace) Label() string {
@@ -42,10 +36,6 @@ func (e *PodExecNamespace) Name() string {
 	return "PodExecNamespace"
 }
 
-func (e *PodExecNamespace) BatchSize() int {
-	return e.cfg.BatchSize
-}
-
 func (e *PodExecNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*podExecNSGroup)
 	if !ok {
@@ -53,10 +43,6 @@ func (e *PodExecNamespace) Processor(ctx context.Context, oic *converter.ObjectI
 	}
 
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Role, typed.Pod)
-}
-
-func (e *PodExecNamespace) Traversal() types.EdgeTraversal {
-	return adapter.DefaultEdgeTraversal()
 }
 
 // Stream finds all roles that are namespaced and have pod/exec or equivalent wildcard permissions and matching pods.

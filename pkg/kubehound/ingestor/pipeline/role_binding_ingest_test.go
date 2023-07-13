@@ -6,6 +6,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
@@ -91,13 +92,18 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("vertex.Identity"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Identity"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
 		Cache:     c,
 		GraphDB:   gdb,
 		StoreDB:   sdb,
+		Config: &config.KubehoundConfig{
+			Builder: config.BuilderConfig{
+				Edge: config.EdgeBuilderConfig{},
+			},
+		},
 	}
 
 	// Initialize

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -21,17 +20,12 @@ func init() {
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
 type TokenBruteforceNamespace struct {
-	cfg *config.EdgeBuilderConfig
+	BaseEdge
 }
 
 type tokenBruteforceNSGroup struct {
 	Role     primitive.ObjectID `bson:"_id" json:"role"`
 	Identity primitive.ObjectID `bson:"identity" json:"identity"`
-}
-
-func (e *TokenBruteforceNamespace) Initialize(cfg *config.EdgeBuilderConfig) error {
-	e.cfg = cfg
-	return nil
 }
 
 func (e *TokenBruteforceNamespace) Label() string {
@@ -42,10 +36,6 @@ func (e *TokenBruteforceNamespace) Name() string {
 	return "TokenBruteforceNamespace"
 }
 
-func (e *TokenBruteforceNamespace) BatchSize() int {
-	return e.cfg.BatchSize
-}
-
 func (e *TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*tokenBruteforceNSGroup)
 	if !ok {
@@ -53,10 +43,6 @@ func (e *TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter
 	}
 
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Role, typed.Identity)
-}
-
-func (e *TokenBruteforceNamespace) Traversal() types.EdgeTraversal {
-	return adapter.DefaultEdgeTraversal()
 }
 
 // Stream finds all roles that are namespaced and have secrets/get or equivalent wildcard permissions and matching identities.

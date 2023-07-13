@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -23,16 +22,11 @@ func init() {
 
 // @@DOCLINK: TODO
 type PodCreate struct {
-	cfg *config.EdgeBuilderConfig
+	BaseEdge
 }
 
 type podCreateGroup struct {
 	Role primitive.ObjectID `bson:"_id" json:"role"`
-}
-
-func (e *PodCreate) Initialize(cfg *config.EdgeBuilderConfig) error {
-	e.cfg = cfg
-	return nil
 }
 
 func (e *PodCreate) Label() string {

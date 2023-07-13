@@ -3,12 +3,10 @@ package vertex
 import (
 	"context"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
-	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 const (
@@ -18,20 +16,11 @@ const (
 var _ Builder = (*Pod)(nil)
 
 type Pod struct {
-	cfg *config.VertexBuilderConfig
-}
-
-func (v *Pod) Initialize(cfg *config.VertexBuilderConfig) error {
-	v.cfg = cfg
-	return nil
+	BaseVertex
 }
 
 func (v *Pod) Label() string {
 	return PodLabel
-}
-
-func (v *Pod) BatchSize() int {
-	return BatchSizeDefault
 }
 
 func (v *Pod) Processor(ctx context.Context, entry any) (any, error) {
@@ -39,7 +28,7 @@ func (v *Pod) Processor(ctx context.Context, entry any) (any, error) {
 }
 
 func (v *Pod) Traversal() types.VertexTraversal {
-	return func(source *gremlingo.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).
 			Unfold().As("pods").

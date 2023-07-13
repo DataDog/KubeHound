@@ -8,10 +8,6 @@ import (
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
-const (
-	BatchSizeDefault = 500
-)
-
 // Optional syntactic sugar.
 var __ = gremlin.T__
 var Column = gremlin.Column

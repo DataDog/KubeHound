@@ -3,7 +3,6 @@ package edge
 import (
 	"context"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -20,12 +19,7 @@ func init() {
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2890006884/CE+MODULE+LOAD
 type EscapeModuleLoad struct {
-	cfg *config.EdgeBuilderConfig
-}
-
-func (e *EscapeModuleLoad) Initialize(cfg *config.EdgeBuilderConfig) error {
-	e.cfg = cfg
-	return nil
+	BaseContainerEscape
 }
 
 func (e *EscapeModuleLoad) Label() string {
@@ -34,15 +28,6 @@ func (e *EscapeModuleLoad) Label() string {
 
 func (e *EscapeModuleLoad) Name() string {
 	return "ContainerEscapeModuleLoad"
-}
-
-func (e *EscapeModuleLoad) BatchSize() int {
-	return e.cfg.BatchSize
-}
-
-// Traversal delegates the traversal creation to the generic containerEscapeTraversal.
-func (e *EscapeModuleLoad) Traversal() types.EdgeTraversal {
-	return adapter.DefaultEdgeTraversal()
 }
 
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.

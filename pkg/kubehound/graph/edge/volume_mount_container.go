@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -21,17 +20,12 @@ func init() {
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891251713/VOLUME+MOUNT
 type VolumeMountContainer struct {
-	cfg *config.EdgeBuilderConfig
+	BaseEdge
 }
 
 type containerMountGroup struct {
 	Volume    primitive.ObjectID `bson:"_id" json:"volume"`
 	Container primitive.ObjectID `bson:"container_id" json:"container"`
-}
-
-func (e *VolumeMountContainer) Initialize(cfg *config.EdgeBuilderConfig) error {
-	e.cfg = cfg
-	return nil
 }
 
 func (e *VolumeMountContainer) Label() string {
@@ -42,10 +36,6 @@ func (e *VolumeMountContainer) Name() string {
 	return "VolumeMountContainer"
 }
 
-func (e *VolumeMountContainer) BatchSize() int {
-	return e.cfg.BatchSize
-}
-
 func (e *VolumeMountContainer) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*containerMountGroup)
 	if !ok {
@@ -53,10 +43,6 @@ func (e *VolumeMountContainer) Processor(ctx context.Context, oic *converter.Obj
 	}
 
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Volume)
-}
-
-func (e *VolumeMountContainer) Traversal() types.EdgeTraversal {
-	return adapter.DefaultEdgeTraversal()
 }
 
 func (e *VolumeMountContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
