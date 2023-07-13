@@ -63,7 +63,7 @@ func TestMustLoadConfig(t *testing.T) {
 						WorkerPoolCapacity:        100,
 						BatchSize:                 500,
 						BatchSizeSmall:            100,
-						BatchSizeClusterImpact:    20,
+						BatchSizeClusterImpact:    10,
 					},
 				},
 			},
