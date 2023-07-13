@@ -79,11 +79,11 @@ build: generate ## Build the application
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
 
 .PHONY: run
-run: | backend-reset build ## Run kubehound (deploy backend, build go binary and run it locally)
+run: | backend-reset-hard build ## Run kubehound (deploy backend, build go binary and run it locally)
 	KUBECONFIG=${KUBECONFIG} ./bin/kubehound -c configs/etc/kubehound.yaml
 
 .PHONY: backend-down
-backend-down: ## Delete the kubehound stack
+backend-down: ## Tear down the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 
 .PHONY: backend-up

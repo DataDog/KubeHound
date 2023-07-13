@@ -9,8 +9,8 @@ import (
 type RegistrationFlag uint8
 
 const (
-	RegisterDefault RegistrationFlag = 1 << iota
-	RegisterGraphMutation
+	RegisterDefault       RegistrationFlag = 1 << iota // Default edge
+	RegisterGraphMutation                              // Edge can mutate the graph
 )
 
 // Registry holds details of edges (i.e attacks) registered in KubeHound.
@@ -19,6 +19,7 @@ type Registry struct {
 	simple   map[string]Builder
 }
 
+// newRegistry creates a new registry instance. This should not be called directly.
 func newRegistry() *Registry {
 	r := &Registry{
 		mutating: make(map[string]Builder),
@@ -28,7 +29,7 @@ func newRegistry() *Registry {
 	return r
 }
 
-// EdgeRegistry singleton support
+// Registry singleton support
 var registryInstance *Registry
 var erOnce sync.Once
 
@@ -41,10 +42,12 @@ func Registered() *Registry {
 	return registryInstance
 }
 
+// Mutating returns the map of registered mutating edge builders.
 func (r *Registry) Mutating() map[string]Builder {
 	return r.mutating
 }
 
+// Simple returns the map of registered edge builders.
 func (r *Registry) Simple() map[string]Builder {
 	return r.simple
 }
