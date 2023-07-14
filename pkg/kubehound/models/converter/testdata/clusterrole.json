@@ -4,7 +4,12 @@
     "metadata": {
         "creationTimestamp": "2021-06-16T18:30:43Z",
         "name": "test-reader",
-        "namespace": "test-app"
+        "namespace": "test-app",
+        "labels": {
+            "app": "test-app",
+            "team": "test-team",
+            "service": "test-service"
+        }
     },
     "rules": [
         {

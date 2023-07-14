@@ -7,7 +7,8 @@
       "env": "production",
       "nodegroups.datadoghq.com/local-storage": "true",
       "nodegroups.datadoghq.com/name": "node-1",
-      "nodegroups.datadoghq.com/namespace": "internal-test-1"
+      "nodegroups.datadoghq.com/namespace": "internal-test-1",
+      "team": "test-team"
     }
   },
   "status": {

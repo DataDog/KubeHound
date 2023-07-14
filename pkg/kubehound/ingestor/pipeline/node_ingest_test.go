@@ -66,6 +66,9 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 		"name":         "node-1",
 		"namespace":    "",
 		"storeID":      storeId.Hex(),
+		"app":          "",
+		"service":      "",
+		"team":         "test-team",
 	}
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
