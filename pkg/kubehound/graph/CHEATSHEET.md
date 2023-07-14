@@ -79,10 +79,10 @@ g.V().hasLabel("Container", "Identity", "Node").repeat(out().simplePath()).until
 
 ## Threat modelling
 
-All unique attack paths by labels to a specific asset (in this case the `system:auth-delegator` role):
+All unique attack paths by labels to a specific asset (in this case the `cluster-admin` role):
 
 ```groovy
-g.V().hasLabel("Container", "Identity").repeat(out().simplePath()).until(has("name", "system:auth-delegator").or().loops().is(5)).has("name", "system:auth-delegator").hasLabel("Role").path().as("p").by(label).dedup().select("p").path()
+g.V().hasLabel("Container", "Identity").repeat(out().simplePath()).until(has("name", "cluster-admin").or().loops().is(5)).has("name", "cluster-admin").hasLabel("Role").path().as("p").by(label).dedup().select("p").path()
 ```
 
 All unique attack paths by labels to a ANY critical asset:
@@ -148,3 +148,4 @@ We can further reduce this to group by attacks, rather than full paths in post-p
 
 + Always put a max hop count on path queries or runtime can get very long
 + For queries to be displayed in the UI, try to limit the output to 1000 elements or less
++ Enable large cluster optimizations if queries are returning too slowly

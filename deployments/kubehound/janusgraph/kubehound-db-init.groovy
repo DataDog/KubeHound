@@ -49,12 +49,15 @@ mgmt.addConnection(podAttach, node, pod);
 
 podCreate = mgmt.makeEdgeLabel('POD_CREATE').multiplicity(MULTI).make();
 mgmt.addConnection(podCreate, role, node);
+mgmt.addConnection(podCreate, role, role); // self-referencing for large cluster optinizations
 
 podPatch = mgmt.makeEdgeLabel('POD_PATCH').multiplicity(MULTI).make();
 mgmt.addConnection(podPatch, role, node);
+mgmt.addConnection(podPatch, role, role); // self-referencing for large cluster optinizations
 
 podExec = mgmt.makeEdgeLabel('POD_EXEC').multiplicity(MULTI).make();
 mgmt.addConnection(podExec, role, pod);
+mgmt.addConnection(podExec, role, role); // self-referencing for large cluster optinizations
 
 tokenSteal = mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(MULTI).make();
 mgmt.addConnection(tokenSteal, volume, identity);
