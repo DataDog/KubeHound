@@ -149,3 +149,4 @@ We can further reduce this to group by attacks, rather than full paths in post-p
 + Always put a max hop count on path queries or runtime can get very long
 + For queries to be displayed in the UI, try to limit the output to 1000 elements or less
 + Enable large cluster optimizations if queries are returning too slowly
++ Try to filter the initial element of queries by namespace/service/app to avoid generating too many results
