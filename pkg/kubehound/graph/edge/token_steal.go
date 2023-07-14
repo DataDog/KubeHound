@@ -7,6 +7,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
@@ -61,8 +62,8 @@ func (e *TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.C
 	// Find all volumes with projected service account tokens. The mounts and source fields we need to match on a projected
 	// service account token are all deeply nested arrays so matching on the naming convention is the simplest/fastest match
 	filter := bson.M{
-		"source.volumesource.projected": bson.M{"$exists": true, "$ne": "null"},
-		"source.name":                   bson.M{"$regex": primitive.Regex{Pattern: "^kube-api-access"}},
+		"type": shared.VolumeTypeProjected,
+		"name": bson.M{"$regex": primitive.Regex{Pattern: "^kube-api-access"}},
 	}
 
 	// Find the volume and associated pod namespace and service account.

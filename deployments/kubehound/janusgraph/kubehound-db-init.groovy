@@ -25,9 +25,11 @@ volume = mgmt.makeVertexLabel('Volume').make();
 roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(MULTI).make();
 mgmt.addConnection(roleGrant, identity, role);
 
-volumeRead = mgmt.makeEdgeLabel('VOLUME_READ').multiplicity(MULTI).make();
-mgmt.addConnection(volumeRead, container, volume);
-mgmt.addConnection(volumeRead, node, volume);
+volumeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MULTI).make();
+mgmt.addConnection(volumeMount, container, volume);
+
+volumeExpose = mgmt.makeEdgeLabel('VOLUME_EXPOSE').multiplicity(MULTI).make();
+mgmt.addConnection(volumeExpose, node, volume);
 
 sharedPs = mgmt.makeEdgeLabel('SHARED_PS_NAMESPACE').multiplicity(MULTI).make();
 mgmt.addConnection(sharedPs, container, container);
@@ -101,7 +103,9 @@ critical = mgmt.makePropertyKey('critical').dataType(Boolean.class).cardinality(
 // All properties that we want to be able to search on
 isNamespaced = mgmt.makePropertyKey('isNamespaced').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 compromised = mgmt.makePropertyKey('compromised').dataType(Integer.class).cardinality(Cardinality.SINGLE).make();
-path = mgmt.makePropertyKey('path').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+sourcePath = mgmt.makePropertyKey('sourcePath').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+mountPath = mgmt.makePropertyKey('mountPath').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+readonly = mgmt.makePropertyKey('readonly').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 nodeName = mgmt.makePropertyKey('node').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 sharedPs = mgmt.makePropertyKey('sharedProcessNamespace').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 serviceAccount = mgmt.makePropertyKey('serviceAccount').dataType(String.class).cardinality(Cardinality.SINGLE).make();
@@ -127,7 +131,7 @@ mgmt.addProperties(identity, cls, storeID, app, team, service, name, isNamespace
 mgmt.addProperties(node, cls, storeID, app, team, service, name, isNamespaced, namespace, compromised, critical);
 mgmt.addProperties(pod, cls, storeID, app, team, service, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
 mgmt.addProperties(role, cls, storeID, app, team, service, name, isNamespaced, namespace, rules, critical);
-mgmt.addProperties(volume, cls, storeID, app, team, service, name, isNamespaced, namespace, type, path);
+mgmt.addProperties(volume, cls, storeID, app, team, service, name, isNamespaced, namespace, type, sourcePath, mountPath, readonly);
 
 
 // Create the indexes on vertex properties

@@ -8,7 +8,7 @@ import (
 type PodType *corev1.Pod
 type NodeType *corev1.Node
 type ContainerType *corev1.Container
-type VolumeType *corev1.Volume
+type VolumeType *corev1.VolumeMount
 type RoleType *rbacv1.Role
 type RoleBindingType *rbacv1.RoleBinding
 type ClusterRoleType *rbacv1.ClusterRole

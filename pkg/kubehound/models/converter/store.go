@@ -9,6 +9,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
@@ -104,48 +105,54 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 
 // Volume returns the store representation of a K8s mounted volume from an input K8s volume object.
 // NOTE: requires cache access (ContainerKey).
-func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, parent *store.Pod) (*store.Volume, error) {
+func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, pod *store.Pod,
+	container *store.Container) (*store.Volume, error) {
+
 	if c.cache == nil {
 		return nil, ErrNoCacheInitialized
 	}
 
-	// Only a subset of volumes are currently supported
-	var vtype string
-	switch {
-	case input.HostPath != nil:
-		vtype = shared.VolumeTypeHost
-	case input.Projected != nil:
-		vtype = shared.VolumeTypeProjected
-	default:
-		return nil, ErrUnsupportedVolume
-	}
-
 	output := &store.Volume{
-		Id:        store.ObjectID(),
-		PodId:     parent.Id,
-		NodeId:    parent.NodeId,
-		Name:      input.Name,
-		Type:      vtype,
-		Source:    corev1.Volume(*input),
-		Ownership: store.ExtractOwnership(parent.K8.Labels),
+		Id:          store.ObjectID(),
+		PodId:       pod.Id,
+		NodeId:      pod.NodeId,
+		ContainerId: container.Id,
+		Name:        input.Name,
+		MountPath:   input.MountPath,
+		ReadOnly:    input.ReadOnly,
+		Ownership:   store.ExtractOwnership(pod.K8.Labels),
 	}
 
-	// A volume may be mounted by multiple containers in the same pod.
-	for _, container := range parent.K8.Spec.Containers {
-		for _, mount := range container.VolumeMounts {
-			if mount.Name == output.Source.Name {
-				cid, err := c.cache.Get(ctx,
-					cachekey.Container(parent.K8.Name, container.Name, parent.K8.Namespace)).ObjectID()
-				if err != nil {
-					return nil, err
-				}
+	// Resolve the volume to the underlying name
+	found := false
 
-				output.Mounts = append(output.Mounts, store.VolumeMount{
-					ContainerId: cid,
-					K8:          mount,
-				})
+	// Expect a small size array so iterating through this is quicker than building up a map for lookup
+	for _, volume := range pod.K8.Spec.Volumes {
+		if volume.Name == input.Name {
+			found = true
+
+			// Only a subset of volumes are currently supported
+			switch {
+			case volume.HostPath != nil:
+				output.Type = shared.VolumeTypeHost
+				output.SourcePath = volume.HostPath.Path
+			case volume.Projected != nil:
+				output.Type = shared.VolumeTypeProjected
+				// Loop through looking for the service account token
+				for _, proj := range volume.Projected.Sources {
+					if proj.ServiceAccountToken != nil {
+						output.SourcePath = kube.ServiceAccountTokenPath(string(pod.K8.ObjectMeta.UID), input.Name)
+						break // assume only 1 entry
+					}
+				}
+			default:
+				return nil, ErrUnsupportedVolume
 			}
 		}
+	}
+
+	if !found {
+		return nil, fmt.Errorf("mount has no corresponding volume: %s", input.Name)
 	}
 
 	return output, nil

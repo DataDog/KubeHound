@@ -99,5 +99,7 @@ type Volume struct {
 	Namespace    string `json:"namespace" mapstructure:"namespace"`
 	Name         string `json:"name" mapstructure:"name"`
 	Type         string `json:"type" mapstructure:"type"`
-	Path         string `json:"path" mapstructure:"path"`
+	SourcePath   string `json:"sourcePath" mapstructure:"source_path"`
+	MountPath    string `json:"mountPath" mapstructure:"mount_path"`
+	Readonly     bool   `json:"readonly" mapstructure:"readonly"`
 }

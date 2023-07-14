@@ -50,7 +50,7 @@ services:
       - gremlinserver.threadPoolWorker=8 # should be 2x VCPU (TODO: can we set dynamically?)
     healthcheck:
       test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
-      interval: 60s
+      interval: 15s # TEST TEST TEST
       timeout: 30s
       retries: 5
       start_period: 30s

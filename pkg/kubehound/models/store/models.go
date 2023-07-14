@@ -49,16 +49,29 @@ type VolumeMount struct {
 	Ownership   OwnershipInfo      `bson:"ownership"`
 }
 
+// type Volume struct {
+// 	Id        primitive.ObjectID `bson:"_id"`
+// 	NodeId    primitive.ObjectID `bson:"node_id"`
+// 	PodId     primitive.ObjectID `bson:"pod_id"`
+// 	Name      string             `bson:"name"`
+// 	Type      string             `bson:"type"`
+// 	Source    corev1.Volume      `bson:"source"`
+// 	Mounts    []VolumeMount      `bson:"mounts"`
+// 	ReadOnly  bool               `bson:"readonly"`
+// 	Ownership OwnershipInfo      `bson:"ownership"`
+// }
+
 type Volume struct {
-	Id        primitive.ObjectID `bson:"_id"`
-	NodeId    primitive.ObjectID `bson:"node_id"`
-	PodId     primitive.ObjectID `bson:"pod_id"`
-	Name      string             `bson:"name"`
-	Type      string             `bson:"type"`
-	Source    corev1.Volume      `bson:"source"`
-	Mounts    []VolumeMount      `bson:"mounts"`
-	ReadOnly  bool               `bson:"readonly"`
-	Ownership OwnershipInfo      `bson:"ownership"`
+	Id          primitive.ObjectID `bson:"_id"`
+	PodId       primitive.ObjectID `bson:"pod_id"`
+	NodeId      primitive.ObjectID `bson:"node_id"`
+	ContainerId primitive.ObjectID `bson:"container_id"`
+	Name        string             `bson:"name"`
+	Type        string             `bson:"type"`
+	SourcePath  string             `bson:"source"`
+	MountPath   string             `bson:"mount"`
+	ReadOnly    bool               `bson:"readonly"`
+	Ownership   OwnershipInfo      `bson:"ownership"`
 }
 
 type Role struct {

@@ -260,8 +260,8 @@ func AddContainerToList(Container *corev1.Container, storePod *store.Pod) error 
 func AddVolumeToList(volume *corev1.Volume, storePod *store.Pod) error {
 	fmt.Printf("Volume name: %s\n", volume.Name)
 	storeVolume := store.Volume{
-		Name:   volume.Name,
-		Source: *volume,
+		Name: volume.Name,
+		// Source: *volume,
 	}
 	conv := converter.GraphConverter{}
 	convertedVolume, err := conv.Volume(&storeVolume, storePod)
