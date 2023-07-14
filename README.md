@@ -19,7 +19,7 @@ Then, edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`):
 * `DD_API_KEY`: api key you created from https://app.datadoghq.com/ website
 
 Note:
-* `KUBEHOUND_ENV=prod` will use prebuilt image from ghcr.io
+* `KUBEHOUND_ENV=prod` will use prebuilt image from ghcr.io (:rotating_light: currently NOT supported :rotating_light:)
 * `KUBEHOUND_ENV=dev` will build the images locally
 
 To target a specific cluster there are 2 options:
