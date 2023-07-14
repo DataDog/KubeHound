@@ -1,7 +1,7 @@
 package config
 
 const (
-	DefaultEdgeWorkerPoolSize         = 10
+	DefaultEdgeWorkerPoolSize         = 5
 	DefaultEdgeWorkerPoolCapacity     = 100
 	DefaultEdgeBatchSize              = 500
 	DefaultEdgeBatchSizeSmall         = DefaultEdgeBatchSize / 5

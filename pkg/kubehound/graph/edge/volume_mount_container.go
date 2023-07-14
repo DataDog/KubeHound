@@ -63,6 +63,7 @@ func (e *VolumeMountContainer) Stream(ctx context.Context, store storedb.Provide
 		{
 			"$unwind": "$mounts",
 		},
+		TODO filter out projected tokens - this is already handled by the IDENTITY_ASSUME dge
 		// Project a volume id / container id pair
 		{
 			"$project": bson.M{

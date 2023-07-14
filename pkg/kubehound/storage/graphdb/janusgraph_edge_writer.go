@@ -106,7 +106,7 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 	promise := op.Iterate()
 	err = <-promise
 	if err != nil {
-		return fmt.Errorf("%s vertex insert: %w", jgv.builder, err)
+		return fmt.Errorf("%s edge insert: %w", jgv.builder, err)
 	}
 
 	return tx.Commit()
