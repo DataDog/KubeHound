@@ -24,13 +24,13 @@ type VolumeMountNode struct {
 	BaseEdge
 }
 
-type nodeMountGroup struct {
+type nodeReadGroup struct {
 	Volume primitive.ObjectID `bson:"_id" json:"volume"`
 	Node   primitive.ObjectID `bson:"node_id" json:"node"`
 }
 
 func (e *VolumeMountNode) Label() string {
-	return "VOLUME_MOUNT"
+	return "VOLUME_READ"
 }
 
 func (e *VolumeMountNode) Name() string {
@@ -38,7 +38,7 @@ func (e *VolumeMountNode) Name() string {
 }
 
 func (e *VolumeMountNode) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	typed, ok := entry.(*nodeMountGroup)
+	typed, ok := entry.(*nodeReadGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
@@ -68,5 +68,5 @@ func (e *VolumeMountNode) Stream(ctx context.Context, store storedb.Provider, _ 
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[nodeMountGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[nodeReadGroup](ctx, cur, callback, complete)
 }

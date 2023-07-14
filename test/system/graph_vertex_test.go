@@ -141,7 +141,6 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 			Privileged:   privileged,
 			PrivEsc:      false,
 			HostPID:      false,
-			HostPath:     false,
 			HostIPC:      false,
 			HostNetwork:  false,
 			RunAsUser:    0,

@@ -19,7 +19,6 @@ type Container struct {
 	Privileged   bool                  `json:"privileged" mapstructure:"privileged"`
 	PrivEsc      bool                  `json:"privesc" mapstructure:"privesc"`
 	HostPID      bool                  `json:"hostPid" mapstructure:"hostPid"`
-	HostPath     bool                  `json:"hostPath" mapstructure:"hostPath"`
 	HostIPC      bool                  `json:"hostIpc" mapstructure:"hostIpc"`
 	HostNetwork  bool                  `json:"hostNetwork" mapstructure:"hostNetwork"`
 	RunAsUser    int64                 `json:"runAsUser" mapstructure:"runAsUser"`

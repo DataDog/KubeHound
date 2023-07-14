@@ -331,7 +331,6 @@ func GenerateContainerTemplate() ([]byte, error) {
 			Privileged:   {{.Privileged}},
 			PrivEsc:      {{.PrivEsc}},
 			HostPID:      {{.HostPID}},
-			HostPath:     {{.HostPath}},
 			HostIPC:      {{.HostIPC}},
 			HostNetwork:  {{.HostNetwork}},
 			RunAsUser:    {{.RunAsUser}},

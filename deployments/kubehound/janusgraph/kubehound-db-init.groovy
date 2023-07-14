@@ -25,9 +25,9 @@ volume = mgmt.makeVertexLabel('Volume').make();
 roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(MULTI).make();
 mgmt.addConnection(roleGrant, identity, role);
 
-volmeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MULTI).make();
-mgmt.addConnection(volmeMount, container, volume);
-mgmt.addConnection(volmeMount, node, volume);
+volumeRead = mgmt.makeEdgeLabel('VOLUME_READ').multiplicity(MULTI).make();
+mgmt.addConnection(volumeRead, container, volume);
+mgmt.addConnection(volumeRead, node, volume);
 
 sharedPs = mgmt.makeEdgeLabel('SHARED_PS_NAMESPACE').multiplicity(MULTI).make();
 mgmt.addConnection(sharedPs, container, container);
@@ -108,7 +108,6 @@ serviceAccount = mgmt.makePropertyKey('serviceAccount').dataType(String.class).c
 image = mgmt.makePropertyKey('image').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 podName = mgmt.makePropertyKey('pod').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 hostNetwork = mgmt.makePropertyKey('hostNetwork').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
-hostPath = mgmt.makePropertyKey('hostPath').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 hostPid = mgmt.makePropertyKey('hostPid').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 hostIpc = mgmt.makePropertyKey('hostIpc').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
 privesc = mgmt.makePropertyKey('privesc').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
@@ -122,7 +121,7 @@ ports = mgmt.makePropertyKey('ports').dataType(String.class).cardinality(Cardina
 identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 
 // Define properties for each vertex 
-mgmt.addProperties(container, cls, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, hostPath, 
+mgmt.addProperties(container, cls, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, 
     hostIpc, hostNetwork, runAsUser, podName, nodeName, compromised, command, args, capabilities, ports);
 mgmt.addProperties(identity, cls, storeID, app, team, service, name, isNamespaced, namespace, type, critical);
 mgmt.addProperties(node, cls, storeID, app, team, service, name, isNamespaced, namespace, compromised, critical);

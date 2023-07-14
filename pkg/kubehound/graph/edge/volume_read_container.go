@@ -15,29 +15,29 @@ import (
 )
 
 func init() {
-	Register(&VolumeMountContainer{}, RegisterDefault)
+	Register(&VolumeReadContainer{}, RegisterDefault)
 }
 
 // @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891251713/VOLUME+MOUNT
-type VolumeMountContainer struct {
+type VolumeReadContainer struct {
 	BaseEdge
 }
 
-type containerMountGroup struct {
+type containerReadGroup struct {
 	Volume    primitive.ObjectID `bson:"_id" json:"volume"`
 	Container primitive.ObjectID `bson:"container_id" json:"container"`
 }
 
-func (e *VolumeMountContainer) Label() string {
-	return "VOLUME_MOUNT"
+func (e *VolumeReadContainer) Label() string {
+	return "VOLUME_READ"
 }
 
-func (e *VolumeMountContainer) Name() string {
+func (e *VolumeReadContainer) Name() string {
 	return "VolumeMountContainer"
 }
 
-func (e *VolumeMountContainer) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	typed, ok := entry.(*containerMountGroup)
+func (e *VolumeReadContainer) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*containerReadGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
@@ -45,12 +45,13 @@ func (e *VolumeMountContainer) Processor(ctx context.Context, oic *converter.Obj
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Volume)
 }
 
-func (e *VolumeMountContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *VolumeReadContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)
 	pipeline := []bson.M{
-		// Match volumes that have at least one mount
+		// Match volumes that have at least one mount and are not projected service account tokens which
+		// are captured by the IDENTITY_ASSUME edge.
 		{
 			"$match": bson.M{
 				"mounts": bson.M{
@@ -63,7 +64,7 @@ func (e *VolumeMountContainer) Stream(ctx context.Context, store storedb.Provide
 		{
 			"$unwind": "$mounts",
 		},
-		TODO filter out projected tokens - this is already handled by the IDENTITY_ASSUME dge
+		//TODO filter out projected tokens - this is already handled by the IDENTITY_ASSUME dge
 		// Project a volume id / container id pair
 		{
 			"$project": bson.M{
@@ -79,5 +80,5 @@ func (e *VolumeMountContainer) Stream(ctx context.Context, store storedb.Provide
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[containerMountGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[containerReadGroup](ctx, cur, callback, complete)
 }

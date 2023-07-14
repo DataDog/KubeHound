@@ -118,6 +118,14 @@ func (suite *EdgeTestSuite) TestEdge_CE_SYS_PTRACE() {
 	suite._testContainerEscape("CE_SYS_PTRACE", DefaultContainerEscapeNodes, containers)
 }
 
+func (suite *EdgeTestSuite) TestEdge_CE_MOUNT_EXPLOIT() {
+	containers := map[string]bool{
+		"mount-exploit-pod": true,
+	}
+
+	suite._testContainerEscape("CE_MOUNT_EXPLOIT", DefaultContainerEscapeNodes, containers)
+}
+
 func (suite *EdgeTestSuite) TestEdge_CONTAINER_ATTACH() {
 	// Every container should have a CONTAINER_ATTACH incoming from a pod
 	rawCount, err := suite.g.V().
@@ -317,8 +325,8 @@ func (suite *EdgeTestSuite) TestEdge_ROLE_GRANT() {
 	suite.Subset(paths, expected)
 }
 
-func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
-	// Every volume should have a VOLUME_MOUNT incoming from a node
+func (suite *EdgeTestSuite) TestEdge_VOLUME_READ() {
+	// Every volume should have a VOLUME_READ incoming from a node
 	rawCount, err := suite.g.V().
 		HasLabel("Volume").
 		Count().Next()
@@ -330,7 +338,7 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 
 	rawCount, err = suite.g.V().
 		HasLabel("Node").
-		OutE().HasLabel("VOLUME_MOUNT").
+		OutE().HasLabel("VOLUME_READ").
 		InV().HasLabel("Volume").
 		Dedup().
 		Path().
@@ -341,10 +349,10 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 	suite.NoError(err)
 	suite.Equal(volumeCount, pathCount)
 
-	// Every volume should have a VOLUME_MOUNT incoming from a container
+	// Every volume should have a VOLUME_READ incoming from a container
 	rawCount, err = suite.g.V().
 		HasLabel("Container").
-		OutE().HasLabel("VOLUME_MOUNT").
+		OutE().HasLabel("VOLUME_READ").
 		InV().HasLabel("Volume").
 		Dedup().
 		Path().

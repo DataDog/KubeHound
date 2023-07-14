@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-07-14 15:05
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-07-14 17:25
 //
 // Generate it with "go generate ./..."
 //
@@ -19,6 +19,16 @@ import (
 )
 
 var expectedPods = map[string]graph.Pod{
+	"hostpath-root-pod": {
+		StoreID:                "",
+		Name:                   "hostpath-root-pod",
+		IsNamespaced:           true,
+		Namespace:              "default",
+		Compromised:            shared.CompromiseNone,
+		ServiceAccount:         "default",
+		SharedProcessNamespace: false,
+		Critical:               false,
+	},
 	"impersonate-pod": {
 		StoreID:                "",
 		Name:                   "impersonate-pod",
@@ -199,6 +209,12 @@ var expectedNodes = map[string]graph.Node{
 }
 
 var expectedVolumes = map[string]graph.Volume{
+	"hostroot": {
+		StoreID: "",
+		Name:    "hostroot",
+		Type:    "HostPath",
+		Path:    "/",
+	},
 	"nodelog": {
 		StoreID: "",
 		Name:    "nodelog",
@@ -214,6 +230,24 @@ var expectedVolumes = map[string]graph.Volume{
 }
 
 var expectedContainers = map[string]graph.Container{
+	"hostpath-root-pod": {
+		StoreID:      "",
+		Name:         "hostpath-root-pod",
+		Image:        "ubuntu",
+		Command:      []string{},
+		Args:         []string{},
+		Capabilities: []string{},
+		Privileged:   false,
+		PrivEsc:      false,
+		HostPID:      false,
+		HostIPC:      false,
+		HostNetwork:  false,
+		RunAsUser:    0,
+		Ports:        []string{},
+		Pod:          "hostpath-root-pod",
+		// Node:         "",
+		Compromised: 0,
+	},
 	"impersonate-pod": {
 		StoreID:      "",
 		Name:         "impersonate-pod",
@@ -224,7 +258,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -243,7 +276,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -262,7 +294,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -281,7 +312,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   true,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -300,7 +330,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -319,7 +348,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -338,7 +366,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -357,7 +384,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   true,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -376,7 +402,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -395,7 +420,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -414,7 +438,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -433,7 +456,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -452,7 +474,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -471,7 +492,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -490,7 +510,6 @@ var expectedContainers = map[string]graph.Container{
 		Privileged:   false,
 		PrivEsc:      false,
 		HostPID:      false,
-		HostPath:     false,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
