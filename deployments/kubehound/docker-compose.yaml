@@ -29,9 +29,8 @@ services:
       - kubenet
     environment:
       #  Optimize for writes https://docs.janusgraph.org/operations/bulk-loading/
-      - janusgraph.storage.buffer-size=8192
-      # - janusgraph.storage.write-attempts=
-      # - janusgraph.storage.attempt-wait=
+      - janusgraph.ids.block-size=3000000
+      # - janusgraph.storage.buffer-size=8192
        # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
       - janusgraph.schema.constraints=true
       - janusgraph.schema.default=none

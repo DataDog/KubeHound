@@ -120,12 +120,21 @@ func (e *SensitiveMount) Stream(ctx context.Context, store storedb.Provider, _ c
 	// TODO optimizie query (within array faster??)
 	filter := bson.M{
 		"type": shared.VolumeTypeHost,
-		"$or": bson.A{
-			bson.M{"source": "/"},
-			bson.M{"source": "/sys"},
-			bson.M{"source": "/etc"},
-			bson.M{"source": "/dev"},
-			bson.M{"source": "/proc"},
+		// "$or": bson.A{
+		// 	bson.M{"source": "/"},
+		// 	bson.M{"source": "/sys"},
+		// 	bson.M{"source": "/etc"},
+		// 	bson.M{"source": "/dev"},
+		// 	bson.M{"source": "/proc"},
+		// },
+		"source": bson.M{
+			"$in": bson.A{
+				"/",
+				"/sys",
+				"/etc",
+				"/dev",
+				"/proc",
+			},
 		},
 		"readonly": false,
 	}

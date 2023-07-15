@@ -49,18 +49,6 @@ type VolumeMount struct {
 	Ownership   OwnershipInfo      `bson:"ownership"`
 }
 
-// type Volume struct {
-// 	Id        primitive.ObjectID `bson:"_id"`
-// 	NodeId    primitive.ObjectID `bson:"node_id"`
-// 	PodId     primitive.ObjectID `bson:"pod_id"`
-// 	Name      string             `bson:"name"`
-// 	Type      string             `bson:"type"`
-// 	Source    corev1.Volume      `bson:"source"`
-// 	Mounts    []VolumeMount      `bson:"mounts"`
-// 	ReadOnly  bool               `bson:"readonly"`
-// 	Ownership OwnershipInfo      `bson:"ownership"`
-// }
-
 type Volume struct {
 	Id          primitive.ObjectID `bson:"_id"`
 	PodId       primitive.ObjectID `bson:"pod_id"`
@@ -72,6 +60,7 @@ type Volume struct {
 	MountPath   string             `bson:"mount"`
 	ReadOnly    bool               `bson:"readonly"`
 	Ownership   OwnershipInfo      `bson:"ownership"`
+	K8          corev1.Volume      `bson:"k8"`
 }
 
 type Role struct {

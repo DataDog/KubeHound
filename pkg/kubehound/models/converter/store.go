@@ -148,6 +148,8 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, pod
 			default:
 				return nil, ErrUnsupportedVolume
 			}
+
+			output.K8 = volume
 		}
 	}
 
