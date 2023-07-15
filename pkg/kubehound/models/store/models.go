@@ -54,6 +54,7 @@ type Volume struct {
 	PodId       primitive.ObjectID `bson:"pod_id"`
 	NodeId      primitive.ObjectID `bson:"node_id"`
 	ContainerId primitive.ObjectID `bson:"container_id"`
+	ProjectedId primitive.ObjectID `bson:"projected_id"`
 	Name        string             `bson:"name"`
 	Type        string             `bson:"type"`
 	SourcePath  string             `bson:"source"`

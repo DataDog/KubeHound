@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
@@ -21,9 +22,10 @@ const (
 )
 
 var (
-	ErrUnsupportedVolume   = errors.New("provided volume is not currently supported")
-	ErrNoCacheInitialized  = errors.New("cache reader required for conversion")
-	ErrDanglingRoleBinding = errors.New("role binding found with no matching role")
+	ErrUnsupportedVolume     = errors.New("provided volume is not currently supported")
+	ErrNoCacheInitialized    = errors.New("cache reader required for conversion")
+	ErrDanglingRoleBinding   = errors.New("role binding found with no matching role")
+	ErrProjectedDefaultToken = errors.New("projected volume grant no access (default serviceaccount)")
 )
 
 // StoreConverter enables converting between an input K8s model to its equivalent store model.
@@ -103,6 +105,33 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 	return output, nil
 }
 
+func (c *StoreConverter) handleProjectedVolume(ctx context.Context, input types.VolumeType,
+	volume *corev1.Volume, pod *store.Pod) (primitive.ObjectID, string, error) {
+
+	// Retrieve the associated identity store ID from the cache
+	said, err := c.cache.Get(ctx, cachekey.Identity(pod.K8.Spec.ServiceAccountName, pod.K8.Namespace)).ObjectID()
+	switch err {
+	case nil:
+		// We have a matching identity object in the store, continue to create a volume
+	case cache.ErrNoEntry:
+		// This is completely fine. Most pods will run under a default account with no permissions which we ignore.
+		return primitive.NilObjectID, "", ErrProjectedDefaultToken
+	default:
+		return primitive.NilObjectID, "", err
+	}
+
+	// Loop through looking for the service account token
+	var sourcePath string
+	for _, proj := range volume.Projected.Sources {
+		if proj.ServiceAccountToken != nil {
+			sourcePath = kube.ServiceAccountTokenPath(string(pod.K8.ObjectMeta.UID), input.Name)
+			break // assume only 1 entry
+		}
+	}
+
+	return said, sourcePath, nil
+}
+
 // Volume returns the store representation of a K8s mounted volume from an input K8s volume object.
 // NOTE: requires cache access (ContainerKey).
 func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, pod *store.Pod,
@@ -126,10 +155,6 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, pod
 	// Resolve the volume to the underlying name
 	found := false
 
-	TODO we dont want to create volumes where the project account does not have an identity. See the TOKEN_STEAL
-	logic for how to do this. BUT this means we need to change the pipeline order to make pods dependent on RoleBindingsc
-	Then we can skip the checks in TOKEN_STEAL and EXPLOIT_HOST_TRAVERSE. This should SIGNIFICANTLY reduce the number of
-	volumes vertices and edges (90% in the case of test data)
 	// Expect a small size array so iterating through this is quicker than building up a map for lookup
 	for _, volume := range pod.K8.Spec.Volumes {
 		if volume.Name == input.Name {
@@ -141,15 +166,14 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, pod
 				output.Type = shared.VolumeTypeHost
 				output.SourcePath = volume.HostPath.Path
 			case volume.Projected != nil:
-				output.Type = shared.VolumeTypeProjected
-				// Loop through looking for the service account token
-				for _, proj := range volume.Projected.Sources {
-					if proj.ServiceAccountToken != nil {
-						output.SourcePath = kube.ServiceAccountTokenPath(string(pod.K8.ObjectMeta.UID), input.Name)
-						break // assume only 1 entry
-					}
+				said, source, err := c.handleProjectedVolume(ctx, input, &volume, pod)
+				if err != nil {
+					return nil, err
 				}
-				TODO add identity ID as a property here! Then change the TOKEN_STEAL query to be a lot simpler :)
+
+				output.Type = shared.VolumeTypeProjected
+				output.SourcePath = source
+				output.ProjectedId = said
 			default:
 				return nil, ErrUnsupportedVolume
 			}

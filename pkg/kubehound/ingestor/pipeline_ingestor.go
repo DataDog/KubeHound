@@ -33,9 +33,8 @@ type PipelineIngestor struct {
 //		   \___[collector.StreamClusterRole]____/\____[collector.StreamClusterRoleBinding]____/
 func ingestSequence() []pipeline.Sequence {
 	return []pipeline.Sequence{
-		TODO change this as pods will depend on RoleBindings now!!
 		{
-			Name: "identity-pipeline",
+			Name: "core-pipeline",
 			Groups: []pipeline.Group{
 				{
 					Name: "k8s-role-group",
@@ -45,20 +44,10 @@ func ingestSequence() []pipeline.Sequence {
 					},
 				},
 				{
-					Name: "k8s-rolebinding-group",
+					Name: "k8s-core-group",
 					Ingests: []pipeline.ObjectIngest{
 						&pipeline.RoleBindingIngest{},
 						&pipeline.ClusterRoleBindingIngest{},
-					},
-				},
-			},
-		},
-		{
-			Name: "application-pipeline",
-			Groups: []pipeline.Group{
-				{
-					Name: "k8s-node-group",
-					Ingests: []pipeline.ObjectIngest{
 						&pipeline.NodeIngest{},
 					},
 				},
