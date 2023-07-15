@@ -126,6 +126,10 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, pod
 	// Resolve the volume to the underlying name
 	found := false
 
+	TODO we dont want to create volumes where the project account does not have an identity. See the TOKEN_STEAL
+	logic for how to do this. BUT this means we need to change the pipeline order to make pods dependent on RoleBindingsc
+	Then we can skip the checks in TOKEN_STEAL and EXPLOIT_HOST_TRAVERSE. This should SIGNIFICANTLY reduce the number of
+	volumes vertices and edges (90% in the case of test data)
 	// Expect a small size array so iterating through this is quicker than building up a map for lookup
 	for _, volume := range pod.K8.Spec.Volumes {
 		if volume.Name == input.Name {
@@ -145,6 +149,7 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, pod
 						break // assume only 1 entry
 					}
 				}
+				TODO add identity ID as a property here! Then change the TOKEN_STEAL query to be a lot simpler :)
 			default:
 				return nil, ErrUnsupportedVolume
 			}

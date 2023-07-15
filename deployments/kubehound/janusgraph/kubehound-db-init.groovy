@@ -31,8 +31,14 @@ mgmt.addConnection(volumeMount, container, volume);
 volumeExpose = mgmt.makeEdgeLabel('VOLUME_EXPOSE').multiplicity(MULTI).make();
 mgmt.addConnection(volumeExpose, node, volume);
 
-sensitiveMount = mgmt.makeEdgeLabel('SENSITIVE_MOUNT').multiplicity(MULTI).make();
-mgmt.addConnection(sensitiveMount, volume, node);
+hostWrite = mgmt.makeEdgeLabel('EXPLOIT_HOST_WRITE').multiplicity(MULTI).make();
+mgmt.addConnection(hostWrite, volume, node);
+
+hostRead = mgmt.makeEdgeLabel('EXPLOIT_HOST_READ').multiplicity(MULTI).make();
+mgmt.addConnection(hostRead, volume, node);
+
+hostTraverse = mgmt.makeEdgeLabel('EXPLOIT_HOST_TRAVERSE').multiplicity(MULTI).make();
+mgmt.addConnection(hostTraverse, volume, volume);
 
 sharedPs = mgmt.makeEdgeLabel('SHARED_PS_NAMESPACE').multiplicity(MULTI).make();
 mgmt.addConnection(sharedPs, container, container);
