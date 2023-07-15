@@ -31,6 +31,9 @@ mgmt.addConnection(volumeMount, container, volume);
 volumeExpose = mgmt.makeEdgeLabel('VOLUME_EXPOSE').multiplicity(MULTI).make();
 mgmt.addConnection(volumeExpose, node, volume);
 
+sensitiveMount = mgmt.makeEdgeLabel('SENSITIVE_MOUNT').multiplicity(MULTI).make();
+mgmt.addConnection(sensitiveMount, volume, node);
+
 sharedPs = mgmt.makeEdgeLabel('SHARED_PS_NAMESPACE').multiplicity(MULTI).make();
 mgmt.addConnection(sharedPs, container, container);
 

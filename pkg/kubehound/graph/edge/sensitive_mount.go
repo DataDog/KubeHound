@@ -1,133 +1,143 @@
 package edge
 
-// import (
-// 	"context"
-// 	"fmt"
+import (
+	"context"
+	"fmt"
 
-// 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
-// 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-// 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-// 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
-// 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-// 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-// 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-// 	"go.mongodb.org/mongo-driver/bson"
-// 	"go.mongodb.org/mongo-driver/bson/primitive"
-// 	"go.mongodb.org/mongo-driver/mongo/options"
-// )
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
+	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
 
-// func init() {
-// 	Register(&SensitiveMount{}, RegisterDefault)
-// }
+func init() {
+	Register(&SensitiveMount{}, RegisterDefault)
+}
 
-// // @@DOCLINK: TODO
-// type SensitiveMount struct {
-// 	BaseEdge
-// }
+// @@DOCLINK: TODO
+type SensitiveMount struct {
+	BaseEdge
+}
 
-// type sensitiveMountGroup struct {
-// 	Volume primitive.ObjectID `bson:"_id" json:"volume"`
-// 	Node   primitive.ObjectID `bson:"node_id" json:"node"`
-// }
+type sensitiveMountGroup struct {
+	Volume primitive.ObjectID `bson:"_id" json:"volume"`
+	Node   primitive.ObjectID `bson:"node_id" json:"node"`
+}
 
-// func (e *SensitiveMount) Label() string {
-// 	return "SENSITIVE_MOUNT"
-// }
+func (e *SensitiveMount) Label() string {
+	return "SENSITIVE_MOUNT"
+}
 
-// func (e *SensitiveMount) Name() string {
-// 	return "SensitiveMount"
-// }
+func (e *SensitiveMount) Name() string {
+	return "SensitiveMount"
+}
 
-// // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
-// func (e *SensitiveMount) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-// 	typed, ok := entry.(*sensitiveMountGroup)
-// 	if !ok {
-// 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
-// 	}
+// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
+func (e *SensitiveMount) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*sensitiveMountGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
 
-// 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Volume, typed.Node)
-// }
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Volume, typed.Node)
+}
 
-// func (e *SensitiveMount) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
-// 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
+func (e *SensitiveMount) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-// 	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)
+	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)
 
-// 	// Escape is possible if certain sensitive host directories are mounted into the container with write permissions!
-// 	// Read permissions should be handled in the same manner as TOKEN_STEAL
-// 	// TODO mounts and permissions
-// 	// / RO
-// 	// /etc RO
-// 	// /etc/shadow RO
-// 	// /var
+	// Escape is possible if certain sensitive host directories are mounted into the container with write permissions!
+	// Read permissions should be handled in the same manner as TOKEN_STEAL
+	// TODO mounts and permissions
+	// / RO
+	// /etc RO
+	// /etc/shadow RO
+	// /var
 
-// // 	"/lib/modules" : 5176,
-// //   "/var/lib/kubelet/pods" : 2588,
-// //   "/sys/kernel/security" : 2588,
-// //   "/etc/lsb-release" : 2588,
-// //   "/dev" : 2588,
-// //   "/mnt/disks" : 3733,
-// //   "/etc" : 1145,
-// //   "/var/run/datadog-agent" : 12851,
-// //   "/var/lib/kubelet/plugins_registry/" : 2588,
-// //   "/etc/passwd" : 2588,
-// //   "/var/log/apt" : 2588,
-// //   "/dev/shm" : 2593,
-// //   "/var/run/containerd" : 2589,
-// //   "/sys" : 60,
-// //   "/usr/local/bin/crictl" : 2588,
-// //   "/sys/fs/cgroup" : 2588,
-// //   "/var/lib/kubelet/seccomp" : 2588,
-// //   "/" : 2589,
-// //   "/var/lib/kubelet/plugins" : 2588,
-// //   "/var/lib/containerd" : 2588,
-// //   "/etc/apt" : 2588,
-// //   "/run/systemd" : 2588,
-// //   "/var/log/containers" : 2588,
-// //   "/opt/cni/bin" : 5176,
-// //   "/etc/cni/net.d" : 2588,
-// //   "/var/run/containerd/containerd.sock" : 2588,
-// //   "/var/tmp/datadog-agent/system-probe/build" : 2588,
-// //   "/var/run/cilium" : 2589,
-// //   "/etc/machine-id" : 2588,
-// //   "/sys/kernel/debug" : 2588,
-// //   "/sys/fs/bpf" : 2588,
-// //   "/var/run/datadog" : 2588,
-// //   "/opt/datadog/heapdumps" : 35,
-// //   "/var/lib/kubelet" : 2588,
-// //   "/var/lib/docker/containers" : 2593,
-// //   "/var/log/unattended-upgrades" : 2588,
-// //   "/proc" : 5176,
-// //   "/run/xtables.lock" : 10178,
-// //   "/tmp/core/coredumps" : 68,
-// //   "/etc/group" : 2588,
-// //   "/var/lib" : 1145,
-// //   "/var/lib/apt/periodic" : 2588,
-// //   "/var/lib/kubelet/plugins/ebs.csi.aws.com/" : 2588,
-// //   "/var/run/netns" : 2588,
-// //   "/var/lib/datadog-agent/logs" : 2588,
-// //   "/etc/os-release" : 7764,
-// //   "/var/log/pods" : 2593,
-// //   "/usr/src" : 2588,
-// //   "/run/netns" : 2588,
-// //   "/var/tmp/datadog-agent/system-probe/kernel-headers" : 2588,
-// //   "/opt/datadog-agent/run" : 5,
-// //   "/var/log/journal" : 2588,
-// //   "/var/log/kubernetes" : 2588,
-// //   "/run/blkid" : 3733
-// 	filter := bson.M{
-// 		"type": shared.VolumeTypeHost,
-// 		"source.volumesource.hospath"
-// 	}
+	// 	"/lib/modules" : 5176,
+	//   "/var/lib/kubelet/pods" : 2588,
+	//   "/sys/kernel/security" : 2588,
+	//   "/etc/lsb-release" : 2588,
+	//   "/dev" : 2588,
+	//   "/mnt/disks" : 3733,
+	//   "/etc" : 1145,
+	//   "/var/run/datadog-agent" : 12851,
+	//   "/var/lib/kubelet/plugins_registry/" : 2588,
+	//   "/etc/passwd" : 2588,
+	//   "/var/log/apt" : 2588,
+	//   "/dev/shm" : 2593,
+	//   "/var/run/containerd" : 2589,
+	//   "/sys" : 60,
+	//   "/usr/local/bin/crictl" : 2588,
+	//   "/sys/fs/cgroup" : 2588,
+	//   "/var/lib/kubelet/seccomp" : 2588,
+	//   "/" : 2589,
+	//   "/var/lib/kubelet/plugins" : 2588,
+	//   "/var/lib/containerd" : 2588,
+	//   "/etc/apt" : 2588,
+	//   "/run/systemd" : 2588,
+	//   "/var/log/containers" : 2588,
+	//   "/opt/cni/bin" : 5176,
+	//   "/etc/cni/net.d" : 2588,
+	//   "/var/run/containerd/containerd.sock" : 2588,
+	//   "/var/tmp/datadog-agent/system-probe/build" : 2588,
+	//   "/var/run/cilium" : 2589,
+	//   "/etc/machine-id" : 2588,
+	//   "/sys/kernel/debug" : 2588,
+	//   "/sys/fs/bpf" : 2588,
+	//   "/var/run/datadog" : 2588,
+	//   "/opt/datadog/heapdumps" : 35,
+	//   "/var/lib/kubelet" : 2588,
+	//   "/var/lib/docker/containers" : 2593,
+	//   "/var/log/unattended-upgrades" : 2588,
+	//   "/proc" : 5176,
+	//   "/run/xtables.lock" : 10178,
+	//   "/tmp/core/coredumps" : 68,
+	//   "/etc/group" : 2588,
+	//   "/var/lib" : 1145,
+	//   "/var/lib/apt/periodic" : 2588,
+	//   "/var/lib/kubelet/plugins/ebs.csi.aws.com/" : 2588,
+	//   "/var/run/netns" : 2588,
+	//   "/var/lib/datadog-agent/logs" : 2588,
+	//   "/etc/os-release" : 7764,
+	//   "/var/log/pods" : 2593,
+	//   "/usr/src" : 2588,
+	//   "/run/netns" : 2588,
+	//   "/var/tmp/datadog-agent/system-probe/kernel-headers" : 2588,
+	//   "/opt/datadog-agent/run" : 5,
+	//   "/var/log/journal" : 2588,
+	//   "/var/log/kubernetes" : 2588,
+	//   "/run/blkid" : 3733
 
-// 	// We just need a 1:1 mapping of the node and container to create this edge
-// 	projection := bson.M{"_id": 1, "node_id": 1}
+	// TODO add all paths
+	// TODO optimizie query (within array faster??)
+	filter := bson.M{
+		"type": shared.VolumeTypeHost,
+		"$or": bson.A{
+			bson.M{"source": "/"},
+			bson.M{"source": "/sys"},
+			bson.M{"source": "/etc"},
+			bson.M{"source": "/dev"},
+			bson.M{"source": "/proc"},
+		},
+		"readonly": false,
+	}
 
-// 	cur, err := volumes.Find(context.Background(), filter, options.Find().SetProjection(projection))
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer cur.Close(ctx)
+	// We just need a 1:1 mapping of the node and container to create this edge
+	projection := bson.M{"_id": 1, "node_id": 1}
 
-// 	return adapter.MongoCursorHandler[sensitiveMountGroup](ctx, cur, callback, complete)
-// }
+	cur, err := volumes.Find(context.Background(), filter, options.Find().SetProjection(projection))
+	if err != nil {
+		return err
+	}
+	defer cur.Close(ctx)
+
+	return adapter.MongoCursorHandler[sensitiveMountGroup](ctx, cur, callback, complete)
+}

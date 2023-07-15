@@ -23,7 +23,7 @@ g.E().groupCount().by(label)
 View all the mounted host path volumes in the cluster:
 
 ```groovy
-g.V().hasLabel("Volume").has("type", "HostPath").groupCount().by("path")
+g.V().hasLabel("Volume").has("type", "HostPath").groupCount().by("sourcePath")
 ```
 
 ## Basic path queries
