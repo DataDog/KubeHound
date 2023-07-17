@@ -78,8 +78,11 @@ generate: ## Generate code the application
 build: generate ## Build the application
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
 
+.PHONY: kubehound
+kubehound: | backend-reset-hard build run ## Run kubehound (deploy backend, build go binary and run it locally)
+
 .PHONY: run
-run: | backend-reset-hard build ## Run kubehound (deploy backend, build go binary and run it locally)
+run: ## Run kubehound compiled binary with default config
 	KUBECONFIG=${KUBECONFIG} ./bin/kubehound -c configs/etc/kubehound.yaml
 
 .PHONY: backend-down
