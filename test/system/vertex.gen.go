@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-07-17 14:18
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-07-17 15:06
 //
 // Generate it with "go generate ./..."
 //
@@ -236,6 +236,14 @@ var expectedVolumes = map[string]graph.Volume{
 		SourcePath: "",
 		MountPath:  "/host/",
 		Readonly:   false,
+	},
+	"hostroot-ro": {
+		StoreID:    "",
+		Name:       "hostroot-ro",
+		Type:       "",
+		SourcePath: "",
+		MountPath:  "/host/",
+		Readonly:   true,
 	},
 	"nodelog": {
 		StoreID:    "",

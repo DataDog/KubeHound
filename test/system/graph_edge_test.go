@@ -451,6 +451,70 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_STEAL() {
 	suite.Subset(identities, expected)
 }
 
+func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_READ() {
+	results, err := suite.g.V().
+		HasLabel("Container").
+		OutE().HasLabel("VOLUME_MOUNT").
+		InV().HasLabel("Volume").
+		Where(__.OutE().HasLabel("EXPLOIT_HOST_READ").
+			InV().HasLabel("Node")).
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[host-read-exploit-pod]], map[], map[name:[hostroot-ro]",
+	}
+	suite.ElementsMatch(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_WRITE() {
+	results, err := suite.g.V().
+		HasLabel("Container").
+		OutE().HasLabel("VOLUME_MOUNT").
+		InV().HasLabel("Volume").
+		Where(__.OutE().HasLabel("EXPLOIT_HOST_WRITE").
+			InV().HasLabel("Node")).
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[host-write-exploit-pod]], map[], map[name:[hostroot]",
+	}
+	suite.ElementsMatch(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_TRAVERSE() {
+	// results, err := suite.g.V().
+	// 	HasLabel("Container").
+	// 	OutE().HasLabel("VOLUME_MOUNT").
+	// 	InV().HasLabel("Volume").
+	// 	Where(__.OutE().HasLabel("EXPLOIT_HOST_WRITE").
+	// 		InV().HasLabel("Node")).
+	// 	Path().
+	// 	By(__.ValueMap("name")).
+	// 	ToList()
+
+	// suite.NoError(err)
+	// suite.GreaterOrEqual(len(results), 1)
+
+	// paths := suite.pathsToStringArray(results)
+	// expected := []string{
+	// 	"path[map[name:[host-write-exploit-pod]], map[], map[name:[hostroot]",
+	// }
+	// suite.ElementsMatch(paths, expected)
+	suite.Fail("TODO")
+}
+
 func (suite *EdgeTestSuite) Test_NoEdgeCase() {
 	// The control pod has no interesting properties and therefore should have NO outgoing edges
 	results, err := suite.g.V().
