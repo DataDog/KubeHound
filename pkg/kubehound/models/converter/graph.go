@@ -26,6 +26,9 @@ func NewGraph() *GraphConverter {
 func (c *GraphConverter) Container(input *store.Container, parent *store.Pod) (*graph.Container, error) {
 	output := &graph.Container{
 		StoreID:     input.Id.Hex(),
+		App:         input.Ownership.Application,
+		Team:        input.Ownership.Team,
+		Service:     input.Ownership.Service,
 		Namespace:   parent.K8.Namespace,
 		Name:        input.K8.Name,
 		Image:       input.K8.Image,
@@ -81,6 +84,9 @@ func (c *GraphConverter) Container(input *store.Container, parent *store.Pod) (*
 func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 	output := &graph.Node{
 		StoreID:  input.Id.Hex(),
+		App:      input.Ownership.Application,
+		Team:     input.Ownership.Team,
+		Service:  input.Ownership.Service,
 		Name:     input.K8.Name,
 		Critical: risk.Engine().IsCritical(input),
 	}
@@ -97,6 +103,9 @@ func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 	output := &graph.Pod{
 		StoreID:        input.Id.Hex(),
+		App:            input.Ownership.Application,
+		Team:           input.Ownership.Team,
+		Service:        input.Ownership.Service,
 		Name:           input.K8.Name,
 		Namespace:      input.K8.GetNamespace(),
 		ServiceAccount: input.K8.Spec.ServiceAccountName,
@@ -117,6 +126,9 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.Volume, error) {
 	output := &graph.Volume{
 		StoreID:   input.Id.Hex(),
+		App:       input.Ownership.Application,
+		Team:      input.Ownership.Team,
+		Service:   input.Ownership.Service,
 		Name:      input.Name,
 		Namespace: parent.K8.Namespace,
 	}
@@ -180,6 +192,9 @@ func (c *GraphConverter) flattenPolicyRules(input []rbacv1.PolicyRule) []string 
 func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
 	output := &graph.Role{
 		StoreID:   input.Id.Hex(),
+		App:       input.Ownership.Application,
+		Team:      input.Ownership.Team,
+		Service:   input.Ownership.Service,
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Rules:     c.flattenPolicyRules(input.Rules),
@@ -197,6 +212,9 @@ func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
 func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error) {
 	output := &graph.Identity{
 		StoreID:   input.Id.Hex(),
+		App:       input.Ownership.Application,
+		Team:      input.Ownership.Team,
+		Service:   input.Ownership.Service,
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Type:      input.Type,

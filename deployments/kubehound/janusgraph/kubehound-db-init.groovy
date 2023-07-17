@@ -49,12 +49,15 @@ mgmt.addConnection(podAttach, node, pod);
 
 podCreate = mgmt.makeEdgeLabel('POD_CREATE').multiplicity(MULTI).make();
 mgmt.addConnection(podCreate, role, node);
+mgmt.addConnection(podCreate, role, role); // self-referencing for large cluster optimizations
 
 podPatch = mgmt.makeEdgeLabel('POD_PATCH').multiplicity(MULTI).make();
 mgmt.addConnection(podPatch, role, node);
+mgmt.addConnection(podPatch, role, role); // self-referencing for large cluster optimizations
 
 podExec = mgmt.makeEdgeLabel('POD_EXEC').multiplicity(MULTI).make();
 mgmt.addConnection(podExec, role, pod);
+mgmt.addConnection(podExec, role, role); // self-referencing for large cluster optimizations
 
 tokenSteal = mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(MULTI).make();
 mgmt.addConnection(tokenSteal, volume, identity);
@@ -87,6 +90,9 @@ mgmt.addConnection(sysPtrace, container, node);
 // All properties we will index on
 cls = mgmt.makePropertyKey('class').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 storeID = mgmt.makePropertyKey('storeID').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+app = mgmt.makePropertyKey('app').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+team = mgmt.makePropertyKey('team').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+service = mgmt.makePropertyKey('service').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 name = mgmt.makePropertyKey('name').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 namespace = mgmt.makePropertyKey('namespace').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 type = mgmt.makePropertyKey('type').dataType(String.class).cardinality(Cardinality.SINGLE).make();
@@ -116,19 +122,22 @@ ports = mgmt.makePropertyKey('ports').dataType(String.class).cardinality(Cardina
 identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 
 // Define properties for each vertex 
-mgmt.addProperties(container, cls, storeID, isNamespaced, namespace, name, image, privileged, privesc, hostPid, hostPath, 
+mgmt.addProperties(container, cls, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, hostPath, 
     hostIpc, hostNetwork, runAsUser, podName, nodeName, compromised, command, args, capabilities, ports);
-mgmt.addProperties(identity, cls, storeID, name, isNamespaced, namespace, type, critical);
-mgmt.addProperties(node, cls, storeID, name, isNamespaced, namespace, compromised, critical);
-mgmt.addProperties(pod, cls, storeID, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
-mgmt.addProperties(role, cls, storeID, name, isNamespaced, namespace, rules, critical);
-mgmt.addProperties(volume, cls, storeID, name, isNamespaced, namespace, type, path);
+mgmt.addProperties(identity, cls, storeID, app, team, service, name, isNamespaced, namespace, type, critical);
+mgmt.addProperties(node, cls, storeID, app, team, service, name, isNamespaced, namespace, compromised, critical);
+mgmt.addProperties(pod, cls, storeID, app, team, service, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
+mgmt.addProperties(role, cls, storeID, app, team, service, name, isNamespaced, namespace, rules, critical);
+mgmt.addProperties(volume, cls, storeID, app, team, service, name, isNamespaced, namespace, type, path);
 
 
 // Create the indexes on vertex properties
 // NOTE: labels cannot be indexed so we create the class property to mirror the vertex label and allow indexing
 mgmt.buildIndex('byClass', Vertex.class).addKey(cls).buildCompositeIndex();
 mgmt.buildIndex('byStoreIDUnique', Vertex.class).addKey(storeID).unique().buildCompositeIndex();
+mgmt.buildIndex('byApp', Vertex.class).addKey(app).buildCompositeIndex();
+mgmt.buildIndex('byTeam', Vertex.class).addKey(team).buildCompositeIndex();
+mgmt.buildIndex('byService', Vertex.class).addKey(service).buildCompositeIndex();
 mgmt.buildIndex('byName', Vertex.class).addKey(name).buildCompositeIndex();
 mgmt.buildIndex('byNamespace', Vertex.class).addKey(namespace).buildCompositeIndex();
 mgmt.buildIndex('byType', Vertex.class).addKey(type).buildCompositeIndex();
@@ -139,6 +148,9 @@ mgmt.commit();
 // Wait for indexes to become available
 ManagementSystem.awaitGraphIndexStatus(graph, 'byClass').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byStoreIDUnique').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byApp').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byTeam').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byService').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byName').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byNamespace').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byType').status(SchemaStatus.ENABLED).call();

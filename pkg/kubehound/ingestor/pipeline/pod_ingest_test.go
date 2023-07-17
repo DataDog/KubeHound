@@ -107,6 +107,9 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"serviceAccount":         "app-monitors",
 		"sharedProcessNamespace": false,
 		"storeID":                pid.Hex(),
+		"team":                   "test-team",
+		"app":                    "test-app",
+		"service":                "test-service",
 	}
 
 	gdb := graphdb.NewProvider(t)
@@ -135,7 +138,11 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"privesc":      false,
 		"privileged":   false,
 		"runAsUser":    float64(0),
-		"storeID":      cid.Hex()}
+		"storeID":      cid.Hex(),
+		"team":         "test-team",
+		"app":          "test-app",
+		"service":      "test-service",
+	}
 
 	cgw := graphdb.NewAsyncVertexWriter(t)
 	cgw.EXPECT().Queue(ctx, cv).Return(nil).Once()
@@ -150,6 +157,9 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"namespace":    "test-app",
 		"path":         "/var/lib/kubelet/pods//volumes/kubernetes.io~projected/kube-api-access-4x9fz/token",
 		"storeID":      vid.Hex(),
+		"team":         "test-team",
+		"app":          "test-app",
+		"service":      "test-service",
 		"type":         "Projected",
 	}
 	vgw := graphdb.NewAsyncVertexWriter(t)

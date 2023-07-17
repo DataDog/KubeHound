@@ -69,6 +69,9 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 			"API(apps)::R(statefulsets)::N()::V(get,list)",
 		},
 		"storeID": storeId.Hex(),
+		"team":    "test-team",
+		"app":     "test-app",
+		"service": "test-service",
 	}
 
 	gdb := graphdb.NewProvider(t)

@@ -6,7 +6,12 @@
         },
         "creationTimestamp": "2021-06-16T18:30:44Z",
         "name": "app-monitors-read",
-        "namespace": "test-app"
+        "namespace": "test-app",
+        "labels": {
+            "app": "test-app",
+            "team": "test-team",
+            "service": "test-service"
+        }
     },
     "roleRef": {
         "apiGroup": "rbac.authorization.k8s.io",

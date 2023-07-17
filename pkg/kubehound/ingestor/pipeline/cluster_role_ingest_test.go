@@ -70,7 +70,12 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 			"API()::R(configmaps)::N()::V(get)",
 			"API(apps)::R(statefulsets)::N()::V(get,list)",
 		},
-		"storeID": storeId.Hex()}
+		"storeID": storeId.Hex(),
+		"team":    "test-team",
+		"app":     "test-app",
+		"service": "test-service",
+	}
+
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
 	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()

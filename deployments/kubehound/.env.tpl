@@ -1,2 +1,2 @@
 export DD_API_KEY=
-export KUBEHOUND_ENV=prod
+export KUBEHOUND_ENV=dev

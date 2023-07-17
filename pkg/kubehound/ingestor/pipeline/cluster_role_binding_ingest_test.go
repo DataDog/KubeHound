@@ -84,6 +84,9 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 		"namespace":    "",
 		"storeID":      storeId.Hex(),
 		"type":         "ServiceAccount",
+		"team":         "test-team",
+		"app":          "test-app",
+		"service":      "test-service",
 	}
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
