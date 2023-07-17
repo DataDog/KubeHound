@@ -56,15 +56,17 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 			HostNetwork:    parent.K8.Spec.HostNetwork,
 			ServiceAccount: parent.K8.Spec.ServiceAccountName,
 		},
-		K8: corev1.Container(*input),
+		K8:        corev1.Container(*input),
+		Ownership: store.ExtractOwnership(parent.K8.Labels),
 	}, nil
 }
 
 // Node returns the store representation of a K8s node from an input K8s node object.
 func (c *StoreConverter) Node(_ context.Context, input types.NodeType) (*store.Node, error) {
 	output := &store.Node{
-		Id: store.ObjectID(),
-		K8: corev1.Node(*input),
+		Id:        store.ObjectID(),
+		K8:        corev1.Node(*input),
+		Ownership: store.ExtractOwnership(input.ObjectMeta.Labels),
 	}
 
 	if len(input.Namespace) != 0 {
@@ -87,9 +89,10 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 	}
 
 	output := &store.Pod{
-		Id:     store.ObjectID(),
-		NodeId: nid,
-		K8:     corev1.Pod(*input),
+		Id:        store.ObjectID(),
+		NodeId:    nid,
+		K8:        corev1.Pod(*input),
+		Ownership: store.ExtractOwnership(input.ObjectMeta.Labels),
 	}
 
 	if len(input.Namespace) != 0 {
@@ -118,12 +121,13 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, par
 	}
 
 	output := &store.Volume{
-		Id:     store.ObjectID(),
-		PodId:  parent.Id,
-		NodeId: parent.NodeId,
-		Name:   input.Name,
-		Type:   vtype,
-		Source: corev1.Volume(*input),
+		Id:        store.ObjectID(),
+		PodId:     parent.Id,
+		NodeId:    parent.NodeId,
+		Name:      input.Name,
+		Type:      vtype,
+		Source:    corev1.Volume(*input),
+		Ownership: store.ExtractOwnership(parent.K8.Labels),
 	}
 
 	// A volume may be mounted by multiple containers in the same pod.
@@ -155,6 +159,7 @@ func (c *StoreConverter) Role(_ context.Context, input types.RoleType) (*store.R
 		IsNamespaced: true,
 		Namespace:    input.Namespace,
 		Rules:        input.Rules,
+		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
 	}, nil
 }
 
@@ -166,6 +171,7 @@ func (c *StoreConverter) ClusterRole(_ context.Context, input types.ClusterRoleT
 		IsNamespaced: false,
 		Namespace:    "",
 		Rules:        input.Rules,
+		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
 	}, nil
 }
 
@@ -214,6 +220,7 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 		IsNamespaced: true,
 		Namespace:    input.Namespace,
 		Subjects:     make([]store.BindSubject, 0, len(subj)),
+		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
 	}
 
 	for _, s := range subj {
@@ -254,6 +261,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 		IsNamespaced: false,
 		Namespace:    "",
 		Subjects:     make([]store.BindSubject, 0, len(subj)),
+		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
 	}
 
 	for _, s := range subj {
@@ -270,12 +278,13 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 // Identity returns the store representation of a K8s identity role binding from an input store BindSubject (subfield of RoleBinding) object.
 // NOTE: store.Identity does not map directly to a K8s API object and instead derives from the subject of a role binding.
-func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject) (*store.Identity, error) {
+func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, parent *store.RoleBinding) (*store.Identity, error) {
 	output := &store.Identity{
 		Id:        input.IdentityId,
 		Name:      input.Subject.Name,
 		Namespace: "",
 		Type:      input.Subject.Kind,
+		Ownership: parent.Ownership,
 	}
 
 	if len(input.Subject.Namespace) != 0 {

@@ -6,6 +6,9 @@ import (
 
 type Container struct {
 	StoreID      string                `json:"storeID" mapstructure:"storeID"`
+	App          string                `json:"app" mapstructure:"app"`
+	Team         string                `json:"team" mapstructure:"team"`
+	Service      string                `json:"service" mapstructure:"service"`
 	IsNamespaced bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string                `json:"namespace" mapstructure:"namespace"`
 	Name         string                `json:"name" mapstructure:"name"`
@@ -28,6 +31,9 @@ type Container struct {
 
 type Group struct {
 	StoreID      string `json:"storeID" mapstructure:"storeID"`
+	App          string `json:"app" mapstructure:"app"`
+	Team         string `json:"team" mapstructure:"team"`
+	Service      string `json:"service" mapstructure:"service"`
 	IsNamespaced bool   `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string `json:"namespace" mapstructure:"namespace"`
 	Name         string `json:"name" mapstructure:"name"`
@@ -36,6 +42,9 @@ type Group struct {
 
 type Identity struct {
 	StoreID      string `json:"storeID" mapstructure:"storeID"`
+	App          string `json:"app" mapstructure:"app"`
+	Team         string `json:"team" mapstructure:"team"`
+	Service      string `json:"service" mapstructure:"service"`
 	IsNamespaced bool   `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string `json:"namespace" mapstructure:"namespace"`
 	Name         string `json:"name" mapstructure:"name"`
@@ -45,6 +54,9 @@ type Identity struct {
 
 type Node struct {
 	StoreID      string                `json:"storeID" mapstructure:"storeID"`
+	App          string                `json:"app" mapstructure:"app"`
+	Team         string                `json:"team" mapstructure:"team"`
+	Service      string                `json:"service" mapstructure:"service"`
 	Name         string                `json:"name" mapstructure:"name"`
 	IsNamespaced bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string                `json:"namespace" mapstructure:"namespace"`
@@ -54,6 +66,9 @@ type Node struct {
 
 type Pod struct {
 	StoreID                string                `json:"storeID" mapstructure:"storeID"`
+	App                    string                `json:"app" mapstructure:"app"`
+	Team                   string                `json:"team" mapstructure:"team"`
+	Service                string                `json:"service" mapstructure:"service"`
 	Name                   string                `json:"name" mapstructure:"name"`
 	IsNamespaced           bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace              string                `json:"namespace" mapstructure:"namespace"`
@@ -66,6 +81,9 @@ type Pod struct {
 
 type Role struct {
 	StoreID      string   `json:"storeID" mapstructure:"storeID"`
+	App          string   `json:"app" mapstructure:"app"`
+	Team         string   `json:"team" mapstructure:"team"`
+	Service      string   `json:"service" mapstructure:"service"`
 	Name         string   `json:"name" mapstructure:"name"`
 	IsNamespaced bool     `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string   `json:"namespace" mapstructure:"namespace"`
@@ -75,6 +93,9 @@ type Role struct {
 
 type Volume struct {
 	StoreID      string `json:"storeID" mapstructure:"storeID"`
+	App          string `json:"app" mapstructure:"app"`
+	Team         string `json:"team" mapstructure:"team"`
+	Service      string `json:"service" mapstructure:"service"`
 	IsNamespaced bool   `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string `json:"namespace" mapstructure:"namespace"`
 	Name         string `json:"name" mapstructure:"name"`

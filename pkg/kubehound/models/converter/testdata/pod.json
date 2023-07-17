@@ -6,7 +6,12 @@
         "generateName": "app-monitors-client-78cb6d7899-",
         "name": "app-monitors-client-78cb6d7899-j2rjp",
         "namespace": "test-app",
-        "uid": "5a9fc508-8410-444a-bf63-9f11e5979bee"
+        "uid": "5a9fc508-8410-444a-bf63-9f11e5979bee",
+        "labels": {
+            "app": "test-app",
+            "team": "test-team",
+            "service": "test-service"
+        }
     },
     "spec": {
         "containers": [

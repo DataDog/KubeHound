@@ -6,32 +6,64 @@ Full documentation available on confluence: https://datadoghq.atlassian.net/wiki
 
 ## Run
 
-### Prerequisites - set the infrastructure
-To run the application, you can use docker image with the compose:
-* cp deployments/kubehound/.env.tpl deployments/kubehound/.env
-* Edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`)
-    * KUBEHOUND_ENV: `dev` or `prod`
-    * DD_API_KEY: api key you created from https://app.datadoghq.com/ website
+### Prerequisites - setup the infrastructure
+
+To run the application, you can use docker image with the compose. First create and populate a .env file with the required variables:
+
+```bash
+cp deployments/kubehound/.env.tpl deployments/kubehound/.env
+```
+Then, edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`):
+
+* `KUBEHOUND_ENV`: `dev` or `prod`
+* `DD_API_KEY`: api key you created from https://app.datadoghq.com/ website
 
 Note:
-* KUBEHOUND_ENV=prod will use prebuilt image from ghcr.io
-* KUBEHOUND_ENV=dev will build the images locally
+* `KUBEHOUND_ENV=prod` will use prebuilt image from ghcr.io (:rotating_light: currently NOT supported :rotating_light:)
+* `KUBEHOUND_ENV=dev` will build the images locally
 
-To target a specific cluster there is 2 way:
-* Select the targeted cluster: `kubectx` (need to be installed separtly)     
-    * Run kubehound: `./bin/kubehound -c configs/etc/kubehound.yaml`
-* Use a specific kubeconfig file by exporting the env variable: `EXPORT KUBECONFIG=/your/path/to/.kube/config`
+To target a specific cluster there are 2 options:
+* Select the targeted cluster via `kubectx` (need to be installed separately)     
+* Use a specific kubeconfig file by exporting the env variable: `export KUBECONFIG=/your/path/to/.kube/config`
 
 ### Run Kubehound - Automated way
-To run kubehound the easy way, just run : `make run`
+
+To run kubehound the easy way, just run:
+
+```bash
+make kubehound
+```
+
+This will do the following:
+* Start the backend services via docker compose (wiping any existing data)
+* Compile the kubehound binary from source
+* Run the kubehound binary using the default configuration
 
 ### Run Kubehound - Manual way
-Here are the steps being done by the automated way:
-* Build the application: `make build`
-* Run the infrastructure (databases needed for Kubehound): `make backend-up`
-* Run the kubehound (from local binary):
-    * Against current cluster: `./bin/kubehound -c configs/etc/kubehound.yaml`
-    * Against a specific cluster: `KUBECONFIG=/your/path/to/.kube/config ./bin/kubehound -c configs/etc/kubehound.yaml`
+
+To replicate the automated command and run KubeHound step-by-step. First build the application:
+
+```bash
+make build
+```
+
+Next spawn the backend infrastructure
+
+```bash
+make backend-up
+```
+
+Finally run the KubeHound binary
+
+```bash
+make run
+```
+
+Remember the targeted cluster must be set via `kubectx` or setting the `KUBECONFIG` environment variable. Additional functionality for managing the application can be found via:
+
+```bash
+make help
+```
 
 ### Using KubeHound Data
 
@@ -126,5 +158,5 @@ To view a sample graph demonstrating attacks in a very, very vulnerable cluster 
 make local-cluster-deploy && make system-test
 ```
 
-Then use a graph visualizer of choice (we recommend [gdotv](https://gdotv.com/)) to connect to localhost and view and query the sample data.
+Then use a graph visualizer of choice (we recommend [gdotv](https://gdotv.com/)) to connect to localhost and view and query the sample data. **NOTE** you must change the port to `8183` (rather than default `8182`)
 

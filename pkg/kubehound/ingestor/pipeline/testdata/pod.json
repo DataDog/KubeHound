@@ -5,7 +5,12 @@
         "creationTimestamp": "2023-04-05T19:38:08Z",
         "generateName": "app-monitors-client-78cb6d7899-",
         "name": "app-monitors-client-78cb6d7899-j2rjp",
-        "namespace": "test-app"
+        "namespace": "test-app",
+        "labels": {
+            "app": "test-app",
+            "team": "test-team",
+            "service": "test-service"
+        }
     },
     "spec": {
         "containers": [

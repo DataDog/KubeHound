@@ -52,6 +52,7 @@ func TestConverter_NodePipeline(t *testing.T) {
 	assert.NoError(t, err, "graph node convert error")
 
 	assert.Equal(t, storeNode.Id.Hex(), graphNode.StoreID)
+	assert.Equal(t, graphNode.Team, "test-team")
 	assert.Equal(t, storeNode.K8.Name, graphNode.Name)
 	assert.False(t, storeNode.IsNamespaced)
 	assert.Equal(t, storeNode.K8.Namespace, graphNode.Namespace)
@@ -81,6 +82,9 @@ func TestConverter_RolePipeline(t *testing.T) {
 	assert.Equal(t, storeRole.Id.Hex(), graphRole.StoreID)
 	assert.Equal(t, storeRole.Name, graphRole.Name)
 	assert.Equal(t, storeRole.Namespace, graphRole.Namespace)
+	assert.Equal(t, graphRole.App, "test-app")
+	assert.Equal(t, graphRole.Service, "test-service")
+	assert.Equal(t, graphRole.Team, "test-team")
 
 	rules := []string{
 		"API()::R(pods)::N()::V(get,list)",
@@ -111,6 +115,9 @@ func TestConverter_ClusterRolePipeline(t *testing.T) {
 	assert.NoError(t, err, "graph role convert error")
 
 	assert.Equal(t, storeRole.Id.Hex(), graphRole.StoreID)
+	assert.Equal(t, graphRole.App, "test-app")
+	assert.Equal(t, graphRole.Service, "test-service")
+	assert.Equal(t, graphRole.Team, "test-team")
 	assert.Equal(t, storeRole.Name, graphRole.Name)
 	assert.Equal(t, storeRole.Namespace, graphRole.Namespace)
 
@@ -156,7 +163,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, subject.Subject, input.Subjects[0])
 
 	// Collector input -> store identity
-	storeIdentity, err := NewStore().Identity(context.TODO(), &subject)
+	storeIdentity, err := NewStore().Identity(context.TODO(), &subject, storeBinding)
 	assert.NoError(t, err, "store identity convert error")
 
 	assert.Equal(t, subject.Subject.Name, storeIdentity.Name)
@@ -168,6 +175,9 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.NoError(t, err, "graph role binding convert error")
 
 	assert.Equal(t, storeIdentity.Id.Hex(), graphIdentity.StoreID)
+	assert.Equal(t, graphIdentity.App, "test-app")
+	assert.Equal(t, graphIdentity.Service, "test-service")
+	assert.Equal(t, graphIdentity.Team, "test-team")
 	assert.Equal(t, storeIdentity.Name, graphIdentity.Name)
 	assert.Equal(t, storeIdentity.Namespace, graphIdentity.Namespace)
 	assert.Equal(t, storeIdentity.Type, graphIdentity.Type)
@@ -206,7 +216,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, subject.Subject, input.Subjects[0])
 
 	// Collector input -> store identity
-	storeIdentity, err := NewStore().Identity(context.TODO(), &subject)
+	storeIdentity, err := NewStore().Identity(context.TODO(), &subject, storeBinding)
 	assert.NoError(t, err, "store identity convert error")
 
 	assert.Equal(t, subject.Subject.Name, storeIdentity.Name)
@@ -218,6 +228,9 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.NoError(t, err, "graph role binding convert error")
 
 	assert.Equal(t, storeIdentity.Id.Hex(), graphIdentity.StoreID)
+	assert.Equal(t, graphIdentity.App, "test-app")
+	assert.Equal(t, graphIdentity.Service, "test-service")
+	assert.Equal(t, graphIdentity.Team, "test-team")
 	assert.Equal(t, storeIdentity.Name, graphIdentity.Name)
 	assert.Equal(t, storeIdentity.Namespace, graphIdentity.Namespace)
 	assert.Equal(t, storeIdentity.Type, graphIdentity.Type)
@@ -273,6 +286,9 @@ func TestConverter_PodPipeline(t *testing.T) {
 	assert.NoError(t, err, "graph pod convert error")
 
 	assert.Equal(t, storePod.Id.Hex(), graphPod.StoreID)
+	assert.Equal(t, graphPod.App, "test-app")
+	assert.Equal(t, graphPod.Service, "test-service")
+	assert.Equal(t, graphPod.Team, "test-team")
 	assert.Equal(t, storePod.K8.Name, graphPod.Name)
 	assert.Equal(t, storePod.K8.Namespace, graphPod.Namespace)
 	assert.False(t, graphPod.SharedProcessNamespace)
@@ -324,6 +340,9 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.NoError(t, err, "graph container convert error")
 
 	assert.Equal(t, storeContainer.Id.Hex(), graphContainer.StoreID)
+	assert.Equal(t, graphContainer.App, "test-app")
+	assert.Equal(t, graphContainer.Service, "test-service")
+	assert.Equal(t, graphContainer.Team, "test-team")
 	assert.Equal(t, storeContainer.K8.Name, graphContainer.Name)
 	assert.Equal(t, storeContainer.K8.Image, graphContainer.Image)
 	assert.Equal(t, storeContainer.K8.Command, graphContainer.Command)
@@ -358,6 +377,9 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.NoError(t, err, "graph volume convert error")
 
 	assert.Equal(t, storeVolume0.Id.Hex(), graphVolume.StoreID)
+	assert.Equal(t, graphVolume.App, "test-app")
+	assert.Equal(t, graphVolume.Service, "test-service")
+	assert.Equal(t, graphVolume.Team, "test-team")
 	assert.Equal(t, storeVolume0.Name, graphVolume.Name)
 	assert.Equal(t, shared.VolumeTypeProjected, graphVolume.Type)
 	assert.Equal(t, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token", graphVolume.Path)
@@ -366,6 +388,9 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.NoError(t, err, "graph volume convert error")
 
 	assert.Equal(t, storeVolume1.Id.Hex(), graphVolume.StoreID)
+	assert.Equal(t, graphVolume.App, "test-app")
+	assert.Equal(t, graphVolume.Service, "test-service")
+	assert.Equal(t, graphVolume.Team, "test-team")
 	assert.Equal(t, storeVolume1.Name, graphVolume.Name)
 	assert.Equal(t, shared.VolumeTypeHost, graphVolume.Type)
 	assert.Equal(t, "/var/run/datadog-agent", graphVolume.Path)

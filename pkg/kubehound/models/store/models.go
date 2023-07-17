@@ -11,49 +11,54 @@ import (
 // security related information. Any capabilities derived from the containing Pod are set ONLY on the container (and
 // inheritance/override rules applied)
 type ContainerInherited struct {
-	PodName        string `bson:"pod_name,omitempty"`
-	NodeName       string `bson:"node_name,omitempty"`
-	HostPID        bool   `bson:"host_pid,omitempty"`
-	HostIPC        bool   `bson:"host_ipc,omitempty"`
-	HostNetwork    bool   `bson:"host_net,omitempty"`
+	PodName        string `bson:"pod_name"`
+	NodeName       string `bson:"node_name"`
+	HostPID        bool   `bson:"host_pid"`
+	HostIPC        bool   `bson:"host_ipc"`
+	HostNetwork    bool   `bson:"host_net"`
 	ServiceAccount string `bson:"service_account"`
 }
 
 type Container struct {
-	Id        primitive.ObjectID `bson:"_id,omitempty"`
-	PodId     primitive.ObjectID `bson:"pod_id,omitempty"`
-	NodeId    primitive.ObjectID `bson:"node_id,omitempty"`
-	Inherited ContainerInherited `bson:"inherited,omitempty"`
-	K8        corev1.Container   `bson:"k8,omitempty"`
+	Id        primitive.ObjectID `bson:"_id"`
+	PodId     primitive.ObjectID `bson:"pod_id"`
+	NodeId    primitive.ObjectID `bson:"node_id"`
+	Inherited ContainerInherited `bson:"inherited"`
+	K8        corev1.Container   `bson:"k8"`
+	Ownership OwnershipInfo      `bson:"ownership"`
 }
 
 type Pod struct {
-	Id           primitive.ObjectID `bson:"_id,omitempty"`
-	NodeId       primitive.ObjectID `bson:"node_id,omitempty"`
+	Id           primitive.ObjectID `bson:"_id"`
+	NodeId       primitive.ObjectID `bson:"node_id"`
 	IsNamespaced bool               `bson:"is_namespaced"`
-	K8           corev1.Pod         `bson:"k8,omitempty"`
+	K8           corev1.Pod         `bson:"k8"`
+	Ownership    OwnershipInfo      `bson:"ownership"`
 }
 
 type Node struct {
-	Id           primitive.ObjectID `bson:"_id,omitempty"`
+	Id           primitive.ObjectID `bson:"_id"`
 	IsNamespaced bool               `bson:"is_namespaced"`
-	K8           corev1.Node        `bson:"k8,omitempty"`
+	K8           corev1.Node        `bson:"k8"`
+	Ownership    OwnershipInfo      `bson:"ownership"`
 }
 
 type VolumeMount struct {
 	ContainerId primitive.ObjectID `bson:"container_id"`
 	K8          corev1.VolumeMount `bson:"k8"`
+	Ownership   OwnershipInfo      `bson:"ownership"`
 }
 
 type Volume struct {
-	Id       primitive.ObjectID `bson:"_id"`
-	NodeId   primitive.ObjectID `bson:"node_id"`
-	PodId    primitive.ObjectID `bson:"pod_id"`
-	Name     string             `bson:"name"`
-	Type     string             `bson:"type"`
-	Source   corev1.Volume      `bson:"source"`
-	Mounts   []VolumeMount      `bson:"mounts"`
-	ReadOnly bool               `bson:"readonly"`
+	Id        primitive.ObjectID `bson:"_id"`
+	NodeId    primitive.ObjectID `bson:"node_id"`
+	PodId     primitive.ObjectID `bson:"pod_id"`
+	Name      string             `bson:"name"`
+	Type      string             `bson:"type"`
+	Source    corev1.Volume      `bson:"source"`
+	Mounts    []VolumeMount      `bson:"mounts"`
+	ReadOnly  bool               `bson:"readonly"`
+	Ownership OwnershipInfo      `bson:"ownership"`
 }
 
 type Role struct {
@@ -62,6 +67,7 @@ type Role struct {
 	IsNamespaced bool                `bson:"is_namespaced"`
 	Namespace    string              `bson:"namespace"`
 	Rules        []rbacv1.PolicyRule `bson:"rules"`
+	Ownership    OwnershipInfo       `bson:"ownership"`
 }
 
 type BindSubject struct {
@@ -76,6 +82,7 @@ type RoleBinding struct {
 	IsNamespaced bool               `bson:"is_namespaced"`
 	Namespace    string             `bson:"namespace"`
 	Subjects     []BindSubject      `bson:"subjects"`
+	Ownership    OwnershipInfo      `bson:"ownership"`
 }
 
 type Identity struct {
@@ -84,4 +91,5 @@ type Identity struct {
 	IsNamespaced bool               `bson:"is_namespaced"`
 	Namespace    string             `bson:"namespace"`
 	Type         string             `bson:"type"`
+	Ownership    OwnershipInfo      `bson:"ownership"`
 }
