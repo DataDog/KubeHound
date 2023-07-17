@@ -26,11 +26,6 @@ type PipelineIngestor struct {
 }
 
 // ingestSequence returns the optimized pipeline sequence for ingestion.
-//
-//		__________[collector.StreamNodes]__________________[collector.StreamPods]_____________
-//	 __/													  								   \
-//	   \__________ [collector.StreamRole]_______________[collector.StreamRoleBinding]__________/
-//		   \___[collector.StreamClusterRole]____/\____[collector.StreamClusterRoleBinding]____/
 func ingestSequence() []pipeline.Sequence {
 	return []pipeline.Sequence{
 		{
