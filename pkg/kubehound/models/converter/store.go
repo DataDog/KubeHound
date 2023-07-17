@@ -105,7 +105,7 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 	return output, nil
 }
 
-func (c *StoreConverter) handleProjectedVolume(ctx context.Context, input types.VolumeType,
+func (c *StoreConverter) handleProjectedVolume(ctx context.Context, input types.VolumeMountType,
 	volume *corev1.Volume, pod *store.Pod) (primitive.ObjectID, string, error) {
 
 	// Retrieve the associated identity store ID from the cache
@@ -134,7 +134,7 @@ func (c *StoreConverter) handleProjectedVolume(ctx context.Context, input types.
 
 // Volume returns the store representation of a K8s mounted volume from an input K8s volume object.
 // NOTE: requires cache access (ContainerKey).
-func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeType, pod *store.Pod,
+func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeMountType, pod *store.Pod,
 	container *store.Container) (*store.Volume, error) {
 
 	if c.cache == nil {

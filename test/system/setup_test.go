@@ -36,6 +36,7 @@ func runKubeHound() error {
 }
 
 func TestMain(m *testing.M) {
+
 	if err := runKubeHound(); err != nil {
 		log.I.Fatalf(err.Error())
 	}

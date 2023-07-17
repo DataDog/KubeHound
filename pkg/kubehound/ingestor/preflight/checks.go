@@ -33,7 +33,7 @@ func CheckPod(pod types.PodType) (bool, error) {
 }
 
 // CheckVolume checks an input K8s volume object and reports whether it should be ingested.
-func CheckVolume(volume types.VolumeType) (bool, error) {
+func CheckVolume(volume types.VolumeMountType) (bool, error) {
 	if volume == nil {
 		return false, errors.New("nil volume input in preflight check")
 	}

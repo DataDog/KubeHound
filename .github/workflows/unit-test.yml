@@ -33,6 +33,9 @@ jobs:
        
       - name: Checkout Git Repo
         uses: actions/checkout@v3
-
+      
+      - name: Generate mocks
+        run: make generate
+      
       - name: Run Unit Tests
         run: make test

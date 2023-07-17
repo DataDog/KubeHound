@@ -59,7 +59,7 @@ func TestMustLoadConfig(t *testing.T) {
 					},
 					Edge: EdgeBuilderConfig{
 						LargeClusterOptimizations: false,
-						WorkerPoolSize:            10,
+						WorkerPoolSize:            5,
 						WorkerPoolCapacity:        100,
 						BatchSize:                 500,
 						BatchSizeSmall:            100,

@@ -263,17 +263,17 @@ func (suite *VertexTestSuite) TestVertexRole() {
 func (suite *VertexTestSuite) TestVertexVolume() {
 	results, err := suite.g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
 	suite.NoError(err)
-	suite.Equal(56, len(results))
+	suite.Equal(50, len(results))
 
-	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("path", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
+	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("sourcePath", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
 
-	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("path", "/lib/modules").Has("name", "lib-modules").ElementMap().ToList()
+	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("sourcePath", "/lib/modules").Has("name", "lib-modules").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Greater(len(results), 1) // Not sure why it has "6"
 
-	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("path", "/var/log").Has("name", "nodelog").ElementMap().ToList()
+	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("sourcePath", "/var/log").Has("name", "nodelog").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(len(results), 1)
 }

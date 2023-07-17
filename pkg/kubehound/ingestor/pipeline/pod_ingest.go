@@ -120,7 +120,7 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 }
 
 // processVolumeMount will handle the ingestion pipeline for a volume belonging to a processed K8s pod input.
-func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.VolumeType,
+func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.VolumeMountType,
 	pod *store.Pod, container *store.Container) error {
 
 	if ok, err := preflight.CheckVolume(volumeMount); !ok {
@@ -192,9 +192,6 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 			return err
 		}
 	}
-
-	// Handle init containers
-	// TODO
 
 	return nil
 }

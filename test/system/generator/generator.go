@@ -185,17 +185,20 @@ func ProcessFile(basePath string, file os.FileInfo) {
 			p := store.Pod{
 				K8: *o,
 			}
-			for _, vol := range o.Spec.Volumes {
-				err = AddVolumeToList(&vol, &p)
-				if err != nil {
-					fmt.Println("Failed to add volume to list:", err)
-				}
-			}
+
 			for _, cont := range o.Spec.Containers {
 				err = AddContainerToList(&cont, &p)
 				if err != nil {
 					fmt.Println("Failed to add container to list:", err)
 				}
+
+				for _, vol := range cont.VolumeMounts {
+					err = AddVolumeToList(&vol, &p)
+					if err != nil {
+						fmt.Println("Failed to add volume to list:", err)
+					}
+				}
+
 			}
 		//TODO:
 		// case *v1beta1.Role, *v1beta1.RoleBinding, *v1beta1.ClusterRole, *v1beta1.ClusterRoleBinding:
@@ -257,11 +260,12 @@ func AddContainerToList(Container *corev1.Container, storePod *store.Pod) error 
 	return nil
 }
 
-func AddVolumeToList(volume *corev1.Volume, storePod *store.Pod) error {
+func AddVolumeToList(volume *corev1.VolumeMount, storePod *store.Pod) error {
 	fmt.Printf("Volume name: %s\n", volume.Name)
 	storeVolume := store.Volume{
-		Name: volume.Name,
-		// Source: *volume,
+		Name:      volume.Name,
+		MountPath: volume.MountPath,
+		ReadOnly:  volume.ReadOnly,
 	}
 	conv := converter.GraphConverter{}
 	convertedVolume, err := conv.Volume(&storeVolume, storePod)
@@ -353,10 +357,12 @@ func GenerateVolumeTemplate() ([]byte, error) {
 	tmpl := `var expectedVolumes = map[string]graph.Volume{
 		{{- range $val := .}}
 		"{{.Name}}": {
-			StoreID: "",
-			Name:    "{{.Name}}",
-			Type:    "{{.Type}}",
-			Path:    "{{.Path}}",
+			StoreID: 	"",
+			Name:    	"{{.Name}}",
+			Type:    	"{{.Type}}",
+			SourcePath: "{{.SourcePath}}",
+			MountPath:  "{{.MountPath}}",
+			Readonly:   {{.Readonly}},
 		},{{ end }}
 	}
 `

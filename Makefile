@@ -110,7 +110,7 @@ endif
 backend-reset-hard: backend-down backend-wipe backend-up ## Restart the kubehound stack and wipe all data
 
 .PHONY: test
-test: generate ## Run the full suite of unit tests 
+test: ## Run the full suite of unit tests 
 	cd pkg && go test -count=1 -race $(BUILD_FLAGS) ./...
 
 .PHONY: system-test
