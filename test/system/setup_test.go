@@ -22,6 +22,7 @@ const (
 
 // Optional syntactic sugar.
 var __ = gremlingo.T__
+var P = gremlingo.P
 
 // runKubeHound runs the collector against the local kind cluster, then runs KubeHound to create
 // an attack graph that can be queried in the individual system tests.

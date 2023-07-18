@@ -30,8 +30,7 @@ services:
     environment:
       #  Optimize for writes https://docs.janusgraph.org/operations/bulk-loading/
       - janusgraph.ids.block-size=3000000
-      # - janusgraph.storage.buffer-size=8192
-       # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
+      # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
       - janusgraph.schema.constraints=true
       - janusgraph.schema.default=none
       # Bump content length of web-socket buffer to enable bulk insert queries
@@ -49,7 +48,7 @@ services:
       - gremlinserver.threadPoolWorker=8 # should be 2x VCPU (TODO: can we set dynamically?)
     healthcheck:
       test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
-      interval: 15s # TEST TEST TEST
+      interval: 60s
       timeout: 30s
       retries: 5
       start_period: 30s

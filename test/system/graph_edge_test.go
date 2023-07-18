@@ -494,25 +494,43 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_WRITE() {
 }
 
 func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_TRAVERSE() {
-	// results, err := suite.g.V().
-	// 	HasLabel("Container").
-	// 	OutE().HasLabel("VOLUME_MOUNT").
-	// 	InV().HasLabel("Volume").
-	// 	Where(__.OutE().HasLabel("EXPLOIT_HOST_WRITE").
-	// 		InV().HasLabel("Node")).
-	// 	Path().
-	// 	By(__.ValueMap("name")).
-	// 	ToList()
+	for _, c := range []string{"host-read-exploit-pod", "host-write-exploit-pod"} {
+		// Find the containers on the same node as our vulnerable pod and map to their service accounts
+		results, err := suite.g.V().
+			HasLabel("Container").
+			Has("name", c).
+			Values("node").As("n").
+			V().HasLabel("Container").
+			Has("node", __.Where(P.Eq("n"))).
+			OutE("IDENTITY_ASSUME").
+			InV().
+			Values("name").
+			ToList()
 
-	// suite.NoError(err)
-	// suite.GreaterOrEqual(len(results), 1)
+		suite.NoError(err)
+		suite.GreaterOrEqual(len(results), 1)
+		expected := suite.resultsToStringArray(results)
 
-	// paths := suite.pathsToStringArray(results)
-	// expected := []string{
-	// 	"path[map[name:[host-write-exploit-pod]], map[], map[name:[hostroot]",
-	// }
-	// suite.ElementsMatch(paths, expected)
-	suite.Fail("TODO")
+		// Now find the identities our vulnerable pod can reach via doing a traverse to the projected token volume
+		results, err = suite.g.V().
+			HasLabel("Container").
+			Has("name", c).
+			OutE().HasLabel("VOLUME_MOUNT").
+			InV().HasLabel("Volume").
+			OutE().HasLabel("EXPLOIT_HOST_TRAVERSE").
+			InV().HasLabel("Volume").
+			OutE().HasLabel("TOKEN_STEAL").
+			InV().HasLabel("Identity").
+			Values("name").
+			ToList()
+
+		suite.NoError(err)
+		suite.GreaterOrEqual(len(results), 1)
+		reachable := suite.resultsToStringArray(results)
+
+		// Assert the 2 lists are the same
+		suite.ElementsMatch(expected, reachable)
+	}
 }
 
 func (suite *EdgeTestSuite) Test_NoEdgeCase() {
