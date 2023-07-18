@@ -26,6 +26,12 @@ View all the mounted host path volumes in the cluster:
 g.V().hasLabel("Volume").has("type", "HostPath").groupCount().by("sourcePath")
 ```
 
+View host path mounts that can be exploited to access a node:
+
+```groovy
+g.E().hasLabel("EXPLOIT_HOST_READ", "EXPLOIT_HOST_WRITE").outV().groupCount().by("sourcePath")
+```
+
 ## Basic path queries
 
 All paths between a volume and identity:

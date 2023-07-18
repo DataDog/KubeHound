@@ -7,6 +7,11 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
+// Volumes will not be ingested - use with caution!
+var SkipVolumes = map[string]bool{
+	"/var/run/datadog-agent": true,
+}
+
 // CheckNode checks an input K8s npode object and reports whether it should be ingested.
 func CheckNode(node types.NodeType) (bool, error) {
 	if node == nil {
@@ -36,6 +41,10 @@ func CheckPod(pod types.PodType) (bool, error) {
 func CheckVolume(volume types.VolumeMountType) (bool, error) {
 	if volume == nil {
 		return false, errors.New("nil volume input in preflight check")
+	}
+
+	if SkipVolumes[volume.MountPath] {
+		return false, nil
 	}
 
 	return true, nil

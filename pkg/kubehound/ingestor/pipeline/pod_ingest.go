@@ -123,6 +123,7 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.VolumeMountType,
 	pod *store.Pod, container *store.Container) error {
 
+	// TODO can we skip known good e.g agent here to cuyt down the volume??
 	if ok, err := preflight.CheckVolume(volumeMount); !ok {
 		return err
 	}
