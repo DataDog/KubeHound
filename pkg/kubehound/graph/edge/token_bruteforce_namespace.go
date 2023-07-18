@@ -101,10 +101,7 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 								}},
 								bson.M{"is_namespaced": false},
 							}},
-							bson.M{"$or": bson.A{
-								bson.M{"type": "ServiceAccount"},
-								bson.M{"type": "User"},
-							}},
+							bson.M{"type": "ServiceAccount"},
 						}},
 					},
 					{
