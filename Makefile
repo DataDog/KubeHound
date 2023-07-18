@@ -75,7 +75,7 @@ generate: ## Generate code the application
 	go generate $(BUILD_FLAGS) ./...
 
 .PHONY: build
-build: generate ## Build the application
+build: ## Build the application
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
 
 .PHONY: kubehound

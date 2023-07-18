@@ -19,7 +19,6 @@ type Container struct {
 	Privileged   bool                  `json:"privileged" mapstructure:"privileged"`
 	PrivEsc      bool                  `json:"privesc" mapstructure:"privesc"`
 	HostPID      bool                  `json:"hostPid" mapstructure:"hostPid"`
-	HostPath     bool                  `json:"hostPath" mapstructure:"hostPath"`
 	HostIPC      bool                  `json:"hostIpc" mapstructure:"hostIpc"`
 	HostNetwork  bool                  `json:"hostNetwork" mapstructure:"hostNetwork"`
 	RunAsUser    int64                 `json:"runAsUser" mapstructure:"runAsUser"`
@@ -100,5 +99,7 @@ type Volume struct {
 	Namespace    string `json:"namespace" mapstructure:"namespace"`
 	Name         string `json:"name" mapstructure:"name"`
 	Type         string `json:"type" mapstructure:"type"`
-	Path         string `json:"path" mapstructure:"path"`
+	SourcePath   string `json:"sourcePath" mapstructure:"sourcePath"`
+	MountPath    string `json:"mountPath" mapstructure:"mountPath"`
+	Readonly     bool   `json:"readonly" mapstructure:"readonly"`
 }

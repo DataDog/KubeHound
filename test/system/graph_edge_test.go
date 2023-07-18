@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"github.com/stretchr/testify/suite"
@@ -42,6 +41,16 @@ func (suite *EdgeTestSuite) pathsToStringArray(results []*gremlingo.Result) []st
 	}
 
 	return paths
+}
+
+func (suite *EdgeTestSuite) resultsToStringArray(results []*gremlingo.Result) []string {
+	vals := make([]string, 0, len(results))
+	for _, r := range results {
+		val := r.GetString()
+		vals = append(vals, val)
+	}
+
+	return vals
 }
 
 func (suite *EdgeTestSuite) _testContainerEscape(edgeLabel string, nodes map[string]bool, containers map[string]bool) {
@@ -317,8 +326,8 @@ func (suite *EdgeTestSuite) TestEdge_ROLE_GRANT() {
 	suite.Subset(paths, expected)
 }
 
-func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
-	// Every volume should have a VOLUME_MOUNT incoming from a node
+func (suite *EdgeTestSuite) TestEdge_VOLUME_EXPOSE() {
+	// Every volume should have a VOLUME_EXPOSE incoming from a node
 	rawCount, err := suite.g.V().
 		HasLabel("Volume").
 		Count().Next()
@@ -330,7 +339,7 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 
 	rawCount, err = suite.g.V().
 		HasLabel("Node").
-		OutE().HasLabel("VOLUME_MOUNT").
+		OutE().HasLabel("VOLUME_EXPOSE").
 		InV().HasLabel("Volume").
 		Dedup().
 		Path().
@@ -340,8 +349,19 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 	pathCount, err := rawCount.GetInt()
 	suite.NoError(err)
 	suite.Equal(volumeCount, pathCount)
+}
 
+func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 	// Every volume should have a VOLUME_MOUNT incoming from a container
+	rawCount, err := suite.g.V().
+		HasLabel("Volume").
+		Count().Next()
+
+	suite.NoError(err)
+	volumeCount, err := rawCount.GetInt()
+	suite.NoError(err)
+	suite.NotEqual(volumeCount, 0)
+
 	rawCount, err = suite.g.V().
 		HasLabel("Container").
 		OutE().HasLabel("VOLUME_MOUNT").
@@ -351,7 +371,7 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 		Count().Next()
 
 	suite.NoError(err)
-	pathCount, err = rawCount.GetInt()
+	pathCount, err := rawCount.GetInt()
 	suite.NoError(err)
 	suite.Equal(volumeCount, pathCount)
 }
@@ -377,7 +397,6 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFORCE() {
 		"path[map[name:[read-secrets]], map[], map[name:[tokenget-sa]",
 		"path[map[name:[read-secrets]], map[], map[name:[rolebind-sa]",
 		"path[map[name:[read-secrets]], map[], map[name:[pod-create-sa]",
-		"path[map[name:[read-secrets]], map[], map[name:[system:kube-proxy]",
 	}
 	suite.Subset(paths, expected)
 }
@@ -403,45 +422,125 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_LIST() {
 		"path[map[name:[list-secrets]], map[], map[name:[tokenget-sa]",
 		"path[map[name:[list-secrets]], map[], map[name:[rolebind-sa]",
 		"path[map[name:[list-secrets]], map[], map[name:[pod-create-sa]",
-		"path[map[name:[list-secrets]], map[], map[name:[system:kube-proxy]",
 	}
 	suite.Subset(paths, expected)
 }
 
 func (suite *EdgeTestSuite) TestEdge_TOKEN_STEAL() {
-	g := gremlingo.Traversal_().WithRemote(suite.client)
-
-	rawCount, err := g.V().
-		HasLabel(vertex.VolumeLabel).
-		Repeat(__.Out().SimplePath()).
-		Until(
-			__.HasLabel(vertex.IdentityLabel).
-				Has("namespace", "default")).
-		Path().
-		Count().
-		Next()
-
-	suite.NoError(err)
-	pathCount, err := rawCount.GetInt()
-	suite.NoError(err)
-	suite.NotEqual(pathCount, 0)
-
 	// Every pod in our test cluster should have projected volume holding a token. BUT we only
 	// save those with a non-default service account token as shown below.
-	//
-	// $ kubectl get sa
-	// NAME             SECRETS   AGE
-	// default          0         28h
-	// impersonate-sa   0         28h
-	// pod-create-sa    0         28h
-	// pod-exec-sa      0         28h
-	// pod-patch-sa     0         28h
-	// rolebind-sa      0         28h
-	// tokenget-sa      0         28h
-	// tokenlist-sa     0         28h
-	const expectedTokenCount = 7
+	results, err := suite.g.V().
+		HasLabel("Volume").
+		OutE().
+		HasLabel("TOKEN_STEAL").
+		InV().
+		HasLabel("Identity").
+		Has("namespace", "default").
+		Values("name").
+		ToList()
 
-	suite.Equal(expectedTokenCount, pathCount)
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 7)
+
+	identities := suite.resultsToStringArray(results)
+	expected := []string{
+		"tokenget-sa", "impersonate-sa", "pod-create-sa", "pod-patch-sa", "pod-exec-sa", "tokenlist-sa", "rolebind-sa",
+	}
+	suite.Subset(identities, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_READ() {
+	results, err := suite.g.V().
+		HasLabel("Container").
+		OutE().HasLabel("VOLUME_MOUNT").
+		InV().HasLabel("Volume").
+		Where(__.OutE().HasLabel("EXPLOIT_HOST_READ").
+			InV().HasLabel("Node")).
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[host-read-exploit-pod]], map[], map[name:[host-ssh]",
+	}
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_WRITE() {
+	results, err := suite.g.V().
+		HasLabel("Container").
+		OutE().HasLabel("VOLUME_MOUNT").
+		InV().HasLabel("Volume").
+		Where(__.OutE().HasLabel("EXPLOIT_HOST_WRITE").
+			InV().HasLabel("Node")).
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[host-write-exploit-pod]], map[], map[name:[hostroot]",
+	}
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_TRAVERSE() {
+	for _, c := range []string{"host-read-exploit-pod", "host-write-exploit-pod"} {
+		// Find the containers on the same node as our vulnerable pod and map to their service accounts
+		results, err := suite.g.V().
+			HasLabel("Container").
+			Has("name", c).
+			Values("node").As("n").
+			V().HasLabel("Container").
+			Has("node", __.Where(P.Eq("n"))).
+			OutE("IDENTITY_ASSUME").
+			InV().
+			Values("name").
+			ToList()
+
+		suite.NoError(err)
+		suite.GreaterOrEqual(len(results), 1)
+		expected := suite.resultsToStringArray(results)
+
+		// Now find the identities our vulnerable pod can reach via doing a traverse to the projected token volume
+		results, err = suite.g.V().
+			HasLabel("Container").
+			Has("name", c).
+			OutE().HasLabel("VOLUME_MOUNT").
+			InV().HasLabel("Volume").
+			OutE().HasLabel("EXPLOIT_HOST_TRAVERSE").
+			InV().HasLabel("Volume").
+			OutE().HasLabel("TOKEN_STEAL").
+			InV().HasLabel("Identity").
+			Values("name").
+			ToList()
+
+		suite.NoError(err)
+		suite.GreaterOrEqual(len(results), 1)
+		reachable := suite.resultsToStringArray(results)
+
+		// Assert the 2 lists are the same
+		suite.ElementsMatch(expected, reachable)
+	}
+}
+
+func (suite *EdgeTestSuite) Test_NoEdgeCase() {
+	// The control pod has no interesting properties and therefore should have NO outgoing edges
+	results, err := suite.g.V().
+		HasLabel("Container").
+		Has("name", "control-pod").
+		Out().
+		ToList()
+
+	suite.NoError(err)
+	suite.Equal(len(results), 0)
 }
 
 func TestEdgeTestSuite(t *testing.T) {

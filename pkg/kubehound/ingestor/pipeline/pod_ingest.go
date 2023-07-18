@@ -107,17 +107,29 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 		return err
 	}
 
+	// Handle volume munts
+	for _, volumeMount := range container.VolumeMounts {
+		vm := volumeMount
+		err := i.processVolumeMount(ctx, &vm, parent, sc)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-// processVolume will handle the ingestion pipeline for a volume belonging to a processed K8s pod input.
-func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume types.VolumeType) error {
-	if ok, err := preflight.CheckVolume(volume); !ok {
+// processVolumeMount will handle the ingestion pipeline for a volume belonging to a processed K8s pod input.
+func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.VolumeMountType,
+	pod *store.Pod, container *store.Container) error {
+
+	// TODO can we skip known good e.g agent here to cuyt down the volume??
+	if ok, err := preflight.CheckVolume(volumeMount); !ok {
 		return err
 	}
 
 	// Normalize volume to store object format
-	sv, err := i.r.storeConvert.Volume(ctx, volume, parent)
+	sv, err := i.r.storeConvert.Volume(ctx, volumeMount, pod, container)
 	if err != nil {
 		log.I.Debugf("process volume type: %v (continuing)", err)
 		return nil
@@ -129,7 +141,7 @@ func (i *PodIngest) processVolume(ctx context.Context, parent *store.Pod, volume
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Volume(sv, parent)
+	insert, err := i.r.graphConvert.Volume(sv, pod)
 	if err != nil {
 		return err
 	}
@@ -174,7 +186,6 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	}
 
 	// Handle containers
-	// TODO: review handling of InitContainers
 	for _, container := range pod.Spec.Containers {
 		c := container
 		err := i.processContainer(ctx, sp, &c)
@@ -183,14 +194,9 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 		}
 	}
 
-	// Handle volumes
-	for _, volume := range pod.Spec.Volumes {
-		v := volume
-		err := i.processVolume(ctx, sp, &v)
-		if err != nil {
-			return err
-		}
-	}
+	// Currently do not process init containers. Any interesting identity they are running under will be the same as the container since
+	// service accounts are defined at a pod level (although this may change in future K8s releases). Any interesting properties of the
+	// container will be ephemeral, making any exploitation very complex. Thus we do not include init containers within our graph.
 
 	return nil
 }

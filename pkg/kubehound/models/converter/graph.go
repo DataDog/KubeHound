@@ -6,9 +6,7 @@ import (
 
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/DataDog/KubeHound/pkg/kube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/risk"
 )
@@ -125,30 +123,16 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 // Volume returns the graph representation of a volume vertex from a store volume model input.
 func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.Volume, error) {
 	output := &graph.Volume{
-		StoreID:   input.Id.Hex(),
-		App:       input.Ownership.Application,
-		Team:      input.Ownership.Team,
-		Service:   input.Ownership.Service,
-		Name:      input.Name,
-		Namespace: parent.K8.Namespace,
-	}
-
-	switch {
-	case input.Source.HostPath != nil:
-		output.Type = shared.VolumeTypeHost
-		output.Path = input.Source.HostPath.Path
-	case input.Source.Projected != nil:
-		output.Type = shared.VolumeTypeProjected
-
-		// Loop through looking for the service account token
-		for _, proj := range input.Source.Projected.Sources {
-			if proj.ServiceAccountToken != nil {
-				output.Path = kube.ServiceAccountTokenPath(string(parent.K8.ObjectMeta.UID), input.Name)
-				break // assume only 1 entry
-			}
-		}
-	default:
-		// other volume types are currently unsupported
+		StoreID:    input.Id.Hex(),
+		App:        input.Ownership.Application,
+		Team:       input.Ownership.Team,
+		Service:    input.Ownership.Service,
+		Name:       input.Name,
+		Namespace:  parent.K8.Namespace,
+		Type:       input.Type,
+		SourcePath: input.SourcePath,
+		MountPath:  input.MountPath,
+		Readonly:   input.ReadOnly,
 	}
 
 	if output.Namespace != "" {

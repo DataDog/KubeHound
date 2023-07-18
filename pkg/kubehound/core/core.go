@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -95,6 +96,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	telemetry.BaseTags = append(telemetry.BaseTags, tagRunUUID)
 	defer span.Finish()
 
+	start := time.Now()
 	log.I.Infof("Starting KubeHound (run_id: %s)", runUUID)
 	log.I.Info("Initializing launch options")
 	lOpts := &launchConfig{}
@@ -151,6 +153,6 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 		return fmt.Errorf("building attack graph: %w", err)
 	}
 
-	log.I.Info("Attack graph generation complete")
+	log.I.Infof("Attack graph generation complete in %s", time.Since(start))
 	return nil
 }

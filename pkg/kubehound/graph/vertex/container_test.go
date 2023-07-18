@@ -32,7 +32,6 @@ func TestContainer_Traversal(t *testing.T) {
 				Privileged:   true,
 				PrivEsc:      true,
 				HostPID:      true,
-				HostPath:     true,
 				HostIPC:      true,
 				HostNetwork:  true,
 				RunAsUser:    1234,

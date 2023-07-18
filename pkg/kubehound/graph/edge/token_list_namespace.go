@@ -93,10 +93,7 @@ func (e *TokenListNamespace) Stream(ctx context.Context, store storedb.Provider,
 								}},
 								bson.M{"is_namespaced": false},
 							}},
-							bson.M{"$or": bson.A{
-								bson.M{"type": "ServiceAccount"},
-								bson.M{"type": "User"},
-							}},
+							bson.M{"type": "ServiceAccount"},
 						}},
 					},
 					{
