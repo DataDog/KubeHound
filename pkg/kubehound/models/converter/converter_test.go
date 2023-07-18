@@ -312,10 +312,10 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 		Err:   nil,
 	})
 
-	ck := cachekey.Container("app-monitors-client-78cb6d7899-j2rjp", "elasticsearch", "test-app")
-	cid := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, ck).Return(&cache.CacheResult{
-		Value: cid,
+	ik := cachekey.Identity("app-monitors", "test-app")
+	iid := store.ObjectID().Hex()
+	c.EXPECT().Get(mock.Anything, ik).Return(&cache.CacheResult{
+		Value: iid,
 		Err:   nil,
 	})
 
@@ -354,23 +354,31 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 
 	// Collector volume -> store volume
 	assert.Equal(t, 2, len(input.Spec.Volumes))
-	inVolume0 := input.Spec.Volumes[0]
-	storeVolume0, err := NewStoreWithCache(c).Volume(context.TODO(), &inVolume0, storePod)
+	inVolume0 := storeContainer.K8.VolumeMounts[0]
+	storeVolume0, err := NewStoreWithCache(c).Volume(context.TODO(), &inVolume0, storePod, storeContainer)
 	assert.NoError(t, err, "store volume convert error")
 
 	assert.Equal(t, storeVolume0.NodeId.Hex(), nid)
 	assert.Equal(t, storeVolume0.PodId.Hex(), storePod.Id.Hex())
 	assert.Equal(t, storeVolume0.Name, inVolume0.Name)
-	assert.Equal(t, storeVolume0.Source, inVolume0)
+	assert.Equal(t, storeVolume0.Type, shared.VolumeTypeHost)
+	assert.Equal(t, storeVolume0.MountPath, inVolume0.MountPath)
+	assert.Equal(t, storeVolume0.SourcePath, "/var/run/datadog-agent")
+	assert.False(t, storeVolume0.ReadOnly)
+	assert.Empty(t, storeVolume0.ProjectedId)
 
-	inVolume1 := input.Spec.Volumes[1]
-	storeVolume1, err := NewStoreWithCache(c).Volume(context.TODO(), &inVolume1, storePod)
+	inVolume1 := storeContainer.K8.VolumeMounts[1]
+	storeVolume1, err := NewStoreWithCache(c).Volume(context.TODO(), &inVolume1, storePod, storeContainer)
 	assert.NoError(t, err, "store volume convert error")
 
 	assert.Equal(t, storeVolume1.NodeId.Hex(), nid)
 	assert.Equal(t, storeVolume1.PodId.Hex(), storePod.Id.Hex())
 	assert.Equal(t, storeVolume1.Name, inVolume1.Name)
-	assert.Equal(t, storeVolume1.Source, inVolume1)
+	assert.Equal(t, storeVolume1.Type, shared.VolumeTypeProjected)
+	assert.Equal(t, storeVolume1.MountPath, inVolume1.MountPath)
+	assert.Equal(t, storeVolume1.SourcePath, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token")
+	assert.True(t, storeVolume1.ReadOnly)
+	assert.Equal(t, storeVolume1.ProjectedId.Hex(), iid)
 
 	// Store container -> graph container
 	graphVolume, err := NewGraph().Volume(storeVolume0, storePod)
@@ -381,8 +389,10 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, graphVolume.Service, "test-service")
 	assert.Equal(t, graphVolume.Team, "test-team")
 	assert.Equal(t, storeVolume0.Name, graphVolume.Name)
-	assert.Equal(t, shared.VolumeTypeProjected, graphVolume.Type)
-	assert.Equal(t, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token", graphVolume.Path)
+	assert.Equal(t, shared.VolumeTypeHost, graphVolume.Type)
+	assert.Equal(t, "/var/run/datadog-agent", graphVolume.SourcePath)
+	assert.Equal(t, "/var/run/datadog-agent", graphVolume.MountPath)
+	assert.False(t, graphVolume.Readonly)
 
 	graphVolume, err = NewGraph().Volume(storeVolume1, storePod)
 	assert.NoError(t, err, "graph volume convert error")
@@ -392,8 +402,10 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, graphVolume.Service, "test-service")
 	assert.Equal(t, graphVolume.Team, "test-team")
 	assert.Equal(t, storeVolume1.Name, graphVolume.Name)
-	assert.Equal(t, shared.VolumeTypeHost, graphVolume.Type)
-	assert.Equal(t, "/var/run/datadog-agent", graphVolume.Path)
+	assert.Equal(t, shared.VolumeTypeProjected, graphVolume.Type)
+	assert.Equal(t, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token", graphVolume.SourcePath)
+	assert.Equal(t, "/var/run/secrets/kubernetes.io/serviceaccount", graphVolume.MountPath)
+	assert.True(t, graphVolume.Readonly)
 }
 
 func TestConverter_PodCacheFailure(t *testing.T) {

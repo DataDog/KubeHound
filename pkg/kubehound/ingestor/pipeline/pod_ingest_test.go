@@ -49,7 +49,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		Value: store.ObjectID().Hex(),
 		Err:   nil,
 	})
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.containerCacheKey")).Return(&cache.CacheResult{
+	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.identityCacheKey")).Return(&cache.CacheResult{
 		Value: store.ObjectID().Hex(),
 		Err:   nil,
 	})
@@ -128,7 +128,6 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"compromised":  float64(0),
 		"hostIpc":      false,
 		"hostNetwork":  false,
-		"hostPath":     false,
 		"hostPid":      false,
 		"image":        "dockerhub.com/elasticsearch:latest",
 		"name":         "elasticsearch",
@@ -155,12 +154,14 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"name":         "kube-api-access-4x9fz",
 		"isNamespaced": true,
 		"namespace":    "test-app",
-		"path":         "/var/lib/kubelet/pods//volumes/kubernetes.io~projected/kube-api-access-4x9fz/token",
+		"sourcePath":   "/var/lib/kubelet/pods//volumes/kubernetes.io~projected/kube-api-access-4x9fz/token",
+		"mountPath":    "/var/run/secrets/kubernetes.io/serviceaccount",
 		"storeID":      vid.Hex(),
 		"team":         "test-team",
 		"app":          "test-app",
 		"service":      "test-service",
 		"type":         "Projected",
+		"readonly":     true,
 	}
 	vgw := graphdb.NewAsyncVertexWriter(t)
 	vgw.EXPECT().Queue(ctx, vv).Return(nil).Once()

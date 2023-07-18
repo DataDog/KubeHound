@@ -1,0 +1,13 @@
+# Control pod has no vulnerabilities
+apiVersion: v1
+kind: Pod
+metadata:
+  name: control-pod
+  labels:
+    app: kubehound-edge-test
+spec:
+  containers:
+    - name: control-pod
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

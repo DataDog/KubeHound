@@ -50,6 +50,17 @@ func (e *TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter
 func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
+	var verbMatcher bson.M
+	if e.cfg.LargeClusterOptimizations {
+		// For large clusters do not create a redundant edge already covered by the TOKEN_LIST attack as this technique is much more complex
+		verbMatcher = bson.M{"verbs": "get"}
+	} else {
+		verbMatcher = bson.M{"$or": bson.A{
+			bson.M{"verbs": "get"},
+			bson.M{"verbs": "*"},
+		}}
+	}
+
 	roles := adapter.MongoDB(store).Collection(collections.RoleName)
 	pipeline := []bson.M{
 		{
@@ -66,10 +77,7 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 								bson.M{"resources": "secrets"},
 								bson.M{"resources": "*"},
 							}},
-							bson.M{"$or": bson.A{
-								bson.M{"verbs": "get"},
-								bson.M{"verbs": "*"},
-							}},
+							verbMatcher,
 						},
 					},
 				},
@@ -93,10 +101,7 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 								}},
 								bson.M{"is_namespaced": false},
 							}},
-							bson.M{"$or": bson.A{
-								bson.M{"type": "ServiceAccount"},
-								bson.M{"type": "User"},
-							}},
+							bson.M{"type": "ServiceAccount"},
 						}},
 					},
 					{

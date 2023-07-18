@@ -8,14 +8,14 @@ import (
 type PodType *corev1.Pod
 type NodeType *corev1.Node
 type ContainerType *corev1.Container
-type VolumeType *corev1.Volume
+type VolumeMountType *corev1.VolumeMount
 type RoleType *rbacv1.Role
 type RoleBindingType *rbacv1.RoleBinding
 type ClusterRoleType *rbacv1.ClusterRole
 type ClusterRoleBindingType *rbacv1.ClusterRoleBinding
 
 type InputType interface {
-	PodType | NodeType | ContainerType | VolumeType | RoleType | RoleBindingType | ClusterRoleType | ClusterRoleBindingType
+	PodType | NodeType | ContainerType | VolumeMountType | RoleType | RoleBindingType | ClusterRoleType | ClusterRoleBindingType
 }
 
 type ListInputType interface {
