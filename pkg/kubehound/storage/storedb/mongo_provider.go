@@ -41,24 +41,27 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 
 	db := client.Database(MongoDatabaseName)
 
-	// Ensure we start from a clean slate by dropping all collections
-	collections, err := db.ListCollectionNames(ctx, bson.M{})
-	if err != nil {
-		return nil, err
-	}
-
-	for _, collectionName := range collections {
-		err = db.Collection(collectionName).Drop(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("deleting mongo DB collection %s: %w", collectionName, err)
-		}
-	}
-
 	return &MongoProvider{
 		client: client,
 		db:     db,
 		tags:   []string{telemetry.TagTypeMongodb},
 	}, nil
+}
+
+func (mp *MongoProvider) Clear(ctx context.Context) error {
+	collections, err := mp.db.ListCollectionNames(ctx, bson.M{})
+	if err != nil {
+		return fmt.Errorf("listing mongo DB collections: %w", err)
+	}
+
+	for _, collectionName := range collections {
+		err = mp.db.Collection(collectionName).Drop(ctx)
+		if err != nil {
+			return fmt.Errorf("deleting mongo DB collection %s: %w", collectionName, err)
+		}
+	}
+
+	return nil
 }
 
 func (mp *MongoProvider) Raw() any {

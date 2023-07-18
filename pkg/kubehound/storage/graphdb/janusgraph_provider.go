@@ -24,9 +24,34 @@ type JanusGraphProvider struct {
 	tags []string
 }
 
-// deleteExistingGraph will drop all vertices to revert graph to a clean state.
-func deleteExistingGraph(ctx context.Context, driver *gremlin.DriverRemoteConnection) error {
-	g := gremlin.Traversal_().WithRemote(driver)
+func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (*JanusGraphProvider, error) {
+	if dbHost == "" {
+		return nil, errors.New("JanusGraph DB URL is not set")
+	}
+	driver, err := gremlin.NewDriverRemoteConnection(dbHost,
+		func(settings *gremlin.DriverRemoteConnectionSettings) {
+			settings.ConnectionTimeout = timeout
+			settings.LogVerbosity = gremlin.Warning
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	gp := &JanusGraphProvider{
+		drc:  driver,
+		tags: append(telemetry.BaseTags, telemetry.TagTypeJanusGraph),
+	}
+
+	return gp, nil
+}
+
+func (jgp *JanusGraphProvider) Name() string {
+	return "JanusGraphProvider"
+}
+
+func (jgp *JanusGraphProvider) Clear(ctx context.Context) error {
+	g := gremlin.Traversal_().WithRemote(jgp.drc)
 	tx := g.Tx()
 	defer tx.Close()
 
@@ -46,38 +71,6 @@ func deleteExistingGraph(ctx context.Context, driver *gremlin.DriverRemoteConnec
 	}
 
 	return nil
-}
-
-func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (*JanusGraphProvider, error) {
-	if dbHost == "" {
-		return nil, errors.New("JanusGraph DB URL is not set")
-	}
-	driver, err := gremlin.NewDriverRemoteConnection(dbHost,
-		func(settings *gremlin.DriverRemoteConnectionSettings) {
-			settings.ConnectionTimeout = timeout
-			settings.LogVerbosity = gremlin.Warning
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Ensure we start from a clean slate by dropping all vertices/edges
-	err = deleteExistingGraph(ctx, driver)
-	if err != nil {
-		return nil, fmt.Errorf("delete existing graph: %w", err)
-	}
-
-	gp := &JanusGraphProvider{
-		drc:  driver,
-		tags: append(telemetry.BaseTags, telemetry.TagTypeJanusGraph),
-	}
-
-	return gp, nil
-}
-
-func (jgp *JanusGraphProvider) Name() string {
-	return "JanusGraphProvider"
 }
 
 // HealthCheck sends a single digit, as a string. JanusGraph will reply to this with the same value (arithmetic operation)

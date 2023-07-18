@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-07-17 15:06
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-07-18 18:35
 //
 // Generate it with "go generate ./..."
 //
@@ -229,6 +229,22 @@ var expectedNodes = map[string]graph.Node{
 }
 
 var expectedVolumes = map[string]graph.Volume{
+	"host-pod-dir": {
+		StoreID:    "",
+		Name:       "host-pod-dir",
+		Type:       "",
+		SourcePath: "",
+		MountPath:  "/hostpods/",
+		Readonly:   true,
+	},
+	"host-ssh": {
+		StoreID:    "",
+		Name:       "host-ssh",
+		Type:       "",
+		SourcePath: "",
+		MountPath:  "/hostssh/",
+		Readonly:   true,
+	},
 	"hostroot": {
 		StoreID:    "",
 		Name:       "hostroot",
@@ -236,14 +252,6 @@ var expectedVolumes = map[string]graph.Volume{
 		SourcePath: "",
 		MountPath:  "/host/",
 		Readonly:   false,
-	},
-	"hostroot-ro": {
-		StoreID:    "",
-		Name:       "hostroot-ro",
-		Type:       "",
-		SourcePath: "",
-		MountPath:  "/host/",
-		Readonly:   true,
 	},
 	"nodelog": {
 		StoreID:    "",
