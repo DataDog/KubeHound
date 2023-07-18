@@ -11,13 +11,6 @@ import (
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
-const (
-	BatchSizeDefault       = 1000
-	BatchSizeMedium        = BatchSizeDefault / 4
-	BatchSizeSmall         = BatchSizeDefault / 8
-	BatchSizeClusterImpact = BatchSizeDefault / 200
-)
-
 // Optional syntactic sugar.
 var __ = gremlin.T__
 var P = gremlin.P

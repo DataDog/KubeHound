@@ -193,6 +193,10 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 		}
 	}
 
+	// Currently do not process init containers. Any interesting identity they are running under will be the same as the container since
+	// service accounts are defined at a pod level (although this may change in future K8s releases). Any interesting properties of the
+	// container will be ephemeral, making any exploitation very complex. Thus we do not include init containers within our graph.
+
 	return nil
 }
 

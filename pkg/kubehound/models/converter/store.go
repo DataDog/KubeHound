@@ -105,7 +105,8 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 	return output, nil
 }
 
-func (c *StoreConverter) handleProjectedVolume(ctx context.Context, input types.VolumeMountType,
+// handleProjectedToken returns the identity store ID and source path corresponding to a projected token volume mount.
+func (c *StoreConverter) handleProjectedToken(ctx context.Context, input types.VolumeMountType,
 	volume *corev1.Volume, pod *store.Pod) (primitive.ObjectID, string, error) {
 
 	// Retrieve the associated identity store ID from the cache
@@ -120,12 +121,12 @@ func (c *StoreConverter) handleProjectedVolume(ctx context.Context, input types.
 		return primitive.NilObjectID, "", err
 	}
 
-	// Loop through looking for the service account token
+	// Loop through looking for the service account token projection
 	var sourcePath string
 	for _, proj := range volume.Projected.Sources {
 		if proj.ServiceAccountToken != nil {
 			sourcePath = kube.ServiceAccountTokenPath(string(pod.K8.ObjectMeta.UID), input.Name)
-			break // assume only 1 entry
+			break
 		}
 	}
 
@@ -133,7 +134,7 @@ func (c *StoreConverter) handleProjectedVolume(ctx context.Context, input types.
 }
 
 // Volume returns the store representation of a K8s mounted volume from an input K8s volume object.
-// NOTE: requires cache access (ContainerKey).
+// NOTE: requires cache access (IdentityKey).
 func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeMountType, pod *store.Pod,
 	container *store.Container) (*store.Volume, error) {
 
@@ -166,9 +167,9 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeMountType
 				output.Type = shared.VolumeTypeHost
 				output.SourcePath = volume.HostPath.Path
 			case volume.Projected != nil:
-				said, source, err := c.handleProjectedVolume(ctx, input, &volume, pod)
+				said, source, err := c.handleProjectedToken(ctx, input, &volume, pod)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("projected token volume (%s) processing: %w", volume.Name, err)
 				}
 
 				output.Type = shared.VolumeTypeProjected
