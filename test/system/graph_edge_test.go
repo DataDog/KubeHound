@@ -467,7 +467,7 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_READ() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[host-read-exploit-pod]], map[], map[name:[hostroot-ro]",
+		"path[map[name:[host-read-exploit-pod]], map[], map[name:[host-ssh]",
 	}
 	suite.Subset(paths, expected)
 }
