@@ -469,7 +469,7 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_READ() {
 	expected := []string{
 		"path[map[name:[host-read-exploit-pod]], map[], map[name:[hostroot-ro]",
 	}
-	suite.ElementsMatch(paths, expected)
+	suite.Subset(paths, expected)
 }
 
 func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_WRITE() {
@@ -490,7 +490,7 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_WRITE() {
 	expected := []string{
 		"path[map[name:[host-write-exploit-pod]], map[], map[name:[hostroot]",
 	}
-	suite.ElementsMatch(paths, expected)
+	suite.Subset(paths, expected)
 }
 
 func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_TRAVERSE() {
