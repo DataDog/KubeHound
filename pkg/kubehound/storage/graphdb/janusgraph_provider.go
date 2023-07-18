@@ -24,6 +24,30 @@ type JanusGraphProvider struct {
 	tags []string
 }
 
+// deleteExistingGraph will drop all vertices to revert graph to a clean state.
+func deleteExistingGraph(ctx context.Context, driver *gremlin.DriverRemoteConnection) error {
+	g := gremlin.Traversal_().WithRemote(driver)
+	tx := g.Tx()
+	defer tx.Close()
+
+	gtx, err := tx.Begin()
+	if err != nil {
+		return err
+	}
+
+	err = <-gtx.V().Drop().Iterate()
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (*JanusGraphProvider, error) {
 	if dbHost == "" {
 		return nil, errors.New("JanusGraph DB URL is not set")
@@ -38,12 +62,18 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 		return nil, err
 	}
 
-	g := &JanusGraphProvider{
+	// Ensure we start from a clean slate by dropping all vertices/edges
+	err = deleteExistingGraph(ctx, driver)
+	if err != nil {
+		return nil, fmt.Errorf("delete existing graph: %w", err)
+	}
+
+	gp := &JanusGraphProvider{
 		drc:  driver,
 		tags: append(telemetry.BaseTags, telemetry.TagTypeJanusGraph),
 	}
 
-	return g, nil
+	return gp, nil
 }
 
 func (jgp *JanusGraphProvider) Name() string {

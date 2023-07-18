@@ -107,7 +107,7 @@ endif
 	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_janusgraph_data
 
 .PHONY: backend-reset-hard
-backend-reset-hard: backend-down backend-wipe backend-up ## Restart the kubehound stack and wipe all data
+backend-reset-hard: | backend-down backend-wipe backend-up ## Restart the kubehound stack and wipe all data
 
 .PHONY: test
 test: ## Run the full suite of unit tests 
