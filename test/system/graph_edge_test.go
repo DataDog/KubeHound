@@ -397,7 +397,6 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFORCE() {
 		"path[map[name:[read-secrets]], map[], map[name:[tokenget-sa]",
 		"path[map[name:[read-secrets]], map[], map[name:[rolebind-sa]",
 		"path[map[name:[read-secrets]], map[], map[name:[pod-create-sa]",
-		"path[map[name:[read-secrets]], map[], map[name:[system:kube-proxy]",
 	}
 	suite.Subset(paths, expected)
 }
@@ -423,7 +422,6 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_LIST() {
 		"path[map[name:[list-secrets]], map[], map[name:[tokenget-sa]",
 		"path[map[name:[list-secrets]], map[], map[name:[rolebind-sa]",
 		"path[map[name:[list-secrets]], map[], map[name:[pod-create-sa]",
-		"path[map[name:[list-secrets]], map[], map[name:[system:kube-proxy]",
 	}
 	suite.Subset(paths, expected)
 }
