@@ -51,13 +51,6 @@ nsenter --target 1 --mount --uts --ipc --net --pid -- bash
 
 The options `-m -u -n -i -p` are referring to the various namespaces that you want to access (e.g mount, UTS, IPC, net, pid).
 
-## OPSEC Considerations
-
-[Cloud Security Management](https://app.datadoghq.com/security/workload/rules?query=type%3Aworkload_security&deprecated=hide&groupBy=tactic&product=cws&sort=rule_name) does not currently detect this attack.
-
-[Cloud Security Posture Management](https://docs.datadoghq.com/security/cspm/) detects this misconfiguration from the OutOfTheBox (OOTB) rules:
-+ [Limit admission of containers sharing the host PID namespace](https://docs.datadoghq.com/security/default_rules/cis-kubernetes-1.5.1-5.2.2/)
-
 ## Defences
 
 ### Monitoring

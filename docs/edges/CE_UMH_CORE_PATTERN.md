@@ -24,11 +24,6 @@ TODO
 
 TODO
 
-
-## OPSEC Considerations
-
-[Cloud Security Management](https://app.datadoghq.com/security/workload/rules?query=type%3Aworkload_security&deprecated=hide&groupBy=tactic&product=cws&sort=rule_name) does not currently detect this attack.
-
 ## Defences
 
 ### Monitoring

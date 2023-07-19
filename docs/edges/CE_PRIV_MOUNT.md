@@ -49,10 +49,6 @@ ls -lah /mnt/hostfs/
 
 Now TODO TODO
 
-## OPSEC Considerations
-
-TODO TODO
-
 ## Defences
 
 + Implement least privilege

