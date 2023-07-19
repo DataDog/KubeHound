@@ -1,30 +1,31 @@
 # Common Properties
 
+Common properties can be set on any vertices within the graph.
+
 ## Ownership Information
 
 | Property            | Type      | Description |
 | ----------------| --------- |----------------------------------------|
-| app | `string` |  Name of the container in Kubernetes | 
-| team | `string` |  Docker the image run by the container | 
-| service | `string` |  Docker the image run by the container | 
+| app | `string` |  Internal app name extracted from object labels | 
+| team | `string` |  Internal team name extracted from object labels | 
+| service | `string` | Internal service name extracted from object labels | 
 
 ## Risk Information
 
 | Property            | Type      | Description |
 | ----------------| --------- |----------------------------------------|
-| critical | `bool` |  Name of the container in Kubernetes | 
-| compromised | `int` |  Docker the image run by the container | 
+| critical | `bool` |  Whether the vertex is a critical asset within the cluster. Critical assets form the termination condition of an attack path and represent an asset that leads to complete cluster compromise | 
+| compromised | `int` |  Enum defining asset compromise for scenario-based simulations | 
 
 ## Store Information
 
 | Property            | Type      | Description |
 | ----------------| --------- |----------------------------------------|
-| storeID | `string` |  Name of the container in Kubernetes | 
-
+| storeID | `string` |  Unique store database identifier of the store objected generating the vertex  | 
 
 ## Namespace Information
 
 | Property            | Type      | Description |
 | ----------------| --------- |----------------------------------------|
-| namespace | `string` |  Name of the container in Kubernetes | 
-| isNamespaced | `bool` |  Name of the container in Kubernetes | 
+| namespace | `string` |  Kubernetes namespace to which the object (or its parent) belongs | 
+| isNamespaced | `bool` |  Whether or not the object has an associated namespace | 

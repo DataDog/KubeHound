@@ -2,7 +2,7 @@
 
 A container image running on a Kubernetes pod. Containers in a Pod are co-located and co-scheduled to run on the same node.
 
-NOTE: properties that are interesting to attackers can be set at a Pod level such as hostPid, or container level such a capabilities. To simplify the graph model, the container node is chosen as the single source of truth for all host security related information. Any capabilities derived from the containing Pod are set ONLY on the container (and inheritance/override rules applied)
+Properties that are interesting to attackers can be set at a Pod level such as hostPid, or container level such a capabilities. To simplify the graph model, the container node is chosen as the single source of truth for all host security related information. Any capabilities derived from the containing Pod are set ONLY on the container (and inheritance/override rules applied)
 
 ## Properties
 
@@ -11,8 +11,8 @@ NOTE: properties that are interesting to attackers can be set at a Pod level suc
 | name | `string` |  Name of the container in Kubernetes | 
 | image | `string` |  Docker the image run by the container | 
 | command | `[]string` |  The container entrypoint| 
-| args | `[]string` |  list of arguments passed to the container | 
-| capabilities | `[]string` |  list of additional [capabilities](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-capabilities-for-a-container) added to the container via k8s securityContext | 
+| args | `[]string` |  List of arguments passed to the container | 
+| capabilities | `[]string` |  List of additional [capabilities](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-capabilities-for-a-container) added to the container via k8s securityContext | 
 | privileged | `bool` |  Whether the container is run in [privileged](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core) mode | 
 | privesc | `bool` | Whether the container can gain more privileges than its parent process [details here](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#podsecuritycontext-v1-core) | 
 | hostPid | `bool` |  Whether the container can access the host’s PID namespace | 
