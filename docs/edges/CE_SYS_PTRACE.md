@@ -57,13 +57,18 @@ Directly installing debugging tools makes the attack easy, but provides easy det
 
 ## Defences
 
-+ Implement least privilege
-+ Avoid running privileged pods.
-
-## Monitoring
+### Monitoring
 
 + Monitor for GDB (or other debugging tools) installation. 
 + Detect invocation of ptrace() from within a container.
+
+### Implement security policies
+
+Use a pod security policy or admission controller to prevent or limit the creation of pods with additional powerful capabilities.
+
+### Least Privilege
+
+Avoid running containers as the root user. Specify an unprivileged user account using the `securityContext`.
 
 ## Calculation
 

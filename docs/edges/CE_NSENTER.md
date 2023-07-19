@@ -60,13 +60,18 @@ The options `-m -u -n -i -p` are referring to the various namespaces that you wa
 
 ## Defences
 
-+ Implement least privilege
-+ Avoid running privileged pods.
-
-## Monitoring
+### Monitoring
 
 + Monitor for the use of the nsenter binary.
 + Monitor the `setns` syscall
+
+### Implement security policies
+
+Use a pod security policy or admission controller to prevent or limit the creation of pods with `privileged` or `hostPid` enabled.
+
+### Least Privilege
+
+Avoid running containers as the root user. Specify an unprivileged user account using the `securityContext`.
 
 ## Calculation
 

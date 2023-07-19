@@ -58,9 +58,17 @@ TODO TODO
 + Implement least privilege
  +Avoid running privileged pods.
 
-## Monitoring
+### Monitoring
 
 TODO TODO
+
+### Implement security policies
+
+Use a pod security policy or admission controller to prevent or limit the creation of pods with `privileged` enabled.
+
+### Least Privilege
+
+Avoid running containers as the root user. Specify an unprivileged user account using the `securityContext`.
 
 ## Calculation
 

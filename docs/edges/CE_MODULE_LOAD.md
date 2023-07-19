@@ -45,12 +45,17 @@ Cloud Security Management has a number of rules related to kernel module loading
 
 ## Defences
 
-+ Implement least privilege
-+ Avoid running privileged pods.
-
-## Monitoring
+### Monitoring
 
 + Monitor for unfamiliar kernel modules loaded or kernel modules loaded from within a running pod which should both be high-fidelity signals of malicious activity.
+
+### Implement security policies
+
+Use a pod security policy or admission controller to prevent or limit the creation of pods with additional powerful capabilities.
+
+### Least Privilege
+
+Avoid running containers as the root user. Specify an unprivileged user account using the `securityContext`.
 
 ## Calculation
 
