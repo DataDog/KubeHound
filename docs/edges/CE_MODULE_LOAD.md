@@ -2,12 +2,9 @@
 
 Load a kernel module from within an overprivileged container to breakout into the node.
 
-
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
 | [Container](../vertices/CONTAINER.md) | [Node](../vertices/NODE.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
-
-
 
 ## Details
 
@@ -16,6 +13,8 @@ Container isolation mechanisms are restricted to user-space execution. If an att
 ## Prerequisites
 
 Execution within a container process with the `CAP_SYS_MODULE` capability enabled.
+
+See the [example pod spec](../../test/setup/test-cluster/attacks/CE_SYS_MODULE.yaml).
 
 ## Checks
 
@@ -46,11 +45,12 @@ Cloud Security Management has a number of rules related to kernel module loading
 
 ## Defences
 
-Implement least privilege
-Avoid running privileged pods.
++ Implement least privilege
++ Avoid running privileged pods.
 
 ## Monitoring
-Monitor for unfamiliar kernel modules loaded or kernel modules loaded from within a running pod which should both be high-fidelity signals of malicious activity.
+
++ Monitor for unfamiliar kernel modules loaded or kernel modules loaded from within a running pod which should both be high-fidelity signals of malicious activity.
 
 ## Calculation
 
