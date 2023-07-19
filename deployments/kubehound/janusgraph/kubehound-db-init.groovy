@@ -52,7 +52,7 @@ mgmt.addConnection(idAssume, container, identity);
 idImpersonate = mgmt.makeEdgeLabel('IDENTITY_IMPERSONATE').multiplicity(MANY2ONE).make();
 mgmt.addConnection(idImpersonate, role, identity);
 
-roleBind = mgmt.makeEdgeLabel('ROLE_BIND').multiplicity(MANY2ONE).make();
+roleBind = mgmt.makeEdgeLabel('ROLE_BIND').multiplicity(ONE2MANY).make();
 mgmt.addConnection(roleBind, role, role);
 
 podAttach = mgmt.makeEdgeLabel('POD_ATTACH').multiplicity(ONE2MANY).make();
