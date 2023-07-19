@@ -47,11 +47,11 @@ services:
       - gremlinserver.gremlinPool=0 # will default to Runtime.availableProcessors()
       - gremlinserver.threadPoolWorker=8 # should be 2x VCPU (TODO: can we set dynamically?)
     healthcheck:
-      test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
+      # test: ["CMD", "/opt/janusgraph/bin/gremlin.sh", "-e", "/opt/janusgraph/scripts/health-check.groovy"]
+      test: ["CMD", "bin/gremlin.sh", "-e", "scripts/remote-connect.groovy"]
       interval: 60s
       timeout: 30s
-      retries: 5
-      start_period: 30s
+      retries: 3
     labels:
       com.datadoghq.ad.logs: '[{"app": "janusgraph", "service": "kubehound"}]'
 
