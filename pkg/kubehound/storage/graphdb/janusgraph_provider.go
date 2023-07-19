@@ -28,6 +28,7 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 	if dbHost == "" {
 		return nil, errors.New("JanusGraph DB URL is not set")
 	}
+
 	driver, err := gremlin.NewDriverRemoteConnection(dbHost,
 		func(settings *gremlin.DriverRemoteConnectionSettings) {
 			settings.ConnectionTimeout = timeout
@@ -38,12 +39,12 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 		return nil, err
 	}
 
-	gp := &JanusGraphProvider{
+	jgp := &JanusGraphProvider{
 		drc:  driver,
 		tags: append(telemetry.BaseTags, telemetry.TagTypeJanusGraph),
 	}
 
-	return gp, nil
+	return jgp, nil
 }
 
 func (jgp *JanusGraphProvider) Name() string {
