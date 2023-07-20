@@ -1,8 +1,6 @@
 # KubeHound
 
-A Kubernetes attack graph tool
-
-Full documentation available on confluence: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2871592134/KubeHound+1.0
+A Kubernetes attack graph tool. For an overview of the application architecture see the [design canvas](./docs/application/Architecture.excalidraw). To see the attacks covered see the [edge defintions](./docs/edges/).
 
 ## Run
 
