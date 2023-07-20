@@ -58,6 +58,7 @@ func (e *RoleBind) Traversal() types.EdgeTraversal {
 			// For larger clusters simply target the system:masters group to reduce redundant attack paths
 			g.V().
 				HasLabel("Role").
+				// Temporary measure, until we scan and flagged for sensitive roles
 				Has("name", gremlin.TextP.Containing("adm")).
 				As("i").
 				V(inserts...).
