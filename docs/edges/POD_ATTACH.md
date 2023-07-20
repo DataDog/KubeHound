@@ -69,7 +69,7 @@ tar -xzf containerd.tar.gz
 Now we can use ctr to examine the running containers:
 
 ```bash
-root@k8s-node:/tmp/bin# ctr -n k8s.io containers ls
+$ ctr -n k8s.io containers ls
 CONTAINER                                                           IMAGE                                            RUNTIME
 07c72331fc4f2ffb7dc385beda170862f93993bd53d69232652fe1d6af83c8a8    docker.io/kindest/kindnetd:v20221004-44d545d1    io.containerd.runc.v2
 33ba7bd90621cca281c99e58a83fe8fe974221085bebedc2de69ccf5988daa43    gcr.io/datadoghq/agent:7.43.0                    io.containerd.runc.v2
@@ -93,7 +93,7 @@ f681a2a6f64b11bf53ec8d1c13de0d8715ac30819f21f94f316e0bc26a844770    registry.k8s
 and the running tasks:
 
 ```bash
-root@k8s-node:~# ctr -n k8s.io tasks ls
+$ ctr -n k8s.io tasks ls
 TASK                                                                PID       STATUS
 839a74e97f50a275d306252842f3e79fca684a3b8b5ed3175d154fb990c80f31    51064     RUNNING
 ae35055acaccc10634d9160f08937d71d856be6b0d954cc772e72c83ee9bffee    351       RUNNING

