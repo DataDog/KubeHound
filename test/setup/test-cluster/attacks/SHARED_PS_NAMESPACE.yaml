@@ -1,5 +1,4 @@
 # SHARED_PS_NAMESPACE edge
-# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880275294/SHARED+PS+NAMESPACE
 apiVersion: v1
 kind: Pod
 metadata:

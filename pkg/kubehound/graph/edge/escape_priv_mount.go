@@ -17,7 +17,6 @@ func init() {
 	Register(&EscapePrivMount{}, RegisterDefault)
 }
 
-// @@DOCLINK: TODO
 type EscapePrivMount struct {
 	BaseContainerEscape
 }

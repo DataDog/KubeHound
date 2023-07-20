@@ -25,7 +25,6 @@ type tokenStealGroup struct {
 	Identity primitive.ObjectID `bson:"projected_id" json:"identity"`
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891284481/TOKEN+STEAL
 type TokenSteal struct {
 	BaseEdge
 }

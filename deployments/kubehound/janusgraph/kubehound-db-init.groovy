@@ -5,7 +5,6 @@
 //
 // Graph schema and index definition for the KubeHound graph mode
 // See details of the janus graph APIs here https://docs.janusgraph.org/schema/
-// See details of the underlying graph model here: @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2871886994/Kube+Graph+Model
 //
 
 graph.tx().rollback()

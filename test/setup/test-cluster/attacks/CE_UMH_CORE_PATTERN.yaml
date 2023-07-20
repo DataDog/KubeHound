@@ -1,5 +1,4 @@
 # CE_UMH_CORE_PATTERN edge
-# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2889843064/CE+UMH+CORE+PATTERN
 apiVersion: v1
 kind: Pod
 metadata:

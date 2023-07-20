@@ -20,7 +20,6 @@ func init() {
 	Register(&PodExec{}, RegisterGraphMutation)
 }
 
-// @@DOCLINK: TODO
 type PodExec struct {
 	BaseEdge
 }

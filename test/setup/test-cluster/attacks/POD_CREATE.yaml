@@ -1,6 +1,4 @@
-# POD_CREATE_PRIV / POD_SCHEDULE_NODE
-# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2885716055/POD+CREATE+PRIV
-# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2886370480/POD+SCHEDULE+NODE
+# POD_CREATE edge
 apiVersion: v1
 kind: ServiceAccount
 metadata:

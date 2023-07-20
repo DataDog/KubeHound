@@ -19,7 +19,6 @@ func init() {
 	Register(&TokenList{}, RegisterGraphMutation)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2886795639/TOKEN_LIST
 type TokenList struct {
 	BaseEdge
 }
