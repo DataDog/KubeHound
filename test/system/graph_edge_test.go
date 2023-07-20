@@ -258,6 +258,32 @@ func (suite *EdgeTestSuite) TestEdge_POD_CREATE() {
 	suite.Subset(paths, expected)
 }
 
+func (suite *EdgeTestSuite) TestEdge_ROLE_BIND() {
+	results, err := suite.g.V().
+		HasLabel("Role").
+		OutE().HasLabel("ROLE_BIND").
+		InV().HasLabel("Role").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 8)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[rolebind]], map[], map[name:[rolebind]",
+		"path[map[name:[rolebind]], map[], map[name:[exec-pods]",
+		"path[map[name:[rolebind]], map[], map[name:[impersonate]",
+		"path[map[name:[rolebind]], map[], map[name:[create-pods]",
+		"path[map[name:[rolebind]], map[], map[name:[list-secrets]",
+		"path[map[name:[rolebind]], map[], map[name:[read-secrets]",
+		"path[map[name:[rolebind]], map[], map[name:[varlog]",
+		"path[map[name:[rolebind]], map[], map[name:[patch-pods]",
+	}
+	suite.Subset(paths, expected)
+}
+
 func (suite *EdgeTestSuite) TestEdge_POD_EXEC() {
 	// We have one bespoke container running with pod/exec permissions which should reach all pods in the namespace
 	results, err := suite.g.V().
