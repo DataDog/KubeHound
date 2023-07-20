@@ -94,7 +94,7 @@ automountServiceAccountToken: false
 
 ## Calculation
 
-[TokenSteal](../../pkg/kubehound/graph/edge/token_steal.go)
++ [TokenSteal](../../pkg/kubehound/graph/edge/token_steal.go)
 
 ## References:
 

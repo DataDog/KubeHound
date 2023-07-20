@@ -55,7 +55,7 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 ## Calculation
 
-[EscapeModuleLoad](../../pkg/kubehound/graph/edge/escape_module_load.go)
++ [EscapeModuleLoad](../../pkg/kubehound/graph/edge/escape_module_load.go)
 
 ## References:
 

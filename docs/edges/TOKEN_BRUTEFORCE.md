@@ -41,8 +41,8 @@ Even *get* on secrets is a very powerful privilege and should not be required by
 
 ## Calculation
 
-[TokenBruteforce](../../pkg/kubehound/graph/edge/token_bruteforce.go)
-[TokenBruteforceNamespace](../../pkg/kubehound/graph/edge/token_bruteforce_namespace.go)
++ [TokenBruteforce](../../pkg/kubehound/graph/edge/token_bruteforce.go)
++ [TokenBruteforceNamespace](../../pkg/kubehound/graph/edge/token_bruteforce_namespace.go)
 
 ## References:
 

@@ -40,7 +40,7 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 ## Calculation
 
-[EscapeUmhCorePattern](../../pkg/kubehound/graph/edge/escape_umh_core_pattern.go)
++ [EscapeUmhCorePattern](../../pkg/kubehound/graph/edge/escape_umh_core_pattern.go)
 
 ## References:
 

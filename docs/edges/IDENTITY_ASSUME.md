@@ -45,7 +45,7 @@ Use a pod security policy or admission controller to prevent or limit the identi
 
 ## Calculation
 
-[IdentityAssume](../../pkg/kubehound/graph/edge/identity_assume.go)
++ [IdentityAssume](../../pkg/kubehound/graph/edge/identity_assume.go)
 
 ## References:  
 

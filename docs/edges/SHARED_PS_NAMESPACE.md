@@ -76,7 +76,7 @@ Prevent the use of shared namespaces in pods, where containers have different ri
 
 ## Calculation
 
-[SharedPsNamespace](../../pkg/kubehound/graph/edge/shared_ps_namespace.go)
++ [SharedPsNamespace](../../pkg/kubehound/graph/edge/shared_ps_namespace.go)
 
 ## References:
 

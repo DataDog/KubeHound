@@ -67,7 +67,7 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 ## Calculation
 
-[EscapePrivMount](../../pkg/kubehound/graph/edge/escape_priv_mount.go)
++ [EscapePrivMount](../../pkg/kubehound/graph/edge/escape_priv_mount.go)
 
 ## References:
 

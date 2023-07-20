@@ -128,7 +128,7 @@ ctr -n k8s.io task exec -t --exec-id full-control 0f36d12d60d12d041df8941
 
 ## Calculation
 
-[PodAttach](../../pkg/kubehound/graph/edge/pod_attach.go)
++ [PodAttach](../../pkg/kubehound/graph/edge/pod_attach.go)
 
 ## References:
 

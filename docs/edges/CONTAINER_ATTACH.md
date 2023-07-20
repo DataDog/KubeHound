@@ -54,7 +54,7 @@ kubectl describe pod <pod name>
 
 ## Calculation
 
-[ContainerAttach](../../pkg/kubehound/graph/edge/container_attach.go)
++ [ContainerAttach](../../pkg/kubehound/graph/edge/container_attach.go)
 
 ## References:
 

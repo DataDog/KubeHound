@@ -1,20 +1,20 @@
-# TOKEN_LIST
+# TOKEN_VAR_LOG_SYMLINK
 
-An identity with a role that allows listing secrets can potentially view all the secrets in a specific namespace or in the whole cluster (with ClusterRole).
+Steal all K8s API tokens from a node via an exposed `/var/log` mount.
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Role](../vertices/ROLE.md) | [Identity](../vertices/IDENTITY.md) | [Steal Application Access Token, T1528](https://attack.mitre.org/techniques/T1528/) |
+| [Container](../vertices/CONTAINER.md) | [Node](../vertices/NODE.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
 
 ## Details
 
-Obtaining the listing secrets permission will be a significant advantage to an attacker. It may lead to disclosure of application credentials, SSH keys, other more privileged user’s tokens and more.  All of these can be used in different ways depending on their capabilities. For our graph model we focus on the latter case of extracting K8s token only.
+A pod running as root and with a mount point to the node’s `/var/log` directory can expose the entire contents of its host filesystem to any user who has access to its logs, enabling an attacker to steal all K8s API tokens present on the K8s node. See [Kubernetes Pod Escape Using Log Mounts](https://blog.aquasec.com/kubernetes-security-pod-escape-log-mounts) for a more detailed explanation of the technique.
 
 ## Prerequisites
 
-Ability to interrogate the K8s API with a role allowing list access to secrets.
+Execution as root within a container process with the host `/var/log/` (or any parent directory) mounted inside the container.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/TOKEN_LIST.yaml).
+See the [example pod spec](../../test/setup/test-cluster/attacks/TOKEN_VAR_LOG_SYMLINK.yaml).
 
 ## Checks
 

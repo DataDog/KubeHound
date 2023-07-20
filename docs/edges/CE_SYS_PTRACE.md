@@ -68,7 +68,7 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 ## Calculation
 
-[EscapeSysPtrace](../../pkg/kubehound/graph/edge/escape_sys_ptrace.go)
++ [EscapeSysPtrace](../../pkg/kubehound/graph/edge/escape_sys_ptrace.go)
 
 ## References:
 
