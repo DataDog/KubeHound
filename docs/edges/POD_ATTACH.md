@@ -132,7 +132,7 @@ ctr -n k8s.io task exec -t --exec-id full-control 0f36d12d60d12d041df8941
 
 ## References:
 
-+ [[Kubernetes API Reference Docs] ](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#pod-v1-core)
++ [Kubernetes API Reference Docs](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#pod-v1-core)
 + https://iximiuz.com/en/posts/containerd-command-line-clients/
 + https://nanikgolang.netlify.app/post/containers/
 + https://www.mankier.com/8/ctr

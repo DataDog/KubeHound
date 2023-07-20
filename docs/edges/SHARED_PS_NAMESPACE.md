@@ -80,5 +80,5 @@ Prevent the use of shared namespaces in pods, where containers have different ri
 
 ## References:
 
-+ [[Kubernetes API Reference Docs] ](https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/)
++ [Kubernetes API Reference Docs](https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/)
   
