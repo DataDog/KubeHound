@@ -101,4 +101,3 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 + [Compendium Of Container Escapes](https://i.blackhat.com/USA-19/Thursday/us-19-Edwards-Compendium-Of-Container-Escapes-up.pdf)
 + [Sensitive Mounts](https://0xn3va.gitbook.io/cheat-sheets/container/escaping/sensitive-mounts)
 + [Escaping privileged containers for fun](https://pwning.systems/posts/escaping-containers-for-fun/)
-
