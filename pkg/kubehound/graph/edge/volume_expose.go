@@ -19,7 +19,6 @@ func init() {
 	Register(&VolumeExpose{}, RegisterDefault)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891251713/VOLUME+MOUNT
 type VolumeExpose struct {
 	BaseEdge
 }

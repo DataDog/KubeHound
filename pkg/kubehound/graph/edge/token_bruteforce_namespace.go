@@ -18,7 +18,6 @@ func init() {
 	Register(&TokenBruteforceNamespace{}, RegisterDefault)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
 type TokenBruteforceNamespace struct {
 	BaseEdge
 }

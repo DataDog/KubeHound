@@ -17,7 +17,6 @@ func init() {
 	Register(&EscapeModuleLoad{}, RegisterDefault)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2890006884/CE+MODULE+LOAD
 type EscapeModuleLoad struct {
 	BaseContainerEscape
 }

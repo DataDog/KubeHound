@@ -1,5 +1,4 @@
 # CE_NS_ENTER edge
-# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2897872074/CE+NSENTER
 apiVersion: v1
 kind: Pod
 metadata:

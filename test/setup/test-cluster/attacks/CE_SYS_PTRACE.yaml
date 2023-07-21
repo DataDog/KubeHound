@@ -1,5 +1,4 @@
 # CE_SYS_PTRACE edge
-# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/3087665799/CE+SYS+PTRACE
 apiVersion: v1
 kind: Pod
 metadata:

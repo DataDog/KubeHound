@@ -1,5 +1,4 @@
 # IDENTITY_IMPERSONATE edge
-# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887123111/IDENTITY+IMPERSONATE
 apiVersion: v1
 kind: ServiceAccount
 metadata:
