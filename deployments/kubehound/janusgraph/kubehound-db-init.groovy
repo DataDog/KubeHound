@@ -62,7 +62,7 @@ mgmt.addConnection(podCreate, role, node);
 mgmt.addConnection(podCreate, role, role); // self-referencing for large cluster optimizations
 
 podPatch = mgmt.makeEdgeLabel('POD_PATCH').multiplicity(MULTI).make();
-mgmt.addConnection(podPatch, role, node);
+mgmt.addConnection(podPatch, role, pod);
 mgmt.addConnection(podPatch, role, role); // self-referencing for large cluster optimizations
 
 podExec = mgmt.makeEdgeLabel('POD_EXEC').multiplicity(MULTI).make();
