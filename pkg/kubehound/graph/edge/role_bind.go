@@ -102,7 +102,7 @@ func (e *RoleBind) Stream(ctx context.Context, store storedb.Provider, c cache.C
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_namespaced": true,
+				"is_namespaced": false,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$or": bson.A{
