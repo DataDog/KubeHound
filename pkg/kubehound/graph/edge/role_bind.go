@@ -3,7 +3,6 @@ package edge
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -22,9 +21,7 @@ const (
 )
 
 // Default Kubernetes roles with high privileges
-func getSensitiveRoles() any {
-	return []string{"cluster-admin", "admin", "system:kubelet-api-admin", "system:node"}
-}
+var sensitiveRoles = []string{"cluster-admin", "admin", "system:kubelet-api-admin", "system:node"}
 
 func init() {
 	Register(&RoleBind{}, RegisterDefault)
@@ -64,13 +61,11 @@ func (e *RoleBind) Processor(ctx context.Context, oic *converter.ObjectIDConvert
 func (e *RoleBind) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal()
-		sensitiveRoles := getSensitiveRoles()
 		if e.cfg.LargeClusterOptimizations {
-			log.Printf("%s", sensitiveRoles)
 			// For larger clusters simply target specific roles to reduce number of attack paths
 			g.V().
 				HasLabel("Role").
-				// Temporary measure, until we scan and flagged for sensitive roles
+				// Temporary measure, until we scan and flag for sensitive roles
 				Has("name", P.Within(sensitiveRoles)).
 				As("r").
 				V(inserts...).
@@ -100,45 +95,56 @@ func (e *RoleBind) Stream(ctx context.Context, store storedb.Provider, c cache.C
 
 	roleBindings := adapter.MongoDB(store).Collection(collections.RoleName)
 	pipeline := []bson.M{
+		// $match stage
 		{
 			"$match": bson.M{
 				"is_namespaced": false,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
-						"$or": bson.A{
-							bson.M{"apigroups": "*"},
-							bson.M{"apigroups": "rbac.authorization.k8s.io"},
+						"$or": []bson.M{
+							{"apigroups": "*"},
+							{"apigroups": "rbac.authorization.k8s.io"},
 						},
 					},
 				},
-				"$and": bson.A{
-					bson.M{
+				"$and": []bson.M{
+					{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
-								"$or": bson.A{
-									bson.M{"verbs": "create"},
-									bson.M{"verbs": "*"},
+								"$and": []bson.M{
+									{
+										"$or": []bson.M{
+											{"verbs": "create"},
+											{"verbs": "*"},
+										},
+									},
+									{
+										"$or": []bson.M{
+											{"resources": "rolebindings"},
+											{"resources": "*"},
+										},
+									},
 								},
 							},
 						},
 					},
-					bson.M{
+					{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
-								"$or": bson.A{
-									bson.M{"verbs": "bind"},
-									bson.M{"verbs": "*"},
-								},
-							},
-						},
-					},
-					bson.M{
-						"rules": bson.M{
-							"$elemMatch": bson.M{
-								"$or": bson.A{
-									bson.M{"resources": "clusterrolebindings"},
-									bson.M{"resources": "rolebindings"},
-									bson.M{"verbs": "*"},
+								"$and": []bson.M{
+									{
+										"$or": []bson.M{
+											{"verbs": "bind"},
+											{"verbs": "*"},
+										},
+									},
+									{
+										"$or": []bson.M{
+											{"resources": "clusterrolebindings"},
+											{"resources": "clusterroles"},
+											{"resources": "*"},
+										},
+									},
 								},
 							},
 						},
@@ -146,6 +152,7 @@ func (e *RoleBind) Stream(ctx context.Context, store storedb.Provider, c cache.C
 				},
 			},
 		},
+		// $project stage
 		{
 			"$project": bson.M{
 				"_id": 1,

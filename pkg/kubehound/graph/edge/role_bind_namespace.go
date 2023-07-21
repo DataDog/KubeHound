@@ -56,45 +56,56 @@ func (e *RoleBindNamespace) Stream(ctx context.Context, store storedb.Provider, 
 	roleBindings := adapter.MongoDB(store).Collection(collections.RoleName)
 
 	pipeline := []bson.M{
+		// $match stage
 		{
 			"$match": bson.M{
 				"is_namespaced": true,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
-						"$or": bson.A{
-							bson.M{"apigroups": "*"},
-							bson.M{"apigroups": "rbac.authorization.k8s.io"},
+						"$or": []bson.M{
+							{"apigroups": "*"},
+							{"apigroups": "rbac.authorization.k8s.io"},
 						},
 					},
 				},
-				"$and": bson.A{
-					bson.M{
+				"$and": []bson.M{
+					{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
-								"$or": bson.A{
-									bson.M{"verbs": "create"},
-									bson.M{"verbs": "*"},
+								"$and": []bson.M{
+									{
+										"$or": []bson.M{
+											{"verbs": "create"},
+											{"verbs": "*"},
+										},
+									},
+									{
+										"$or": []bson.M{
+											{"resources": "rolebindings"},
+											{"resources": "*"},
+										},
+									},
 								},
 							},
 						},
 					},
-					bson.M{
+					{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
-								"$or": bson.A{
-									bson.M{"verbs": "bind"},
-									bson.M{"verbs": "*"},
-								},
-							},
-						},
-					},
-					bson.M{
-						"rules": bson.M{
-							"$elemMatch": bson.M{
-								"$or": bson.A{
-									bson.M{"resources": "clusterrolebindings"},
-									bson.M{"resources": "rolebindings"},
-									bson.M{"verbs": "*"},
+								"$and": []bson.M{
+									{
+										"$or": []bson.M{
+											{"verbs": "bind"},
+											{"verbs": "*"},
+										},
+									},
+									{
+										"$or": []bson.M{
+											{"resources": "clusterrolebindings"},
+											{"resources": "clusterroles"},
+											{"resources": "*"},
+										},
+									},
 								},
 							},
 						},
@@ -112,7 +123,8 @@ func (e *RoleBindNamespace) Stream(ctx context.Context, store storedb.Provider, 
 		},
 		{
 			"$unwind": bson.M{
-				"path": "$roleLinkedInNamespace",
+				"path":                       "$roleLinkedInNamespace",
+				"preserveNullAndEmptyArrays": true,
 			},
 		},
 		{
