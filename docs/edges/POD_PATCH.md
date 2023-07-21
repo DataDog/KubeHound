@@ -9,11 +9,12 @@ With the correct privileges an attacker can use the Kubernetes API to modify cer
 ## Details
 
 The `kubectl patch` command enables updating specific fields of a resource, including pods. However, the fields that can be updated using a `PATCH` command depend on the resource's API schema and the specific Kubernetes version in use. In the current version (1.27) only a very restricted set of fields can be modified using this command:
-    + `spec.containers[*].image`
-    + `spec.initContainers[*].image`
-    + `spec.activeDeadlineSeconds`
-    + `spec.tolerations` (only additions to existing tolerations)
-    + `spec.terminationGracePeriodSeconds` (allow it to be set to 1 if it was previously negative)
++ `spec.containers[*].image`
++ `spec.initContainers[*].image`
++ `spec.activeDeadlineSeconds`
++ `spec.tolerations` (only additions to existing tolerations)
+ + `spec.terminationGracePeriodSeconds` (allow it to be set to 1 if it was previously negative)
+
 However, this is still just enough to allow an attacker to achieve execution in a pod by modifying the container image of a running pod to a backdoored container image in an accessible container registry.
 
 ## Prerequisites
