@@ -1,5 +1,4 @@
 # POD_EXEC edge
-# @@DOCLINK: TODO TODO
 apiVersion: v1
 kind: ServiceAccount
 metadata:

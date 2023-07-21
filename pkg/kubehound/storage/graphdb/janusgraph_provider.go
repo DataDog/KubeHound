@@ -28,6 +28,7 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 	if dbHost == "" {
 		return nil, errors.New("JanusGraph DB URL is not set")
 	}
+
 	driver, err := gremlin.NewDriverRemoteConnection(dbHost,
 		func(settings *gremlin.DriverRemoteConnectionSettings) {
 			settings.ConnectionTimeout = timeout
@@ -38,16 +39,39 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 		return nil, err
 	}
 
-	g := &JanusGraphProvider{
+	jgp := &JanusGraphProvider{
 		drc:  driver,
 		tags: append(telemetry.BaseTags, telemetry.TagTypeJanusGraph),
 	}
 
-	return g, nil
+	return jgp, nil
 }
 
 func (jgp *JanusGraphProvider) Name() string {
 	return "JanusGraphProvider"
+}
+
+func (jgp *JanusGraphProvider) Clear(ctx context.Context) error {
+	g := gremlin.Traversal_().WithRemote(jgp.drc)
+	tx := g.Tx()
+	defer tx.Close()
+
+	gtx, err := tx.Begin()
+	if err != nil {
+		return err
+	}
+
+	err = <-gtx.V().Drop().Iterate()
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // HealthCheck sends a single digit, as a string. JanusGraph will reply to this with the same value (arithmetic operation)

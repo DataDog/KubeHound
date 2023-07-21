@@ -17,7 +17,6 @@ func init() {
 	Register(&EscapeNsenter{}, RegisterDefault)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2897872074/CE+NSENTER
 type EscapeNsenter struct {
 	BaseContainerEscape
 }

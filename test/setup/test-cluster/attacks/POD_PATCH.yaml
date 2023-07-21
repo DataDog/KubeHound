@@ -1,5 +1,4 @@
 # POD_PATCH edge
-# @@DOCLINK: TODO TODO
 apiVersion: v1
 kind: ServiceAccount
 metadata:

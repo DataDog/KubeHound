@@ -1,5 +1,4 @@
 # CE_MODULE_LOAD edge
-# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2890006884/CE+MODULE+LOAD
 apiVersion: v1
 kind: Pod
 metadata:

@@ -18,7 +18,6 @@ func init() {
 	Register(&PodExecNamespace{}, RegisterDefault)
 }
 
-// @@DOCLINK: TODO
 type PodExecNamespace struct {
 	BaseEdge
 }

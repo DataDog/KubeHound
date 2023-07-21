@@ -17,7 +17,6 @@ func init() {
 	Register(&EscapeSysPtrace{}, RegisterDefault)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/3087665799/CE+SYS+PTRACE
 type EscapeSysPtrace struct {
 	BaseContainerEscape
 }

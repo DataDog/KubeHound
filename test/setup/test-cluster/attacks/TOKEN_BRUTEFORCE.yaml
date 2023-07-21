@@ -1,5 +1,4 @@
 # TOKEN_BRUTEFORCE edge
-# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
 apiVersion: v1
 kind: ServiceAccount
 metadata:

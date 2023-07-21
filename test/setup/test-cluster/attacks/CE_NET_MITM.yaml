@@ -1,5 +1,4 @@
 # CE_NET_ADMIN edge
-# @@DOCLINK: TODO TODO
 apiVersion: v1
 kind: Pod
 metadata:

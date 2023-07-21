@@ -18,7 +18,6 @@ func init() {
 	Register(&TokenListNamespace{}, RegisterDefault)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2886795639/TOKEN_LIST
 type TokenListNamespace struct {
 	BaseEdge
 }
