@@ -1,6 +1,6 @@
 # KubeHound
 
-A Kubernetes attack graph tool. For an overview of the application architecture see the [design canvas](./docs/application/Architecture.excalidraw). To see the attacks covered see the [edge defintions](./docs/edges/). 
+A Kubernetes attack graph tool. For an overview of the application architecture see the [design canvas](./docs/application/Architecture.excalidraw). To see the attacks covered see the [edge definitions](./docs/edges/). 
 
 To contribute a new attack to the project follow the [attack guide](./docs/ATTACKS.md).
 
