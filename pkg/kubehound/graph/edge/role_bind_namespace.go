@@ -14,6 +14,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+const (
+	RoleBindNamespaceLabel = RoleBindLabel
+	RoleBindNamespaceName  = "RoleBindNamespace"
+)
+
 func init() {
 	Register(&RoleBindNamespace{}, RegisterDefault)
 }
@@ -29,11 +34,11 @@ type roleBindGroupNamespace struct {
 }
 
 func (e *RoleBindNamespace) Label() string {
-	return "ROLE_BIND"
+	return RoleBindNamespaceLabel
 }
 
 func (e *RoleBindNamespace) Name() string {
-	return "RoleBindNamespace"
+	return RoleBindNamespaceName
 }
 
 func (e *RoleBindNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
@@ -54,20 +59,43 @@ func (e *RoleBindNamespace) Stream(ctx context.Context, store storedb.Provider, 
 		{
 			"$match": bson.M{
 				"is_namespaced": true,
-				"$and": []bson.M{
-					{
+				"rules": bson.M{
+					"$elemMatch": bson.M{
+						"$or": bson.A{
+							bson.M{"apigroups": "*"},
+							bson.M{"apigroups": "rbac.authorization.k8s.io"},
+						},
+					},
+				},
+				"$and": bson.A{
+					bson.M{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
-								"verbs":     "create",
-								"resources": "rolebindings",
+								"$or": bson.A{
+									bson.M{"verbs": "create"},
+									bson.M{"verbs": "*"},
+								},
 							},
 						},
 					},
-					{
+					bson.M{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
-								"verbs":         "bind",
-								"resourcenames": "*",
+								"$or": bson.A{
+									bson.M{"verbs": "bind"},
+									bson.M{"verbs": "*"},
+								},
+							},
+						},
+					},
+					bson.M{
+						"rules": bson.M{
+							"$elemMatch": bson.M{
+								"$or": bson.A{
+									bson.M{"resources": "clusterrolebindings"},
+									bson.M{"resources": "rolebindings"},
+									bson.M{"verbs": "*"},
+								},
 							},
 						},
 					},
@@ -84,8 +112,7 @@ func (e *RoleBindNamespace) Stream(ctx context.Context, store storedb.Provider, 
 		},
 		{
 			"$unwind": bson.M{
-				"path":                       "$roleLinkedInNamespace",
-				"preserveNullAndEmptyArrays": true,
+				"path": "$roleLinkedInNamespace",
 			},
 		},
 		{
