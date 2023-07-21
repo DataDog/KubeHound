@@ -1,5 +1,4 @@
 # TOKEN_LIST edge
-# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2886795639/TOKEN+LIST
 apiVersion: v1
 kind: ServiceAccount
 metadata:

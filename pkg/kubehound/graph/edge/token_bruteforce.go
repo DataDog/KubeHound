@@ -19,7 +19,6 @@ func init() {
 	Register(&TokenBruteforce{}, RegisterGraphMutation)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2887155994/TOKEN+BRUTEFORCE
 type TokenBruteforce struct {
 	BaseEdge
 }

@@ -27,6 +27,9 @@ func WithTags(tags []string) WriterOption {
 type Provider interface {
 	services.Dependency
 
+	// Clear drops all collections from the database (usually to ensure a clean start)
+	Clear(ctx context.Context) error
+
 	// Raw returns a handle to the underlying provider to allow implementation specific operations e.g db queries.
 	Raw() any
 

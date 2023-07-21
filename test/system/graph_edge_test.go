@@ -218,19 +218,29 @@ func (suite *EdgeTestSuite) TestEdge_POD_PATCH() {
 	results, err := suite.g.V().
 		HasLabel("Role").
 		OutE().HasLabel("POD_PATCH").
-		InV().HasLabel("Node").
+		InV().HasLabel("Pod").
 		Path().
 		By(__.ValueMap("name")).
 		ToList()
 
 	suite.NoError(err)
-	suite.GreaterOrEqual(len(results), 3)
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[patch-pods]], map[], map[name:[kubehound.test.local-control-plane]",
-		"path[map[name:[patch-pods]], map[], map[name:[kubehound.test.local-worker]",
-		"path[map[name:[patch-pods]], map[], map[name:[kubehound.test.local-worker2]",
+		"path[map[name:[patch-pods]], map[], map[name:[impersonate-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[modload-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[pod-create-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[rolebind-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[tokenlist-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[netadmin-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[priv-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[tokenget-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[nsenter-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[varlog-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[sharedps-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[umh-core-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[pod-patch-pod]",
+		"path[map[name:[patch-pods]], map[], map[name:[pod-exec-pod]",
 	}
 	suite.Subset(paths, expected)
 }

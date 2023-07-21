@@ -19,7 +19,6 @@ func init() {
 	Register(&VolumeMount{}, RegisterDefault)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2891251713/VOLUME+MOUNT
 type VolumeMount struct {
 	BaseEdge
 }

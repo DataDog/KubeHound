@@ -7,6 +7,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -39,11 +40,28 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	}
 
 	db := client.Database(MongoDatabaseName)
+
 	return &MongoProvider{
 		client: client,
 		db:     db,
 		tags:   []string{telemetry.TagTypeMongodb},
 	}, nil
+}
+
+func (mp *MongoProvider) Clear(ctx context.Context) error {
+	collections, err := mp.db.ListCollectionNames(ctx, bson.M{})
+	if err != nil {
+		return fmt.Errorf("listing mongo DB collections: %w", err)
+	}
+
+	for _, collectionName := range collections {
+		err = mp.db.Collection(collectionName).Drop(ctx)
+		if err != nil {
+			return fmt.Errorf("deleting mongo DB collection %s: %w", collectionName, err)
+		}
+	}
+
+	return nil
 }
 
 func (mp *MongoProvider) Raw() any {

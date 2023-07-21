@@ -135,6 +135,12 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	defer sp.Close(ctx)
 	log.I.Infof("Loaded %s store provider", sp.Name())
 
+	// Ensure we start from a clean slate by dropping all existing collections
+	err = sp.Clear(ctx)
+	if err != nil {
+		return fmt.Errorf("store database clear: %w", err)
+	}
+
 	log.I.Info("Loading graph database provider")
 	gp, err := graphdb.Factory(ctx, cfg)
 	if err != nil {
@@ -142,6 +148,12 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	}
 	defer gp.Close(ctx)
 	log.I.Infof("Loaded %s graph provider", gp.Name())
+
+	// Ensure we start from a clean slate by dropping all existing vertices/edges
+	err = gp.Clear(ctx)
+	if err != nil {
+		return fmt.Errorf("graph database clear: %w", err)
+	}
 
 	log.I.Info("Starting Kubernetes raw data ingest")
 	if err := ingestData(ctx, cfg, cp, sp, gp); err != nil {

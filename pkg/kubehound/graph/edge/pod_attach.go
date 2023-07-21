@@ -19,7 +19,6 @@ func init() {
 	Register(&PodAttach{}, RegisterDefault)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2880668080/POD+ATTACH
 type PodAttach struct {
 	BaseEdge
 }
