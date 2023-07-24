@@ -4,6 +4,8 @@ A Kubernetes attack graph tool. For an overview of the application architecture 
 
 To contribute a new attack to the project follow the [attack guide](./docs/ATTACKS.md).
 
+![Example Path](./docs/images/example-graph.png)
+
 ## Run
 
 ### Prerequisites - setup the infrastructure
