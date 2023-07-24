@@ -134,3 +134,9 @@ local-cluster-destroy: ## Destroy the local kind cluster
 .PHONY: help
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(HELP_MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: thirdparty-licenses
+thirdparty-licenses:
+	go get github.com/google/go-licenses
+	go install github.com/google/go-licenses
+	$(GOPATH)/bin/go-licenses csv github.com/DataDog/KubeHound/cmd/kubehound | sort > $(ROOT_DIR)/LICENSE-3rdparty.csv

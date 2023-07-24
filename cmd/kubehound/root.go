@@ -8,8 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// TODO config file path
-
 var (
 	cfgFile = config.DefaultConfigPath
 )
