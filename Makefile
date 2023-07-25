@@ -79,7 +79,7 @@ build: ## Build the application
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
 
 .PHONY: kubehound
-kubehound: | backend-reset-hard build run ## Run kubehound (deploy backend, build go binary and run it locally)
+kubehound: | backend-up build run ## Run kubehound (deploy backend, build go binary and run it locally)
 
 .PHONY: run
 run: ## Run kubehound compiled binary with default config
