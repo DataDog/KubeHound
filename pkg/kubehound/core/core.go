@@ -104,12 +104,13 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 		opt(lOpts)
 	}
 
-	log.I.Info("Loading application configuration")
 	var cfg *config.KubehoundConfig
 	if len(lOpts.ConfigPath) != 0 {
+		log.I.Infof("Loading application configuration from file %s", lOpts.ConfigPath)
 		cfg = config.MustLoadConfig(lOpts.ConfigPath)
 	} else {
-		cfg = config.MustLoadDefaultConfig()
+		log.I.Infof("Loading application configuration from default embedded")
+		cfg = config.MustLoadEmbedConfig()
 	}
 
 	log.I.Info("Initializing application telemetry")

@@ -5,7 +5,7 @@ DOCKER_COMPOSE_FILE_PATH := -f deployments/kubehound/docker-compose.yaml
 DOCKER_COMPOSE_ENV_FILE_PATH := deployments/kubehound/.env
 DOCKER_COMPOSE_PROFILE := --profile infra
 DEV_ENV_FILE_PATH := test/setup/.config
-
+DEFAULT_KUBEHOUND_ENV := dev
 
 # get the latest commit hash in the short form
 COMMIT := $(shell git rev-parse --short HEAD)
@@ -29,12 +29,18 @@ ifneq (,$(wildcard $(DEV_ENV_FILE_PATH)))
     export
 endif
 
+# Set default values if none of the above have set anything
+ifndef KUBEHOUND_ENV
+	KUBEHOUND_ENV := ${DEFAULT_KUBEHOUND_ENV}
+endif
+
 ifneq ($(MAKECMDGOALS),system-test)
 ifeq (${KUBEHOUND_ENV}, prod)
 	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.prod.yaml
 else ifeq (${KUBEHOUND_ENV}, dev)
 	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
 endif
+
 # No API key is being set
 ifneq (${DD_API_KEY},)
 	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
@@ -79,11 +85,7 @@ build: ## Build the application
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
 
 .PHONY: kubehound
-kubehound: | backend-up build run ## Run kubehound (deploy backend, build go binary and run it locally)
-
-.PHONY: run
-run: ## Run kubehound compiled binary with default config
-	KUBECONFIG=${KUBECONFIG} ./bin/kubehound -c configs/etc/kubehound.yaml
+kubehound: | backend-up build ## Prepare kubehound (deploy backend, build go binary)
 
 .PHONY: backend-down
 backend-down: ## Tear down the kubehound stack

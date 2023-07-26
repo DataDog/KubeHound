@@ -12,6 +12,17 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
 
 ## Run
 
+### Requirements
+
++ Golang `>= 1.20`: https://go.dev/doc/install
++ Docker `>= 19.03`: https://docs.docker.com/engine/install/
++ Docker Compose `V2`: https://docs.docker.com/compose/compose-file/compose-versioning/
+
+### Test Requirements
+
++ Kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager
++ Kubectl: https://kubernetes.io/docs/tasks/tools/
+
 ### Prerequisites - setup the infrastructure
 
 To run the application, you can use docker image with the compose. First create and populate a .env file with the required variables:
@@ -113,11 +124,6 @@ If you need to manually access the system test environement with kubectl and oth
 ```bash
 cd test/setup/ && export KUBECONFIG=$(pwd)/.kube-config
 ```
-
-### Requirements
-
-+ Kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager
-+ Kubectl: https://kubernetes.io/docs/tasks/tools/
 
 #### Environment variable:
 - `DD_API_KEY` (optional): set to the datadog API key used to submit metrics and other observability data.
