@@ -114,11 +114,11 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	}
 
 	log.I.Info("Initializing application telemetry")
-	err := telemetry.Initialize(cfg)
+	ts, err := telemetry.Initialize(cfg)
 	if err != nil {
 		log.I.Warnf("failed telemetry initialization: %v", err)
 	}
-	defer telemetry.Shutdown()
+	defer telemetry.Shutdown(ts)
 
 	log.I.Info("Loading cache provider")
 	cp, err := cache.Factory(ctx, cfg)

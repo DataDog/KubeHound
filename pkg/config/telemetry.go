@@ -1,6 +1,7 @@
 package config
 
 type TelemetryConfig struct {
+	Enabled  bool           `mapstructure:"enabled"`
 	Statsd   StatsdConfig   `mapstructure:"statsd"`
 	Tracer   TracerConfig   `mapstructure:"tracer"`
 	Profiler ProfilerConfig `mapstructure:"profiler"`

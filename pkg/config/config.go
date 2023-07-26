@@ -60,6 +60,9 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("storage.retry", globals.DefaultRetry)
 	c.SetDefault("storage.retry_delay", globals.DefaultRetryDelay)
 
+	// Disable Datadog telemetry by default
+	c.SetDefault("telemetry.enabled", false)
+
 	// Default value for MongoDB
 	c.SetDefault("mongodb.connection_timeout", globals.DefaultConnectionTimeout)
 

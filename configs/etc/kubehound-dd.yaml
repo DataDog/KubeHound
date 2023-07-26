@@ -1,5 +1,6 @@
 #
-# Reference KubeHound configuration
+# Default KubeHound configuration
+# NOTE: this is optimized for large clusters in the Datadog environment
 #
 
 # K8s collector configuration
@@ -10,21 +11,10 @@ collector:
   # Live collector configuration
   live:
     # Rate limit of requests/second to the Kubernetes API
-    rate_limit_per_second: 60
+    rate_limit_per_second: 75
 
-    # # Number of entries retrieved by each call on the API (same for all Kubernetes entry types)
-    # page_size: 500
-
-    # # Number of pages to buffer
-    # page_buffer_size: 10
-
-  # Uncomment to use the file collector
-  # type: file-collector
-
-  # File collector configuration
-  # file:
-  #   # Directory holding the K8s json data files
-  #   directory: /path/to/directory
+    # Number of pages to buffer
+    page_buffer_size: 50
 
 # General storage configuration
 storage:
@@ -54,7 +44,7 @@ janusgraph:
 telemetry:
   # Whether to enable Datadog telemetry (default false)
   enable: true
-  
+
   # Statsd configuration for metics support
   statsd:
     # URL to send statsd data to the Datadog agent
@@ -68,26 +58,19 @@ telemetry:
 # Graph builder configuration
 builder:
   # Vertex builder configuration
-  # vertex:
-  #   # Batch size for vertex inserts
-  #   batch_size: 500
+  vertex:
+    # Batch size for vertex inserts
+    batch_size: 500
 
   # Edge builder configuration
   edge:
+    worker_pool_size: 2
+
+    # Batch size for edge inserts
+    batch_size: 500
+    
+    # Cluster impact batch size for edge inserts
+    batch_size_cluster_impact: 10
+
     # Enable for large clusters to prevent number of edges growing exponentially
     large_cluster_optimizations: true
-
-    # # Size of the worker pool handling parallel edge inserts
-    # worker_pool_size: 10
-
-    # # Capacity of the worker pool handling parallel edge inserts
-    # worker_pool_capacity: 100
-
-    # # Batch size for edge inserts
-    # batch_size: 500
-
-    #  # Small batch size for edge inserts
-    # batch_size_small: 75
-
-    #  # Cluster impact batch size for edge inserts
-    # batch_size_cluster_impact: 1
