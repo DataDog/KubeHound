@@ -117,7 +117,7 @@ Remember the targeted cluster must be set via `kubectx` or setting the `KUBECONF
 make help
 ```
 
-### Using KubeHound Data
+## Using KubeHound Data
 
 To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop.apache.org/gremlin.html) query language via an API call or dedicated graph query UI. A number of graph query UIs are availble, but we recommend [gdotv](https://gdotv.com/). To access the KubeHound graph using `gdotv`:
 
