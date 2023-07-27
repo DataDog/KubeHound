@@ -1,6 +1,12 @@
 package config
 
-import "time"
+import (
+	"time"
+)
+
+const (
+	DefaultMongoUrl = "mongodb://localhost:27017"
+)
 
 // MongoDBConfig configures mongodb specific parameters.
 type MongoDBConfig struct {

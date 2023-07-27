@@ -10,6 +10,9 @@ mongodb:
   url: "mongodb://localhost:27018"
   connection_timeout: 60s
 telemetry:
+  enabled: true
+  tags:
+    team: ase
   statsd:
     url: "127.0.0.1:8125"
   tracer:

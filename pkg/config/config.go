@@ -1,10 +1,11 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 
-	"github.com/DataDog/KubeHound/pkg/globals"
+	embedconfig "github.com/DataDog/KubeHound/configs"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/spf13/viper"
 )
@@ -15,7 +16,6 @@ var (
 
 const (
 	DefaultConfigType = "yaml"
-	DefaultConfigPath = "etc/kubehound.yaml"
 )
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
@@ -28,12 +28,17 @@ type KubehoundConfig struct {
 	Builder    BuilderConfig    `mapstructure:"builder"`    // Graph builder  configuration
 }
 
-// MustLoadDefaultConfig loads the default application configuration, treating all errors as fatal.
-func MustLoadDefaultConfig() *KubehoundConfig {
-	return MustLoadConfig(DefaultConfigPath)
+// MustLoadEmbedConfig loads the embedded default application configuration, treating all errors as fatal.
+func MustLoadEmbedConfig() *KubehoundConfig {
+	cfg, err := NewEmbedConfig(embedconfig.DefaultPath)
+	if err != nil {
+		log.I.Fatalf("embed config load: %v", err)
+	}
+
+	return cfg
 }
 
-// MustLoadtConfig loads the application configuration from the provided path, treating all errors as fatal.
+// MustLoadConfig loads the application configuration from the provided path, treating all errors as fatal.
 func MustLoadConfig(configPath string) *KubehoundConfig {
 	cfg, err := NewConfig(configPath)
 	if err != nil {
@@ -46,20 +51,28 @@ func MustLoadConfig(configPath string) *KubehoundConfig {
 // SetDefaultValues loads the default value from the different modules
 func SetDefaultValues(c *viper.Viper) {
 	// K8s Live collector module
-	c.SetDefault("collector.live.page_size", globals.DefaultK8sAPIPageSize)
-	c.SetDefault("collector.live.page_buffer_size", globals.DefaultK8sAPIPageBufferSize)
-	c.SetDefault("collector.live.rate_limit_per_second", globals.DefaultK8sAPIRateLimitPerSecond)
+	c.SetDefault("collector.live.page_size", DefaultK8sAPIPageSize)
+	c.SetDefault("collector.live.page_buffer_size", DefaultK8sAPIPageBufferSize)
+	c.SetDefault("collector.live.rate_limit_per_second", DefaultK8sAPIRateLimitPerSecond)
 
 	// Default values for storage provider
-	c.SetDefault("storage.retry", globals.DefaultRetry)
-	c.SetDefault("storage.retry_delay", globals.DefaultRetryDelay)
+	c.SetDefault("storage.retry", DefaultRetry)
+	c.SetDefault("storage.retry_delay", DefaultRetryDelay)
+
+	// Disable Datadog telemetry by default
+	c.SetDefault("telemetry.enabled", false)
 
 	// Default value for MongoDB
-	c.SetDefault("mongodb.connection_timeout", globals.DefaultConnectionTimeout)
+	c.SetDefault("mongodb.url", DefaultMongoUrl)
+	c.SetDefault("mongodb.connection_timeout", DefaultConnectionTimeout)
+
+	// Defaults values for JanusGraph
+	c.SetDefault("janusgraph.url", DefaultJanusGraphUrl)
+	c.SetDefault("janusgraph.connection_timeout", DefaultConnectionTimeout)
 
 	// Profiler values
-	c.SetDefault("telemetry.profiler.period", globals.DefaultProfilerPeriod)
-	c.SetDefault("telemetry.profiler.cpu_duration", globals.DefaultProfilerCPUDuration)
+	c.SetDefault("telemetry.profiler.period", DefaultProfilerPeriod)
+	c.SetDefault("telemetry.profiler.cpu_duration", DefaultProfilerCPUDuration)
 
 	// Default values for graph builder
 	c.SetDefault("builder.vertex.batch_size", DefaultVertexBatchSize)
@@ -77,6 +90,30 @@ func NewConfig(configPath string) (*KubehoundConfig, error) {
 	c.SetConfigFile(configPath)
 	SetDefaultValues(c)
 	if err := c.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("loading config: %w", err)
+	}
+
+	kc := KubehoundConfig{}
+	if err := c.Unmarshal(&kc); err != nil {
+		return nil, fmt.Errorf("unmarshaling config data: %w", err)
+	}
+
+	return &kc, nil
+}
+
+// NewEmbedConfig creates a new config instance from an embedded config file using viper.
+func NewEmbedConfig(configPath string) (*KubehoundConfig, error) {
+	c := viper.New()
+	c.SetConfigType(DefaultConfigType)
+	SetDefaultValues(c)
+
+	data, err := embedconfig.F.ReadFile(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("reading embed config: %w", err)
+	}
+
+	err = c.ReadConfig(bytes.NewReader(data))
+	if err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
 

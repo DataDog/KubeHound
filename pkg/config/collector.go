@@ -5,6 +5,12 @@ const (
 	CollectorTypeK8sAPI = "live-k8s-api-collector"
 )
 
+const (
+	DefaultK8sAPIPageSize           int64 = 500
+	DefaultK8sAPIPageBufferSize     int32 = 10
+	DefaultK8sAPIRateLimitPerSecond int   = 100
+)
+
 // CollectorConfig configures collector specific parameters.
 type CollectorConfig struct {
 	Type string                 `mapstructure:"type"` // Collector type

@@ -9,12 +9,21 @@ import (
 
 func Initialize(cfg *config.KubehoundConfig) {
 	log.I.Infof("Using %s for tracer URL", cfg.Telemetry.Tracer.URL)
-	tracer.Start(
+
+	// Default options
+	opts := []tracer.StartOption{
 		tracer.WithEnv(globals.DDEnv),
 		tracer.WithService(globals.DDServiceName),
 		tracer.WithServiceVersion(config.BuildVersion),
 		tracer.WithAgentAddr(cfg.Telemetry.Tracer.URL),
-	)
+	}
+
+	// Optional tags from configuration
+	for tk, tv := range cfg.Telemetry.Tags {
+		opts = append(opts, tracer.WithGlobalTag(tk, tv))
+	}
+
+	tracer.Start(opts...)
 }
 
 func Shutdown() {
