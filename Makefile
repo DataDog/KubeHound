@@ -133,6 +133,11 @@ local-cluster-resource-deploy: ## Deploy the attacks resources into the kind clu
 local-cluster-destroy: ## Destroy the local kind cluster
 	bash test/setup/manage-cluster.sh destroy
 
+.PHONY: sample-graph
+sample-graph: | local-cluster-deploy backend-up build ## Create the kind cluster, start the backend, run the application, delete the cluster
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && $(ROOT_DIR)/bin/kubehound
+	bash test/setup/manage-cluster.sh destroy
+
 .PHONY: help
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(HELP_MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

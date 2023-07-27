@@ -3,10 +3,11 @@ package config
 import (
 	"bytes"
 	"fmt"
+	"os"
+
 	embedconfig "github.com/DataDog/KubeHound/configs"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/spf13/viper"
-	"os"
 )
 
 var (
@@ -62,7 +63,12 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("telemetry.enabled", false)
 
 	// Default value for MongoDB
+	c.SetDefault("mongodb.url", DefaultMongoUrl)
 	c.SetDefault("mongodb.connection_timeout", DefaultConnectionTimeout)
+
+	// Defaults values for JanusGraph
+	c.SetDefault("janusgraph.url", DefaultJanusGraphUrl)
+	c.SetDefault("janusgraph.connection_timeout", DefaultConnectionTimeout)
 
 	// Profiler values
 	c.SetDefault("telemetry.profiler.period", DefaultProfilerPeriod)
