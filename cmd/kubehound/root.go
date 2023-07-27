@@ -3,13 +3,12 @@ package main
 import (
 	"context"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
 	"github.com/spf13/cobra"
 )
 
 var (
-	cfgFile = config.DefaultConfigPath
+	cfgFile = ""
 )
 
 var (

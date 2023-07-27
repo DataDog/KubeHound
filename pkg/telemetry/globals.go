@@ -47,6 +47,7 @@ const (
 
 	TagKeyResource = "resource"
 	TagKeyLabel    = "label"
+	TagKeyRunId    = "run_id"
 
 	TagResourcePods                = "pods"
 	TagResourceRoles               = "roles"
