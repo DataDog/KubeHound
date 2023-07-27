@@ -8,7 +8,7 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
 
 + For an overview of the application architecture see the [design canvas](./docs/application/Architecture.excalidraw)
 + To see the attacks covered see the [edge definitions](./docs/edges/)
-+ To contribute a new attack to the project follow the [attack guide](./docs/ATTACKS.md)
++ To contribute a new attack to the project follow the [contribution guidelines](./CONTRIBUTING.md)
 
 ## Requirements
 
