@@ -6,7 +6,6 @@ import (
 
 	mocks "github.com/DataDog/KubeHound/pkg/collector/mockingest"
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -20,16 +19,16 @@ import (
 
 func NewTestK8sAPICollector(ctx context.Context, clientset *fake.Clientset) CollectorClient {
 	cfg := &config.K8SAPICollectorConfig{
-		PageSize:           globals.DefaultK8sAPIPageSize,
-		PageBufferSize:     globals.DefaultK8sAPIPageBufferSize,
-		RateLimitPerSecond: globals.DefaultK8sAPIRateLimitPerSecond,
+		PageSize:           config.DefaultK8sAPIPageSize,
+		PageBufferSize:     config.DefaultK8sAPIPageBufferSize,
+		RateLimitPerSecond: config.DefaultK8sAPIRateLimitPerSecond,
 	}
 
 	return &k8sAPICollector{
 		cfg:       cfg,
 		clientset: clientset,
 		log:       log.Trace(ctx, log.WithComponent(K8sAPICollectorName)),
-		rl:        ratelimit.New(globals.DefaultK8sAPIRateLimitPerSecond), // per second
+		rl:        ratelimit.New(config.DefaultK8sAPIRateLimitPerSecond), // per second
 	}
 }
 
@@ -54,9 +53,9 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 				ctx:  ctx,
 				path: "testdata/kubehound-test-live-default.yaml",
 				values: config.K8SAPICollectorConfig{
-					PageSize:           globals.DefaultK8sAPIPageSize,
-					PageBufferSize:     globals.DefaultK8sAPIPageBufferSize,
-					RateLimitPerSecond: globals.DefaultK8sAPIRateLimitPerSecond,
+					PageSize:           config.DefaultK8sAPIPageSize,
+					PageBufferSize:     config.DefaultK8sAPIPageBufferSize,
+					RateLimitPerSecond: config.DefaultK8sAPIRateLimitPerSecond,
 				},
 			},
 			wantErr: false,
@@ -82,7 +81,7 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 				values: config.K8SAPICollectorConfig{
 					PageSize:           int64(123),
 					PageBufferSize:     int32(456),
-					RateLimitPerSecond: globals.DefaultK8sAPIRateLimitPerSecond,
+					RateLimitPerSecond: config.DefaultK8sAPIRateLimitPerSecond,
 				},
 			},
 			wantErr: false,

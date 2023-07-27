@@ -3,7 +3,6 @@ package config
 import (
 	"testing"
 
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,8 +24,8 @@ func TestMustLoadConfig(t *testing.T) {
 			},
 			want: &KubehoundConfig{
 				Storage: StorageConfig{
-					RetryDelay: globals.DefaultRetryDelay,
-					Retry:      globals.DefaultRetry,
+					RetryDelay: DefaultRetryDelay,
+					Retry:      DefaultRetry,
 				},
 				Collector: CollectorConfig{
 					Type: CollectorTypeFile,
@@ -42,15 +41,15 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				MongoDB: MongoDBConfig{
 					URL:               "mongodb://localhost:27017",
-					ConnectionTimeout: globals.DefaultConnectionTimeout,
+					ConnectionTimeout: DefaultConnectionTimeout,
 				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
 						URL: "127.0.0.1:8125",
 					},
 					Profiler: ProfilerConfig{
-						Period:      globals.DefaultProfilerPeriod,
-						CPUDuration: globals.DefaultProfilerCPUDuration,
+						Period:      DefaultProfilerPeriod,
+						CPUDuration: DefaultProfilerCPUDuration,
 					},
 				},
 				Builder: BuilderConfig{
@@ -76,8 +75,8 @@ func TestMustLoadConfig(t *testing.T) {
 			},
 			want: &KubehoundConfig{
 				Storage: StorageConfig{
-					RetryDelay: globals.DefaultRetryDelay,
-					Retry:      globals.DefaultRetry,
+					RetryDelay: DefaultRetryDelay,
+					Retry:      DefaultRetry,
 				},
 				Collector: CollectorConfig{
 					Type: CollectorTypeK8sAPI,
@@ -89,15 +88,15 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				MongoDB: MongoDBConfig{
 					URL:               "mongodb://localhost:27017",
-					ConnectionTimeout: globals.DefaultConnectionTimeout,
+					ConnectionTimeout: DefaultConnectionTimeout,
 				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
 						URL: "127.0.0.1:8125",
 					},
 					Profiler: ProfilerConfig{
-						Period:      globals.DefaultProfilerPeriod,
-						CPUDuration: globals.DefaultProfilerCPUDuration,
+						Period:      DefaultProfilerPeriod,
+						CPUDuration: DefaultProfilerCPUDuration,
 					},
 				},
 				Builder: BuilderConfig{

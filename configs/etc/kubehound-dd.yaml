@@ -1,5 +1,5 @@
 #
-# Default KubeHound configuration
+# Default Datadog KubeHound configuration
 # NOTE: this is optimized for large clusters in the Datadog environment
 #
 
@@ -44,6 +44,10 @@ janusgraph:
 telemetry:
   # Whether to enable Datadog telemetry (default false)
   enable: true
+
+  # Default tags to add to all telemetry (free form key-value map)
+  tags:
+    team: ase
 
   # Statsd configuration for metics support
   statsd:

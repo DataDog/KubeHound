@@ -85,17 +85,24 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 
 // Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context, opts ...LaunchOption) error {
-	runUUID := uuid.NewString()
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationLaunch, tracer.Measured())
-	// We set this so we can measure run by run in addition of version per version
-	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
-	span.SetBaggageItem("run_id", runUUID)
-	// We update the base tags to include that run id, so we have it available for metrics
-	tagRunUUID := "run_id:" + runUUID
-	log.I.SetRunUUID(runUUID)
-	telemetry.BaseTags = append(telemetry.BaseTags, tagRunUUID)
 	defer span.Finish()
 
+	// We define a unique run id this so we can measure run by run in addition of version per version.
+	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
+	runUUID := uuid.NewString()
+	span.SetBaggageItem("run_id", runUUID)
+
+	// We update the base tags to include that run id, so we have it available for metrics
+	tagRunUUID := fmt.Sprintf("%s:%s", telemetry.TagKeyRunId, runUUID)
+	telemetry.BaseTags = append(telemetry.BaseTags, tagRunUUID)
+
+	// Set the run ID as a global log tag
+	log.AddGlobalTags(map[string]string{
+		telemetry.TagKeyRunId: runUUID,
+	})
+
+	// Start the run
 	start := time.Now()
 	log.I.Infof("Starting KubeHound (run_id: %s)", runUUID)
 	log.I.Info("Initializing launch options")
@@ -112,6 +119,10 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 		log.I.Infof("Loading application configuration from default embedded")
 		cfg = config.MustLoadEmbedConfig()
 	}
+
+	// Update the logger behaviour from configuration
+	log.SetDD(cfg.Telemetry.Enabled)
+	log.AddGlobalTags(cfg.Telemetry.Tags)
 
 	log.I.Info("Initializing application telemetry")
 	ts, err := telemetry.Initialize(cfg)

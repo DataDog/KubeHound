@@ -1,6 +1,6 @@
 #
 # Default KubeHound configuration
-# NOTE: this is optimized for large clusters in the Datadog environment
+# NOTE: this is optimized for smaller clusters of 1-2k pods
 #
 
 # K8s collector configuration
@@ -11,10 +11,7 @@ collector:
   # Live collector configuration
   live:
     # Rate limit of requests/second to the Kubernetes API
-    rate_limit_per_second: 75
-
-    # Number of pages to buffer
-    page_buffer_size: 50
+    rate_limit_per_second: 50
 
 # General storage configuration
 storage:
@@ -56,6 +53,3 @@ builder:
     
     # Cluster impact batch size for edge inserts
     batch_size_cluster_impact: 10
-
-    # Enable for large clusters to prevent number of edges growing exponentially
-    large_cluster_optimizations: true

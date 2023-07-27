@@ -3,12 +3,10 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"os"
-
 	embedconfig "github.com/DataDog/KubeHound/configs"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var (
@@ -52,23 +50,23 @@ func MustLoadConfig(configPath string) *KubehoundConfig {
 // SetDefaultValues loads the default value from the different modules
 func SetDefaultValues(c *viper.Viper) {
 	// K8s Live collector module
-	c.SetDefault("collector.live.page_size", globals.DefaultK8sAPIPageSize)
-	c.SetDefault("collector.live.page_buffer_size", globals.DefaultK8sAPIPageBufferSize)
-	c.SetDefault("collector.live.rate_limit_per_second", globals.DefaultK8sAPIRateLimitPerSecond)
+	c.SetDefault("collector.live.page_size", DefaultK8sAPIPageSize)
+	c.SetDefault("collector.live.page_buffer_size", DefaultK8sAPIPageBufferSize)
+	c.SetDefault("collector.live.rate_limit_per_second", DefaultK8sAPIRateLimitPerSecond)
 
 	// Default values for storage provider
-	c.SetDefault("storage.retry", globals.DefaultRetry)
-	c.SetDefault("storage.retry_delay", globals.DefaultRetryDelay)
+	c.SetDefault("storage.retry", DefaultRetry)
+	c.SetDefault("storage.retry_delay", DefaultRetryDelay)
 
 	// Disable Datadog telemetry by default
 	c.SetDefault("telemetry.enabled", false)
 
 	// Default value for MongoDB
-	c.SetDefault("mongodb.connection_timeout", globals.DefaultConnectionTimeout)
+	c.SetDefault("mongodb.connection_timeout", DefaultConnectionTimeout)
 
 	// Profiler values
-	c.SetDefault("telemetry.profiler.period", globals.DefaultProfilerPeriod)
-	c.SetDefault("telemetry.profiler.cpu_duration", globals.DefaultProfilerCPUDuration)
+	c.SetDefault("telemetry.profiler.period", DefaultProfilerPeriod)
+	c.SetDefault("telemetry.profiler.cpu_duration", DefaultProfilerCPUDuration)
 
 	// Default values for graph builder
 	c.SetDefault("builder.vertex.batch_size", DefaultVertexBatchSize)
