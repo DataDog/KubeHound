@@ -1,6 +1,12 @@
 package config
 
-import "time"
+import (
+	"time"
+)
+
+const (
+	DefaultJanusGraphUrl = "ws://localhost:8182/gremlin"
+)
 
 // JanusGraphConfig configures JanusGraph specific parameters.
 type JanusGraphConfig struct {
