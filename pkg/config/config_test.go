@@ -43,6 +43,10 @@ func TestMustLoadConfig(t *testing.T) {
 					URL:               "mongodb://localhost:27017",
 					ConnectionTimeout: DefaultConnectionTimeout,
 				},
+				JanusGraph: JanusGraphConfig{
+					URL:               "ws://localhost:8182/gremlin",
+					ConnectionTimeout: DefaultConnectionTimeout,
+				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
 						URL: "127.0.0.1:8125",
@@ -88,6 +92,10 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				MongoDB: MongoDBConfig{
 					URL:               "mongodb://localhost:27017",
+					ConnectionTimeout: DefaultConnectionTimeout,
+				},
+				JanusGraph: JanusGraphConfig{
+					URL:               "ws://localhost:8182/gremlin",
 					ConnectionTimeout: DefaultConnectionTimeout,
 				},
 				Telemetry: TelemetryConfig{
