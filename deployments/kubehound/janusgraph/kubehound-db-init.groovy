@@ -47,6 +47,7 @@ mgmt.addConnection(containerAttach, pod, container);
 
 idAssume = mgmt.makeEdgeLabel('IDENTITY_ASSUME').multiplicity(MANY2ONE).make();
 mgmt.addConnection(idAssume, container, identity);
+mgmt.addConnection(idAssume, node, identity);
 
 idImpersonate = mgmt.makeEdgeLabel('IDENTITY_IMPERSONATE').multiplicity(MANY2ONE).make();
 mgmt.addConnection(idImpersonate, role, identity);
