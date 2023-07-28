@@ -65,7 +65,11 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 }
 
 // Node returns the store representation of a K8s node from an input K8s node object.
-func (c *StoreConverter) Node(_ context.Context, input types.NodeType) (*store.Node, error) {
+func (c *StoreConverter) Node(ctx context.Context, input types.NodeType) (*store.Node, error) {
+	if c.cache == nil {
+		return nil, ErrNoCacheInitialized
+	}
+
 	output := &store.Node{
 		Id:        store.ObjectID(),
 		K8:        corev1.Node(*input),
@@ -74,6 +78,18 @@ func (c *StoreConverter) Node(_ context.Context, input types.NodeType) (*store.N
 
 	if len(input.Namespace) != 0 {
 		output.IsNamespaced = true
+	}
+
+	// Retrieve the associated identity store ID from the cache
+	uid, err := kube.NodeIdentity(ctx, c.cache, input.Name)
+	switch err {
+	case nil:
+		// We have a matching node identity object in the store
+		output.UserId = uid
+	case kube.ErrMissingNodeUser:
+		// This is completely fine. Most nodes will run under a default account with no permissions which we ignore.
+	default:
+		return nil, err
 	}
 
 	return output, nil

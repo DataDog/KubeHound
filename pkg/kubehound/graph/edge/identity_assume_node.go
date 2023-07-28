@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/kube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -24,14 +23,9 @@ type IdentityAssumeNode struct {
 	BaseEdge
 }
 
-type nodeQueryResult struct {
-	NodeId   primitive.ObjectID `bson:"_id" json:"node_id"`
-	NodeName string             `bson:"name" json:"node_name"`
-}
-
 type nodeIdentityGroup struct {
-	Node primitive.ObjectID `bson:"node" json:"node"`
-	Role primitive.ObjectID `bson:"role" json:"role"`
+	Node     primitive.ObjectID `bson:"_id" json:"node"`
+	Identity primitive.ObjectID `bson:"user_id" json:"user_id"`
 }
 
 func (e *IdentityAssumeNode) Label() string {
@@ -48,7 +42,7 @@ func (e *IdentityAssumeNode) Processor(ctx context.Context, oic *converter.Objec
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Node, typed.Role)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Node, typed.Identity)
 }
 
 func (e *IdentityAssumeNode) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
@@ -58,37 +52,16 @@ func (e *IdentityAssumeNode) Stream(ctx context.Context, store storedb.Provider,
 
 	// Nodes will either have a dedicated user based on node name or use the default system:nodes group
 	// See reference for details: https://kubernetes.io/docs/reference/access-authn-authz/node/
-	projection := bson.M{"_id": 1, "name": "$k8.objectmeta.name"}
+	projection := bson.M{"_id": 1, "user_id": 1}
 
-	cur, err := nodes.Find(context.Background(), bson.M{}, options.Find().SetProjection(projection))
+	// If the default node group has no permissions, we do not set a user id
+	filter := bson.M{"user_id": bson.M{"$ne": primitive.NilObjectID}}
+
+	cur, err := nodes.Find(context.Background(), filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}
 	defer cur.Close(ctx)
 
-	for cur.Next(ctx) {
-		var entry nodeQueryResult
-		err := cur.Decode(&entry)
-		if err != nil {
-			return err
-		}
-
-		TODO WE SHOULD DO THIOS ON INGEST AND ADD AN IDENTITYID FIELD TO NODE
-		// Resolve the node identity id
-		nodeUserId, err := kube.NodeIdentity(ctx, c, entry.NodeName)
-		if err != nil {
-			// This is ok - there won't always be an identity
-			continue
-		}
-
-		err = callback(ctx, &nodeIdentityGroup{
-			Node: entry.NodeId,
-			Role: nodeUserId,
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	return complete(ctx)
+	return adapter.MongoCursorHandler[nodeIdentityGroup](ctx, cur, callback, complete)
 }

@@ -2,6 +2,7 @@ package kube
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -13,6 +14,10 @@ import (
 const (
 	DefaultNodeGroup     = "system:nodes"
 	DefaultNodeNamespace = ""
+)
+
+var (
+	ErrMissingNodeUser = errors.New("unable to resolve node user id")
 )
 
 var (
@@ -35,7 +40,7 @@ func DefaultNodeIdentity(ctx context.Context, c cache.CacheReader) (primitive.Ob
 		ck := cachekey.Identity(DefaultNodeGroup, DefaultNodeNamespace)
 		defaultNid, err = c.Get(ctx, ck).ObjectID()
 		if err != nil {
-			defaultErr = fmt.Errorf("resolving default node user")
+			defaultErr = ErrMissingNodeUser
 		}
 	})
 

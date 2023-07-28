@@ -38,6 +38,7 @@ type Pod struct {
 
 type Node struct {
 	Id           primitive.ObjectID `bson:"_id"`
+	UserId       primitive.ObjectID `bson:"user_id"`
 	IsNamespaced bool               `bson:"is_namespaced"`
 	K8           corev1.Node        `bson:"k8"`
 	Ownership    OwnershipInfo      `bson:"ownership"`

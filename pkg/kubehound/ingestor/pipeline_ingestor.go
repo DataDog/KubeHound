@@ -41,7 +41,8 @@ func ingestSequence() []pipeline.Sequence {
 				{
 					Name: "k8s-rbac-group",
 					Ingests: []pipeline.ObjectIngest{
-						&pipeline.NodeIngest{},
+						&pipeline.RoleBindingIngest{},
+						&pipeline.ClusterRoleBindingIngest{},
 					},
 				},
 				{
