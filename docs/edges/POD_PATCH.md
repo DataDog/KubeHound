@@ -48,6 +48,10 @@ Finally apply the patch via `kubectl`:
 kubectl patch pod <TARGET POD NAME> --patch-file patch.yaml
 ```
 
+If [trusted container registries](#enforce-usage-of-trusted-container-registries) are enforced, a different approach is required. There are two options:
++ Introduce an attacker-controlled container into the trusted registry (mechanisms for this are out of scope). This approach may or may not be possible depending on the level of access, but is the simplest option if an attacker already has appropriate access.
++ Find an image in the trusted registry with a known vulnerability that can be exploited to achieve RCE.
+
 ## Defences
 
 ### Enforce Usage of Trusted Container Registries
