@@ -21,9 +21,9 @@ var (
 )
 
 var (
-	defaultOnce sync.Once
-	defaultNid  primitive.ObjectID
-	defaultErr  error
+	lookupOnce sync.Once
+	lookupNid  primitive.ObjectID
+	lookupErr  error
 )
 
 // NodeUser will return the full name of the dedicated node user.
@@ -35,16 +35,22 @@ func NodeUser(nodeName string) string {
 // DefaultNodeIdentity will return the store id of the default system:nodes group.
 // See reference for details: https://kubernetes.io/docs/reference/access-authn-authz/node/.
 func DefaultNodeIdentity(ctx context.Context, c cache.CacheReader) (primitive.ObjectID, error) {
-	defaultOnce.Do(func() {
+	lookupOnce.Do(func() {
 		var err error
 		ck := cachekey.Identity(DefaultNodeGroup, DefaultNodeNamespace)
-		defaultNid, err = c.Get(ctx, ck).ObjectID()
-		if err != nil {
-			defaultErr = ErrMissingNodeUser
+
+		lookupNid, err = c.Get(ctx, ck).ObjectID()
+		switch err {
+		case nil:
+			// NOP
+		case cache.ErrNoEntry:
+			lookupErr = ErrMissingNodeUser
+		default:
+			lookupErr = err
 		}
 	})
 
-	return defaultNid, defaultErr
+	return lookupNid, lookupErr
 }
 
 // NodeIdentity will either return the store id of the dedicated node user or store id of the default system:nodes group if a dedicated user is not present.
