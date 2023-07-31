@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.source="https://github.com/DataDog/kubehound/"
 ENV JAVA_OPTIONS_FILE ${JANUS_HOME}/conf/jvm.options
 # Add our initialization script for the database schema to the startup directory
 # See https://github.com/JanusGraph/janusgraph-docker#initialization
-COPY kubehound-db-init.groovy /docker-entrypoint-initdb.d/
+COPY --chown=janusgraph:janusgraph kubehound-db-init.groovy /docker-entrypoint-initdb.d/
 
 # Janusgraph metrics
 COPY --chown=janusgraph:janusgraph lib/jmx_prometheus_javaagent-0.18.0.jar ${JANUS_HOME}/lib/jmx_prometheus_javaagent-0.18.0.jar
