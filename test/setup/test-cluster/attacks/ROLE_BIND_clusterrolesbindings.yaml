@@ -1,0 +1,152 @@
+# ROLE_BIND edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2889355675/ROLE+BIND
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rolebind-sa-clusterrolebindings-clusterroles
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rolebind-clusterrolebindings-clusterroles
+rules:
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterrolebindings"]
+    verbs: ["create"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles"]
+    verbs: ["bind"]
+    resourceNames: []
+    #resourceNames: ["pod-bind-role","rolebind","rolebind-pod","default","admin","view","create-pods"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-clusterrolebindings-clusterroles
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-clusterrolebindings-clusterroles
+subjects:
+  - kind: ServiceAccount
+    name: rolebind-sa-clusterrolebindings-clusterroles
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rolebind-pod-clusterrolebindings-clusterroles
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: rolebind-sa-clusterrolebindings-clusterroles
+  containers:
+    - name: rolebind-pod-clusterrolebindings-clusterroles
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+
+
+---
+# ROLE_BIND edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2889355675/ROLE+BIND
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rolebind-sa-clusterrolebindings-roles
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rolebind-clusterrolebindings-roles
+rules:
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterrolebindings"]
+    verbs: ["create"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles"]
+    verbs: ["bind"]
+    resourceNames: []
+    #resourceNames: ["pod-bind-role","rolebind","rolebind-pod","default","admin","view","create-pods"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-clusterrolebindings-roles
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-clusterrolebindings-roles
+subjects:
+  - kind: ServiceAccount
+    name: rolebind-sa-clusterrolebindings-roles
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rolebind-pod-clusterrolebindings-roles
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: rolebind-sa-clusterrolebindings-roles
+  containers:
+    - name: rolebind-pod-clusterrolebindings-roles
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+
+---
+# ROLE_BIND edge
+# @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2889355675/ROLE+BIND
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rolebind-sa-clusterrolebindings-all
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rolebind-clusterrolebindings-all
+rules:
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterrolebindings"]
+    verbs: ["create"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles","clusterroles"]
+    verbs: ["bind"]
+    resourceNames: []
+    #resourceNames: ["pod-bind-role","rolebind","rolebind-pod","default","admin","view","create-pods"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-clusterrolebindings-all
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-clusterrolebindings-all
+subjects:
+  - kind: ServiceAccount
+    name: rolebind-sa-clusterrolebindings-all
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rolebind-pod-clusterrolebindings-all
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: rolebind-sa-clusterrolebindings-all
+  containers:
+    - name: rolebind-pod-clusterrolebindings-all
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
