@@ -6,6 +6,7 @@ DOCKER_COMPOSE_ENV_FILE_PATH := deployments/kubehound/.env
 DOCKER_COMPOSE_PROFILE := --profile infra
 DEV_ENV_FILE_PATH := test/setup/.config
 DEFAULT_KUBEHOUND_ENV := dev
+SYSTEM_TEST_CMD := system-test system-test-clean
 
 # get the latest commit hash in the short form
 COMMIT := $(shell git rev-parse --short HEAD)
@@ -34,34 +35,34 @@ ifndef KUBEHOUND_ENV
 	KUBEHOUND_ENV := ${DEFAULT_KUBEHOUND_ENV}
 endif
 
-ifneq ($(MAKECMDGOALS),system-test)
-ifeq (${KUBEHOUND_ENV}, prod)
-	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.prod.yaml
-else ifeq (${KUBEHOUND_ENV}, dev)
-	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
-endif
+ifeq (,$(filter $(SYSTEM_TEST_CMD),$(MAKECMDGOALS)))
+	ifeq (${KUBEHOUND_ENV}, prod)
+		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.prod.yaml
+	else ifeq (${KUBEHOUND_ENV}, dev)
+		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
+	endif
 
 # No API key is being set
-ifneq (${DD_API_KEY},)
-	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
-endif
+	ifneq (${DD_API_KEY},)
+		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.datadog.yaml
+	endif
 else
 	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.testing.yaml
 endif
 
 UNAME_S := $(shell uname -s)
 ifndef DOCKER_CMD
-ifeq ($(UNAME_S),Linux)
-	# https://docs.github.com/en/actions/learn-github-actions/variables
-ifneq (${CI},true)
-	DOCKER_CMD := sudo docker
-else
-	DOCKER_CMD := docker
-endif
-else
-	DOCKER_CMD := docker
-endif
-DOCKER_CMD := ${DOCKER_CMD}
+	ifeq ($(UNAME_S),Linux)
+# https://docs.github.com/en/actions/learn-github-actions/variables
+		ifneq (${CI},true)
+			DOCKER_CMD := sudo docker
+		else
+			DOCKER_CMD := docker
+		endif
+	else
+		DOCKER_CMD := docker
+	endif
+	DOCKER_CMD := ${DOCKER_CMD}
 endif
 
 RACE_FLAG_SYSTEM_TEST := "-race"
@@ -118,6 +119,9 @@ test: ## Run the full suite of unit tests
 .PHONY: system-test
 system-test: | backend-reset ## Run the system tests
 	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 ./...
+
+.PHONY: system-test-clean
+system-test-clean: backend-down
 
 .PHONY: local-cluster-deploy
 local-cluster-deploy: ## Create a kind cluster with some vulnerables resources (pods, roles, ...)
