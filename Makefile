@@ -121,7 +121,7 @@ system-test: | backend-reset ## Run the system tests
 	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 ./...
 
 .PHONY: system-test-clean
-system-test-clean: backend-down
+system-test-clean: backend-down ## Tear down the kubehound stack for the system-test
 
 .PHONY: local-cluster-deploy
 local-cluster-deploy: ## Create a kind cluster with some vulnerables resources (pods, roles, ...)
