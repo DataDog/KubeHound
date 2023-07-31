@@ -57,6 +57,11 @@ type ClusterRoleBindingIngestor interface {
 	Complete(context.Context) error
 }
 
+type EndpointIngestor interface {
+	IngestEndpoint(context.Context, types.EndpointType) error
+	Complete(context.Context) error
+}
+
 //go:generate mockery --name CollectorClient --output mockcollector --case underscore --filename collector_client.go --with-expecter
 type CollectorClient interface {
 	services.Dependency
@@ -84,6 +89,8 @@ type CollectorClient interface {
 	// StreamClusterRoleBindings will iterate through all ClusterRoleBindingType objects collected by the collector and invoke the ingestor.ClusterRoleBinding method on each.
 	// Once all the ClusterRoleBindingType objects have been exhausted the ingestor.Complete method will be invoked to signal the end of the stream.
 	StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error
+
+	StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error
 
 	// Close cleans up any resources used by the collector client implementation. Client cannot be reused after this call.
 	Close(ctx context.Context) error

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
@@ -344,4 +345,8 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 		return err
 	}
 	return ingestor.Complete(ctx)
+}
+
+func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
+	return globals.ErrNotImplemented
 }

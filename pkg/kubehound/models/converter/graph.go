@@ -211,3 +211,21 @@ func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error
 
 	return output, nil
 }
+
+// Identity returns the graph representation of an identity vertex from a store identity model input.
+func (c *GraphConverter) Endpoint(input *store.Endpoint) (*graph.Endpoint, error) {
+	output := &graph.Endpoint{
+		StoreID:      input.Id.Hex(),
+		App:          input.Ownership.Application,
+		Team:         input.Ownership.Team,
+		Service:      input.Ownership.Service,
+		Name:         input.Name,
+		Namespace:    input.Namespace,
+		IsNamespaced: input.IsNamespaced,
+		AddressType:  string(input.AddressType),
+		Port:         int(*input.Port.Port),
+		// TODO
+	}
+
+	return output, nil
+}

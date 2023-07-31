@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	corev1 "k8s.io/api/core/v1"
 )
 
 const (
@@ -22,6 +23,7 @@ const (
 	podIndex objectIndex = iota
 	containerIndex
 	volumeIndex
+	endpointIndex
 	maxObjectIndex
 )
 
@@ -49,12 +51,14 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 		&vertex.Pod{},
 		&vertex.Container{},
 		&vertex.Volume{},
+		&vertex.Endpoint{},
 	}
 
 	i.c = []collections.Collection{
 		collections.Pod{},
 		collections.Container{},
 		collections.Volume{},
+		collections.Endpoint{},
 	}
 
 	opts := make([]IngestResourceOption, 0)
@@ -67,6 +71,43 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 
 	i.r, err = CreateResources(ctx, deps, opts...)
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// processEndpoints will handle the ingestion pipeline for a endpoints belonging to a processed K8s pod input.
+func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.ContainerPort,
+	pod *store.Pod, container *store.Container) error {
+
+	// Check if we have a corresponding endpoint slice
+	// Lookup cache
+	// if YES - we simply need to update the container ID
+	// TODO update container ID
+	// TODO early return
+
+	// if NO - we need to create an object from scracth
+
+	// Normalize volume to store object format
+	sv, err := i.r.storeConvert.EndpointPrivate(ctx, port, pod, container)
+	if err != nil {
+		return err
+	}
+
+	// Async write to store
+	if err := i.r.writeStore(ctx, i.c[volumeIndex], sv); err != nil {
+		return err
+	}
+
+	// Transform store model to vertex input
+	insert, err := i.r.graphConvert.Endpoint(sv, pod)
+	if err != nil {
+		return err
+	}
+
+	// Aysnc write to graph
+	if err := i.r.writeVertex(ctx, i.v[endpointIndex], insert); err != nil {
 		return err
 	}
 
@@ -107,10 +148,19 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 		return err
 	}
 
-	// Handle volume munts
+	// Handle volume mounts
 	for _, volumeMount := range container.VolumeMounts {
 		vm := volumeMount
 		err := i.processVolumeMount(ctx, &vm, parent, sc)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Handle endpoints (derived from container ports)
+	for _, port := range container.Ports {
+		p := port
+		err := i.processEndpoints(ctx, &p, parent, sc)
 		if err != nil {
 			return err
 		}

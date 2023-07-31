@@ -94,3 +94,12 @@ func CheckClusterRoleBinding(role types.ClusterRoleBindingType) (bool, error) {
 
 	return true, nil
 }
+
+// CheckEndpoint checks an input K8s endpoint slice object and reports whether it should be ingested.
+func CheckEndpoint(ep types.EndpointType) (bool, error) {
+	if ep == nil {
+		return false, errors.New("nil endpoint input in preflight check")
+	}
+
+	return true, nil
+}

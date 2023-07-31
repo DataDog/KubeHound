@@ -44,6 +44,7 @@ func ingestSequence() []pipeline.Sequence {
 						&pipeline.RoleBindingIngest{},
 						&pipeline.ClusterRoleBindingIngest{},
 						&pipeline.NodeIngest{},
+						&pipeline.EndpointIngest{},
 					},
 				},
 				{

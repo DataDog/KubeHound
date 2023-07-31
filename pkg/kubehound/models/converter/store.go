@@ -7,6 +7,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
@@ -330,6 +331,29 @@ func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, p
 		output.IsNamespaced = true
 		output.Namespace = input.Subject.Namespace
 	}
+
+	return output, nil
+}
+
+// TODO TODO
+func (c *StoreConverter) Endpoint(_ context.Context, input discoveryv1.EndpointPort, parent types.EndpointType) (*store.Endpoint, error) {
+	output := &store.Endpoint{
+		Id:          store.ObjectID(),
+		Name:        input.Name,
+		Namespace:   "",
+		AddressType: parent.AddressType,
+		Addresses:   parent.Endpoints,
+		Port:        input,
+		Ownership:   store.ExtractOwnership(parent.ObjectMeta.Labels),
+		Access:      shared.EndpointAccessExternal, // If created via the ingestion pipeline the endpoint corresponds to a k8s endpoint slice
+	}
+
+	if len(parent.Namespace) != 0 {
+		output.IsNamespaced = true
+		output.Namespace = parent.Namespace
+	}
+
+	// NB: NodeId, PodId, ContainerId will be set by a subsequent step (PodIngest)
 
 	return output, nil
 }

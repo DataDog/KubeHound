@@ -322,3 +322,7 @@ func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl
 
 	return inputList, nil
 }
+
+func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
+	return globals.ErrNotImplemented
+}

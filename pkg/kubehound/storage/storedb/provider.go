@@ -47,6 +47,9 @@ type AsyncWriter interface {
 	// Queue add a model to an asynchronous write queue. Non-blocking.
 	Queue(ctx context.Context, model any) error
 
+	// TODO TODO TODO
+	QueueUpdate(ctx context.Context, id any, updates any) error
+
 	// Flush triggers writes of any remaining items in the queue. Blocks until operation completes.
 	Flush(ctx context.Context) error
 

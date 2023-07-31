@@ -9,6 +9,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -94,6 +95,27 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 	maw.ops = append(maw.ops, mongo.NewInsertOneModel().SetDocument(model))
 
+	_ = statsd.Gauge(telemetry.MetricStoredbQueueSize, float64(len(maw.ops)), maw.mongodb.tags, 1)
+
+	if len(maw.ops) > maw.batchSize {
+		maw.consumerChan <- maw.ops
+		// cleanup the ops array after we have copied it to the channel
+		maw.ops = nil
+	}
+	return nil
+}
+
+// TODO TOIDO
+func (maw *MongoAsyncWriter) QueueUpdate(ctx context.Context, id any, updates any) error {
+	um := mongo.NewUpdateOneModel()
+	um.SetFilter(bson.M{
+		"_id": id,
+	})
+	um.SetUpdate(bson.M{
+		"$set": updates,
+	})
+
+	maw.ops = append(maw.ops, um)
 	_ = statsd.Gauge(telemetry.MetricStoredbQueueSize, float64(len(maw.ops)), maw.mongodb.tags, 1)
 
 	if len(maw.ops) > maw.batchSize {
