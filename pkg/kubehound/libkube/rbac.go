@@ -1,4 +1,4 @@
-package kube
+package libkube
 
 import (
 	"context"
