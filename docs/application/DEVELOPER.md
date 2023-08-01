@@ -21,3 +21,8 @@ They are exposed here:
 
 A mongo express is deployed and allows you to browse the MongoDB. Thi service is  accessible (the logs for this docker are not pushed to dd):
 * http://127.0.0.1:8081
+
+
+## Advanced command
+
+In case of conflict/error, or just if you want to free some of your RAM, you can use `make system-test-clean` to destroy the backend stack dedicated to the system-test.
