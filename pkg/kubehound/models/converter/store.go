@@ -55,6 +55,7 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 		Inherited: store.ContainerInherited{
 			PodName:        parent.K8.Name,
 			NodeName:       parent.K8.Spec.NodeName,
+			Namespace:      parent.K8.Namespace,
 			HostPID:        parent.K8.Spec.HostPID,
 			HostIPC:        parent.K8.Spec.HostIPC,
 			HostNetwork:    parent.K8.Spec.HostNetwork,
@@ -338,17 +339,24 @@ func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, p
 func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 	port discoveryv1.EndpointPort, parent types.EndpointType) (*store.Endpoint, error) {
 
+	// Ensure our assumption that the target is always a pod holds
+	if addr.TargetRef.Kind != "Pod" {
+		return nil, fmt.Errorf("unexpected endpoint target %#v", addr.TargetRef)
+	}
+
 	output := &store.Endpoint{
-		Id:          store.ObjectID(),
-		Name:        fmt.Sprintf("%s::%s::%s", parent.Name, addr.TargetRef.Name, *port.Name),
-		HasSlice:    true,
-		ServiceName: parent.Labels["kubernetes.io/service-name"], // TODO tidy
-		AddressType: parent.AddressType,
-		Backend:     addr,
-		Port:        port,
-		Ownership:   store.ExtractOwnership(parent.ObjectMeta.Labels),
-		K8:          parent.ObjectMeta,
-		Access:      shared.EndpointAccessExternal, // If created via the ingestion pipeline the endpoint corresponds to a k8s endpoint slice
+		Id:           store.ObjectID(),
+		PodName:      addr.TargetRef.Name,
+		PodNamespace: addr.TargetRef.Namespace,
+		Name:         fmt.Sprintf("%s::%s::%s", parent.Name, addr.TargetRef.Name, *port.Name),
+		HasSlice:     true,
+		ServiceName:  parent.Labels["kubernetes.io/service-name"], // TODO tidy
+		AddressType:  parent.AddressType,
+		Backend:      addr,
+		Port:         port,
+		Ownership:    store.ExtractOwnership(parent.ObjectMeta.Labels),
+		K8:           parent.ObjectMeta,
+		Access:       shared.EndpointAccessExternal, // If created via the ingestion pipeline the endpoint corresponds to a k8s endpoint slice
 	}
 
 	if addr.NodeName != nil {
@@ -360,8 +368,6 @@ func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 		output.Namespace = parent.Namespace
 	}
 
-	// NB: NodeId, PodId, ContainerId will be set by a subsequent step (PodIngest)
-
 	return output, nil
 }
 
@@ -369,13 +375,14 @@ func (c *StoreConverter) EndpointPrivate(_ context.Context, port *corev1.Contain
 	pod *store.Pod, container *store.Container) (*store.Endpoint, error) {
 
 	output := &store.Endpoint{
-		Id:          store.ObjectID(),
-		ContainerId: container.Id,
-		PodName:     pod.K8.Name,
-		ServiceName: fmt.Sprintf("%s::%s::%s", port.Name, pod.K8.Namespace, pod.K8.Name),
-		Name:        fmt.Sprintf("%s::%s::%d", container.K8.Name, pod.K8.Status.HostIP, port.ContainerPort),
-		NodeName:    pod.K8.Spec.NodeName,
-		AddressType: "IPv4", // TODO figure out address tyoe from inpout
+		Id:           store.ObjectID(),
+		ContainerId:  container.Id,
+		PodName:      pod.K8.Name,
+		PodNamespace: pod.K8.Namespace,
+		ServiceName:  fmt.Sprintf("%s::%s::%s", port.Name, pod.K8.Namespace, pod.K8.Name),
+		Name:         fmt.Sprintf("%s::%s::%d", container.K8.Name, pod.K8.Status.HostIP, port.ContainerPort),
+		NodeName:     pod.K8.Spec.NodeName,
+		AddressType:  "IPv4", // TODO figure out address tyoe from inpout
 		Backend: discoveryv1.Endpoint{
 			// TODO other fields
 			Addresses: []string{pod.K8.Status.PodIP},

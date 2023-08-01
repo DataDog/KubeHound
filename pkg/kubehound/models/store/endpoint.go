@@ -27,6 +27,7 @@ type Endpoint struct {
 	Id           primitive.ObjectID        `bson:"_id"`
 	ContainerId  primitive.ObjectID        `bson:"container_id"`
 	PodName      string                    `bson:"pod_name"`
+	PodNamespace string                    `bson:"pod_namespace"`
 	NodeName     string                    `bson:"node_name"`
 	IsNamespaced bool                      `bson:"is_namespaced"`
 	Namespace    string                    `bson:"namespace"`
