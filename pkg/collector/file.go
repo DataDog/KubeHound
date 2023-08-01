@@ -17,6 +17,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 )
 
@@ -24,16 +25,19 @@ import (
 // |____<namespace>
 // | |____rolebindings.rbac.authorization.k8s.io.json
 // | |____pods.json
+// | |____endpointslices.discovery.k8s.io.json
 // | |____roles.rbac.authorization.k8s.io.json
 // |____<namespace>
 // | |____rolebindings.rbac.authorization.k8s.io.json
 // | |____pods.json
+// | |____endpointslices.discovery.k8s.io.json
 // | |____roles.rbac.authorization.k8s.io.json
 // |____nodes.json
 // |____clusterroles.rbac.authorization.k8s.io.json
 // |____clusterrolebindings.rbac.authorization.k8s.io.json
 const (
 	nodePath                = "nodes.json"
+	endpointPath            = "endpointslices.discovery.k8s.io.json"
 	clusterRolesPath        = "clusterroles.rbac.authorization.k8s.io.json"
 	clusterRoleBindingsPath = "clusterrolebindings.rbac.authorization.k8s.io.json"
 	podPath                 = "pods.json"
@@ -224,6 +228,49 @@ func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBin
 	return ingestor.Complete(ctx)
 }
 
+// streamEndpointsNamespace streams the endpoint slices in a single file, corresponding to a cluster namespace.
+func (c *FileCollector) streamEndpointsNamespace(ctx context.Context, fp string, ingestor EndpointIngestor) error {
+	list, err := readList[discoveryv1.EndpointSliceList](ctx, fp)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range list.Items {
+		_ = statsd.Incr(telemetry.MetricCollectorEndpointCount, c.tags, 1)
+		i := types.EndpointType(&item)
+		err = ingestor.IngestEndpoint(ctx, i)
+		if err != nil {
+			return fmt.Errorf("processing K8s endpoint slice %s: %w", i.Name, err)
+		}
+	}
+
+	return nil
+}
+
+func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceEndpoints)
+	defer span.Finish()
+
+	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+		if path == c.cfg.Directory || !d.IsDir() {
+			// Skip files
+			return nil
+		}
+
+		fp := filepath.Join(path, endpointPath)
+		c.log.Debugf("Streaming endpoint slices from file %s", fp)
+
+		return c.streamEndpointsNamespace(ctx, fp, ingestor)
+	})
+
+	if err != nil {
+		return fmt.Errorf("file collector stream endpoint slices: %w", err)
+	}
+
+	return ingestor.Complete(ctx)
+}
+
 func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceNodes)
@@ -302,7 +349,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 // readList loads a list of K8s API objects into memory from a JSON file on disk.
 // NOTE: This implementation reads the entire array of objects from the file into memory at once.
 func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl, error) {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationReadFile, tracer.Measured())
+	span, _ := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationReadFile, tracer.Measured())
 	defer span.Finish()
 
 	var inputList Tl
@@ -321,8 +368,4 @@ func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl
 	}
 
 	return inputList, nil
-}
-
-func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
-	return globals.ErrNotImplemented
 }

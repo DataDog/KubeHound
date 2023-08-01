@@ -1,13 +1,5 @@
 package cache
 
-import (
-	"errors"
-)
-
-var (
-	ErrCacheEntryOverwrite = errors.New("cache entry already exists in test and set operation")
-)
-
 type writerOptions struct {
 	Test bool
 }

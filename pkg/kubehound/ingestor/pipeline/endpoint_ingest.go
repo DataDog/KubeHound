@@ -33,6 +33,7 @@ func (i *EndpointIngest) Initialize(ctx context.Context, deps *Dependencies) err
 	i.collection = collections.Endpoint{}
 
 	i.r, err = CreateResources(ctx, deps,
+		// WithCacheWriter(cache.WithTest()),
 		WithCacheWriter(),
 		WithStoreWriter(i.collection),
 		WithGraphWriter(i.vertex))
@@ -50,36 +51,41 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 		return err
 	}
 
-	// Ports specifies the list of network ports exposed by each endpoint in this slice
-	// We want to create one store entry per ports#
-	for _, ep := range eps.Ports {
-		// Normalize endpoint to store object format
-		o, err := i.r.storeConvert.Endpoint(ctx, ep, eps)
-		if err != nil {
-			return err
+	// We want to create one store entry per ports and per address. Ports specifies the list of network ports
+	// exposed by EACH endpoint in this slice so we can unfold the slice to insert each entry in turn.
+	for _, port := range eps.Ports {
+		for _, addr := range eps.Endpoints {
+			// Normalize endpoint to store object format
+			o, err := i.r.storeConvert.Endpoint(ctx, addr, port, eps)
+			if err != nil {
+				return err
+			}
+
+			// Async write to store
+			if err := i.r.writeStore(ctx, i.collection, o); err != nil {
+				return err
+			}
+
+			// Async write to cache
+			// TODO explain
+			// TODO change cache write to bool and suppress warnijng
+			ck := cachekey.Endpoint(o.PodName, o.SafePort(), o.SafeProtocol(), o.Namespace)
+			if err := i.r.writeCache(ctx, ck, o.Id.Hex()); err != nil {
+				return err
+			}
+
+			// Transform store model to vertex input
+			insert, err := i.r.graphConvert.Endpoint(o)
+			if err != nil {
+				return err
+			}
+
+			// Aysnc write to graph
+			if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
+				return err
+			}
 		}
 
-		// Async write to store
-		if err := i.r.writeStore(ctx, i.collection, o); err != nil {
-			return err
-		}
-
-		// Async write to cache
-		ck := cachekey.Endpoint("TODO", int(*ep.Port))
-		if err := i.r.writeCache(ctx, ck, o.Id.Hex()); err != nil {
-			return err
-		}
-
-		// Transform store model to vertex input
-		insert, err := i.r.graphConvert.Endpoint(o)
-		if err != nil {
-			return err
-		}
-
-		// Aysnc write to graph
-		if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
-			return err
-		}
 	}
 
 	return nil

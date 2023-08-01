@@ -335,17 +335,24 @@ func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, p
 	return output, nil
 }
 
-// TODO TODO
-func (c *StoreConverter) Endpoint(_ context.Context, input discoveryv1.EndpointPort, parent types.EndpointType) (*store.Endpoint, error) {
+func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
+	port discoveryv1.EndpointPort, parent types.EndpointType) (*store.Endpoint, error) {
+
 	output := &store.Endpoint{
 		Id:          store.ObjectID(),
-		Name:        input.Name,
-		Namespace:   "",
+		Name:        fmt.Sprintf("%s::%s::%s", parent.Name, addr.TargetRef.Name, *port.Name),
+		HasSlice:    true,
+		ServiceName: parent.Labels["kubernetes.io/service-name"], // TODO tidy
 		AddressType: parent.AddressType,
-		Addresses:   parent.Endpoints,
-		Port:        input,
+		Backend:     addr,
+		Port:        port,
 		Ownership:   store.ExtractOwnership(parent.ObjectMeta.Labels),
+		K8:          parent.ObjectMeta,
 		Access:      shared.EndpointAccessExternal, // If created via the ingestion pipeline the endpoint corresponds to a k8s endpoint slice
+	}
+
+	if addr.NodeName != nil {
+		output.NodeName = *addr.NodeName
 	}
 
 	if len(parent.Namespace) != 0 {
@@ -354,6 +361,51 @@ func (c *StoreConverter) Endpoint(_ context.Context, input discoveryv1.EndpointP
 	}
 
 	// NB: NodeId, PodId, ContainerId will be set by a subsequent step (PodIngest)
+
+	return output, nil
+}
+
+func (c *StoreConverter) EndpointPrivate(_ context.Context, port *corev1.ContainerPort,
+	pod *store.Pod, container *store.Container) (*store.Endpoint, error) {
+
+	output := &store.Endpoint{
+		Id:          store.ObjectID(),
+		ContainerId: container.Id,
+		PodName:     pod.K8.Name,
+		ServiceName: fmt.Sprintf("%s::%s::%s", port.Name, pod.K8.Namespace, pod.K8.Name),
+		Name:        fmt.Sprintf("%s::%s::%d", container.K8.Name, pod.K8.Status.HostIP, port.ContainerPort),
+		NodeName:    pod.K8.Spec.NodeName,
+		AddressType: "IPv4", // TODO figure out address tyoe from inpout
+		Backend: discoveryv1.Endpoint{
+			// TODO other fields
+			Addresses: []string{pod.K8.Status.PodIP},
+			TargetRef: &corev1.ObjectReference{
+				Kind:            pod.K8.Kind,
+				APIVersion:      pod.K8.APIVersion,
+				Name:            pod.K8.Name,
+				Namespace:       pod.K8.Namespace,
+				UID:             pod.K8.UID,
+				ResourceVersion: pod.K8.ResourceVersion,
+			},
+			NodeName: &pod.K8.Spec.NodeName,
+		},
+		Port: discoveryv1.EndpointPort{
+			Name:     &port.Name,
+			Protocol: &port.Protocol,
+			Port:     &port.ContainerPort, // TOOD host port
+
+		},
+		Ownership: container.Ownership,
+
+		// If created via the pod ingestion pipeline the endpoint does not correspond to a k8s
+		// endpoint slice and thus is only accessible from within the cluster.
+		Access: shared.EndpointAccessInternal,
+	}
+
+	if len(pod.K8.Namespace) != 0 {
+		output.IsNamespaced = true
+		output.Namespace = pod.K8.Namespace
+	}
 
 	return output, nil
 }

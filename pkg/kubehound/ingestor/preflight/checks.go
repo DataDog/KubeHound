@@ -101,5 +101,11 @@ func CheckEndpoint(ep types.EndpointType) (bool, error) {
 		return false, errors.New("nil endpoint input in preflight check")
 	}
 
+	if len(ep.Ports) == 0 {
+		log.I.Debugf("endpoint slice %s::%s not associated with any target, skipping ingest!",
+			ep.Namespace, ep.Name)
+		return false, nil
+	}
+
 	return true, nil
 }

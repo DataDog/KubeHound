@@ -7,6 +7,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -62,7 +63,8 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	}
 
 	opts := make([]IngestResourceOption, 0)
-	opts = append(opts, WithCacheWriter())
+	opts = append(opts, WithCacheReader())
+	opts = append(opts, WithCacheWriter(cache.WithTest()))
 	opts = append(opts, WithConverterCache())
 	for objIndex := podIndex; objIndex < maxObjectIndex; objIndex++ {
 		opts = append(opts, WithStoreWriter(i.c[objIndex]))
@@ -81,27 +83,36 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.ContainerPort,
 	pod *store.Pod, container *store.Container) error {
 
-	// Check if we have a corresponding endpoint slice
-	// Lookup cache
-	// if YES - we simply need to update the container ID
-	// TODO update container ID
-	// TODO early return
-
-	// if NO - we need to create an object from scracth
-
-	// Normalize volume to store object format
-	sv, err := i.r.storeConvert.EndpointPrivate(ctx, port, pod, container)
+	// Normalize endpoint to temporary store object format
+	tmp, err := i.r.storeConvert.EndpointPrivate(ctx, port, pod, container)
 	if err != nil {
 		return err
 	}
 
+	// TODO
+	ck := cachekey.Endpoint(tmp.PodName, tmp.SafePort(), tmp.SafeProtocol(), tmp.Namespace)
+	_, err = i.r.readCache(ctx, ck).ObjectID() // TOOD make bool
+	switch err {
+	case cache.ErrNoEntry:
+		// No associated endpoint slice, create the endpoint from container parameters
+	case nil:
+		// Entry already has an associated store entry with the endpoint slice ingest pipeline
+		// Nothing further to do...
+		return nil
+	default:
+		return err
+	}
+
+	// Promote the temporary object to an object that will be written to our databases.
+	se := tmp
+
 	// Async write to store
-	if err := i.r.writeStore(ctx, i.c[volumeIndex], sv); err != nil {
+	if err := i.r.writeStore(ctx, i.c[endpointIndex], se); err != nil {
 		return err
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Endpoint(sv, pod)
+	insert, err := i.r.graphConvert.Endpoint(se)
 	if err != nil {
 		return err
 	}

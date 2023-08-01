@@ -19,6 +19,7 @@ node = mgmt.makeVertexLabel('Node').make();
 pod = mgmt.makeVertexLabel('Pod').make();
 role = mgmt.makeVertexLabel('Role').make();
 volume = mgmt.makeVertexLabel('Volume').make();
+endpoint = mgmt.makeVertexLabel('Endpoint').make();
 
 // Create our edge labels and connections
 roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(MULTI).make();
@@ -96,6 +97,8 @@ mgmt.addConnection(privMount, container, node);
 sysPtrace = mgmt.makeEdgeLabel('CE_SYS_PTRACE').multiplicity(MANY2ONE).make();
 mgmt.addConnection(sysPtrace, container, node);
 
+endpointExpose = mgmt.makeEdgeLabel('ENDPOINT_EXPOSE').multiplicity(MULTI).make();
+mgmt.addConnection(endpointExpose, endpoint, container);
 
 // All properties we will index on
 cls = mgmt.makePropertyKey('class').dataType(String.class).cardinality(Cardinality.SINGLE).make();
@@ -131,6 +134,13 @@ args = mgmt.makePropertyKey('args').dataType(String.class).cardinality(Cardinali
 capabilities = mgmt.makePropertyKey('capabilities').dataType(String.class).cardinality(Cardinality.LIST).make();
 ports = mgmt.makePropertyKey('ports').dataType(String.class).cardinality(Cardinality.LIST).make();
 identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+addressType = mgmt.makePropertyKey('addressType').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+addresses = mgmt.makePropertyKey('addresses').dataType(String.class).cardinality(Cardinality.LIST).make();
+port = mgmt.makePropertyKey('port').dataType(Integer.class).cardinality(Cardinality.SINGLE).make();
+portName = mgmt.makePropertyKey('portName').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+serviceEndpoint = mgmt.makePropertyKey('serviceEndpoint').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+protocol = mgmt.makePropertyKey('protocol').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+access = mgmt.makePropertyKey('access').dataType(Integer.class).cardinality(Cardinality.SINGLE).make();
 
 // Define properties for each vertex 
 mgmt.addProperties(container, cls, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, 
@@ -140,6 +150,8 @@ mgmt.addProperties(node, cls, storeID, app, team, service, name, isNamespaced, n
 mgmt.addProperties(pod, cls, storeID, app, team, service, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
 mgmt.addProperties(role, cls, storeID, app, team, service, name, isNamespaced, namespace, rules, critical);
 mgmt.addProperties(volume, cls, storeID, app, team, service, name, isNamespaced, namespace, type, sourcePath, mountPath, readonly);
+mgmt.addProperties(endpoint, cls, storeID, app, team, service, name, isNamespaced, namespace, serviceEndpoint, addressType, 
+    addresses, port, portName, protocol, access, compromised);
 
 
 // Create the indexes on vertex properties
