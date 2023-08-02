@@ -126,7 +126,7 @@ type IngestResources struct {
 }
 
 // writeCache delegates a write to the cache writer.
-func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value string) error {
+func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value any) error {
 	return i.cacheWriter.Queue(ctx, ck, value)
 }
 

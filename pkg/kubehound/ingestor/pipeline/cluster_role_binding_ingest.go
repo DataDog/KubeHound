@@ -107,7 +107,7 @@ func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context,
 	o, err := i.r.storeConvert.ClusterRoleBinding(ctx, crb)
 	if err != nil {
 		if err == converter.ErrDanglingRoleBinding {
-			log.I.Warnf("%s : %s", err.Error(), crb.Name)
+			log.I.Warnf("Cluster role binding dropped: %s : %s", err.Error(), crb.Name)
 			return nil
 		}
 

@@ -1,7 +1,8 @@
 package cache
 
 type writerOptions struct {
-	Test bool
+	Test            bool
+	ExpectOverwrite bool
 }
 
 type WriterOption func(*writerOptions)
@@ -11,5 +12,11 @@ type WriterOption func(*writerOptions)
 func WithTest() WriterOption {
 	return func(wOpts *writerOptions) {
 		wOpts.Test = true
+	}
+}
+
+func WithExpectedOverwrite() WriterOption {
+	return func(wOpts *writerOptions) {
+		wOpts.ExpectOverwrite = true
 	}
 }

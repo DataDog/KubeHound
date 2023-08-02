@@ -25,5 +25,5 @@ const (
 	EndpointAccessNone     EndpointAccessType = iota
 	EndpointAccessInternal                    // Container port exposed to cluster
 	EndpointAccessExternal                    // Kubernetes endpoint exposed outside the cluster
-	EndpointAccessPublic                      // Public API endpoint
+	EndpointAccessPublic                      // External DNS API endpoint
 )

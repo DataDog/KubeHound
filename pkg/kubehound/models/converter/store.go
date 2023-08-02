@@ -27,6 +27,7 @@ var (
 	ErrNoCacheInitialized    = errors.New("cache reader required for conversion")
 	ErrDanglingRoleBinding   = errors.New("role binding found with no matching role")
 	ErrProjectedDefaultToken = errors.New("projected volume grant no access (default serviceaccount)")
+	ErrEndpointTarget        = errors.New("target ref for an endpoint could not be resolved")
 )
 
 // StoreConverter enables converting between an input K8s model to its equivalent store model.
@@ -339,9 +340,14 @@ func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, p
 func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 	port discoveryv1.EndpointPort, parent types.EndpointType) (*store.Endpoint, error) {
 
+	// Ensure we have a target
+	if addr.TargetRef == nil {
+		return nil, ErrEndpointTarget
+	}
+
 	// Ensure our assumption that the target is always a pod holds
 	if addr.TargetRef.Kind != "Pod" {
-		return nil, fmt.Errorf("unexpected endpoint target %#v", addr.TargetRef)
+		return nil, ErrEndpointTarget
 	}
 
 	output := &store.Endpoint{

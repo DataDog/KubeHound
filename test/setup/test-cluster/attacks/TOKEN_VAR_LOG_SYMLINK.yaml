@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: varlog
+  name: varlog-sa
   namespace: default
 automountServiceAccountToken: true
 ---
@@ -27,7 +27,7 @@ subjects:
   apiGroup: ""
 roleRef:
   kind: Role
-  name: varlog-sa
+  name: varlog
   apiGroup: ""
 ---
 apiVersion: v1
@@ -46,7 +46,7 @@ spec:
         name: nodelog
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
-  serviceAccountName: varlog
+  serviceAccountName: varlog-sa
   volumes:
     - name: nodelog
       hostPath:

@@ -1,0 +1,33 @@
+# ENDPOINT_EXPOSE edge
+apiVersion: v1
+kind: Pod
+metadata:
+  name: endpoints-pod
+  labels:
+    app: kubehound-edge-test
+    app.kubernetes.io/name: webproxy
+spec:
+  hostPID: true
+  containers:
+    - name:  endpoints-pod
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+      ports:
+        - containerPort: 80
+          name: http-web-svc
+        - containerPort: 9999
+          name: jmx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webproxy-service
+spec:
+  selector:
+    app.kubernetes.io/name: webproxy
+  ports:
+  - name: webproxy-service-port
+    protocol: TCP
+    port: 80
+    targetPort: http-web-svc

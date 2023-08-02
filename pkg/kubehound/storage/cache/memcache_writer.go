@@ -25,11 +25,15 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, 
 	entry, ok := m.data[keyId]
 	if ok {
 		if m.opts.Test {
+			// if test & set behaviour is specified, return an error containing the existing value in the cache
 			return NewOverwriteError(&CacheResult{Value: entry})
 		}
 
-		_ = statsd.Incr(telemetry.MetricCacheDuplicateEntry, []string{keyId}, 1)
-		log.Trace(ctx).Warnf("overwriting cache entry key=%s old=%#v new=%#v", keyId, entry, value)
+		if !m.opts.ExpectOverwrite {
+			// if overwrite is expected (e.g fast tracking of existence regardless of value), suppress metrics and logs
+			_ = statsd.Incr(telemetry.MetricCacheDuplicateEntry, []string{keyId}, 1)
+			log.Trace(ctx).Warnf("overwriting cache entry key=%s old=%#v new=%#v", keyId, entry, value)
+		}
 	}
 
 	m.data[keyId] = value

@@ -90,8 +90,8 @@ func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.Container
 	}
 
 	// TODO
-	ck := cachekey.Endpoint(tmp.PodName, tmp.SafePort(), tmp.SafeProtocol(), tmp.Namespace)
-	_, err = i.r.readCache(ctx, ck).ObjectID() // TOOD make bool
+	ck := cachekey.Endpoint(tmp.Namespace, tmp.PodName, tmp.SafeProtocol(), tmp.SafePort())
+	_, err = i.r.readCache(ctx, ck).Bool()
 	switch err {
 	case cache.ErrNoEntry:
 		// No associated endpoint slice, create the endpoint from container parameters

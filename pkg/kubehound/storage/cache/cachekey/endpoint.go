@@ -1,33 +1,36 @@
 package cachekey
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 const (
 	endpointCacheName = "k8s-endpoint"
 )
 
 type endpointCacheKey struct {
-	podName   string
-	namespace string
-	port      string
-	protocol  string
+	baseCacheKey
 }
 
 var _ CacheKey = (*endpointCacheKey)(nil) // Ensure interface compliance
 
-func Endpoint(podName string, port int, protocol string, namespace string) *endpointCacheKey {
+func Endpoint(namespace string, podName string, protocol string, port int) *endpointCacheKey {
+	var sb strings.Builder
+
+	sb.WriteString(namespace)
+	sb.WriteString(CacheKeySeparator)
+	sb.WriteString(podName)
+	sb.WriteString(CacheKeySeparator)
+	sb.WriteString(protocol)
+	sb.WriteString(CacheKeySeparator)
+	sb.WriteString(strconv.Itoa(port))
+
 	return &endpointCacheKey{
-		podName:   podName,
-		namespace: namespace,
-		port:      strconv.Itoa(port),
-		protocol:  protocol,
+		baseCacheKey{sb.String()},
 	}
 }
 
 func (k *endpointCacheKey) Shard() string {
 	return endpointCacheName
-}
-
-func (k *endpointCacheKey) Key() string {
-	return k.namespace + "##" + k.podName + "##" + k.port + "##" + k.protocol
 }

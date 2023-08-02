@@ -6,8 +6,11 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 const (
@@ -33,8 +36,7 @@ func (i *EndpointIngest) Initialize(ctx context.Context, deps *Dependencies) err
 	i.collection = collections.Endpoint{}
 
 	i.r, err = CreateResources(ctx, deps,
-		// WithCacheWriter(cache.WithTest()),
-		WithCacheWriter(),
+		WithCacheWriter(cache.WithExpectedOverwrite()),
 		WithStoreWriter(i.collection),
 		WithGraphWriter(i.vertex))
 	if err != nil {
@@ -58,6 +60,11 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 			// Normalize endpoint to store object format
 			o, err := i.r.storeConvert.Endpoint(ctx, addr, port, eps)
 			if err != nil {
+				if err == converter.ErrEndpointTarget {
+					log.I.Warnf("Endpoint dropped: %s : %s", err.Error(), addr.TargetRef)
+					return nil
+				}
+
 				return err
 			}
 
@@ -69,8 +76,8 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 			// Async write to cache
 			// TODO explain
 			// TODO change cache write to bool and suppress warnijng
-			ck := cachekey.Endpoint(o.PodName, o.SafePort(), o.SafeProtocol(), o.Namespace)
-			if err := i.r.writeCache(ctx, ck, o.Id.Hex()); err != nil {
+			ck := cachekey.Endpoint(o.Namespace, o.PodName, o.SafeProtocol(), o.SafePort())
+			if err := i.r.writeCache(ctx, ck, true); err != nil {
 				return err
 			}
 

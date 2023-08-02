@@ -148,50 +148,6 @@ func (_c *AsyncWriter_Queue_Call) RunAndReturn(run func(context.Context, interfa
 	return _c
 }
 
-// QueueUpdate provides a mock function with given fields: ctx, id, updates
-func (_m *AsyncWriter) QueueUpdate(ctx context.Context, id interface{}, updates interface{}) error {
-	ret := _m.Called(ctx, id, updates)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, interface{}, interface{}) error); ok {
-		r0 = rf(ctx, id, updates)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// AsyncWriter_QueueUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'QueueUpdate'
-type AsyncWriter_QueueUpdate_Call struct {
-	*mock.Call
-}
-
-// QueueUpdate is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id interface{}
-//   - updates interface{}
-func (_e *AsyncWriter_Expecter) QueueUpdate(ctx interface{}, id interface{}, updates interface{}) *AsyncWriter_QueueUpdate_Call {
-	return &AsyncWriter_QueueUpdate_Call{Call: _e.mock.On("QueueUpdate", ctx, id, updates)}
-}
-
-func (_c *AsyncWriter_QueueUpdate_Call) Run(run func(ctx context.Context, id interface{}, updates interface{})) *AsyncWriter_QueueUpdate_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(interface{}), args[2].(interface{}))
-	})
-	return _c
-}
-
-func (_c *AsyncWriter_QueueUpdate_Call) Return(_a0 error) *AsyncWriter_QueueUpdate_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *AsyncWriter_QueueUpdate_Call) RunAndReturn(run func(context.Context, interface{}, interface{}) error) *AsyncWriter_QueueUpdate_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 type mockConstructorTestingTNewAsyncWriter interface {
 	mock.TestingT
 	Cleanup(func())
