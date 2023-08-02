@@ -89,7 +89,8 @@ func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.Container
 		return err
 	}
 
-	// TODO
+	// Check whether this exposed container endpoint has an associated endpoint slice. If so, we need do nothing
+	// further. However if it does NOT we write the details of the container port as a private endpoint entry.
 	ck := cachekey.Endpoint(tmp.Namespace, tmp.PodName, tmp.SafeProtocol(), tmp.SafePort())
 	_, err = i.r.readCache(ctx, ck).Bool()
 	switch err {

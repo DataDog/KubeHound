@@ -107,7 +107,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	o, err := i.r.storeConvert.RoleBinding(ctx, rb)
 	if err != nil {
 		if err == converter.ErrDanglingRoleBinding {
-			log.I.Warnf("Role binding dropped: %s : %s", err.Error(), rb.Name)
+			log.I.Warnf("Role binding dropped: %s: %s", err.Error(), rb.Name)
 			return nil
 		}
 

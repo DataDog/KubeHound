@@ -380,12 +380,14 @@ func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 func (c *StoreConverter) EndpointPrivate(_ context.Context, port *corev1.ContainerPort,
 	pod *store.Pod, container *store.Container) (*store.Endpoint, error) {
 
+	portName := port.Name // TODO check this logic
+
 	output := &store.Endpoint{
 		Id:           store.ObjectID(),
 		ContainerId:  container.Id,
 		PodName:      pod.K8.Name,
 		PodNamespace: pod.K8.Namespace,
-		ServiceName:  fmt.Sprintf("%s::%s::%s", port.Name, pod.K8.Namespace, pod.K8.Name),
+		ServiceName:  fmt.Sprintf("%s::%s::%s", pod.K8.Namespace, pod.K8.Name, port.Name),
 		Name:         fmt.Sprintf("%s::%s::%d", container.K8.Name, pod.K8.Status.HostIP, port.ContainerPort),
 		NodeName:     pod.K8.Spec.NodeName,
 		AddressType:  "IPv4", // TODO figure out address tyoe from inpout

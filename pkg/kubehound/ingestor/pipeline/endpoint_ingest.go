@@ -53,7 +53,7 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 		return err
 	}
 
-	// We want to create one store entry per ports and per address. Ports specifies the list of network ports
+	// We want to create one store entry per port and per address. Ports specifies the list of network ports
 	// exposed by EACH endpoint in this slice so we can unfold the slice to insert each entry in turn.
 	for _, port := range eps.Ports {
 		for _, addr := range eps.Endpoints {
@@ -61,7 +61,7 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 			o, err := i.r.storeConvert.Endpoint(ctx, addr, port, eps)
 			if err != nil {
 				if err == converter.ErrEndpointTarget {
-					log.I.Warnf("Endpoint dropped: %s : %s", err.Error(), addr.TargetRef)
+					log.I.Warnf("Endpoint dropped: %s: %s", err.Error(), addr.TargetRef)
 					return nil
 				}
 
@@ -73,9 +73,8 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 				return err
 			}
 
-			// Async write to cache
-			// TODO explain
-			// TODO change cache write to bool and suppress warnijng
+			// Async write to cache so that the pod ingest can check whether an endpoint slice exists for a container port.
+			// If it does NOT it writes the container port as a private access.
 			ck := cachekey.Endpoint(o.Namespace, o.PodName, o.SafeProtocol(), o.SafePort())
 			if err := i.r.writeCache(ctx, ck, true); err != nil {
 				return err

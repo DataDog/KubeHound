@@ -12,17 +12,6 @@ const (
 	DefaultPortName         = ""
 )
 
-// Ok do not do the extra work
-
-// Endpoint Ingest -> Write cache entry. Write without Ids
-// Pod Ingest -> Check cache, if no matyching entry write everything. Set flag for dervived. Otherwise skip
-
-// Edge calculatiopn
-
-// Internal -> simply lookup derived flag = true and link endpoint -> container directly via Id field
-// External -> lookup derived flag = fasle, match pod name sin endpoint trarget to pod ids, link edges
-
-// TODO remove podid nodeid fields!
 type Endpoint struct {
 	Id           primitive.ObjectID        `bson:"_id"`
 	ContainerId  primitive.ObjectID        `bson:"container_id"`
