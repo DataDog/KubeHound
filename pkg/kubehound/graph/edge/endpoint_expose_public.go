@@ -49,13 +49,18 @@ func (e *EndpointExposePublic) Stream(ctx context.Context, store storedb.Provide
 
 	endpoints := adapter.MongoDB(store).Collection(collections.EndpointName)
 
+	// K8s endpoint slices must be ingested before containers. In this stage we need to match store.Endpoint documents that
+	// are generated via K8s EndpointSlice objects and match them to the container exposing the endpoint. The other case of
+	// store.Endpoint documents not associated with an EndpointSlice is handled separately.
 	pipeline := []bson.M{
 		{
+			// Match only endpoints with a matching EndpointSlice
 			"$match": bson.M{
 				"has_slice": true,
 			},
 		},
 		{
+			// Lookup the container matching the slice. This requires a match on namespace/pod/port/protocol
 			"$lookup": bson.M{
 				"as":   "matchContainers",
 				"from": "containers",
@@ -78,6 +83,8 @@ func (e *EndpointExposePublic) Stream(ctx context.Context, store storedb.Provide
 								bson.M{"$ne": bson.A{
 									"$k8.ports", nil,
 								}},
+								// Cannot use an $elemMatch with pipeline variables so use the more convoluted $filter syntax to match container port/protocol
+								// See: https://www.mongodb.com/community/forums/t/equivalent-of-elemmatch-query-operator-for-use-in-match-within-the-aggregation-lookup-with-pipeline/5360
 								bson.M{"$gt": bson.A{
 									bson.M{"$size": bson.M{"$filter": bson.M{
 										"input": "$k8.ports",

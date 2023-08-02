@@ -51,7 +51,7 @@ func (e *EndpointExposePrivate) Stream(ctx context.Context, store storedb.Provid
 	endpoints := adapter.MongoDB(store).Collection(collections.EndpointName)
 
 	// Collect the endpoints with no associated slice. These are directly created from a container port in the
-	// pod ingest pipeline and so alrerady have an associated container ID we can use directly.
+	// pod ingest pipeline and so already have an associated container ID we can use directly.
 	filter := bson.M{
 		"has_slice": false,
 	}
