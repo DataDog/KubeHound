@@ -35,7 +35,8 @@ func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(),
 		WithStoreWriter(i.collection),
-		WithGraphWriter(i.vertex))
+		WithGraphWriter(i.vertex),
+		WithConverterCache())
 	if err != nil {
 		return err
 	}
