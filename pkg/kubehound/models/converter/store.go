@@ -86,6 +86,7 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 		return nil, ErrNoCacheInitialized
 	}
 
+	fmt.Printf("debug ::: %s\n", cachekey.Node(input.Spec.NodeName))
 	nid, err := c.cache.Get(ctx, cachekey.Node(input.Spec.NodeName)).ObjectID()
 	if err != nil {
 		return nil, err
@@ -242,10 +243,11 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 
 	var output *store.RoleBinding
 
-	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace)).ObjectID()
+	fmt.Printf("debug ::: %s\n", cachekey.Role(input.RoleRef.Name, input.Namespace))
+	role, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace)).Role()
 	if err != nil {
 		// We can get cache misses here if binding corresponds to a cluster role
-		rid, err = c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, EmptyNamespace)).ObjectID()
+		role, err = c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, EmptyNamespace)).Role()
 		if err != nil {
 			return nil, ErrDanglingRoleBinding
 		}
@@ -254,7 +256,7 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 	subj := input.Subjects
 	output = &store.RoleBinding{
 		Id:           store.ObjectID(),
-		RoleId:       rid,
+		RoleId:       role.Id,
 		Name:         input.Name,
 		IsNamespaced: true,
 		Namespace:    input.Namespace,
@@ -283,10 +285,10 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 	var output *store.RoleBinding
 
-	rid, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace)).ObjectID()
+	role, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace)).Role()
 	if err != nil {
 		// We can get cache misses here if binding corresponds to a cluster role
-		rid, err = c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, EmptyNamespace)).ObjectID()
+		role, err = c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, EmptyNamespace)).Role()
 		if err != nil {
 			return nil, ErrDanglingRoleBinding
 		}
@@ -295,7 +297,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 	subj := input.Subjects
 	output = &store.RoleBinding{
 		Id:           store.ObjectID(),
-		RoleId:       rid,
+		RoleId:       role.Id,
 		Name:         input.Name,
 		IsNamespaced: false,
 		Namespace:    "",
@@ -332,4 +334,18 @@ func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, p
 	}
 
 	return output, nil
+}
+
+// Role returns the store representation of a K8s role from an input K8s Role object.
+func (c *StoreConverter) PermissionSet(_ context.Context, role *store.Role, rbid primitive.ObjectID) (*store.PermissionSet, error) {
+	return &store.PermissionSet{
+		Id:            store.ObjectID(),
+		RoleId:        role.Id,
+		RoleBindingId: rbid,
+		Name:          role.Name,
+		IsNamespaced:  role.IsNamespaced,
+		Namespace:     role.Namespace,
+		Rules:         role.Rules,
+		Ownership:     role.Ownership,
+	}, nil
 }

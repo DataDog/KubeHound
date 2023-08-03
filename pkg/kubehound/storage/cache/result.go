@@ -3,6 +3,7 @@ package cache
 import (
 	"errors"
 
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -15,6 +16,24 @@ var (
 type CacheResult struct {
 	Value any
 	Err   error
+}
+
+// Text returns the result value as a string alongside any errors.
+func (r *CacheResult) Role() (*store.Role, error) {
+	if r.Err != nil {
+		return nil, r.Err
+	}
+
+	if r.Value == nil {
+		return nil, ErrNoEntry
+	}
+
+	s, ok := r.Value.(store.Role)
+	if !ok {
+		return nil, ErrInvalidType
+	}
+
+	return &s, nil
 }
 
 // Text returns the result value as a string alongside any errors.

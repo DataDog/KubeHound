@@ -63,7 +63,7 @@ func (i *ClusterRoleIngest) IngestClusterRole(ctx context.Context, role types.Cl
 	}
 
 	// Async write to cache
-	if err := i.r.writeCache(ctx, cachekey.Role(o.Name, o.Namespace), o.Id.Hex()); err != nil {
+	if err := i.r.writeCache(ctx, cachekey.Role(o.Name, o.Namespace), *o); err != nil {
 		return err
 	}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -19,10 +20,11 @@ const (
 )
 
 type RoleBindingIngest struct {
-	vertex      *vertex.Identity
-	identity    collections.Identity
-	rolebinding collections.RoleBinding
-	r           *IngestResources
+	vertex        *vertex.Identity
+	identity      collections.Identity
+	rolebinding   collections.RoleBinding
+	permissionset collections.PermissionSet
+	r             *IngestResources
 }
 
 var _ ObjectIngest = (*RoleBindingIngest)(nil)
@@ -37,13 +39,16 @@ func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) 
 	i.vertex = &vertex.Identity{}
 	i.identity = collections.Identity{}
 	i.rolebinding = collections.RoleBinding{}
+	i.permissionset = collections.PermissionSet{}
 
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(cache.WithTest()),
 		WithConverterCache(),
 		WithStoreWriter(i.identity),
 		WithStoreWriter(i.rolebinding),
-		WithGraphWriter(i.vertex))
+		WithStoreWriter(i.permissionset),
+		WithGraphWriter(i.vertex),
+		WithCacheReader())
 	if err != nil {
 		return err
 	}
@@ -95,6 +100,64 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	return nil
 }
 
+// createPermissions
+// Stats around permission in our cluster for some table corner calculation
+// gizmo.us1.staging.dog: rb:4491 / crb:676 / r:1374 / cr:721
+// apm3.us1.prod.dog: rb: 1851 /crb:171 / r:525 / cr:191
+// daffy.us1.prod.dog: rb:1504 / crb:196 / r:127 / cr:219
+
+// Workflow
+// The rolebindings are being processed after the roles (cf pipeline order, file:///pkg/kubehound/ingestor/pipeline_ingestor.go )
+// First save into the cache the role and clusterroles
+// 	* create a specific save func to dump the whole object
+//  * do some calculation to estimate the size to make sure we dont blow up our RAM
+
+// RBAC rules and limitation
+// * Roles and RoleBindings must exist in the same namespace.
+// * RoleBindings can exist in separate namespaces to Service Accounts.
+// * RoleBindings can link ClusterRoles, but they only grant access to the namespace of the RoleBinding.
+// * ClusterRoleBindings link accounts to ClusterRoles and grant access across all resources.
+// * ClusterRoleBindings can not reference Roles.
+
+func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.RoleBindingType, rbid primitive.ObjectID) error {
+
+	// Get Role from cache
+	role, err := i.r.cacheReader.Get(ctx, cachekey.Role(rb.RoleRef.Name, rb.Namespace)).Role()
+	if err != nil {
+		return err
+	}
+
+	// Normalize K8s role binding to store object format
+	o, err := i.r.storeConvert.PermissionSet(ctx, role, rbid)
+	if err != nil {
+		return err
+	}
+
+	// Roles and RoleBindings must exist in the same namespace.
+	if rb.Namespace != role.Namespace {
+		log.I.Warnf("The role namespace does not match the rolebinding: r::%s/cr::%s", rb.Namespace, role.Namespace)
+		return nil
+	}
+
+	// RoleBindings can exist in separate namespaces to Service Accounts.
+	// Will be threated in the ROLE_GRANT edege
+
+	// RoleBindings can link ClusterRoles, but they only grant access to the namespace of the RoleBinding.
+	if !role.IsNamespaced {
+		log.I.Warnf("Cluster role detected, downgrading it:%t ", o.IsNamespaced)
+		o.IsNamespaced = true
+		o.Namespace = rb.Namespace
+	}
+	log.I.Warnf("wait what ? o.IsNamespaced:%t ", o.IsNamespaced)
+
+	// Async write role binding to store
+	if err := i.r.writeStore(ctx, i.permissionset, o); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // streamCallback is invoked by the collector for each role binding collected.
 // The function ingests an input role binding object into the store/graph and then ingests
 // all child objects (identites, etc) through their own ingestion pipeline.
@@ -128,6 +191,9 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 			return err
 		}
 	}
+
+	// Create permission from Rolebinding entry
+	//i.createPermissionSet(ctx, rb, o.Id)
 
 	return nil
 }

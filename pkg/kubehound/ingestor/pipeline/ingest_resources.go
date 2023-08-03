@@ -26,6 +26,7 @@ type CleanupFunc func(ctx context.Context) error
 // Should not be used directly, but modified via ObjectIngestOption functions.
 type resourceOptions struct {
 	cacheWriter  cache.AsyncWriter                    // Cache provider
+	cacheReader  cache.CacheReader                    // Cache provider to enhance data (for instance, permission)
 	collect      collector.CollectorClient            // Collector fromm which to steam data
 	flush        []FlushFunc                          // Array of writer flush functions to be called on a flush
 	cleanup      []CleanupFunc                        // Array of dependency cleanup functions to be called on a close
@@ -52,6 +53,19 @@ func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
 		})
 
 		rOpts.flush = append(rOpts.flush, rOpts.cacheWriter.Flush)
+
+		return nil
+	}
+}
+
+// WithCacheReader initializes a cache reader (and registers a cleanup function to close the connection) for the ingest pipeline.
+func WithCacheReader() IngestResourceOption {
+	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
+		rOpts.cacheReader = deps.Cache
+
+		rOpts.cleanup = append(rOpts.cleanup, func(ctx context.Context) error {
+			return rOpts.cacheReader.Close(ctx)
+		})
 
 		return nil
 	}
@@ -117,7 +131,7 @@ type IngestResources struct {
 }
 
 // writeCache delegates a write to the cache writer.
-func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value string) error {
+func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value any) error {
 	return i.cacheWriter.Queue(ctx, ck, value)
 }
 
