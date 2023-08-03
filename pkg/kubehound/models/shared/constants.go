@@ -19,11 +19,11 @@ const (
 	CompromiseKnown
 )
 
-type EndpointAccessType int
+type EndpointExposureType int
 
 const (
-	EndpointAccessNone     EndpointAccessType = iota
-	EndpointAccessInternal                    // Container port exposed to cluster
-	EndpointAccessExternal                    // Kubernetes endpoint exposed outside the cluster
-	EndpointAccessPublic                      // External DNS API endpoint
+	EndpointExposureNone     EndpointExposureType = iota
+	EndpointExposureInternal                      // Container port exposed to cluster
+	EndpointExposureExternal                      // Kubernetes endpoint exposed outside the cluster
+	EndpointExposurePublic                        // External DNS API endpoint
 )

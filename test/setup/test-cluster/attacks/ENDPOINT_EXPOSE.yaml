@@ -14,8 +14,14 @@ spec:
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
       ports:
+        # Service port
         - containerPort: 80
           name: http-web-svc
+        # Host port
+        - containerPort: 1111
+          name: host-port-svc
+          hostPort: 1112
+        # Internal port
         - containerPort: 9999
           name: jmx
 ---

@@ -13,22 +13,23 @@ const (
 )
 
 type Endpoint struct {
-	Id           primitive.ObjectID        `bson:"_id"`
-	ContainerId  primitive.ObjectID        `bson:"container_id"`
-	PodName      string                    `bson:"pod_name"`
-	PodNamespace string                    `bson:"pod_namespace"`
-	NodeName     string                    `bson:"node_name"`
-	IsNamespaced bool                      `bson:"is_namespaced"`
-	Namespace    string                    `bson:"namespace"`
-	Name         string                    `bson:"name"`
-	HasSlice     bool                      `bson:"has_slice"`
-	ServiceName  string                    `bson:"service_name"`
-	K8           metav1.ObjectMeta         `bson:"k8"`
-	AddressType  discoveryv1.AddressType   `bson:"address_type"`
-	Backend      discoveryv1.Endpoint      `bson:"backend"`
-	Port         discoveryv1.EndpointPort  `bson:"port"`
-	Ownership    OwnershipInfo             `bson:"ownership"`
-	Access       shared.EndpointAccessType `bson:"access"`
+	Id           primitive.ObjectID          `bson:"_id"`
+	ContainerId  primitive.ObjectID          `bson:"container_id"`
+	PodName      string                      `bson:"pod_name"`
+	PodNamespace string                      `bson:"pod_namespace"`
+	NodeName     string                      `bson:"node_name"`
+	IsNamespaced bool                        `bson:"is_namespaced"`
+	Namespace    string                      `bson:"namespace"`
+	Name         string                      `bson:"name"`
+	HasSlice     bool                        `bson:"has_slice"`
+	ServiceName  string                      `bson:"service_name"`
+	ServiceDns   string                      `bson:"service_dns"`
+	K8           metav1.ObjectMeta           `bson:"k8"`
+	AddressType  discoveryv1.AddressType     `bson:"address_type"`
+	Backend      discoveryv1.Endpoint        `bson:"backend"`
+	Port         discoveryv1.EndpointPort    `bson:"port"`
+	Ownership    OwnershipInfo               `bson:"ownership"`
+	Exposure     shared.EndpointExposureType `bson:"access"`
 }
 
 func (e *Endpoint) SafePort() int {

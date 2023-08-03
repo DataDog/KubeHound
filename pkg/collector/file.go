@@ -99,6 +99,10 @@ func (c *FileCollector) Close(ctx context.Context) error {
 	return nil
 }
 
+func (c *FileCollector) Cluster(ctx context.Context) string {
+	return "TODO"
+}
+
 // streamPodsNamespace streams the pod objects in a single file, corresponding to a cluster namespace.
 func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, ingestor PodIngestor) error {
 	list, err := readList[corev1.PodList](ctx, fp)

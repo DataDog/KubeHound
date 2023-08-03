@@ -66,6 +66,9 @@ type EndpointIngestor interface {
 type CollectorClient interface {
 	services.Dependency
 
+	// TODO
+	Cluster(ctx context.Context) string
+
 	// StreamNodes will iterate through all NodeType objects collected by the collector and invoke the ingestor.IngestNode method on each.
 	// Once all the NodeType objects have been exhausted the ingestor.Complete method will be invoked to signal the end of the stream.
 	StreamNodes(ctx context.Context, ingestor NodeIngestor) error

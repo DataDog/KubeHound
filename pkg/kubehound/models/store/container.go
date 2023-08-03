@@ -10,6 +10,7 @@ import (
 // security related information. Any capabilities derived from the containing Pod are set ONLY on the container (and
 // inheritance/override rules applied)
 type ContainerInherited struct {
+	Namespace      string `bson:"namespace"`
 	PodName        string `bson:"pod_name"`
 	NodeName       string `bson:"node_name"`
 	HostPID        bool   `bson:"host_pid"`

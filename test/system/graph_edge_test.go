@@ -567,7 +567,7 @@ func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_Internal() {
 	results, err := suite.g.V().
 		HasLabel("Endpoint").
 		Where(
-			__.Has("access", P.Eq(int(shared.EndpointAccessInternal))).
+			__.Has("access", P.Eq(int(shared.EndpointExposureInternal))).
 				OutE("ENDPOINT_EXPOSE").
 				InV().
 				HasLabel("Container")).
@@ -579,7 +579,7 @@ func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_Internal() {
 
 	paths := suite.resultsToStringArray(results)
 	expected := []string{
-		"jmx::default::endpoints-pod",
+		"default::endpoints-pod::jmx",
 	}
 
 	suite.Subset(paths, expected)
@@ -589,7 +589,7 @@ func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_External() {
 	results, err := suite.g.V().
 		HasLabel("Endpoint").
 		Where(
-			__.Has("access", P.Eq(int(shared.EndpointAccessExternal))).
+			__.Has("access", P.Eq(int(shared.EndpointExposureExternal))).
 				OutE("ENDPOINT_EXPOSE").
 				InV().
 				HasLabel("Container")).

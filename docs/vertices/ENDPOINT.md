@@ -6,7 +6,14 @@ TODO
 
 | Property            | Type      | Description |
 | ----------------| --------- |----------------------------------------|
-| name | `string` |  Name of the container in Kubernetes | 
+| name | `string` | TODO | 
+| addressType | `string` |  Type of the addresses array (IPv4, IPv6, etc) | 
+| addresses | `string` |  Array of addresses exposing the endpoint | 
+| port | `int` | Exposed port of the endpoint |
+| portName | `string` | Name of the exposed port  |
+| protocol | `string` | Endpoint protocol (TCP, UDP, etc) |
+| exposure | `string` | Enum value describing the level of exposure of the endpoint (see [EndpointExposureType](../../pkg/kubehound/models/shared/constants.go))  |
+
 
 TODO TODO
 

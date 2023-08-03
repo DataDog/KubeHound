@@ -353,6 +353,8 @@ func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, p
 	return output, nil
 }
 
+// Endpoint returns the store representation of a K8s endpoint from an input Endpoint & EndpointPort objects (subfields of EndpointSlice).
+// NOTE: store.Endpoint does not map directly to a K8s API object and instead derives from the elements of an EndpointSlice.
 func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 	port discoveryv1.EndpointPort, parent types.EndpointType) (*store.Endpoint, error) {
 
@@ -372,13 +374,16 @@ func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 		PodNamespace: addr.TargetRef.Namespace,
 		Name:         fmt.Sprintf("%s::%s::%s", parent.Name, addr.TargetRef.Name, *port.Name),
 		HasSlice:     true,
-		ServiceName:  parent.Labels["kubernetes.io/service-name"], // TODO tidy
+		ServiceName:  libkube.ServiceName(parent),
+		ServiceDns:   libkube.ServiceDns(parent),
 		AddressType:  parent.AddressType,
 		Backend:      addr,
 		Port:         port,
 		Ownership:    store.ExtractOwnership(parent.ObjectMeta.Labels),
 		K8:           parent.ObjectMeta,
-		Access:       shared.EndpointAccessExternal, // If created via the ingestion pipeline the endpoint corresponds to a k8s endpoint slice
+
+		// If created via the ingestion pipeline the endpoint corresponds to a k8s endpoint slice
+		Exposure: shared.EndpointExposureExternal,
 	}
 
 	if addr.NodeName != nil {
@@ -393,20 +398,24 @@ func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 	return output, nil
 }
 
+// EndpointPrivate returns the store representation of a K8s endpoint from an input port, container & pod.
+// This variant handles the case when the provided container port does not match a known EndpointSlice. The generated endpoint will
+// not be accessible from outside the cluster but can still provide value to an attacker with an presence inside the cluster.
 func (c *StoreConverter) EndpointPrivate(_ context.Context, port *corev1.ContainerPort,
 	pod *store.Pod, container *store.Container) (*store.Endpoint, error) {
 
-	portName := port.Name // TODO check this logic
+	//portName := port.Name // TODO check this logic
+	// https: //cylab.be/blog/154/exposing-a-kubernetes-application-service-hostport-nodeport-loadbalancer-or-ingresscontroller
 
 	output := &store.Endpoint{
 		Id:           store.ObjectID(),
 		ContainerId:  container.Id,
 		PodName:      pod.K8.Name,
 		PodNamespace: pod.K8.Namespace,
-		ServiceName:  fmt.Sprintf("%s::%s::%s", pod.K8.Namespace, pod.K8.Name, port.Name),
-		Name:         fmt.Sprintf("%s::%s::%d", container.K8.Name, pod.K8.Status.HostIP, port.ContainerPort),
-		NodeName:     pod.K8.Spec.NodeName,
-		AddressType:  "IPv4", // TODO figure out address tyoe from inpout
+		//		ServiceName:  fmt.Sprintf("%s::%s::%s", pod.K8.Namespace, pod.K8.Name, port.Name),
+		Name:        fmt.Sprintf("%s::%s::%d", container.K8.Name, pod.K8.Status.HostIP, port.ContainerPort),
+		NodeName:    pod.K8.Spec.NodeName,
+		AddressType: discoveryv1.AddressTypeIPv4, // TODO figure out address tyoe from inpout
 		Backend: discoveryv1.Endpoint{
 			// TODO other fields
 			Addresses: []string{pod.K8.Status.PodIP},
@@ -423,14 +432,20 @@ func (c *StoreConverter) EndpointPrivate(_ context.Context, port *corev1.Contain
 		Port: discoveryv1.EndpointPort{
 			Name:     &port.Name,
 			Protocol: &port.Protocol,
-			Port:     &port.ContainerPort, // TOOD host port
-
+			Port:     &port.ContainerPort,
 		},
 		Ownership: container.Ownership,
 
 		// If created via the pod ingestion pipeline the endpoint does not correspond to a k8s
 		// endpoint slice and thus is only accessible from within the cluster.
-		Access: shared.EndpointAccessInternal,
+		Exposure: shared.EndpointExposureInternal,
+	}
+
+	// TODO if host port is set we wan to make expore external and set ServiceName / ServiceDns
+	if port.HostPort != 0 {
+		output.ServiceName = "TODO"
+		output.ServiceDns = fmt.Sprintf("%s.%s", output.NodeName, "cluster")
+		output.Exposure = shared.EndpointExposureExternal
 	}
 
 	if len(pod.K8.Namespace) != 0 {
