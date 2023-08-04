@@ -13,8 +13,5 @@ func ServiceName(ep types.EndpointType) string {
 
 // ServiceDns provides the DNS name of the service associated with the provided EndpointSlice.
 func ServiceDns(ep types.EndpointType) string {
-	clusterName := "stripe.us1.staging.dog" // TODO dynamic
-	namespace := ep.Namespace
-
-	return fmt.Sprintf("%s.%s.%s", ep.Labels["kubernetes.io/service-name"], namespace, clusterName)
+	return fmt.Sprintf("%s.%s", ep.Labels["kubernetes.io/service-name"], ep.Namespace)
 }

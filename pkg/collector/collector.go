@@ -57,6 +57,9 @@ type ClusterRoleBindingIngestor interface {
 	Complete(context.Context) error
 }
 
+// EndpointIngestor defines the interface to allow an ingestor to consume endpoint slice inputs from a collector.
+//
+//go:generate mockery --name EndpointIngestor --output mockingest --case underscore --filename endpoint_ingestor.go --with-expecter
 type EndpointIngestor interface {
 	IngestEndpoint(context.Context, types.EndpointType) error
 	Complete(context.Context) error
@@ -65,9 +68,6 @@ type EndpointIngestor interface {
 //go:generate mockery --name CollectorClient --output mockcollector --case underscore --filename collector_client.go --with-expecter
 type CollectorClient interface {
 	services.Dependency
-
-	// TODO
-	Cluster(ctx context.Context) string
 
 	// StreamNodes will iterate through all NodeType objects collected by the collector and invoke the ingestor.IngestNode method on each.
 	// Once all the NodeType objects have been exhausted the ingestor.Complete method will be invoked to signal the end of the stream.

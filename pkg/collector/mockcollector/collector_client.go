@@ -65,48 +65,6 @@ func (_c *CollectorClient_Close_Call) RunAndReturn(run func(context.Context) err
 	return _c
 }
 
-// Cluster provides a mock function with given fields: ctx
-func (_m *CollectorClient) Cluster(ctx context.Context) string {
-	ret := _m.Called(ctx)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(context.Context) string); ok {
-		r0 = rf(ctx)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}
-
-// CollectorClient_Cluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Cluster'
-type CollectorClient_Cluster_Call struct {
-	*mock.Call
-}
-
-// Cluster is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *CollectorClient_Expecter) Cluster(ctx interface{}) *CollectorClient_Cluster_Call {
-	return &CollectorClient_Cluster_Call{Call: _e.mock.On("Cluster", ctx)}
-}
-
-func (_c *CollectorClient_Cluster_Call) Run(run func(ctx context.Context)) *CollectorClient_Cluster_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *CollectorClient_Cluster_Call) Return(_a0 string) *CollectorClient_Cluster_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CollectorClient_Cluster_Call) RunAndReturn(run func(context.Context) string) *CollectorClient_Cluster_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // HealthCheck provides a mock function with given fields: ctx
 func (_m *CollectorClient) HealthCheck(ctx context.Context) (bool, error) {
 	ret := _m.Called(ctx)
