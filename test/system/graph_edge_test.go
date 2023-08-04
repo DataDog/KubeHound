@@ -152,7 +152,7 @@ func (suite *EdgeTestSuite) TestEdge_CONTAINER_ATTACH() {
 	suite.Equal(containerCount, pathCount)
 }
 
-func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME() {
+func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME_Container() {
 	// We currently have 6 custom accounts configured (excluding the default)
 	// 	➜  KubeHound ✗ k get sa
 	// NAME             SECRETS   AGE
@@ -183,6 +183,27 @@ func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME() {
 		"path[map[name:[tokenlist-pod]], map[], map[name:[tokenlist-sa]",
 		"path[map[name:[pod-create-pod]], map[], map[name:[pod-create-sa]",
 		"path[map[name:[impersonate-pod]], map[], map[name:[impersonate-sa]",
+	}
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME_Node() {
+	results, err := suite.g.V().
+		HasLabel("Node").
+		OutE().HasLabel("IDENTITY_ASSUME").
+		InV().HasLabel("Identity").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 3)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[kubehound.test.local-control-plane]], map[], map[name:[system:nodes]",
+		"path[map[name:[kubehound.test.local-worker]], map[], map[name:[system:nodes]",
+		"path[map[name:[kubehound.test.local-worker2]], map[], map[name:[system:nodes]",
 	}
 	suite.Subset(paths, expected)
 }

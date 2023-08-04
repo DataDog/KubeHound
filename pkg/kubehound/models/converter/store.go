@@ -10,7 +10,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
-	"github.com/DataDog/KubeHound/pkg/kube"
+	"github.com/DataDog/KubeHound/pkg/kubehound/libkube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
@@ -65,7 +65,11 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 }
 
 // Node returns the store representation of a K8s node from an input K8s node object.
-func (c *StoreConverter) Node(_ context.Context, input types.NodeType) (*store.Node, error) {
+func (c *StoreConverter) Node(ctx context.Context, input types.NodeType) (*store.Node, error) {
+	if c.cache == nil {
+		return nil, ErrNoCacheInitialized
+	}
+
 	output := &store.Node{
 		Id:        store.ObjectID(),
 		K8:        corev1.Node(*input),
@@ -74,6 +78,18 @@ func (c *StoreConverter) Node(_ context.Context, input types.NodeType) (*store.N
 
 	if len(input.Namespace) != 0 {
 		output.IsNamespaced = true
+	}
+
+	// Retrieve the associated identity store ID from the cache
+	uid, err := libkube.NodeIdentity(ctx, c.cache, input.Name)
+	switch err {
+	case nil:
+		// We have a matching node identity object in the store
+		output.UserId = uid
+	case libkube.ErrMissingNodeUser:
+		// This is completely fine. Most nodes will run under a default account with no permissions which we ignore.
+	default:
+		return nil, err
 	}
 
 	return output, nil
@@ -125,7 +141,7 @@ func (c *StoreConverter) handleProjectedToken(ctx context.Context, input types.V
 	var sourcePath string
 	for _, proj := range volume.Projected.Sources {
 		if proj.ServiceAccountToken != nil {
-			sourcePath = kube.ServiceAccountTokenPath(string(pod.K8.ObjectMeta.UID), input.Name)
+			sourcePath = libkube.ServiceAccountTokenPath(string(pod.K8.ObjectMeta.UID), input.Name)
 			break
 		}
 	}
