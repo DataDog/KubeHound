@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 const (
@@ -36,8 +35,7 @@ func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(),
 		WithStoreWriter(i.collection),
-		WithGraphWriter(i.vertex),
-		WithCacheReader())
+		WithGraphWriter(i.vertex))
 	if err != nil {
 		return err
 	}
@@ -64,17 +62,9 @@ func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error 
 	}
 
 	// Async write to cache
-	log.I.Warnf(" NODE CACHE ENTRY: %s", cachekey.Node(o.K8.Name))
 	if err := i.r.writeCache(ctx, cachekey.Node(o.K8.Name), o.Id.Hex()); err != nil {
-		log.I.Warnf(" ERROR ERROR ERROR ERROR: %s", cachekey.Node(o.K8.Name))
 		return err
 	}
-	nid, err := i.r.cacheReader.Get(ctx, cachekey.Node(o.K8.Name)).ObjectID()
-	if err != nil {
-		log.I.Warnf(" ERROR ERROR ERROR ERROR: %s", cachekey.Node(o.K8.Name))
-		return err
-	}
-	log.I.Warnf(" GOGOGOGOGOGOGOR: %s", nid)
 	// Transform store model to vertex input
 	insert, err := i.r.graphConvert.Node(o)
 	if err != nil {

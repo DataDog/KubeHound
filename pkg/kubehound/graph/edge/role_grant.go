@@ -23,7 +23,7 @@ type RoleGrant struct {
 }
 
 type roleGrantGroup struct {
-	Role     primitive.ObjectID `bson:"role_id" json:"role"`
+	Role     primitive.ObjectID `bson:"_id" json:"role"`
 	Identity primitive.ObjectID `bson:"identity_id" json:"identity"`
 }
 
@@ -47,28 +47,71 @@ func (e *RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIDConver
 func (e *RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	roleBindings := adapter.MongoDB(store).Collection(collections.RoleBindingName)
+	roleBindings := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 
-	pipeline := []bson.M{
-		// Match bindings that have at least one subject
-		{
+	pipeline := bson.A{
+		bson.M{
+			"$lookup": bson.M{
+				"from":         "rolebindings",
+				"localField":   "role_binding_id",
+				"foreignField": "_id",
+				"as":           "result",
+			},
+		},
+		bson.M{
 			"$match": bson.M{
-				"subjects": bson.M{
-					"$exists": true,
-					"$ne":     bson.A{},
+				"result": bson.M{
+					"$elemMatch": bson.M{
+						"subjects": bson.M{
+							"$exists": true,
+							"$ne":     bson.A{},
+						},
+					},
 				},
 			},
 		},
-		// Flatten the subjects set
-		{
-			"$unwind": "$subjects",
+		bson.M{"$unwind": bson.M{"path": "$result"}},
+		bson.M{"$unwind": bson.M{"path": "$result.subjects"}},
+		bson.M{
+			"$match": bson.M{
+				"$expr": bson.M{
+					"$or": bson.A{
+						bson.M{
+							"$and": bson.A{
+								bson.M{
+									"$eq": bson.A{
+										"$namespace",
+										"$result.subjects.subject.namespace",
+									},
+								},
+								bson.M{
+									"$eq": bson.A{
+										"$is_namespaced",
+										true,
+									},
+								},
+							},
+						},
+						bson.M{
+							"$eq": bson.A{
+								"$result.subjects.subject.kind",
+								"ServiceAccount",
+							},
+						},
+						bson.M{
+							"$eq": bson.A{
+								"$is_namespaced",
+								false,
+							},
+						},
+					},
+				},
+			},
 		},
-		// Project a role id / identity id pair
-		{
+		bson.M{
 			"$project": bson.M{
-				"_id":         0,
-				"role_id":     1,
-				"identity_id": "$subjects.identity_id",
+				"_id":         1,
+				"identity_id": "$result.subjects.identity_id",
 			},
 		},
 	}

@@ -49,7 +49,7 @@ func (e *PodPatchNamespace) Processor(ctx context.Context, oic *converter.Object
 func (e *PodPatchNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	roles := adapter.MongoDB(store).Collection(collections.RoleName)
+	roles := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{

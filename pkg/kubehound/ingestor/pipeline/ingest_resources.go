@@ -62,11 +62,6 @@ func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
 func WithCacheReader() IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		rOpts.cacheReader = deps.Cache
-
-		rOpts.cleanup = append(rOpts.cleanup, func(ctx context.Context) error {
-			return rOpts.cacheReader.Close(ctx)
-		})
-
 		return nil
 	}
 }

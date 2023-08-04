@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRole_Traversal(t *testing.T) {
+func TestPermissionSet_Traversal(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -35,7 +35,7 @@ func TestRole_Traversal(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			v := Role{}
+			v := PermissionSet{}
 
 			g := gremlingo.GraphTraversalSource{}
 

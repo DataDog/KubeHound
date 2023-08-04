@@ -12,6 +12,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -19,10 +20,12 @@ const (
 )
 
 type ClusterRoleBindingIngest struct {
-	vertex      *vertex.Identity
-	identity    collections.Identity
-	rolebinding collections.RoleBinding
-	r           *IngestResources
+	vertexIdentity      *vertex.Identity
+	vertexPermissionSet *vertex.PermissionSet
+	identity            collections.Identity
+	rolebinding         collections.RoleBinding
+	permissionset       collections.PermissionSet
+	r                   *IngestResources
 }
 
 var _ ObjectIngest = (*ClusterRoleBindingIngest)(nil)
@@ -34,16 +37,21 @@ func (i *ClusterRoleBindingIngest) Name() string {
 func (i *ClusterRoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
-	i.vertex = &vertex.Identity{}
+	i.vertexIdentity = &vertex.Identity{}
+	i.vertexPermissionSet = &vertex.PermissionSet{}
 	i.identity = collections.Identity{}
 	i.rolebinding = collections.RoleBinding{}
+	i.permissionset = collections.PermissionSet{}
 
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(cache.WithTest()),
 		WithConverterCache(),
 		WithStoreWriter(i.identity),
 		WithStoreWriter(i.rolebinding),
-		WithGraphWriter(i.vertex))
+		WithStoreWriter(i.permissionset),
+		WithGraphWriter(i.vertexIdentity),
+		WithGraphWriter(i.vertexPermissionSet),
+		WithCacheReader())
 	if err != nil {
 		return err
 	}
@@ -88,7 +96,49 @@ func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *sto
 	}
 
 	// Aysnc write to graph
-	if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
+	if err := i.r.writeVertex(ctx, i.vertexIdentity, insert); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RBAC rules and limitation:
+// * ClusterRoleBindings link accounts to ClusterRoles and grant access across all resources.
+// * ClusterRoleBindings can not reference Roles.
+func (i *ClusterRoleBindingIngest) createPermissionSet(ctx context.Context, crb types.ClusterRoleBindingType, rbid primitive.ObjectID) error {
+
+	// Get Role from cache
+	role, err := i.r.cacheReader.Get(ctx, cachekey.Role(crb.RoleRef.Name, crb.Namespace)).Role()
+	if err != nil {
+		return err
+	}
+
+	// Normalize K8s role binding to store object format
+	o, err := i.r.storeConvert.PermissionSet(ctx, role, rbid)
+	if err != nil {
+		return err
+	}
+
+	// CusterRoleBindings can not reference Roles.
+	if role.IsNamespaced {
+		log.I.Warnf("The clusterrolebinding bind a role and not a clusterrole, skipping the permissionset: r::%s/cr::%s", role.Namespace, crb.Namespace)
+		return nil
+	}
+
+	// Async write role binding to store
+	if err := i.r.writeStore(ctx, i.permissionset, o); err != nil {
+		return err
+	}
+
+	// Transform store model to vertex input
+	insert, err := i.r.graphConvert.PermissionSet(o)
+	if err != nil {
+		return err
+	}
+
+	// Aysnc write to graph
+	if err := i.r.writeVertex(ctx, i.vertexPermissionSet, insert); err != nil {
 		return err
 	}
 
@@ -129,7 +179,8 @@ func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context,
 		}
 	}
 
-	return nil
+	// Create permission from Rolebinding entry
+	return i.createPermissionSet(ctx, crb, o.Id)
 }
 
 // completeCallback is invoked by the collector when all roles have been streamed.

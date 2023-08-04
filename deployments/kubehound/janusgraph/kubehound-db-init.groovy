@@ -17,12 +17,12 @@ container = mgmt.makeVertexLabel('Container').make();
 identity = mgmt.makeVertexLabel('Identity').make();
 node = mgmt.makeVertexLabel('Node').make();
 pod = mgmt.makeVertexLabel('Pod').make();
-role = mgmt.makeVertexLabel('Role').make();
+permissionSet = mgmt.makeVertexLabel('PermissionSet').make();
 volume = mgmt.makeVertexLabel('Volume').make();
 
 // Create our edge labels and connections
 roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(MULTI).make();
-mgmt.addConnection(roleGrant, identity, role);
+mgmt.addConnection(roleGrant, identity, permissionSet);
 
 volumeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MULTI).make();
 mgmt.addConnection(volumeMount, container, volume);
@@ -49,34 +49,34 @@ idAssume = mgmt.makeEdgeLabel('IDENTITY_ASSUME').multiplicity(MANY2ONE).make();
 mgmt.addConnection(idAssume, container, identity);
 
 idImpersonate = mgmt.makeEdgeLabel('IDENTITY_IMPERSONATE').multiplicity(MANY2ONE).make();
-mgmt.addConnection(idImpersonate, role, identity);
+mgmt.addConnection(idImpersonate, permissionSet, identity);
 
 roleBind = mgmt.makeEdgeLabel('ROLE_BIND').multiplicity(MANY2ONE).make();
-mgmt.addConnection(roleBind, role, role);
+mgmt.addConnection(roleBind, permissionSet, permissionSet);
 
 podAttach = mgmt.makeEdgeLabel('POD_ATTACH').multiplicity(ONE2MANY).make();
 mgmt.addConnection(podAttach, node, pod);
 
 podCreate = mgmt.makeEdgeLabel('POD_CREATE').multiplicity(MULTI).make();
-mgmt.addConnection(podCreate, role, node);
-mgmt.addConnection(podCreate, role, role); // self-referencing for large cluster optimizations
+mgmt.addConnection(podCreate, permissionSet, node);
+mgmt.addConnection(podCreate, permissionSet, permissionSet); // self-referencing for large cluster optimizations
 
 podPatch = mgmt.makeEdgeLabel('POD_PATCH').multiplicity(MULTI).make();
-mgmt.addConnection(podPatch, role, pod);
-mgmt.addConnection(podPatch, role, role); // self-referencing for large cluster optimizations
+mgmt.addConnection(podPatch, permissionSet, pod);
+mgmt.addConnection(podPatch, permissionSet, permissionSet); // self-referencing for large cluster optimizations
 
 podExec = mgmt.makeEdgeLabel('POD_EXEC').multiplicity(MULTI).make();
-mgmt.addConnection(podExec, role, pod);
-mgmt.addConnection(podExec, role, role); // self-referencing for large cluster optimizations
+mgmt.addConnection(podExec, permissionSet, pod);
+mgmt.addConnection(podExec, permissionSet, permissionSet); // self-referencing for large cluster optimizations
 
 tokenSteal = mgmt.makeEdgeLabel('TOKEN_STEAL').multiplicity(MULTI).make();
 mgmt.addConnection(tokenSteal, volume, identity);
 
 tokenBruteforce = mgmt.makeEdgeLabel('TOKEN_BRUTEFORCE').multiplicity(MULTI).make();
-mgmt.addConnection(tokenBruteforce, role, identity);
+mgmt.addConnection(tokenBruteforce, permissionSet, identity);
 
 tokenList = mgmt.makeEdgeLabel('TOKEN_LIST').multiplicity(MULTI).make();
-mgmt.addConnection(tokenList, role, identity);
+mgmt.addConnection(tokenList, permissionSet, identity);
 
 tokenVarLog = mgmt.makeEdgeLabel('TOKEN_VAR_LOG_SYMLINK').multiplicity(ONE2MANY).make();
 mgmt.addConnection(tokenVarLog, container, volume);
@@ -138,7 +138,7 @@ mgmt.addProperties(container, cls, storeID, app, team, service, isNamespaced, na
 mgmt.addProperties(identity, cls, storeID, app, team, service, name, isNamespaced, namespace, type, critical);
 mgmt.addProperties(node, cls, storeID, app, team, service, name, isNamespaced, namespace, compromised, critical);
 mgmt.addProperties(pod, cls, storeID, app, team, service, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
-mgmt.addProperties(role, cls, storeID, app, team, service, name, isNamespaced, namespace, rules, critical);
+mgmt.addProperties(permissionSet, cls, storeID, app, team, service, name, isNamespaced, namespace, rules, critical);
 mgmt.addProperties(volume, cls, storeID, app, team, service, name, isNamespaced, namespace, type, sourcePath, mountPath, readonly);
 
 

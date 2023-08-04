@@ -45,8 +45,18 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 		Value: nil,
 		Err:   cache.ErrNoEntry,
 	}).Once()
+
+	role := store.Role{
+		Id:           store.ObjectID(),
+		Name:         "test-reader",
+		IsNamespaced: true,
+		Namespace:    "test-app",
+		//Rules:        input.Rules,
+		//Ownership:    {store.ExtractOwnership(input.ObjectMeta.Labels)},
+	}
+
 	c.EXPECT().Get(ctx, cachekey.Role("test-reader", "test-app")).Return(&cache.CacheResult{
-		Value: store.ObjectID().Hex(),
+		Value: role,
 		Err:   nil,
 	}).Once()
 
@@ -65,6 +75,14 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	csw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.identityCacheKey"), mock.AnythingOfType("string")).Return(nil)
 	csw.EXPECT().Flush(ctx).Return(nil)
 	csw.EXPECT().Close(ctx).Return(nil)
+
+	// // Store setup -  permissionsets
+	pssw := storedb.NewAsyncWriter(t)
+	psbs := collections.PermissionSet{}
+	pssw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.PermissionSet")).Return(nil).Once()
+	pssw.EXPECT().Flush(ctx).Return(nil)
+	pssw.EXPECT().Close(ctx).Return(nil)
+	sdb.EXPECT().BulkWriter(ctx, psbs, mock.Anything).Return(pssw, nil)
 
 	identities := collections.Identity{}
 	storeId := store.ObjectID()
@@ -108,6 +126,12 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 			},
 		},
 	}
+
+	// Create PermissionSet
+	// c.EXPECT().Get(ctx, cachekey.Role("test-reader", "test-app")).Return(&cache.CacheResult{
+	// 	Value: role,
+	// 	Err:   nil,
+	// }).Once()
 
 	// Initialize
 	err = ri.Initialize(ctx, deps)

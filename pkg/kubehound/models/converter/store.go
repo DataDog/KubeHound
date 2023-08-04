@@ -86,7 +86,6 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 		return nil, ErrNoCacheInitialized
 	}
 
-	fmt.Printf("debug ::: %s\n", cachekey.Node(input.Spec.NodeName))
 	nid, err := c.cache.Get(ctx, cachekey.Node(input.Spec.NodeName)).ObjectID()
 	if err != nil {
 		return nil, err
@@ -243,7 +242,6 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 
 	var output *store.RoleBinding
 
-	fmt.Printf("debug ::: %s\n", cachekey.Role(input.RoleRef.Name, input.Namespace))
 	role, err := c.cache.Get(ctx, cachekey.Role(input.RoleRef.Name, input.Namespace)).Role()
 	if err != nil {
 		// We can get cache misses here if binding corresponds to a cluster role

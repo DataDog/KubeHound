@@ -15,7 +15,7 @@ const (
 )
 
 type RoleIngest struct {
-	vertex     *vertex.Role
+	vertex     *vertex.PermissionSet
 	collection collections.Role
 	r          *IngestResources
 }
@@ -29,7 +29,7 @@ func (i *RoleIngest) Name() string {
 func (i *RoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
-	i.vertex = &vertex.Role{}
+	i.vertex = &vertex.PermissionSet{}
 	i.collection = collections.Role{}
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(),
@@ -67,15 +67,15 @@ func (i *RoleIngest) IngestRole(ctx context.Context, role types.RoleType) error 
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Role(o)
-	if err != nil {
-		return err
-	}
+	// insert, err := i.r.graphConvert.Role(o)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Aysnc write to graph
-	if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
-		return err
-	}
+	// if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

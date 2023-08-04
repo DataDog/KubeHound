@@ -60,7 +60,7 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 		}}
 	}
 
-	roles := adapter.MongoDB(store).Collection(collections.RoleName)
+	roles := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{

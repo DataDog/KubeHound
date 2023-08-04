@@ -11,24 +11,24 @@ import (
 )
 
 const (
-	RoleLabel = "Role"
+	RoleLabel = "PermissionSet"
 )
 
-var _ Builder = (*Role)(nil)
+var _ Builder = (*PermissionSet)(nil)
 
-type Role struct {
+type PermissionSet struct {
 	BaseVertex
 }
 
-func (v *Role) Label() string {
+func (v *PermissionSet) Label() string {
 	return RoleLabel
 }
 
-func (v *Role) Processor(ctx context.Context, entry any) (any, error) {
+func (v *PermissionSet) Processor(ctx context.Context, entry any) (any, error) {
 	return adapter.GremlinVertexProcessor[*graph.Role](ctx, entry)
 }
 
-func (v *Role) Traversal() types.VertexTraversal {
+func (v *PermissionSet) Traversal() types.VertexTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
 			Inject(inserts).

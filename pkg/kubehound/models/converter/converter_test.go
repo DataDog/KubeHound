@@ -69,6 +69,8 @@ func TestConverter_RolePipeline(t *testing.T) {
 	// Collector input -> store model
 	storeRole, err := NewStore().Role(context.TODO(), input)
 	assert.NoError(t, err, "store role convert error")
+	storePermissionSet, err := NewStore().PermissionSet(context.TODO(), storeRole, storeRole.Id)
+	assert.NoError(t, err, "store role convert error")
 
 	assert.Equal(t, storeRole.Name, input.Name)
 	assert.True(t, storeRole.IsNamespaced)
@@ -76,12 +78,12 @@ func TestConverter_RolePipeline(t *testing.T) {
 	assert.Equal(t, storeRole.Rules, input.Rules)
 
 	// Store model -> graph model
-	graphRole, err := NewGraph().Role(storeRole)
+	graphRole, err := NewGraph().PermissionSet(storePermissionSet)
 	assert.NoError(t, err, "graph role convert error")
 
-	assert.Equal(t, storeRole.Id.Hex(), graphRole.StoreID)
-	assert.Equal(t, storeRole.Name, graphRole.Name)
-	assert.Equal(t, storeRole.Namespace, graphRole.Namespace)
+	assert.Equal(t, storePermissionSet.Id.Hex(), graphRole.StoreID)
+	assert.Equal(t, storePermissionSet.Name, graphRole.Name)
+	assert.Equal(t, storePermissionSet.Namespace, graphRole.Namespace)
 	assert.Equal(t, graphRole.App, "test-app")
 	assert.Equal(t, graphRole.Service, "test-service")
 	assert.Equal(t, graphRole.Team, "test-team")
@@ -104,6 +106,8 @@ func TestConverter_ClusterRolePipeline(t *testing.T) {
 	// Collector input -> store model
 	storeRole, err := NewStore().ClusterRole(context.TODO(), input)
 	assert.NoError(t, err, "store role convert error")
+	storePermissionSet, err := NewStore().PermissionSet(context.TODO(), storeRole, storeRole.Id)
+	assert.NoError(t, err, "store role convert error")
 
 	assert.Equal(t, storeRole.Name, input.Name)
 	assert.False(t, storeRole.IsNamespaced)
@@ -111,15 +115,15 @@ func TestConverter_ClusterRolePipeline(t *testing.T) {
 	assert.Equal(t, storeRole.Rules, input.Rules)
 
 	// Store model -> graph model
-	graphRole, err := NewGraph().Role(storeRole)
+	graphRole, err := NewGraph().PermissionSet(storePermissionSet)
 	assert.NoError(t, err, "graph role convert error")
 
-	assert.Equal(t, storeRole.Id.Hex(), graphRole.StoreID)
+	assert.Equal(t, storePermissionSet.Id.Hex(), graphRole.StoreID)
 	assert.Equal(t, graphRole.App, "test-app")
 	assert.Equal(t, graphRole.Service, "test-service")
 	assert.Equal(t, graphRole.Team, "test-team")
-	assert.Equal(t, storeRole.Name, graphRole.Name)
-	assert.Equal(t, storeRole.Namespace, graphRole.Namespace)
+	assert.Equal(t, storePermissionSet.Name, graphRole.Name)
+	assert.Equal(t, storePermissionSet.Namespace, graphRole.Namespace)
 
 	rules := []string{
 		"API()::R(pods)::N()::V(get,list)",

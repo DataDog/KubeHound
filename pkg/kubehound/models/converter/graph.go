@@ -172,8 +172,8 @@ func (c *GraphConverter) flattenPolicyRules(input []rbacv1.PolicyRule) []string 
 	return rules
 }
 
-// Role returns the graph representation of a role vertex from a store role model input.
-func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
+// PermissionSet returns the graph representation of a role vertex from a store role model input.
+func (c *GraphConverter) PermissionSet(input *store.PermissionSet) (*graph.Role, error) {
 	output := &graph.Role{
 		StoreID:   input.Id.Hex(),
 		App:       input.Ownership.Application,

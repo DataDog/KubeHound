@@ -20,11 +20,12 @@ const (
 )
 
 type RoleBindingIngest struct {
-	vertex        *vertex.Identity
-	identity      collections.Identity
-	rolebinding   collections.RoleBinding
-	permissionset collections.PermissionSet
-	r             *IngestResources
+	vertexIdentity      *vertex.Identity
+	vertexPermissionSet *vertex.PermissionSet
+	identity            collections.Identity
+	rolebinding         collections.RoleBinding
+	permissionset       collections.PermissionSet
+	r                   *IngestResources
 }
 
 var _ ObjectIngest = (*RoleBindingIngest)(nil)
@@ -36,7 +37,8 @@ func (i *RoleBindingIngest) Name() string {
 func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
-	i.vertex = &vertex.Identity{}
+	i.vertexIdentity = &vertex.Identity{}
+	i.vertexPermissionSet = &vertex.PermissionSet{}
 	i.identity = collections.Identity{}
 	i.rolebinding = collections.RoleBinding{}
 	i.permissionset = collections.PermissionSet{}
@@ -47,7 +49,8 @@ func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) 
 		WithStoreWriter(i.identity),
 		WithStoreWriter(i.rolebinding),
 		WithStoreWriter(i.permissionset),
-		WithGraphWriter(i.vertex),
+		WithGraphWriter(i.vertexIdentity),
+		//WithGraphWriter(i.vertexPermissionSet),
 		WithCacheReader())
 	if err != nil {
 		return err
@@ -93,7 +96,7 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	}
 
 	// Aysnc write to graph
-	if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
+	if err := i.r.writeVertex(ctx, i.vertexIdentity, insert); err != nil {
 		return err
 	}
 
@@ -105,20 +108,18 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 // gizmo.us1.staging.dog: rb:4491 / crb:676 / r:1374 / cr:721
 // apm3.us1.prod.dog: rb: 1851 /crb:171 / r:525 / cr:191
 // daffy.us1.prod.dog: rb:1504 / crb:196 / r:127 / cr:219
+// The size cache for all the role should not exceed 10mb (value in our cluster goes from 0.5mb to 7.5mb)
 
-// Workflow
+// Workflow:
 // The rolebindings are being processed after the roles (cf pipeline order, file:///pkg/kubehound/ingestor/pipeline_ingestor.go )
 // First save into the cache the role and clusterroles
 // 	* create a specific save func to dump the whole object
 //  * do some calculation to estimate the size to make sure we dont blow up our RAM
 
-// RBAC rules and limitation
+// RBAC rules and limitation:
 // * Roles and RoleBindings must exist in the same namespace.
 // * RoleBindings can exist in separate namespaces to Service Accounts.
 // * RoleBindings can link ClusterRoles, but they only grant access to the namespace of the RoleBinding.
-// * ClusterRoleBindings link accounts to ClusterRoles and grant access across all resources.
-// * ClusterRoleBindings can not reference Roles.
-
 func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.RoleBindingType, rbid primitive.ObjectID) error {
 
 	// Get Role from cache
@@ -135,23 +136,44 @@ func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.Ro
 
 	// Roles and RoleBindings must exist in the same namespace.
 	if rb.Namespace != role.Namespace {
-		log.I.Warnf("The role namespace does not match the rolebinding: r::%s/cr::%s", rb.Namespace, role.Namespace)
+		log.I.Warnf("The role namespace does not match the rolebinding, skipping the permissionset: r::%s/rb::%s", role.Namespace, rb.Namespace)
 		return nil
 	}
 
 	// RoleBindings can exist in separate namespaces to Service Accounts.
-	// Will be threated in the ROLE_GRANT edege
+	// Will be FULLY threated in the ROLE_GRANT edge, just checking if no match is being found
+	same_namespace := false
+	for _, subj := range rb.Subjects {
+		// Service Account
+		// User or Group have to be on the same namespace
+		if subj.Kind == "ServiceAccount" || subj.Namespace == rb.Namespace {
+			same_namespace = true
+		}
+	}
+
+	if !same_namespace {
+		log.I.Warnf("The rolebinding/subjects are ALL not in the same namespace: rb::%s/rb.sbj::%s", rb.Namespace, rb.Subjects)
+		return nil
+	}
 
 	// RoleBindings can link ClusterRoles, but they only grant access to the namespace of the RoleBinding.
 	if !role.IsNamespaced {
-		log.I.Warnf("Cluster role detected, downgrading it:%t ", o.IsNamespaced)
 		o.IsNamespaced = true
 		o.Namespace = rb.Namespace
 	}
-	log.I.Warnf("wait what ? o.IsNamespaced:%t ", o.IsNamespaced)
-
 	// Async write role binding to store
 	if err := i.r.writeStore(ctx, i.permissionset, o); err != nil {
+		return err
+	}
+
+	// Transform store model to vertex input
+	insert, err := i.r.graphConvert.PermissionSet(o)
+	if err != nil {
+		return err
+	}
+
+	// // Aysnc write to graph
+	if err := i.r.writeVertex(ctx, i.vertexPermissionSet, insert); err != nil {
 		return err
 	}
 
@@ -170,7 +192,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	o, err := i.r.storeConvert.RoleBinding(ctx, rb)
 	if err != nil {
 		if err == converter.ErrDanglingRoleBinding {
-			log.I.Warnf("%s : %s", err.Error(), rb.Name)
+			log.I.Warnf("%s: r::%s/rb::%s ", err.Error(), rb.RoleRef.Name, rb.Name)
 			return nil
 		}
 
@@ -193,8 +215,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	}
 
 	// Create permission from Rolebinding entry
-	//i.createPermissionSet(ctx, rb, o.Id)
-
+	//return i.createPermissionSet(ctx, rb, o.Id)
 	return nil
 }
 

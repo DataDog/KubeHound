@@ -37,7 +37,8 @@ func (mp *MemCacheProvider) Name() string {
 }
 
 func (m *MemCacheProvider) Close(ctx context.Context) error {
-	m.data = make(map[string]any)
+	// No data should be access after the Close(), this will create a crash on Get() access which will make debuging easier
+	m.data = nil
 	return nil
 }
 
