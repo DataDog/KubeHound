@@ -97,12 +97,13 @@ func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.Container
 	case cache.ErrNoEntry:
 		// No associated endpoint slice, create the endpoint from container parameters
 	case nil:
-		// Entry already has an associated store entry with the endpoint slice ingest pipeline
-		// Nothing further to do...
-		if port.HostPort != 0 {
-			// This should not be possible in our data model
+		// Validate our assumptions - the below not be possible in our data model and will result in missing edges
+		if port.HostPort != 0 && port.ContainerPort != port.HostPort {
 			log.Trace(ctx).Warnf("assumption failure: host port set on container with associated endpoint slice (%s)", ck.Key())
 		}
+
+		// Entry already has an associated store entry with the endpoint slice ingest pipeline
+		// Nothing further to do...
 		return nil
 	default:
 		return err

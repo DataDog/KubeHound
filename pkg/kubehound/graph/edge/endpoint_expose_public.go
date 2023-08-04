@@ -97,11 +97,6 @@ func (e *EndpointExposePublic) Stream(ctx context.Context, store storedb.Provide
 												bson.M{"$eq": bson.A{
 													"$$p.protocol", "$$proto",
 												}},
-												// Host ports are not compatible with an endpoint slice
-												// TODO reference/ REVIEW
-												// bson.M{"$eq": bson.A{
-												// 	"$$p.hostport", 0,
-												// }},
 											}},
 									}}},
 									0,

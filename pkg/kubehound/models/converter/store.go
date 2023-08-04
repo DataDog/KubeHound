@@ -372,7 +372,7 @@ func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 		Id:           store.ObjectID(),
 		PodName:      addr.TargetRef.Name,
 		PodNamespace: addr.TargetRef.Namespace,
-		Name:         fmt.Sprintf("%s::%s::%s", parent.Name, addr.TargetRef.Name, *port.Name),
+		Name:         fmt.Sprintf("%s::%s::%s", parent.Name, *port.Protocol, *port.Name),
 		HasSlice:     true,
 		ServiceName:  libkube.ServiceName(parent),
 		ServiceDns:   libkube.ServiceDns(parent),
@@ -404,21 +404,23 @@ func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 func (c *StoreConverter) EndpointPrivate(_ context.Context, port *corev1.ContainerPort,
 	pod *store.Pod, container *store.Container) (*store.Endpoint, error) {
 
-	//portName := port.Name // TODO check this logic
-	// https: //cylab.be/blog/154/exposing-a-kubernetes-application-service-hostport-nodeport-loadbalancer-or-ingresscontroller
+	// Derive the address type from the pod IP
+	podIP := pod.K8.Status.PodIP
+	addrType, err := libkube.AddressType(podIP)
+	if err != nil {
+		return nil, err
+	}
 
 	output := &store.Endpoint{
 		Id:           store.ObjectID(),
 		ContainerId:  container.Id,
 		PodName:      pod.K8.Name,
 		PodNamespace: pod.K8.Namespace,
-		//		ServiceName:  fmt.Sprintf("%s::%s::%s", pod.K8.Namespace, pod.K8.Name, port.Name),
-		Name:        fmt.Sprintf("%s::%s::%d", container.K8.Name, pod.K8.Status.HostIP, port.ContainerPort),
-		NodeName:    pod.K8.Spec.NodeName,
-		AddressType: discoveryv1.AddressTypeIPv4, // TODO figure out address tyoe from inpout
+		Name:         fmt.Sprintf("%s::%s::%s::%d", pod.K8.Namespace, pod.K8.Name, port.Protocol, port.ContainerPort),
+		NodeName:     pod.K8.Spec.NodeName,
+		AddressType:  addrType,
 		Backend: discoveryv1.Endpoint{
-			// TODO other fields
-			Addresses: []string{pod.K8.Status.PodIP},
+			Addresses: []string{podIP},
 			TargetRef: &corev1.ObjectReference{
 				Kind:            pod.K8.Kind,
 				APIVersion:      pod.K8.APIVersion,
@@ -435,22 +437,30 @@ func (c *StoreConverter) EndpointPrivate(_ context.Context, port *corev1.Contain
 			Port:     &port.ContainerPort,
 		},
 		Ownership: container.Ownership,
-
-		// If created via the pod ingestion pipeline the endpoint does not correspond to a k8s
-		// endpoint slice and thus is only accessible from within the cluster.
-		Exposure: shared.EndpointExposureInternal,
-	}
-
-	// TODO if host port is set we wan to make expore external and set ServiceName / ServiceDns
-	if port.HostPort != 0 {
-		output.ServiceName = "TODO"
-		output.ServiceDns = fmt.Sprintf("%s.%s", output.NodeName, "cluster")
-		output.Exposure = shared.EndpointExposureExternal
 	}
 
 	if len(pod.K8.Namespace) != 0 {
 		output.IsNamespaced = true
 		output.Namespace = pod.K8.Namespace
+	}
+
+	switch {
+	case len(port.Name) != 0:
+		output.ServiceName = port.Name
+	case port.HostPort != 0:
+		output.ServiceName = fmt.Sprintf("%s::%d", port.Protocol, port.HostPort)
+	default:
+		output.ServiceName = fmt.Sprintf("%s::%d", port.Protocol, port.ContainerPort)
+	}
+
+	if port.HostPort != 0 {
+		// With a host port field, endpoint is only accessible from the node IP
+		output.Exposure = shared.EndpointExposureNodeIP
+
+		// TODO future improvement - consider providing the node address as a backend here
+	} else {
+		// Without a host port field, endpoint is only accessible from within the cluster on the node IP
+		output.Exposure = shared.EndpointExposureClusterIP
 	}
 
 	return output, nil

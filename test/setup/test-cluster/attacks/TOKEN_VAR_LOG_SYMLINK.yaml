@@ -4,7 +4,6 @@ kind: ServiceAccount
 metadata:
   name: varlog-sa
   namespace: default
-automountServiceAccountToken: true
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

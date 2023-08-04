@@ -563,11 +563,11 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_TRAVERSE() {
 	}
 }
 
-func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_Internal() {
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_ContainerPort() {
 	results, err := suite.g.V().
 		HasLabel("Endpoint").
 		Where(
-			__.Has("access", P.Eq(int(shared.EndpointExposureInternal))).
+			__.Has("exposure", P.Eq(int(shared.EndpointExposureClusterIP))).
 				OutE("ENDPOINT_EXPOSE").
 				InV().
 				HasLabel("Container")).
@@ -579,7 +579,29 @@ func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_Internal() {
 
 	paths := suite.resultsToStringArray(results)
 	expected := []string{
-		"default::endpoints-pod::jmx",
+		"jmx",
+	}
+
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_NodePort() {
+	results, err := suite.g.V().
+		HasLabel("Endpoint").
+		Where(
+			__.Has("exposure", P.Eq(int(shared.EndpointExposureNodeIP))).
+				OutE("ENDPOINT_EXPOSE").
+				InV().
+				HasLabel("Container")).
+		Values("serviceEndpoint").
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.resultsToStringArray(results)
+	expected := []string{
+		"host-port-svc",
 	}
 
 	suite.Subset(paths, expected)
@@ -589,7 +611,7 @@ func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_External() {
 	results, err := suite.g.V().
 		HasLabel("Endpoint").
 		Where(
-			__.Has("access", P.Eq(int(shared.EndpointExposureExternal))).
+			__.Has("exposure", P.Eq(int(shared.EndpointExposureExternal))).
 				OutE("ENDPOINT_EXPOSE").
 				InV().
 				HasLabel("Container")).

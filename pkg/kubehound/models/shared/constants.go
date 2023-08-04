@@ -22,8 +22,9 @@ const (
 type EndpointExposureType int
 
 const (
-	EndpointExposureNone     EndpointExposureType = iota
-	EndpointExposureInternal                      // Container port exposed to cluster
-	EndpointExposureExternal                      // Kubernetes endpoint exposed outside the cluster
-	EndpointExposurePublic                        // External DNS API endpoint
+	EndpointExposureNone      EndpointExposureType = iota
+	EndpointExposureClusterIP                      // Container port exposed to cluster
+	EndpointExposureNodeIP                         // Kubernetes endpoint exposed outside the cluster
+	EndpointExposureExternal                       // Kubernetes endpoint exposed outside the cluster
+	EndpointExposurePublic                         // External DNS API endpoint
 )

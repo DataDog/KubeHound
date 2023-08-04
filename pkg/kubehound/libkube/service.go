@@ -1,27 +1,20 @@
 package libkube
 
 import (
-	"strings"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 )
 
+// ServiceName returns the name of the service associated with the provided EndpointSlice.
 func ServiceName(ep types.EndpointType) string {
 	return ep.Labels["kubernetes.io/service-name"]
 }
 
-// TODO service DNS name
+// ServiceDns provides the DNS name of the service associated with the provided EndpointSlice.
 func ServiceDns(ep types.EndpointType) string {
-	var sb strings.Builder
+	clusterName := "stripe.us1.staging.dog" // TODO dynamic
+	namespace := ep.Namespace
 
-	sb.WriteString(ep.Labels["kubernetes.io/service-name"])
-	sb.WriteString(".")
-	sb.WriteString("stripe.us1.staging.dog")
-
-	return sb.String()
+	return fmt.Sprintf("%s.%s.%s", ep.Labels["kubernetes.io/service-name"], namespace, clusterName)
 }
-
-// // Exposed port from containerPort
-// func ExposedPort() int {
-
-// }

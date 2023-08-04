@@ -11,6 +11,8 @@ spec:
   containers:
     - name:  endpoints-pod
       image: ubuntu
+      securityContext:
+        privileged: true
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
       ports:
