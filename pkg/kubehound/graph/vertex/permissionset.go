@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	RoleLabel = "PermissionSet"
+	PermissionSetLabel = "PermissionSet"
 )
 
 var _ Builder = (*PermissionSet)(nil)
@@ -21,7 +21,7 @@ type PermissionSet struct {
 }
 
 func (v *PermissionSet) Label() string {
-	return RoleLabel
+	return PermissionSetLabel
 }
 
 func (v *PermissionSet) Processor(ctx context.Context, entry any) (any, error) {

@@ -239,23 +239,23 @@ func (suite *VertexTestSuite) TestVertexPod() {
 }
 
 func (suite *VertexTestSuite) TestVertexRole() {
-	results, err := suite.g.V().HasLabel(vertex.RoleLabel).Has("name", "impersonate").ElementMap().ToList()
+	results, err := suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "impersonate").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
 
-	results, err = suite.g.V().HasLabel(vertex.RoleLabel).Has("name", "read-secrets").ElementMap().ToList()
+	results, err = suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "read-secrets").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
 
-	results, err = suite.g.V().HasLabel(vertex.RoleLabel).Has("name", "create-pods").ElementMap().ToList()
+	results, err = suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "create-pods").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
 
-	results, err = suite.g.V().HasLabel(vertex.RoleLabel).Has("name", "patch-pods").ElementMap().ToList()
+	results, err = suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "patch-pods").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
 
-	results, err = suite.g.V().HasLabel(vertex.RoleLabel).Has("name", "rolebind").ElementMap().ToList()
+	results, err = suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "rolebind").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
 }

@@ -69,6 +69,22 @@ func TestConverter_RolePipeline(t *testing.T) {
 	// Collector input -> store model
 	storeRole, err := NewStore().Role(context.TODO(), input)
 	assert.NoError(t, err, "store role convert error")
+
+	assert.Equal(t, storeRole.Name, input.Name)
+	assert.True(t, storeRole.IsNamespaced)
+	assert.Equal(t, storeRole.Namespace, input.Namespace)
+	assert.Equal(t, storeRole.Rules, input.Rules)
+}
+
+func TestConverter_PermissionSetPipeline(t *testing.T) {
+	t.Parallel()
+
+	input, err := loadTestObject[types.RoleType]("testdata/role.json")
+	assert.NoError(t, err, "role load error")
+
+	// Collector input -> store model
+	storeRole, err := NewStore().Role(context.TODO(), input)
+	assert.NoError(t, err, "store role convert error")
 	storePermissionSet, err := NewStore().PermissionSet(context.TODO(), storeRole, storeRole.Id)
 	assert.NoError(t, err, "store role convert error")
 

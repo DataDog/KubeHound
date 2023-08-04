@@ -58,7 +58,7 @@ func (e *PodExec) Processor(ctx context.Context, oic *converter.ObjectIDConverte
 
 	if e.cfg.LargeClusterOptimizations {
 		return map[any]any{
-			gremlin.T.Label: vertex.RoleLabel,
+			gremlin.T.Label: vertex.PermissionSetLabel,
 			gremlin.T.Id:    rid,
 		}, nil
 	}

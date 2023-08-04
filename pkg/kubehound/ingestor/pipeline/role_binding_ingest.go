@@ -50,7 +50,7 @@ func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) 
 		WithStoreWriter(i.rolebinding),
 		WithStoreWriter(i.permissionset),
 		WithGraphWriter(i.vertexIdentity),
-		//WithGraphWriter(i.vertexPermissionSet),
+		WithGraphWriter(i.vertexPermissionSet),
 		WithCacheReader())
 	if err != nil {
 		return err
@@ -215,8 +215,8 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	}
 
 	// Create permission from Rolebinding entry
-	//return i.createPermissionSet(ctx, rb, o.Id)
-	return nil
+	return i.createPermissionSet(ctx, rb, o.Id)
+	//return nil
 }
 
 // completeCallback is invoked by the collector when all roles have been streamed.
