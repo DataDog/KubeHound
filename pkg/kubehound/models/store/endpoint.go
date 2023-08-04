@@ -32,6 +32,7 @@ type Endpoint struct {
 	Exposure     shared.EndpointExposureType `bson:"access"`
 }
 
+// SafePort is a safe accessor for the endpoint port.
 func (e *Endpoint) SafePort() int {
 	if e.Port.Port == nil {
 		return 0
@@ -40,6 +41,7 @@ func (e *Endpoint) SafePort() int {
 	return int(*e.Port.Port)
 }
 
+// SafeProtocol is a safe accessor for the endpoint protocol.
 func (e *Endpoint) SafeProtocol() string {
 	if e.Port.Protocol == nil {
 		return DefaultEndpointProtocol
@@ -48,6 +50,7 @@ func (e *Endpoint) SafeProtocol() string {
 	return string(*e.Port.Protocol)
 }
 
+// SafePortName is a safe accessor for the endpoint port name.
 func (e *Endpoint) SafePortName() string {
 	if e.Port.Name == nil {
 		return DefaultPortName

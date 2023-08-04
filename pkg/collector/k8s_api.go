@@ -16,7 +16,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/pager"
 	ctrl "sigs.k8s.io/controller-runtime"
 
@@ -25,12 +24,11 @@ import (
 
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
 type k8sAPICollector struct {
-	clientset  kubernetes.Interface
-	kubeConfig *rest.Config
-	log        *log.KubehoundLogger
-	rl         ratelimit.Limiter
-	cfg        *config.K8SAPICollectorConfig
-	tags       []string
+	clientset kubernetes.Interface
+	log       *log.KubehoundLogger
+	rl        ratelimit.Limiter
+	cfg       *config.K8SAPICollectorConfig
+	tags      []string
 }
 
 const (
@@ -66,12 +64,11 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	}
 
 	return &k8sAPICollector{
-		cfg:        cfg.Collector.Live,
-		kubeConfig: kubeConfig,
-		clientset:  clientset,
-		log:        l,
-		rl:         ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
-		tags:       baseTags,
+		cfg:       cfg.Collector.Live,
+		clientset: clientset,
+		log:       l,
+		rl:        ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
+		tags:      baseTags,
 	}, nil
 }
 
@@ -97,10 +94,6 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 
 func (c *k8sAPICollector) Close(ctx context.Context) error {
 	return nil
-}
-
-func (c *k8sAPICollector) Cluster(ctx context.Context) string {
-	return "TODO"
 }
 
 // checkNamespaceExists checks if a namespace exists

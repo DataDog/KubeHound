@@ -20,8 +20,6 @@ const (
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
 type KubehoundConfig struct {
-	KubeCluster string // Kubernetes cluster (NOTE: struct tags deliberately omiited as this will be set by the collector)
-
 	Collector  CollectorConfig  `mapstructure:"collector"`  // Collector configuration
 	MongoDB    MongoDBConfig    `mapstructure:"mongodb"`    // MongoDB configuration
 	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // JanusGraph configuration
