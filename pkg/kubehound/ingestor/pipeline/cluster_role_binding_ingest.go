@@ -103,9 +103,15 @@ func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *sto
 	return nil
 }
 
-// RBAC rules and limitation:
-// * ClusterRoleBindings link accounts to ClusterRoles and grant access across all resources.
-// * ClusterRoleBindings can not reference Roles.
+/*
+To create the permissionSets, all the computation will be made through the cache to avoid heavy IO on the storeDB.
+The cache size for all the roles should not exceed 10mb (value in our cluster goes from 0.5mb (100 roles) to 7.5mb (1500 roles)).
+Last, the rolebindings are being processed after the roles (cf pipeline order, file:///pkg/kubehound/ingestor/pipeline_ingestor.go), so all roles should be cached.
+
+RBAC rules and limitation:
+  - ClusterRoleBindings link accounts to ClusterRoles and grant access across all resources.
+  - ClusterRoleBindings can not reference Roles.
+*/
 func (i *ClusterRoleBindingIngest) createPermissionSet(ctx context.Context, crb types.ClusterRoleBindingType, rbid primitive.ObjectID) error {
 
 	// Get Role from cache
@@ -122,7 +128,7 @@ func (i *ClusterRoleBindingIngest) createPermissionSet(ctx context.Context, crb 
 
 	// CusterRoleBindings can not reference Roles.
 	if role.IsNamespaced {
-		log.I.Warnf("The clusterrolebinding bind a role and not a clusterrole, skipping the permissionset: r::%s/cr::%s", role.Namespace, crb.Namespace)
+		log.Trace(ctx).Warnf("The clusterrolebinding bind a role and not a clusterrole, skipping the permissionset: r::%s/cr::%s", role.Namespace, crb.Namespace)
 		return nil
 	}
 

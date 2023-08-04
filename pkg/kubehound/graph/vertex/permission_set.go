@@ -25,7 +25,7 @@ func (v *PermissionSet) Label() string {
 }
 
 func (v *PermissionSet) Processor(ctx context.Context, entry any) (any, error) {
-	return adapter.GremlinVertexProcessor[*graph.Role](ctx, entry)
+	return adapter.GremlinVertexProcessor[*graph.PermissionSet](ctx, entry)
 }
 
 func (v *PermissionSet) Traversal() types.VertexTraversal {

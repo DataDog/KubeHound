@@ -103,23 +103,16 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	return nil
 }
 
-// createPermissions
-// Stats around permission in our cluster for some table corner calculation
-// gizmo.us1.staging.dog: rb:4491 / crb:676 / r:1374 / cr:721
-// apm3.us1.prod.dog: rb: 1851 /crb:171 / r:525 / cr:191
-// daffy.us1.prod.dog: rb:1504 / crb:196 / r:127 / cr:219
-// The size cache for all the role should not exceed 10mb (value in our cluster goes from 0.5mb to 7.5mb)
+/*
+To create the permissionSets, all the computation will be made through the cache to avoid heavy IO on the storeDB.
+The cache size for all the roles should not exceed 10mb (value in our cluster goes from 0.5mb (100 roles) to 7.5mb (1500 roles)).
+Last, the rolebindings are being processed after the roles (cf pipeline order, file:///pkg/kubehound/ingestor/pipeline_ingestor.go), so all roles should be cached.
 
-// Workflow:
-// The rolebindings are being processed after the roles (cf pipeline order, file:///pkg/kubehound/ingestor/pipeline_ingestor.go )
-// First save into the cache the role and clusterroles
-// 	* create a specific save func to dump the whole object
-//  * do some calculation to estimate the size to make sure we dont blow up our RAM
-
-// RBAC rules and limitation:
-// * Roles and RoleBindings must exist in the same namespace.
-// * RoleBindings can exist in separate namespaces to Service Accounts.
-// * RoleBindings can link ClusterRoles, but they only grant access to the namespace of the RoleBinding.
+RBAC rules and limitation:
+* Roles and RoleBindings must exist in the same namespace.
+* RoleBindings can exist in separate namespaces to Service Accounts.
+* RoleBindings can link ClusterRoles, but they only grant access to the namespace of the RoleBinding.
+*/
 func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.RoleBindingType, rbid primitive.ObjectID) error {
 
 	// Get Role from cache
@@ -142,16 +135,16 @@ func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.Ro
 
 	// RoleBindings can exist in separate namespaces to Service Accounts.
 	// Will be FULLY threated in the ROLE_GRANT edge, just checking if no match is being found
-	same_namespace := false
+	isEffective := false
 	for _, subj := range rb.Subjects {
 		// Service Account
 		// User or Group have to be on the same namespace
 		if subj.Kind == "ServiceAccount" || subj.Namespace == rb.Namespace {
-			same_namespace = true
+			isEffective = true
 		}
 	}
 
-	if !same_namespace {
+	if !isEffective {
 		log.I.Warnf("The rolebinding/subjects are ALL not in the same namespace: rb::%s/rb.sbj::%s", rb.Namespace, rb.Subjects)
 		return nil
 	}

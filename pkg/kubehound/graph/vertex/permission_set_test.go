@@ -16,13 +16,13 @@ func TestPermissionSet_Traversal(t *testing.T) {
 	tests := []struct {
 		name string
 		want types.VertexTraversal
-		data graph.Role
+		data graph.PermissionSet
 	}{
 		{
 			name: "Add Identities in JanusGraph",
 			// We set the values to all field with non default values
 			// so we are sure all are correctly propagated.
-			data: graph.Role{
+			data: graph.PermissionSet{
 				StoreID:      "test id",
 				Name:         "test name role",
 				IsNamespaced: true,

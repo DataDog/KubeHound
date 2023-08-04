@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -211,6 +212,86 @@ func TestCacheResult_Text(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("CacheResult.Text() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCacheResult_Role(t *testing.T) {
+	testOwnershipInfo := store.OwnershipInfo{
+		Application: "test-app",
+		Team:        "test-team",
+		Service:     "test-service",
+	}
+	testRole := &store.Role{
+		Id:           store.ObjectID(),
+		Name:         "test-role",
+		IsNamespaced: false,
+		Namespace:    "test-app",
+		Rules:        nil,
+		Ownership:    testOwnershipInfo,
+	}
+
+	type fields struct {
+		Value any
+		Err   error
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    *store.Role
+		wantErr bool
+	}{
+		{
+			name: "success case",
+			fields: fields{
+				Value: *testRole,
+				Err:   nil,
+			},
+			want:    testRole,
+			wantErr: false,
+		},
+		{
+			name: "error result case",
+			fields: fields{
+				Value: "",
+				Err:   errors.New("test error"),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "type error case",
+			fields: fields{
+				Value: -1,
+				Err:   nil,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "nil value case",
+			fields: fields{
+				Value: nil,
+				Err:   nil,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &CacheResult{
+				Value: tt.fields.Value,
+				Err:   tt.fields.Err,
+			}
+			got, err := r.Role()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CacheResult.Role() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CacheResult.Role() = %v, want %v", got, tt.want)
 			}
 		})
 	}

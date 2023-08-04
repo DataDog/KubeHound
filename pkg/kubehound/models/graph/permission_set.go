@@ -1,6 +1,6 @@
 package graph
 
-type Role struct {
+type PermissionSet struct {
 	StoreID      string   `json:"storeID" mapstructure:"storeID"`
 	App          string   `json:"app" mapstructure:"app"`
 	Team         string   `json:"team" mapstructure:"team"`
