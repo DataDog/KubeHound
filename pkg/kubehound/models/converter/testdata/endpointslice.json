@@ -31,15 +31,15 @@
         "generateName": "cassandra-temporal-dev-",
         "generation": 582,
         "labels": {
-            "app": "cassandra",
+            "app": "test-app",
             "chart_name": "cassandra",
             "cluster": "cassandra-temporal-dev",
             "endpointslice.kubernetes.io/managed-by": "endpointslice-controller.k8s.io",
             "kubernetes.io/service-name": "cassandra-temporal-dev",
             "name": "cassandra-temporal-dev",
-            "service": "cassandra",
+            "service": "test-service",
             "service.kubernetes.io/headless": "",
-            "team": "workflow-engine"
+            "team": "test-team"
         },
         "name": "cassandra-temporal-dev-kmwfp",
         "namespace": "cassandra-temporal-dev",

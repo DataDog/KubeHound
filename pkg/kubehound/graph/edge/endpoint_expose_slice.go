@@ -15,28 +15,28 @@ import (
 )
 
 func init() {
-	Register(&EndpointExposePublic{}, RegisterDefault)
+	Register(&EndpointExposeSlice{}, RegisterDefault)
 }
 
-type EndpointExposePublic struct {
+type EndpointExposeSlice struct {
 	BaseEdge
 }
 
-type endpointExposeGroup struct {
+type sliceEndpoitGroup struct {
 	Endpoint  primitive.ObjectID `bson:"_id" json:"endpoint_id"`
 	Container primitive.ObjectID `bson:"container_id" json:"container_id"`
 }
 
-func (e *EndpointExposePublic) Label() string {
+func (e *EndpointExposeSlice) Label() string {
 	return "ENDPOINT_EXPOSE"
 }
 
-func (e *EndpointExposePublic) Name() string {
-	return "EndpointExposePublic"
+func (e *EndpointExposeSlice) Name() string {
+	return "EndpointExposeSlice"
 }
 
-func (e *EndpointExposePublic) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	typed, ok := entry.(*endpointExposeGroup)
+func (e *EndpointExposeSlice) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*sliceEndpoitGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
@@ -44,7 +44,7 @@ func (e *EndpointExposePublic) Processor(ctx context.Context, oic *converter.Obj
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Endpoint, typed.Container)
 }
 
-func (e *EndpointExposePublic) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *EndpointExposeSlice) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	endpoints := adapter.MongoDB(store).Collection(collections.EndpointName)
@@ -129,5 +129,5 @@ func (e *EndpointExposePublic) Stream(ctx context.Context, store storedb.Provide
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[endpointExposeGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[sliceEndpoitGroup](ctx, cur, callback, complete)
 }

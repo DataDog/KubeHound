@@ -1,12 +1,14 @@
 # Endpoint
 
-TODO
+A network endpoint exposed by a container accessible via a Kubernetes service, external node port or cluster IP/port tuple.
 
 ## Properties
 
 | Property            | Type      | Description |
 | ----------------| --------- |----------------------------------------|
-| name | `string` | TODO | 
+| name | `string` | Unique endpoint name | 
+| serviceEndpoint | `string` | Name of the service if the endpoint is exposed outside the cluster via an endpoint slice | 
+| serviceDns | `string` | FQDN of the service if the endpoint is exposed outside the cluster via an endpoint slice | 
 | addressType | `string` |  Type of the addresses array (IPv4, IPv6, etc) | 
 | addresses | `string` |  Array of addresses exposing the endpoint | 
 | port | `int` | Exposed port of the endpoint |
@@ -14,8 +16,6 @@ TODO
 | protocol | `string` | Endpoint protocol (TCP, UDP, etc) |
 | exposure | `string` | Enum value describing the level of exposure of the endpoint (see [EndpointExposureType](../../pkg/kubehound/models/shared/constants.go))  |
 
-
-TODO TODO
 
 ## Common Properties
 
@@ -33,4 +33,5 @@ TODO TODO
 
 ## References
 
-+ Official Kubernetes documentation: [Containers](https://kubernetes.io/docs/concepts/containers/)
++ [Official Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/)
++ [Exposing Kubernetes Applications](https://cylab.be/blog/154/exposing-a-kubernetes-application-service-hostport-nodeport-loadbalancer-or-ingresscontroller)
