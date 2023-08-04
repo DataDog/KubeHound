@@ -488,8 +488,8 @@ func TestConverter_EndpointPrivatePipeline(t *testing.T) {
 	assert.NoError(t, err, "endpoint slice load error")
 
 	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, mock.Anything).Return(&cache.CacheResult{
-		Value: store.ObjectID(),
+	c.EXPECT().Get(mock.Anything, mock.AnythingOfType("*cachekey.nodeCacheKey")).Return(&cache.CacheResult{
+		Value: store.ObjectID().Hex(),
 		Err:   nil,
 	})
 	converter := NewStoreWithCache(c)
@@ -497,24 +497,24 @@ func TestConverter_EndpointPrivatePipeline(t *testing.T) {
 	// Collector input -> store model
 	pod, err := converter.Pod(ctx, input)
 	assert.NoError(t, err)
-	container, err := NewStore().Container(ctx, &pod.K8.Spec.Containers[0], pod)
+	container, err := converter.Container(ctx, &pod.K8.Spec.Containers[0], pod)
 	assert.NoError(t, err)
 	containerPort := container.K8.Ports[0]
 
 	storeEp, err := converter.EndpointPrivate(ctx, &containerPort, pod, container)
 	assert.NoError(t, err, "endpoint convert error")
 
-	assert.Equal(t, storeEp.Name, "cassandra-temporal-dev-kmwfp::TCP::cql")
+	assert.Equal(t, storeEp.Name, "test-app::app-monitors-client-78cb6d7899-j2rjp::TCP::9200")
 	assert.True(t, storeEp.IsNamespaced)
 	assert.Equal(t, storeEp.Namespace, pod.K8.Namespace)
-	assert.Equal(t, storeEp.ServiceName, "cassandra-temporal-dev")
+	assert.Equal(t, storeEp.ServiceName, "http")
 	assert.Equal(t, storeEp.ServiceDns, "")
 	assert.Equal(t, storeEp.AddressType, discoveryv1.AddressType("IPv4"))
-	assert.Equal(t, storeEp.Backend.Addresses, []string{"10.1.1.1"})
-	assert.Equal(t, *storeEp.Backend.NodeName, "node.ec2.internal")
-	assert.Equal(t, *storeEp.Port.Port, int32(9042))
+	assert.Equal(t, storeEp.Backend.Addresses, []string{"10.1.1.2"})
+	assert.Equal(t, *storeEp.Backend.NodeName, "test-node.ec2.internal")
+	assert.Equal(t, *storeEp.Port.Port, int32(9200))
 	assert.Equal(t, *storeEp.Port.Protocol, v1.Protocol("TCP"))
-	assert.Equal(t, *storeEp.Port.Name, "cql")
+	assert.Equal(t, *storeEp.Port.Name, "http")
 
 	// Store model -> graph model
 	graphEp, err := NewGraph().Endpoint(storeEp)
@@ -528,9 +528,9 @@ func TestConverter_EndpointPrivatePipeline(t *testing.T) {
 	assert.Equal(t, storeEp.ServiceName, graphEp.ServiceEndpointName)
 	assert.Equal(t, storeEp.ServiceDns, graphEp.ServiceDnsName)
 	assert.Equal(t, "IPv4", graphEp.AddressType)
-	assert.Equal(t, []string{"10.1.1.1"}, graphEp.Addresses)
-	assert.Equal(t, 9042, graphEp.Port)
-	assert.Equal(t, "cql", graphEp.PortName)
+	assert.Equal(t, []string{"10.1.1.2"}, graphEp.Addresses)
+	assert.Equal(t, 9200, graphEp.Port)
+	assert.Equal(t, "http", graphEp.PortName)
 	assert.Equal(t, "TCP", graphEp.Protocol)
-	assert.Equal(t, shared.EndpointExposureExternal, graphEp.Exposure)
+	assert.Equal(t, shared.EndpointExposureNodeIP, graphEp.Exposure)
 }
