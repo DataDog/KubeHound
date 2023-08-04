@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-08-03 15:20
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-08-04 12:14
 //
 // Generate it with "go generate ./..."
 //
@@ -307,7 +307,7 @@ var expectedContainers = map[string]graph.Container{
 		Command:      []string{},
 		Args:         []string{},
 		Capabilities: []string{},
-		Privileged:   false,
+		Privileged:   true,
 		PrivEsc:      false,
 		HostPID:      false,
 		HostIPC:      false,
