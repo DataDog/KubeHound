@@ -139,7 +139,7 @@ func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.Ro
 	for _, subj := range rb.Subjects {
 		// Service Account
 		// User or Group have to be on the same namespace
-		if subj.Kind == "ServiceAccount" || subj.Namespace == rb.Namespace {
+		if subj.Kind == "ServiceAccount" || subj.Namespace == rb.Namespace || subj.Namespace == "" {
 			isEffective = true
 		}
 	}
