@@ -50,6 +50,7 @@ func (e *RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.
 	roleBindings := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 
 	pipeline := bson.A{
+		// First we retrieve all rolebindings associated to the permissionset
 		bson.M{
 			"$lookup": bson.M{
 				"from":         "rolebindings",
@@ -58,6 +59,7 @@ func (e *RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.
 				"as":           "result",
 			},
 		},
+		// We filter only when there are subjects associated to the rolebindings
 		bson.M{
 			"$match": bson.M{
 				"result": bson.M{
@@ -70,20 +72,24 @@ func (e *RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.
 				},
 			},
 		},
+		// We flatten all the subjects
 		bson.M{"$unwind": bson.M{"path": "$result"}},
 		bson.M{"$unwind": bson.M{"path": "$result.subjects"}},
+		// We check if the rolebinding is relevant
 		bson.M{
 			"$match": bson.M{
 				"$expr": bson.M{
 					"$or": bson.A{
 						bson.M{
 							"$and": bson.A{
+								// the identity and rolebinding namespace need to match
 								bson.M{
 									"$eq": bson.A{
 										"$namespace",
 										"$result.subjects.subject.namespace",
 									},
 								},
+								// the rolebinding is not a clusterrolebinding
 								bson.M{
 									"$eq": bson.A{
 										"$is_namespaced",
@@ -92,12 +98,21 @@ func (e *RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.
 								},
 							},
 						},
+						// identities with no namespace so the scope is cluster wide
+						bson.M{
+							"$eq": bson.A{
+								"$result.subjects.subject.namespace",
+								"",
+							},
+						},
+						// service account so no namespace checks needed
 						bson.M{
 							"$eq": bson.A{
 								"$result.subjects.subject.kind",
 								"ServiceAccount",
 							},
 						},
+						// clusterrolerbinding so no namespace checks needed
 						bson.M{
 							"$eq": bson.A{
 								"$is_namespaced",
