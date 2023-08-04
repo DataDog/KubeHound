@@ -39,7 +39,7 @@ var (
 	Containers = make(map[string]graph.Container)
 	Pods       = make(map[string]graph.Pod)
 	Nodes      = make(map[string]graph.Node)
-	Roles      = make(map[string]graph.Role)
+	Roles      = make(map[string]graph.PermissionSet)
 	Volumes    = make(map[string]graph.Volume)
 )
 
