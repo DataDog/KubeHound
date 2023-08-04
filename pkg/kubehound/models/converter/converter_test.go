@@ -435,3 +435,73 @@ func TestConverter_PodCacheFailure(t *testing.T) {
 	_, err = NewStoreWithCache(c).Pod(context.TODO(), input)
 	assert.ErrorContains(t, err, "not found")
 }
+
+func TestConverter_EndpointPipeline(t *testing.T) {
+	t.Parallel()
+
+	input, err := loadTestObject[types.EndpointType]("testdata/endpointslice.json")
+	assert.NoError(t, err, "endpoint slice load error")
+
+	// Collector input -> store model
+	storeRole, err := NewStore().Endpoint(context.TODO(), input)
+	assert.NoError(t, err, "store role convert error")
+
+	assert.Equal(t, storeRole.Name, input.Name)
+	assert.False(t, storeRole.IsNamespaced)
+	assert.Empty(t, storeRole.Namespace)
+	assert.Equal(t, storeRole.Rules, input.Rules)
+
+	// Store model -> graph model
+	graphRole, err := NewGraph().Role(storeRole)
+	assert.NoError(t, err, "graph role convert error")
+
+	assert.Equal(t, storeRole.Id.Hex(), graphRole.StoreID)
+	assert.Equal(t, graphRole.App, "test-app")
+	assert.Equal(t, graphRole.Service, "test-service")
+	assert.Equal(t, graphRole.Team, "test-team")
+	assert.Equal(t, storeRole.Name, graphRole.Name)
+	assert.Equal(t, storeRole.Namespace, graphRole.Namespace)
+
+	rules := []string{
+		"API()::R(pods)::N()::V(get,list)",
+		"API()::R(configmaps)::N()::V(get)",
+		"API(apps)::R(statefulsets)::N()::V(get,list)",
+	}
+
+	assert.Equal(t, rules, graphRole.Rules)
+}
+
+// func TestConverter_EndpointPrivatePipeline(t *testing.T) {
+// 	t.Parallel()
+
+// 	input, err := loadTestObject[types.ClusterRoleType]("testdata/endpointslice.json")
+// 	assert.NoError(t, err, "endpoint slice load error")
+
+// 	// Collector input -> store model
+// 	storeRole, err := NewStore().Endpoint(context.TODO(), input)
+// 	assert.NoError(t, err, "store role convert error")
+
+// 	assert.Equal(t, storeRole.Name, input.Name)
+// 	assert.False(t, storeRole.IsNamespaced)
+// 	assert.Empty(t, storeRole.Namespace)
+// 	assert.Equal(t, storeRole.Rules, input.Rules)
+
+// 	// Store model -> graph model
+// 	graphRole, err := NewGraph().Role(storeRole)
+// 	assert.NoError(t, err, "graph role convert error")
+
+// 	assert.Equal(t, storeRole.Id.Hex(), graphRole.StoreID)
+// 	assert.Equal(t, graphRole.App, "test-app")
+// 	assert.Equal(t, graphRole.Service, "test-service")
+// 	assert.Equal(t, graphRole.Team, "test-team")
+// 	assert.Equal(t, storeRole.Name, graphRole.Name)
+// 	assert.Equal(t, storeRole.Namespace, graphRole.Namespace)
+
+// 	rules := []string{
+// 		"API()::R(pods)::N()::V(get,list)",
+// 		"API()::R(configmaps)::N()::V(get)",
+// 		"API(apps)::R(statefulsets)::N()::V(get,list)",
+// 	}
+
+// 	assert.Equal(t, rules, graphRole.Rules)
+// }

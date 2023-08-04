@@ -1,0 +1,71 @@
+{
+    "addressType": "IPv4",
+    "apiVersion": "discovery.k8s.io/v1",
+    "endpoints": [
+        {
+            "addresses": [
+                "10.1.1.1"
+            ],
+            "conditions": {
+                "ready": true,
+                "serving": true,
+                "terminating": false
+            },
+            "hostname": "cassandra-temporal",
+            "nodeName": "node.ec2.internal",
+            "targetRef": {
+                "kind": "Pod",
+                "name": "cassandra-temporal",
+                "namespace": "cassandra-temporal-dev",
+                "uid": "230ffb57-70f4-4eb2-a12a-d27e280e580e"
+            },
+            "zone": "us-east-1c"
+        }
+    ],
+    "kind": "EndpointSlice",
+    "metadata": {
+        "annotations": {
+            "endpoints.kubernetes.io/last-change-trigger-time": "2023-07-31T23:45:17Z"
+        },
+        "creationTimestamp": "2023-05-09T22:23:17Z",
+        "generateName": "cassandra-temporal-dev-",
+        "generation": 582,
+        "labels": {
+            "app": "cassandra",
+            "chart_name": "cassandra",
+            "cluster": "cassandra-temporal-dev",
+            "endpointslice.kubernetes.io/managed-by": "endpointslice-controller.k8s.io",
+            "kubernetes.io/service-name": "cassandra-temporal-dev",
+            "name": "cassandra-temporal-dev",
+            "service": "cassandra",
+            "service.kubernetes.io/headless": "",
+            "team": "workflow-engine"
+        },
+        "name": "cassandra-temporal-dev-kmwfp",
+        "namespace": "cassandra-temporal-dev",
+        "ownerReferences": [
+            {
+                "apiVersion": "v1",
+                "blockOwnerDeletion": true,
+                "controller": true,
+                "kind": "Service",
+                "name": "cassandra-temporal-dev",
+                "uid": "5f7906ca-411c-43d7-9dcf-8ef388a2fd94"
+            }
+        ],
+        "resourceVersion": "19403674728",
+        "uid": "678ebe2b-1565-4700-8d8c-8efebaa4deba"
+    },
+    "ports": [
+        {
+            "name": "cql",
+            "port": 9042,
+            "protocol": "TCP"
+        },
+        {
+            "name": "jmx",
+            "port": 7199,
+            "protocol": "TCP"
+        }
+    ]
+}
