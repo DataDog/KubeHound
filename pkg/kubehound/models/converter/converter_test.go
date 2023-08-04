@@ -453,7 +453,7 @@ func TestConverter_EndpointPipeline(t *testing.T) {
 	assert.True(t, storeEp.IsNamespaced)
 	assert.Equal(t, storeEp.Namespace, input.Namespace)
 	assert.Equal(t, storeEp.ServiceName, "cassandra-temporal-dev")
-	assert.Equal(t, storeEp.ServiceDns, "")
+	assert.Equal(t, storeEp.ServiceDns, "cassandra-temporal-dev.cassandra-temporal-dev")
 	assert.Equal(t, storeEp.AddressType, discoveryv1.AddressType("IPv4"))
 	assert.Equal(t, storeEp.Backend.Addresses, []string{"10.1.1.1"})
 	assert.Equal(t, *storeEp.Backend.NodeName, "node.ec2.internal")
