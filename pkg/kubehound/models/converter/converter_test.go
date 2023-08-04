@@ -38,11 +38,23 @@ func loadTestObject[T types.InputType](filename string) (T, error) {
 func TestConverter_NodePipeline(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
 	input, err := loadTestObject[types.NodeType]("testdata/node.json")
 	assert.NoError(t, err, "node load error")
 
+	c := mocks.NewCacheReader(t)
+	id := store.ObjectID().Hex()
+	c.EXPECT().Get(ctx, cachekey.Identity("system:node:node-1", "")).Return(&cache.CacheResult{
+		Value: nil,
+		Err:   cache.ErrNoEntry,
+	}).Once()
+	c.EXPECT().Get(ctx, cachekey.Identity("system:nodes", "")).Return(&cache.CacheResult{
+		Value: id,
+		Err:   nil,
+	}).Once()
+
 	// Collector input -> store model
-	storeNode, err := NewStore().Node(context.TODO(), input)
+	storeNode, err := NewStoreWithCache(c).Node(ctx, input)
 	assert.NoError(t, err, "store node convert error")
 
 	assert.Equal(t, storeNode.K8.Name, input.Name)
