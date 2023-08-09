@@ -1,8 +1,7 @@
-# KubeHound Cheat Sheet
+# KubeHound Cheat Sheet <!-- omit in toc -->
 
 A one-stop-shop of KubeHound queries for all use cases.
 
-- [KubeHound Cheat Sheet](#kubehound-cheat-sheet)
 - [Basic Gremlin](#basic-gremlin)
   - [Simple KubeHound queries](#simple-kubehound-queries)
   - [Critical assets](#critical-assets)
