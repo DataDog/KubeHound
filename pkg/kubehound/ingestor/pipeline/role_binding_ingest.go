@@ -66,14 +66,14 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	// Async write to cache. If entry is already present skip further processing.
 	ck := cachekey.Identity(sid.Name, sid.Namespace)
 	err = i.r.writeCache(ctx, ck, sid.Id.Hex())
-	switch err {
-	case cache.ErrCacheEntryOverwrite:
-		log.I.Debugf("identity cache entry %#v already exists, skipping inserts", ck)
-		return nil
-	case nil:
-		// NOP
-	default:
-		return err
+	if err != nil {
+		switch e := err.(type) {
+		case *cache.OverwriteError:
+			log.I.Debugf("identity cache entry %#v already exists, skipping inserts", ck)
+			return nil
+		default:
+			return e
+		}
 	}
 
 	// Async write identity to store
@@ -107,7 +107,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	o, err := i.r.storeConvert.RoleBinding(ctx, rb)
 	if err != nil {
 		if err == converter.ErrDanglingRoleBinding {
-			log.I.Warnf("%s : %s", err.Error(), rb.Name)
+			log.I.Warnf("Role binding dropped: %s: %s", err.Error(), rb.Name)
 			return nil
 		}
 

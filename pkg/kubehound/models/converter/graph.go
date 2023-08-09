@@ -27,7 +27,7 @@ func (c *GraphConverter) Container(input *store.Container, parent *store.Pod) (*
 		App:         input.Ownership.Application,
 		Team:        input.Ownership.Team,
 		Service:     input.Ownership.Service,
-		Namespace:   parent.K8.Namespace,
+		Namespace:   input.Inherited.Namespace,
 		Name:        input.K8.Name,
 		Image:       input.K8.Image,
 		Command:     input.K8.Command,
@@ -207,6 +207,29 @@ func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error
 
 	if output.Namespace != "" {
 		output.IsNamespaced = true
+	}
+
+	return output, nil
+}
+
+// Endpoint returns the graph representation of an endpoint vertex from a store endpoint model input.
+func (c *GraphConverter) Endpoint(input *store.Endpoint) (*graph.Endpoint, error) {
+	output := &graph.Endpoint{
+		StoreID:             input.Id.Hex(),
+		App:                 input.Ownership.Application,
+		Team:                input.Ownership.Team,
+		Service:             input.Ownership.Service,
+		Namespace:           input.Namespace,
+		IsNamespaced:        input.IsNamespaced,
+		Name:                input.Name,
+		ServiceEndpointName: input.ServiceName,
+		ServiceDnsName:      input.ServiceDns,
+		AddressType:         string(input.AddressType),
+		Addresses:           input.Backend.Addresses,
+		Port:                input.SafePort(),
+		PortName:            input.SafePortName(),
+		Protocol:            input.SafeProtocol(),
+		Exposure:            input.Exposure,
 	}
 
 	return output, nil

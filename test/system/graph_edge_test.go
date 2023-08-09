@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"github.com/stretchr/testify/suite"
@@ -560,6 +561,72 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_TRAVERSE() {
 		// Assert the 2 lists are the same
 		suite.ElementsMatch(expected, reachable)
 	}
+}
+
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_ContainerPort() {
+	results, err := suite.g.V().
+		HasLabel("Endpoint").
+		Where(
+			__.Has("exposure", P.Eq(int(shared.EndpointExposureClusterIP))).
+				OutE("ENDPOINT_EXPOSE").
+				InV().
+				HasLabel("Container")).
+		Values("serviceEndpoint").
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.resultsToStringArray(results)
+	expected := []string{
+		"jmx",
+	}
+
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_NodePort() {
+	results, err := suite.g.V().
+		HasLabel("Endpoint").
+		Where(
+			__.Has("exposure", P.Eq(int(shared.EndpointExposureNodeIP))).
+				OutE("ENDPOINT_EXPOSE").
+				InV().
+				HasLabel("Container")).
+		Values("serviceEndpoint").
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.resultsToStringArray(results)
+	expected := []string{
+		"host-port-svc",
+	}
+
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_External() {
+	results, err := suite.g.V().
+		HasLabel("Endpoint").
+		Where(
+			__.Has("exposure", P.Eq(int(shared.EndpointExposureExternal))).
+				OutE("ENDPOINT_EXPOSE").
+				InV().
+				HasLabel("Container")).
+		Values("serviceEndpoint").
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.resultsToStringArray(results)
+	expected := []string{
+		"webproxy-service",
+	}
+
+	suite.Subset(paths, expected)
 }
 
 func (suite *EdgeTestSuite) Test_NoEdgeCase() {

@@ -1,23 +1,25 @@
 package cache
 
-import (
-	"errors"
-)
-
-var (
-	ErrCacheEntryOverwrite = errors.New("cache entry already exists in test and set operation")
-)
-
 type writerOptions struct {
-	Test bool
+	Test            bool
+	ExpectOverwrite bool
 }
 
 type WriterOption func(*writerOptions)
 
-// Perform a test and set operation on writes. Only set the value if it does not currently exist. If the value does exist,
-// return an ErrCacheEntryOverwrite error.
+// Perform a test and set operation on writes.
+// Only set the value if it does not currently exist. If the value does exist, return an ErrCacheEntryOverwrite
+// error. Mutually exclusive with WithExpectedOverwrite.
 func WithTest() WriterOption {
 	return func(wOpts *writerOptions) {
 		wOpts.Test = true
+	}
+}
+
+// WithExpectedOverwrite signals that overwriting values is expected and suppresses logs & metrics generation.
+// Mutually exclusive with WithTest.
+func WithExpectedOverwrite() WriterOption {
+	return func(wOpts *writerOptions) {
+		wOpts.ExpectOverwrite = true
 	}
 }

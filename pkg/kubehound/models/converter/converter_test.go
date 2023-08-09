@@ -7,6 +7,9 @@ import (
 	"os"
 	"testing"
 
+	v1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
+
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
@@ -434,4 +437,100 @@ func TestConverter_PodCacheFailure(t *testing.T) {
 
 	_, err = NewStoreWithCache(c).Pod(context.TODO(), input)
 	assert.ErrorContains(t, err, "not found")
+}
+
+func TestConverter_EndpointPipeline(t *testing.T) {
+	t.Parallel()
+
+	input, err := loadTestObject[types.EndpointType]("testdata/endpointslice.json")
+	assert.NoError(t, err, "endpoint slice load error")
+
+	// Collector input -> store model
+	storeEp, err := NewStore().Endpoint(context.TODO(), input.Endpoints[0], input.Ports[0], input)
+	assert.NoError(t, err, "endpoint convert error")
+
+	assert.Equal(t, storeEp.Name, "cassandra-temporal-dev-kmwfp::TCP::cql")
+	assert.True(t, storeEp.IsNamespaced)
+	assert.Equal(t, storeEp.Namespace, input.Namespace)
+	assert.Equal(t, storeEp.ServiceName, "cassandra-temporal-dev")
+	assert.Equal(t, storeEp.ServiceDns, "cassandra-temporal-dev.cassandra-temporal-dev")
+	assert.Equal(t, storeEp.AddressType, discoveryv1.AddressType("IPv4"))
+	assert.Equal(t, storeEp.Backend.Addresses, []string{"10.1.1.1"})
+	assert.Equal(t, *storeEp.Backend.NodeName, "node.ec2.internal")
+	assert.Equal(t, *storeEp.Port.Port, int32(9042))
+	assert.Equal(t, *storeEp.Port.Protocol, v1.Protocol("TCP"))
+	assert.Equal(t, *storeEp.Port.Name, "cql")
+
+	// Store model -> graph model
+	graphEp, err := NewGraph().Endpoint(storeEp)
+	assert.NoError(t, err, "graph endpoint convert error")
+
+	assert.Equal(t, storeEp.Id.Hex(), graphEp.StoreID)
+	assert.Equal(t, graphEp.App, "test-app")
+	assert.Equal(t, graphEp.Service, "test-service")
+	assert.Equal(t, graphEp.Team, "test-team")
+	assert.Equal(t, storeEp.Name, graphEp.Name)
+	assert.Equal(t, storeEp.ServiceName, graphEp.ServiceEndpointName)
+	assert.Equal(t, storeEp.ServiceDns, graphEp.ServiceDnsName)
+	assert.Equal(t, "IPv4", graphEp.AddressType)
+	assert.Equal(t, []string{"10.1.1.1"}, graphEp.Addresses)
+	assert.Equal(t, 9042, graphEp.Port)
+	assert.Equal(t, "cql", graphEp.PortName)
+	assert.Equal(t, "TCP", graphEp.Protocol)
+	assert.Equal(t, shared.EndpointExposureExternal, graphEp.Exposure)
+}
+
+func TestConverter_EndpointPrivatePipeline(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	input, err := loadTestObject[types.PodType]("testdata/pod.json")
+	assert.NoError(t, err, "endpoint slice load error")
+
+	c := mocks.NewCacheReader(t)
+	c.EXPECT().Get(mock.Anything, mock.AnythingOfType("*cachekey.nodeCacheKey")).Return(&cache.CacheResult{
+		Value: store.ObjectID().Hex(),
+		Err:   nil,
+	})
+	converter := NewStoreWithCache(c)
+
+	// Collector input -> store model
+	pod, err := converter.Pod(ctx, input)
+	assert.NoError(t, err)
+	container, err := converter.Container(ctx, &pod.K8.Spec.Containers[0], pod)
+	assert.NoError(t, err)
+	containerPort := container.K8.Ports[0]
+
+	storeEp, err := converter.EndpointPrivate(ctx, &containerPort, pod, container)
+	assert.NoError(t, err, "endpoint convert error")
+
+	assert.Equal(t, storeEp.Name, "test-app::app-monitors-client-78cb6d7899-j2rjp::TCP::9200")
+	assert.True(t, storeEp.IsNamespaced)
+	assert.Equal(t, storeEp.Namespace, pod.K8.Namespace)
+	assert.Equal(t, storeEp.ServiceName, "http")
+	assert.Equal(t, storeEp.ServiceDns, "")
+	assert.Equal(t, storeEp.AddressType, discoveryv1.AddressType("IPv4"))
+	assert.Equal(t, storeEp.Backend.Addresses, []string{"10.1.1.2"})
+	assert.Equal(t, *storeEp.Backend.NodeName, "test-node.ec2.internal")
+	assert.Equal(t, *storeEp.Port.Port, int32(9200))
+	assert.Equal(t, *storeEp.Port.Protocol, v1.Protocol("TCP"))
+	assert.Equal(t, *storeEp.Port.Name, "http")
+
+	// Store model -> graph model
+	graphEp, err := NewGraph().Endpoint(storeEp)
+	assert.NoError(t, err, "graph endpoint convert error")
+
+	assert.Equal(t, storeEp.Id.Hex(), graphEp.StoreID)
+	assert.Equal(t, graphEp.App, "test-app")
+	assert.Equal(t, graphEp.Service, "test-service")
+	assert.Equal(t, graphEp.Team, "test-team")
+	assert.Equal(t, storeEp.Name, graphEp.Name)
+	assert.Equal(t, storeEp.ServiceName, graphEp.ServiceEndpointName)
+	assert.Equal(t, storeEp.ServiceDns, graphEp.ServiceDnsName)
+	assert.Equal(t, "IPv4", graphEp.AddressType)
+	assert.Equal(t, []string{"10.1.1.2"}, graphEp.Addresses)
+	assert.Equal(t, 9200, graphEp.Port)
+	assert.Equal(t, "http", graphEp.PortName)
+	assert.Equal(t, "TCP", graphEp.Protocol)
+	assert.Equal(t, shared.EndpointExposureNodeIP, graphEp.Exposure)
 }
