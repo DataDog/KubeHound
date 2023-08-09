@@ -7,6 +7,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
@@ -26,6 +27,7 @@ var (
 	ErrNoCacheInitialized    = errors.New("cache reader required for conversion")
 	ErrDanglingRoleBinding   = errors.New("role binding found with no matching role")
 	ErrProjectedDefaultToken = errors.New("projected volume grant no access (default serviceaccount)")
+	ErrEndpointTarget        = errors.New("target reference for an endpoint could not be resolved")
 )
 
 // StoreConverter enables converting between an input K8s model to its equivalent store model.
@@ -54,6 +56,7 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 		Inherited: store.ContainerInherited{
 			PodName:        parent.K8.Name,
 			NodeName:       parent.K8.Spec.NodeName,
+			Namespace:      parent.K8.Namespace,
 			HostPID:        parent.K8.Spec.HostPID,
 			HostIPC:        parent.K8.Spec.HostIPC,
 			HostNetwork:    parent.K8.Spec.HostNetwork,
@@ -345,6 +348,119 @@ func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, p
 	if len(input.Subject.Namespace) != 0 {
 		output.IsNamespaced = true
 		output.Namespace = input.Subject.Namespace
+	}
+
+	return output, nil
+}
+
+// Endpoint returns the store representation of a K8s endpoint from an input Endpoint & EndpointPort objects (subfields of EndpointSlice).
+// NOTE: store.Endpoint does not map directly to a K8s API object and instead derives from the elements of an EndpointSlice.
+func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
+	port discoveryv1.EndpointPort, parent types.EndpointType) (*store.Endpoint, error) {
+
+	// Ensure we have a target
+	if addr.TargetRef == nil {
+		return nil, ErrEndpointTarget
+	}
+
+	// Ensure our assumption that the target is always a pod holds
+	if addr.TargetRef.Kind != "Pod" {
+		return nil, ErrEndpointTarget
+	}
+
+	output := &store.Endpoint{
+		Id:           store.ObjectID(),
+		PodName:      addr.TargetRef.Name,
+		PodNamespace: addr.TargetRef.Namespace,
+		Name:         fmt.Sprintf("%s::%s::%s", parent.Name, *port.Protocol, *port.Name),
+		HasSlice:     true,
+		ServiceName:  libkube.ServiceName(parent),
+		ServiceDns:   libkube.ServiceDns(parent),
+		AddressType:  parent.AddressType,
+		Backend:      addr,
+		Port:         port,
+		Ownership:    store.ExtractOwnership(parent.ObjectMeta.Labels),
+		K8:           parent.ObjectMeta,
+
+		// If created via the ingestion pipeline the endpoint corresponds to a k8s endpoint slice
+		Exposure: shared.EndpointExposureExternal,
+	}
+
+	if addr.NodeName != nil {
+		output.NodeName = *addr.NodeName
+	}
+
+	if len(parent.Namespace) != 0 {
+		output.IsNamespaced = true
+		output.Namespace = parent.Namespace
+	}
+
+	return output, nil
+}
+
+// EndpointPrivate returns the store representation of a K8s endpoint from an input port, container & pod.
+// This variant handles the case when the provided container port does not match a known EndpointSlice. The generated endpoint will
+// not be accessible from outside the cluster but can still provide value to an attacker with an presence inside the cluster.
+func (c *StoreConverter) EndpointPrivate(_ context.Context, port *corev1.ContainerPort,
+	pod *store.Pod, container *store.Container) (*store.Endpoint, error) {
+
+	// Derive the address type from the pod IP
+	podIP := pod.K8.Status.PodIP
+	addrType, err := libkube.AddressType(podIP)
+	if err != nil {
+		return nil, err
+	}
+
+	output := &store.Endpoint{
+		Id:           store.ObjectID(),
+		ContainerId:  container.Id,
+		PodName:      pod.K8.Name,
+		PodNamespace: pod.K8.Namespace,
+		Name:         fmt.Sprintf("%s::%s::%s::%d", pod.K8.Namespace, pod.K8.Name, port.Protocol, port.ContainerPort),
+		NodeName:     pod.K8.Spec.NodeName,
+		AddressType:  addrType,
+		Backend: discoveryv1.Endpoint{
+			Addresses: []string{podIP},
+			TargetRef: &corev1.ObjectReference{
+				Kind:            pod.K8.Kind,
+				APIVersion:      pod.K8.APIVersion,
+				Name:            pod.K8.Name,
+				Namespace:       pod.K8.Namespace,
+				UID:             pod.K8.UID,
+				ResourceVersion: pod.K8.ResourceVersion,
+			},
+			NodeName: &pod.K8.Spec.NodeName,
+		},
+		Port: discoveryv1.EndpointPort{
+			Name:     &port.Name,
+			Protocol: &port.Protocol,
+			Port:     &port.ContainerPort,
+		},
+		Ownership: container.Ownership,
+	}
+
+	if len(pod.K8.Namespace) != 0 {
+		output.IsNamespaced = true
+		output.Namespace = pod.K8.Namespace
+	}
+
+	switch {
+	case len(port.Name) != 0:
+		output.ServiceName = port.Name
+	case port.HostPort != 0:
+		output.ServiceName = fmt.Sprintf("%s::%d", port.Protocol, port.HostPort)
+	default:
+		output.ServiceName = fmt.Sprintf("%s::%d", port.Protocol, port.ContainerPort)
+	}
+
+	if port.HostPort != 0 {
+		// With a host port field, endpoint is only accessible from the node IP
+		output.Exposure = shared.EndpointExposureNodeIP
+
+		// TODO future improvement - consider providing the node address as a backend here
+	} else {
+		// Without a host port field, endpoint is only accessible from within the cluster on the node IP
+		output.Exposure = shared.EndpointExposureClusterIP
 	}
 
 	return output, nil

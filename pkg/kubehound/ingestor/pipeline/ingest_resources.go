@@ -25,6 +25,7 @@ type CleanupFunc func(ctx context.Context) error
 // resourceOptions is a generic container to hold dependencies created on initialization.
 // Should not be used directly, but modified via ObjectIngestOption functions.
 type resourceOptions struct {
+	cacheReader  cache.CacheReader                    // Cache reader
 	cacheWriter  cache.AsyncWriter                    // Cache provider
 	collect      collector.CollectorClient            // Collector fromm which to steam data
 	flush        []FlushFunc                          // Array of writer flush functions to be called on a flush
@@ -37,6 +38,14 @@ type resourceOptions struct {
 
 // IngestResourceOption enables options to be passed to the pipeline initializer.
 type IngestResourceOption func(ctx context.Context, oic *resourceOptions, deps *Dependencies) error
+
+// WithConverterCache initializes a store converter with cache access for the ingest pipeline.
+func WithCacheReader() IngestResourceOption {
+	return func(_ context.Context, rOpts *resourceOptions, deps *Dependencies) error {
+		rOpts.cacheReader = deps.Cache
+		return nil
+	}
+}
 
 // WithCacheWriter initializes a cache writer (and registers a cleanup function) for the ingest pipeline.
 func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
@@ -57,7 +66,7 @@ func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
 	}
 }
 
-// WithCacheWriter initializes a store converter with cache access for the ingest pipeline.
+// WithConverterCache initializes a store converter with cache access for the ingest pipeline.
 func WithConverterCache() IngestResourceOption {
 	return func(_ context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		rOpts.storeConvert = converter.NewStoreWithCache(deps.Cache)
@@ -117,8 +126,13 @@ type IngestResources struct {
 }
 
 // writeCache delegates a write to the cache writer.
-func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value string) error {
+func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value any) error {
 	return i.cacheWriter.Queue(ctx, ck, value)
+}
+
+// readCache delegates a read request to the cache reader.
+func (i *IngestResources) readCache(ctx context.Context, ck cachekey.CacheKey) *cache.CacheResult {
+	return i.cacheReader.Get(ctx, ck)
 }
 
 // writeStore delegates a write to the registered store writer.

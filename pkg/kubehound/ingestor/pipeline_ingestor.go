@@ -49,6 +49,7 @@ func ingestSequence() []pipeline.Sequence {
 					Name: "k8s-node-group",
 					Ingests: []pipeline.ObjectIngest{
 						&pipeline.NodeIngest{},
+						&pipeline.EndpointIngest{},
 					},
 				},
 				{

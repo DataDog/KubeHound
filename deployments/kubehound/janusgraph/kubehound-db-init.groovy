@@ -19,6 +19,7 @@ node = mgmt.makeVertexLabel('Node').make();
 pod = mgmt.makeVertexLabel('Pod').make();
 role = mgmt.makeVertexLabel('Role').make();
 volume = mgmt.makeVertexLabel('Volume').make();
+endpoint = mgmt.makeVertexLabel('Endpoint').make();
 
 // Create our edge labels and connections
 roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(MULTI).make();
@@ -97,6 +98,8 @@ mgmt.addConnection(privMount, container, node);
 sysPtrace = mgmt.makeEdgeLabel('CE_SYS_PTRACE').multiplicity(MANY2ONE).make();
 mgmt.addConnection(sysPtrace, container, node);
 
+endpointExpose = mgmt.makeEdgeLabel('ENDPOINT_EXPOSE').multiplicity(MULTI).make();
+mgmt.addConnection(endpointExpose, endpoint, container);
 
 // All properties we will index on
 cls = mgmt.makePropertyKey('class').dataType(String.class).cardinality(Cardinality.SINGLE).make();
@@ -108,6 +111,11 @@ name = mgmt.makePropertyKey('name').dataType(String.class).cardinality(Cardinali
 namespace = mgmt.makePropertyKey('namespace').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 type = mgmt.makePropertyKey('type').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 critical = mgmt.makePropertyKey('critical').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
+port = mgmt.makePropertyKey('port').dataType(Integer.class).cardinality(Cardinality.SINGLE).make();
+portName = mgmt.makePropertyKey('portName').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+serviceEndpoint = mgmt.makePropertyKey('serviceEndpoint').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+serviceDns = mgmt.makePropertyKey('serviceDns').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+exposure = mgmt.makePropertyKey('exposure').dataType(Integer.class).cardinality(Cardinality.SINGLE).make();
 
 // All properties that we want to be able to search on
 isNamespaced = mgmt.makePropertyKey('isNamespaced').dataType(Boolean.class).cardinality(Cardinality.SINGLE).make();
@@ -132,6 +140,9 @@ args = mgmt.makePropertyKey('args').dataType(String.class).cardinality(Cardinali
 capabilities = mgmt.makePropertyKey('capabilities').dataType(String.class).cardinality(Cardinality.LIST).make();
 ports = mgmt.makePropertyKey('ports').dataType(String.class).cardinality(Cardinality.LIST).make();
 identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+addressType = mgmt.makePropertyKey('addressType').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+addresses = mgmt.makePropertyKey('addresses').dataType(String.class).cardinality(Cardinality.LIST).make();
+protocol = mgmt.makePropertyKey('protocol').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 
 // Define properties for each vertex 
 mgmt.addProperties(container, cls, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, 
@@ -141,6 +152,8 @@ mgmt.addProperties(node, cls, storeID, app, team, service, name, isNamespaced, n
 mgmt.addProperties(pod, cls, storeID, app, team, service, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
 mgmt.addProperties(role, cls, storeID, app, team, service, name, isNamespaced, namespace, rules, critical);
 mgmt.addProperties(volume, cls, storeID, app, team, service, name, isNamespaced, namespace, type, sourcePath, mountPath, readonly);
+mgmt.addProperties(endpoint, cls, storeID, app, team, service, name, isNamespaced, namespace, serviceEndpoint, serviceDns, addressType, 
+    addresses, port, portName, protocol, exposure, compromised);
 
 
 // Create the indexes on vertex properties
@@ -154,6 +167,12 @@ mgmt.buildIndex('byName', Vertex.class).addKey(name).buildCompositeIndex();
 mgmt.buildIndex('byNamespace', Vertex.class).addKey(namespace).buildCompositeIndex();
 mgmt.buildIndex('byType', Vertex.class).addKey(type).buildCompositeIndex();
 mgmt.buildIndex('byCritical', Vertex.class).addKey(critical).buildCompositeIndex();
+mgmt.buildIndex('byPort', Vertex.class).addKey(port).buildCompositeIndex();
+mgmt.buildIndex('byPortName', Vertex.class).addKey(portName).buildCompositeIndex();
+mgmt.buildIndex('byServiceEndpoint', Vertex.class).addKey(serviceEndpoint).buildCompositeIndex();
+mgmt.buildIndex('byServiceDns', Vertex.class).addKey(serviceDns).buildCompositeIndex();
+mgmt.buildIndex('byExposure', Vertex.class).addKey(exposure).buildCompositeIndex();
+
 
 mgmt.commit();
 
