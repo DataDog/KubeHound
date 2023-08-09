@@ -1,6 +1,36 @@
 # KubeHound Cheat Sheet
 
-## General queries
+A one-stop-shop of KubeHound queries for all use cases.
+
+- [KubeHound Cheat Sheet](#kubehound-cheat-sheet)
+- [Basic Gremlin](#basic-gremlin)
+  - [Simple KubeHound queries](#simple-kubehound-queries)
+  - [Critical assets](#critical-assets)
+  - [Basic path queries](#basic-path-queries)
+  - [Attack paths from compromised assets](#attack-paths-from-compromised-assets)
+    - [Containers](#containers)
+    - [Credentials](#credentials)
+    - [Endpoints](#endpoints)
+  - [Critical asset exposure](#critical-asset-exposure)
+  - [CVE impact assessment](#cve-impact-assessment)
+  - [Threat modelling](#threat-modelling)
+  - [Risk metrics](#risk-metrics)
+  - [Tips](#tips)
+
+# Basic Gremlin
+
+For gremlin fundamentals consult the following:
+
++ [Basic](https://dkuppitz.github.io/gremlin-cheat-sheet/101.html)
++ [Advanced](https://dkuppitz.github.io/gremlin-cheat-sheet/102.html)
+
+For large clusters it is recommended to add a `limit()` step to ALL queries where the graph output will be examined in the UI to prevent overloading the UI. An example looking for attack paths possible from a sample of 5 containers would look like:
+
+```groovy
+g.V().hasLabel("Container").limit(5).outE()
+```
+
+## Simple KubeHound queries
 
 Count the number of pods in the cluster:
 
@@ -32,6 +62,16 @@ View host path mounts that can be exploited to access a node:
 g.E().hasLabel("EXPLOIT_HOST_READ", "EXPLOIT_HOST_WRITE").outV().groupCount().by("sourcePath")
 ```
 
+View all service endpoints by service name in the cluster, here we are using the [EndpointExposureType](../../pkg/kubehound/models/shared/constants.go) enum value to filter only on services:
+
+```groovy
+g.V().hasLabel("Endpoint").has("exposure", 3).groupCount().by("serviceEndpoint")
+```
+
+## Critical assets
+
+TODO explain the critical asser thign!
+
 ## Basic path queries
 
 All paths between a volume and identity:
@@ -50,11 +90,6 @@ g.V().hasLabel("Container").repeat(out().simplePath()).until(hasLabel("Node").or
 
 ### Containers
 
-All attack paths (up to 6 hops) from any container to a critical asset:
-
-```groovy
-g.V().hasLabel("Container").repeat(out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path()
-```
 Attack paths (up to 10 hops) from a known breached container (in this case the `nsenter-pod` container) to any critical asset:
 
 ```groovy
@@ -67,13 +102,12 @@ Attack paths (up to 10 hops) from a known backdoored container image (in this ca
 g.V().hasLabel("Container").has("image", TextP.containing("eu.gcr.io/datadog-staging/config-file-writer-go")).repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).path()
 ```
 
-
 ### Credentials
 
 All attack paths (up to 6 hops) from any compomised credential to a critical asset:
 
 ```groovy
-g.V().hasLabel("Identity").repeat(out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path()
+g.V().hasLabel("Identity").repeat(out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().limit(5)
 ```
 
 Attack paths (up to 10 hops) from a known breached credential (in this case the `pod-patch-sa` service account) to a critical asset:
@@ -81,6 +115,21 @@ Attack paths (up to 10 hops) from a known breached credential (in this case the 
 ```groovy
 g.V().hasLabel("Identity").has("name", "pod-patch-sa").repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).path()
 ```
+
+### Endpoints
+
+All attack paths (up to 6 hops) from any endpoint to a critical asset:
+
+```groovy
+g.V().hasLabel("Endpoint").repeat(out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().limit(5)
+```
+
+Attack paths (up to 10 hops) from a known dangerous endpoint (e.g JMX) to a critical asset:
+
+```groovy
+g.V().hasLabel("Endpoint").has("portName", "jmx").repeat(out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().limit(5)
+```
+
 ## Critical asset exposure
 
 All attack paths (up to 5 hops) to a specific critical asset (in this case the `system:auth-delegator`) role from containers/identities/nodes:
@@ -88,6 +137,12 @@ All attack paths (up to 5 hops) to a specific critical asset (in this case the `
 ```groovy
 g.V().hasLabel("Container", "Identity", "Node").repeat(out().simplePath()).until(has("name", "system:auth-delegator").or().loops().is(5)).has("name", "system:auth-delegator").hasLabel("Role").path()
 ```
+
+## CVE impact assessment
+
+TODO impact of a know CVE example
+
+use an elasticsearch one??
 
 ## Threat modelling
 
@@ -107,22 +162,22 @@ g.V().hasLabel("Container", "Identity").repeat(out().simplePath()).until(has("cr
 
 **What is the shortest exploitable path between an exposed service and a critical asset?**
 
-In this case we can look for containers with specific properties e.g image/tag etc and query the minimum path size to reach a critical assets. In this example we use exposed ports as a proxy for a the container offering a service that can be exploited, in production consider filtering on tags/image/etc:
+In this case we can look for service endpoints and query the minimum path size to reach a critical assets. Again we are using the [EndpointExposureType](../../pkg/kubehound/models/shared/constants.go) enum value to filter only on services:
 
 ```groovy
-g.V().hasLabel("Container").has("ports", neq([])).repeat(out().simplePath()).until(has("critical", true).or().loops().is(7)).has("critical", true).path().count(local).min()
+g.V().hasLabel("Endpoint").has("exposure", gte(3)).repeat(out().simplePath()).until(has("critical", true).or().loops().is(7)).has("critical", true).path().count(local).min()
 ```
 
 **What percentage of internet facing services have an exploitable path to a critical asset?**
 
-Again using exposed ports as a proxy for a the container offering a service that can be exploited:
+Again we are using the [EndpointExposureType](../../pkg/kubehound/models/shared/constants.go) enum value to filter only on services
 
 ```groovy
 // Base case
-g.V().hasLabel("Container").has("ports", neq([])).count()
+g.V().hasLabel("Endpoint").has("exposure", gte(3)).count()
 
 // Has a critical path
-g.V().hasLabel("Container").has("ports", neq([])).where(repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true)).count()
+g.V().hasLabel("Endpoint").has("exposure", gte(3)).where(repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).limit(1)).count()
 ```
 
 **What percentage level of attack path reduction was achieved by the introduction of a control?**
@@ -131,10 +186,10 @@ To verify concrete impact, this can be achieved by comparing the difference in t
 
 ```groovy
 // Calculate the base case
-g.V().hasLabel("Container").repeat(out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().count()
+g.V().hasLabel("Endpoint").has("exposure", gte(3)).repeat(out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().count()
 
 // Calculate the impact of preventing CE_NSENTER attack
-g.V().hasLabel("Container").repeat(outE().not(hasLabel("CE_NSENTER")).inV().simplePath()).emit().until(has("critical", true).or().loops().is(6)).has("critical", true).path().count()
+g.V().hasLabel("Endpoint").has("exposure", gte(3)).repeat(outE().not(hasLabel("CE_NSENTER")).inV().simplePath()).emit().until(has("critical", true).or().loops().is(6)).has("critical", true).path().count()
 ```
 
 **What type of control would cut off the largest number of attack paths to a specific asset in our clusters?**
