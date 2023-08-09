@@ -13,6 +13,7 @@ const (
 	RoleBindingName   = "rolebindings"
 	IdentityName      = "identities"
 	PermissionSetName = "permissionsets"
+	EndpointName      = "endpoints"
 )
 
 // Collection provides a common abstraction of a SQL database table or a NoSQL object

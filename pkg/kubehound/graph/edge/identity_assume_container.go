@@ -14,33 +14,29 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const (
-	IdentityAssumeLabel = "IDENTITY_ASSUME"
-)
-
 func init() {
-	Register(&IdentityAssume{}, RegisterDefault)
+	Register(&IdentityAssumeContainer{}, RegisterDefault)
 }
 
-type IdentityAssume struct {
+type IdentityAssumeContainer struct {
 	BaseEdge
 }
 
-type identityGroup struct {
+type containerIdentityGroup struct {
 	Container primitive.ObjectID `bson:"container_id" json:"container"`
 	Identity  primitive.ObjectID `bson:"identity_id" json:"identity"`
 }
 
-func (e *IdentityAssume) Label() string {
-	return IdentityAssumeLabel
+func (e *IdentityAssumeContainer) Label() string {
+	return "IDENTITY_ASSUME"
 }
 
-func (e *IdentityAssume) Name() string {
-	return "IdentityAssume"
+func (e *IdentityAssumeContainer) Name() string {
+	return "IdentityAssumeContainer"
 }
 
-func (e *IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	typed, ok := entry.(*identityGroup)
+func (e *IdentityAssumeContainer) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*containerIdentityGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
@@ -48,7 +44,7 @@ func (e *IdentityAssume) Processor(ctx context.Context, oic *converter.ObjectIDC
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Identity)
 }
 
-func (e *IdentityAssume) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
@@ -82,5 +78,5 @@ func (e *IdentityAssume) Stream(ctx context.Context, store storedb.Provider, _ c
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[identityGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[containerIdentityGroup](ctx, cur, callback, complete)
 }

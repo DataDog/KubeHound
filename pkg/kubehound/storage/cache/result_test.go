@@ -217,6 +217,72 @@ func TestCacheResult_Text(t *testing.T) {
 	}
 }
 
+func TestCacheResult_Bool(t *testing.T) {
+	type fields struct {
+		Value any
+		Err   error
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "success case",
+			fields: fields{
+				Value: true,
+				Err:   nil,
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "error result case",
+			fields: fields{
+				Value: false,
+				Err:   errors.New("test error"),
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "type error case",
+			fields: fields{
+				Value: -1,
+				Err:   nil,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "nil value case",
+			fields: fields{
+				Value: nil,
+				Err:   nil,
+			},
+			want:    false,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &CacheResult{
+				Value: tt.fields.Value,
+				Err:   tt.fields.Err,
+			}
+			got, err := r.Bool()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CacheResult.Bool() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("CacheResult.Bool() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestCacheResult_Role(t *testing.T) {
 	testOwnershipInfo := store.OwnershipInfo{
 		Application: "test-app",

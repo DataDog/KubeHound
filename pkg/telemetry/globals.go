@@ -19,6 +19,7 @@ const (
 
 const (
 	MetricCollectorNodesCount               = "kubehound.collector.nodes.count"
+	MetricCollectorEndpointCount            = "kubehound.collector.endpoints.count"
 	MetricCollectorPodsCount                = "kubehound.collector.pods.count"
 	MetricCollectorRolesCount               = "kubehound.collector.roles.count"
 	MetricCollectorRoleBindingsCount        = "kubehound.collector.rolebindings.count"
@@ -53,6 +54,7 @@ const (
 	TagResourceRoles               = "roles"
 	TagResourceRolebindings        = "rolebindings"
 	TagResourceNodes               = "nodes"
+	TagResourceEndpoints           = "endpoints"
 	TagResourceClusterRoles        = "clusterroles"
 	TagResourceClusterRolebindings = "clusterrolebindings"
 	// BaseTags represents the minimal tags sent by the application

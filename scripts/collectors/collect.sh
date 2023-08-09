@@ -21,6 +21,7 @@ RESOURCES_ALLOWLIST=(
     pods
     roles*
     rolebinding*
+    endpointslices.discovery.k8s.io
 )
 
 CLUSTER_RESOURCES=(

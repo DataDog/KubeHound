@@ -74,6 +74,10 @@ func (m *MemCacheProvider) BulkWriter(ctx context.Context, opts ...WriterOption)
 		o(wOpts)
 	}
 
+	if wOpts.ExpectOverwrite && wOpts.Test {
+		return nil, fmt.Errorf("mutually exclusive cache writer options: %#v", wOpts)
+	}
+
 	memCacheWriter.opts = wOpts
 
 	return memCacheWriter, nil

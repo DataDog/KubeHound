@@ -133,3 +133,15 @@ func TestFileCollector_StreamClusterRoleBindings(t *testing.T) {
 	err := c.StreamClusterRoleBindings(ctx, i)
 	assert.NoError(t, err)
 }
+
+func TestFileCollector_StreamEndpoints(t *testing.T) {
+	c := NewTestFileCollector(t)
+	ctx := context.Background()
+	i := mocks.NewEndpointIngestor(t)
+
+	i.EXPECT().IngestEndpoint(mock.Anything, mock.AnythingOfType("types.EndpointType")).Return(nil)
+	i.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
+	err := c.StreamEndpoints(ctx, i)
+	assert.NoError(t, err)
+}

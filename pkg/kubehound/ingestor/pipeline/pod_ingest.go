@@ -7,9 +7,11 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	corev1 "k8s.io/api/core/v1"
 )
 
 const (
@@ -22,6 +24,7 @@ const (
 	podIndex objectIndex = iota
 	containerIndex
 	volumeIndex
+	endpointIndex
 	maxObjectIndex
 )
 
@@ -49,16 +52,19 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 		&vertex.Pod{},
 		&vertex.Container{},
 		&vertex.Volume{},
+		&vertex.Endpoint{},
 	}
 
 	i.c = []collections.Collection{
 		collections.Pod{},
 		collections.Container{},
 		collections.Volume{},
+		collections.Endpoint{},
 	}
 
 	opts := make([]IngestResourceOption, 0)
-	opts = append(opts, WithCacheWriter())
+	opts = append(opts, WithCacheReader())
+	opts = append(opts, WithCacheWriter(cache.WithTest()))
 	opts = append(opts, WithConverterCache())
 	for objIndex := podIndex; objIndex < maxObjectIndex; objIndex++ {
 		opts = append(opts, WithStoreWriter(i.c[objIndex]))
@@ -67,6 +73,58 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 
 	i.r, err = CreateResources(ctx, deps, opts...)
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// processEndpoints will handle the ingestion pipeline for a endpoints belonging to a processed K8s pod input.
+func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.ContainerPort,
+	pod *store.Pod, container *store.Container) error {
+
+	// Normalize endpoint to temporary store object format
+	tmp, err := i.r.storeConvert.EndpointPrivate(ctx, port, pod, container)
+	if err != nil {
+		return err
+	}
+
+	// Check whether this exposed container endpoint has an associated endpoint slice. If so, we need do nothing
+	// further. However if it does NOT we write the details of the container port as a private endpoint entry.
+	ck := cachekey.Endpoint(tmp.Namespace, tmp.PodName, tmp.SafeProtocol(), tmp.SafePort())
+	_, err = i.r.readCache(ctx, ck).Bool()
+	switch err {
+	case cache.ErrNoEntry:
+		// No associated endpoint slice, create the endpoint from container parameters
+	case nil:
+		// Validate our assumptions - the below not be possible in our data model and will result in missing edges
+		if port.HostPort != 0 && port.ContainerPort != port.HostPort {
+			log.Trace(ctx).Warnf("assumption failure: host port set on container with associated endpoint slice (%s)", ck.Key())
+		}
+
+		// Entry already has an associated store entry with the endpoint slice ingest pipeline
+		// Nothing further to do...
+		return nil
+	default:
+		return err
+	}
+
+	// Promote the temporary object to an object that will be written to our databases.
+	se := tmp
+
+	// Async write to store
+	if err := i.r.writeStore(ctx, i.c[endpointIndex], se); err != nil {
+		return err
+	}
+
+	// Transform store model to vertex input
+	insert, err := i.r.graphConvert.Endpoint(se)
+	if err != nil {
+		return err
+	}
+
+	// Aysnc write to graph
+	if err := i.r.writeVertex(ctx, i.v[endpointIndex], insert); err != nil {
 		return err
 	}
 
@@ -107,10 +165,19 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 		return err
 	}
 
-	// Handle volume munts
+	// Handle volume mounts
 	for _, volumeMount := range container.VolumeMounts {
 		vm := volumeMount
 		err := i.processVolumeMount(ctx, &vm, parent, sc)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Handle endpoints (derived from container ports)
+	for _, port := range container.Ports {
+		p := port
+		err := i.processEndpoints(ctx, &p, parent, sc)
 		if err != nil {
 			return err
 		}

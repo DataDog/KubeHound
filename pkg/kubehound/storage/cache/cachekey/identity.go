@@ -1,27 +1,31 @@
 package cachekey
 
+import (
+	"strings"
+)
+
 const (
 	identityCacheName = "k8s-identity"
 )
 
 type identityCacheKey struct {
-	identityName string
-	namespace    string
+	baseCacheKey
 }
 
 var _ CacheKey = (*identityCacheKey)(nil) // Ensure interface compliance
 
 func Identity(identityName string, namespace string) *identityCacheKey {
+	var sb strings.Builder
+
+	sb.WriteString(namespace)
+	sb.WriteString(CacheKeySeparator)
+	sb.WriteString(identityName)
+
 	return &identityCacheKey{
-		identityName: identityName,
-		namespace:    namespace,
+		baseCacheKey{sb.String()},
 	}
 }
 
 func (k *identityCacheKey) Shard() string {
 	return identityCacheName
-}
-
-func (k *identityCacheKey) Key() string {
-	return k.namespace + "##" + k.identityName
 }

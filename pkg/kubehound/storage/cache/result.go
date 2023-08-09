@@ -94,3 +94,21 @@ func (r *CacheResult) ObjectID() (primitive.ObjectID, error) {
 
 	return oid, nil
 }
+
+// Bool returns the result value as a boolean alongside any errors.
+func (r *CacheResult) Bool() (bool, error) {
+	if r.Err != nil {
+		return false, r.Err
+	}
+
+	if r.Value == nil {
+		return false, ErrNoEntry
+	}
+
+	b, ok := r.Value.(bool)
+	if !ok {
+		return false, ErrInvalidType
+	}
+
+	return b, nil
+}

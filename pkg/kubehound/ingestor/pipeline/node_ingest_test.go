@@ -9,7 +9,9 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
+	mockcache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -37,12 +39,20 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 		})
 
 	// Cache setup
-	c := cache.NewCacheProvider(t)
-	cw := cache.NewAsyncWriter(t)
+	c := mockcache.NewCacheProvider(t)
+	cw := mockcache.NewAsyncWriter(t)
 	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.nodeCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
 	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
+	c.EXPECT().Get(ctx, cachekey.Identity("system:node:node-1", "")).Return(&cache.CacheResult{
+		Value: nil,
+		Err:   cache.ErrNoEntry,
+	}).Once()
+	c.EXPECT().Get(ctx, cachekey.Identity("system:nodes", "")).Return(&cache.CacheResult{
+		Value: store.ObjectID().Hex(),
+		Err:   nil,
+	}).Once()
 
 	// Store setup
 	sdb := storedb.NewProvider(t)
