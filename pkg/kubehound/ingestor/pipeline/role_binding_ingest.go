@@ -134,7 +134,7 @@ func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.Ro
 	}
 
 	// RoleBindings can exist in separate namespaces to Service Accounts.
-	// Will be FULLY threated in the ROLE_GRANT edge, just checking if no match is being found
+	// Will be FULLY handled in the PERMISSION_GRANT edge, just checking if no match is being found
 	isEffective := false
 	for _, subj := range rb.Subjects {
 		// Service Account

@@ -215,8 +215,8 @@ This gives an output of the form:
 
 ```groovy
 {
-  "path[Container, CE_MODULE_LOAD, Node, POD_ATTACH, Pod, CONTAINER_ATTACH, Container, IDENTITY_ASSUME, Identity, ROLE_GRANT, Role]" : 18,
-  "path[Container, IDENTITY_ASSUME, Identity, ROLE_GRANT, Role, TOKEN_BRUTEFORCE, Identity, ROLE_GRANT, Role, TOKEN_BRUTEFORCE, Identity, ROLE_GRANT, Role]" : 1824,
+  "path[Container, CE_MODULE_LOAD, Node, POD_ATTACH, Pod, CONTAINER_ATTACH, Container, IDENTITY_ASSUME, Identity, PERMISSION_GRANT, PermissionSet]" : 18,
+  "path[Container, IDENTITY_ASSUME, Identity, PERMISSION_GRANT, PermissionSet, TOKEN_BRUTEFORCE, Identity, PERMISSION_GRANT, PermissionSet, TOKEN_BRUTEFORCE, Identity, PERMISSION_GRANT, PermissionSet]" : 1824,
 }
 ```
 

@@ -66,17 +66,6 @@ func (i *RoleIngest) IngestRole(ctx context.Context, role types.RoleType) error 
 		return err
 	}
 
-	// Transform store model to vertex input
-	// insert, err := i.r.graphConvert.Role(o)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// Aysnc write to graph
-	// if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
-	// 	return err
-	// }
-
 	return nil
 }
 

@@ -15,39 +15,39 @@ import (
 )
 
 func init() {
-	Register(&RoleGrant{}, RegisterDefault)
+	Register(&PermissionGrant{}, RegisterDefault)
 }
 
-type RoleGrant struct {
+type PermissionGrant struct {
 	BaseEdge
 }
 
-type roleGrantGroup struct {
-	Role     primitive.ObjectID `bson:"_id" json:"role"`
-	Identity primitive.ObjectID `bson:"identity_id" json:"identity"`
+type permissionGrantGroup struct {
+	PermissionSet primitive.ObjectID `bson:"_id" json:"permission_set"`
+	Identity      primitive.ObjectID `bson:"identity_id" json:"identity"`
 }
 
-func (e *RoleGrant) Label() string {
-	return "ROLE_GRANT"
+func (e *PermissionGrant) Label() string {
+	return "PERMISSION_GRANT"
 }
 
-func (e *RoleGrant) Name() string {
-	return "RoleGrant"
+func (e *PermissionGrant) Name() string {
+	return "PermissionGrant"
 }
 
-func (e *RoleGrant) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	typed, ok := entry.(*roleGrantGroup)
+func (e *PermissionGrant) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*permissionGrantGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Identity, typed.Role)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Identity, typed.PermissionSet)
 }
 
-func (e *RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *PermissionGrant) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	roleBindings := adapter.MongoDB(store).Collection(collections.PermissionSetName)
+	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 
 	pipeline := bson.A{
 		// First we retrieve all rolebindings associated to the permissionset
@@ -131,11 +131,11 @@ func (e *RoleGrant) Stream(ctx context.Context, store storedb.Provider, c cache.
 		},
 	}
 
-	cur, err := roleBindings.Aggregate(context.Background(), pipeline)
+	cur, err := permissionSets.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return err
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[roleGrantGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[permissionGrantGroup](ctx, cur, callback, complete)
 }

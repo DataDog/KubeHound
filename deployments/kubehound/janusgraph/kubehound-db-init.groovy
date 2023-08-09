@@ -22,8 +22,8 @@ volume = mgmt.makeVertexLabel('Volume').make();
 endpoint = mgmt.makeVertexLabel('Endpoint').make();
 
 // Create our edge labels and connections
-roleGrant = mgmt.makeEdgeLabel('ROLE_GRANT').multiplicity(MULTI).make();
-mgmt.addConnection(roleGrant, identity, permissionSet);
+permissionGrant = mgmt.makeEdgeLabel('PERMISSION_GRANT').multiplicity(MULTI).make();
+mgmt.addConnection(permissionGrant, identity, permissionSet);
 
 volumeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MULTI).make();
 mgmt.addConnection(volumeMount, container, volume);

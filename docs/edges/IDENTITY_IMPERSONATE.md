@@ -4,7 +4,7 @@ With a [user impersonation privilege](https://kubernetes.io/docs/reference/acces
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Role](../vertices/ROLE.md)  | [Identity](../vertices/IDENTITY.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+| [PermissionSet](../vertices/PERMISSIONSET.md)  | [Identity](../vertices/IDENTITY.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
 
 ## Details
 

@@ -238,7 +238,7 @@ func (suite *EdgeTestSuite) TestEdge_POD_PATCH() {
 	// We have one bespoke container running with pod/patch permissions which should reach all nodes
 	// since they are not namespaced
 	results, err := suite.g.V().
-		HasLabel("Role").
+		HasLabel("PermissionSet").
 		OutE().HasLabel("POD_PATCH").
 		InV().HasLabel("Pod").
 		Path().
@@ -271,7 +271,7 @@ func (suite *EdgeTestSuite) TestEdge_POD_CREATE() {
 	// We have one bespoke container running with pod/create permissions which should reach all nodes
 	// since they are not namespaced
 	results, err := suite.g.V().
-		HasLabel("Role").
+		HasLabel("PermissionSet").
 		OutE().HasLabel("POD_CREATE").
 		InV().HasLabel("Node").
 		Path().
@@ -293,7 +293,7 @@ func (suite *EdgeTestSuite) TestEdge_POD_CREATE() {
 func (suite *EdgeTestSuite) TestEdge_POD_EXEC() {
 	// We have one bespoke container running with pod/exec permissions which should reach all pods in the namespace
 	results, err := suite.g.V().
-		HasLabel("Role").
+		HasLabel("PermissionSet").
 		OutE().HasLabel("POD_EXEC").
 		InV().HasLabel("Pod").
 		Path().
@@ -323,7 +323,7 @@ func (suite *EdgeTestSuite) TestEdge_POD_EXEC() {
 	suite.Subset(paths, expected)
 }
 
-func (suite *EdgeTestSuite) TestEdge_ROLE_GRANT() {
+func (suite *EdgeTestSuite) TestEdge_PERMISSION_GRANT() {
 
 	// We currently have 6 custom accounts configured (excluding the default)
 	// 	➜  KubeHound ✗ k get sa
@@ -337,8 +337,8 @@ func (suite *EdgeTestSuite) TestEdge_ROLE_GRANT() {
 	// tokenlist-sa     0         7h39m
 	results, err := suite.g.V().
 		HasLabel("Identity").
-		OutE().HasLabel("ROLE_GRANT").
-		InV().HasLabel("Role").
+		OutE().HasLabel("PERMISSION_GRANT").
+		InV().HasLabel("PermissionSet").
 		Path().
 		By(__.ValueMap("name")).
 		ToList()
@@ -410,7 +410,7 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 
 func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFORCE() {
 	results, err := suite.g.V().
-		HasLabel("Role").
+		HasLabel("PermissionSet").
 		OutE().HasLabel("TOKEN_BRUTEFORCE").
 		InV().HasLabel("Identity").
 		Path().
@@ -435,7 +435,7 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFORCE() {
 
 func (suite *EdgeTestSuite) TestEdge_TOKEN_LIST() {
 	results, err := suite.g.V().
-		HasLabel("Role").
+		HasLabel("PermissionSet").
 		OutE().HasLabel("TOKEN_LIST").
 		InV().HasLabel("Identity").
 		Path().
