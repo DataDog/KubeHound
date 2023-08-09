@@ -3,20 +3,20 @@
 A one-stop-shop of KubeHound queries for all use cases.
 
 - [Basic Gremlin](#basic-gremlin)
-  - [Simple KubeHound queries](#simple-kubehound-queries)
-  - [Critical assets](#critical-assets)
-  - [Basic path queries](#basic-path-queries)
-  - [Attack paths from compromised assets](#attack-paths-from-compromised-assets)
-    - [Containers](#containers)
-    - [Credentials](#credentials)
-    - [Endpoints](#endpoints)
-  - [Critical asset exposure](#critical-asset-exposure)
-  - [CVE impact assessment](#cve-impact-assessment)
-  - [Threat modelling](#threat-modelling)
-  - [Risk metrics](#risk-metrics)
-  - [Tips](#tips)
+- [Simple KubeHound queries](#simple-kubehound-queries)
+- [Critical assets](#critical-assets)
+- [Basic path queries](#basic-path-queries)
+- [Attack paths from compromised assets](#attack-paths-from-compromised-assets)
+  - [Containers](#containers)
+  - [Credentials](#credentials)
+  - [Endpoints](#endpoints)
+- [Critical asset exposure](#critical-asset-exposure)
+- [CVE impact assessment](#cve-impact-assessment)
+- [Threat modelling](#threat-modelling)
+- [Risk metrics](#risk-metrics)
+- [Tips](#tips)
 
-# Basic Gremlin
+## Basic Gremlin
 
 For gremlin fundamentals consult the following:
 
