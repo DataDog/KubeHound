@@ -25,11 +25,11 @@ endpoint = mgmt.makeVertexLabel('Endpoint').make();
 permissionDiscover = mgmt.makeEdgeLabel('PERMISSION_DISCOVER').multiplicity(MULTI).make();
 mgmt.addConnection(permissionDiscover, identity, permissionSet);
 
-volumeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MULTI).make();
-mgmt.addConnection(volumeMount, container, volume);
+volumeDiscover = mgmt.makeEdgeLabel('VOLUME_DISCOVER').multiplicity(MULTI).make();
+mgmt.addConnection(volumeDiscover, container, volume);
 
-volumeExpose = mgmt.makeEdgeLabel('VOLUME_EXPOSE').multiplicity(MULTI).make();
-mgmt.addConnection(volumeExpose, node, volume);
+volumeAccess = mgmt.makeEdgeLabel('VOLUME_ACCESS').multiplicity(MULTI).make();
+mgmt.addConnection(volumeAccess, node, volume);
 
 hostWrite = mgmt.makeEdgeLabel('EXPLOIT_HOST_WRITE').multiplicity(MULTI).make();
 mgmt.addConnection(hostWrite, volume, node);
@@ -98,8 +98,8 @@ mgmt.addConnection(privMount, container, node);
 sysPtrace = mgmt.makeEdgeLabel('CE_SYS_PTRACE').multiplicity(MANY2ONE).make();
 mgmt.addConnection(sysPtrace, container, node);
 
-endpointExpose = mgmt.makeEdgeLabel('ENDPOINT_EXPOSE').multiplicity(MULTI).make();
-mgmt.addConnection(endpointExpose, endpoint, container);
+endpointExploit = mgmt.makeEdgeLabel('ENDPOINT_EXPLOIT').multiplicity(MULTI).make();
+mgmt.addConnection(endpointExploit, endpoint, container);
 
 // All properties we will index on
 cls = mgmt.makePropertyKey('class').dataType(String.class).cardinality(Cardinality.SINGLE).make();

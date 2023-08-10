@@ -1,6 +1,6 @@
 # PERMISSION_GRANT
 
-Represents the permissions granted to an identity.
+Represents the permissions granted to an identity that can be discovered by an attacker.
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
@@ -8,7 +8,7 @@ Represents the permissions granted to an identity.
 
 ## Details
 
-K8s RBAC aggregates sets of API permissions together under `Role` (namespaced) and `ClusterRole` (cluster-wide) objects. These are then assigned to specific users via a `RoleBinding` (namespaced) or `ClusterRoleBinding` (cluster-wide) objects. This edge represents this relationship granting one or more permissions to an identity.
+K8s RBAC aggregates sets of API permissions together under `Role` (namespaced) and `ClusterRole` (cluster-wide) objects. These are then assigned to specific users via a `RoleBinding` (namespaced) or `ClusterRoleBinding` (cluster-wide) objects. This edge represents this relationship granting one or more permissions to an identity, which can be discovered by an attacker.
 
 ## Prerequisites
 
@@ -38,7 +38,7 @@ None
 
 ## Calculation
 
-+ [PermissionGrant](../../pkg/kubehound/graph/edge/permission_grant.go)
++ [PermissionDiscover](../../pkg/kubehound/graph/edge/permission_discover.go)
 
 ## References:
 
