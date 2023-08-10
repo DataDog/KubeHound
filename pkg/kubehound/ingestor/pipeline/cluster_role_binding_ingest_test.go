@@ -117,8 +117,10 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	psVtxInsert := map[string]any{
 		"isNamespaced": false,
 		"critical":     false,
-		"name":         "test-reader",
+		"name":         "test-reader::app-monitors-read",
 		"namespace":    "",
+		"role":         "test-reader",
+		"roleBinding":  "app-monitors-read",
 		"storeID":      psStoreId.Hex(),
 		"team":         "test-team",
 		"app":          "test-app",

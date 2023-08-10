@@ -95,6 +95,16 @@ func (suite *VertexTestSuite) SetupSuite() {
 	suite.g = gremlingo.Traversal_().WithRemote(suite.client)
 }
 
+func (suite *VertexTestSuite) resultsToStringArray(results []*gremlingo.Result) []string {
+	vals := make([]string, 0, len(results))
+	for _, r := range results {
+		val := r.GetString()
+		vals = append(vals, val)
+	}
+
+	return vals
+}
+
 func (suite *VertexTestSuite) TestVertexContainer() {
 	results, err := suite.g.V().HasLabel(vertex.ContainerLabel).ElementMap().ToList()
 	suite.NoError(err)
@@ -239,27 +249,28 @@ func (suite *VertexTestSuite) TestVertexPod() {
 }
 
 func (suite *VertexTestSuite) TestVertexPerrmissionSet() {
-	results, err := suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "impersonate").ElementMap().ToList()
-	suite.NoError(err)
-	suite.Equal(1, len(results))
+	results, err := suite.g.V().
+		HasLabel(vertex.PermissionSetLabel).
+		Has("namespace", "default").
+		Values("name").
+		ToList()
 
-	results, err = suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "read-secrets").ElementMap().ToList()
 	suite.NoError(err)
-	suite.Equal(1, len(results))
+	suite.GreaterOrEqual(len(results), 1)
 
-	results, err = suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "create-pods").ElementMap().ToList()
-	suite.NoError(err)
-	suite.Equal(1, len(results))
+	present := suite.resultsToStringArray(results)
+	expected := []string{
+		"read-secrets::pod-get-secrets",
+		"create-pods::pod-create-pods",
+		"patch-pods::pod-patch-pods",
+		"read-logs::pod-read-logs",
+		"rolebind::pod-bind-role",
+		"list-secrets::pod-list-secrets",
+		"exec-pods::pod-exec-pods",
+		"impersonate::pod-impersonate",
+	}
 
-	results, err = suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "patch-pods").ElementMap().ToList()
-	suite.NoError(err)
-	suite.Equal(1, len(results))
-
-	results, err = suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "rolebind").ElementMap().ToList()
-	suite.NoError(err)
-	suite.Equal(1, len(results))
-
-	// TODO check the namespacing logic of the permission grant tests
+	suite.Subset(present, expected)
 }
 
 func (suite *VertexTestSuite) TestVertexVolume() {
