@@ -1,0 +1,87 @@
+site_name: KubeHound
+repo_url: https://github.com/DataDog/KubeHound
+repo_name: datadog/KubeHound
+plugins:
+  - search
+  - awesome-pages
+theme:
+  name: material
+  palette:
+      - scheme: default
+        primary: black
+        toggle:
+          icon: material/toggle-switch-off-outline
+          name: Switch to dark mode
+      - scheme: slate
+        primary: black
+        toggle:
+          icon: material/toggle-switch
+          name: Switch to light mode
+  features:
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - content.code.copy
+  icon:
+      admonition:
+        note: octicons/tag-16
+        abstract: octicons/checklist-16
+        info: octicons/info-16
+        tip: octicons/squirrel-16
+        success: octicons/check-16
+        question: octicons/question-16
+        warning: octicons/alert-16
+        failure: octicons/x-circle-16
+        danger: octicons/zap-16
+        bug: octicons/bug-16
+        example: octicons/beaker-16
+        quote: octicons/quote-16
+  use_directory_urls: true
+  extra_javascript:
+    - path: js/tablesort.js #TODO not working
+  extra:
+    social: {}
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.magiclink
+  - tables
+  - meta
+  - abbr
+  - def_list
+  - attr_list
+  - md_in_html
+  - admonition
+  - pymdownx.details
+  - footnotes
+  - markdown_captions
+  - pymdownx.tabbed:
+      alternate_style: true 
+
+nav:
+  - KubeHound:
+      - index.md
+      - Architecture: architecture.md
+      - Terminology: terminology.md
+      - Frequently Asked Questions: faq.md
+      - Comparison with Other Tools: comparison.md
+      - Contributing: contributing.md
+  - User Guide:
+      - Getting Started: user-guide/getting-started.md
+      - Common Operations: user-guide/common-operations.md
+      - Troubleshooting: user-guide/troubleshooting.md
+  - Reference:
+      - Attacks: reference/attacks/index.md
+      - Entities: reference/entities/index.md
+      - ... | reference/attacks/*.md
+      - ... | reference/entities/*.md
+  - Query Library:
+      - queries/index.md
+
+copyright: Copyright 2023-Present Datadog, Inc.
