@@ -1,6 +1,6 @@
-# VOLUME_EXPOSE
+# VOLUME_ACCESS
 
-Represents a node exposing a volume to a container.
+Represents an attacker with access to a node filesystem gaining access to any volumes mounted inside a container (by definition).
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
@@ -20,7 +20,7 @@ None.
 
 ## Exploitation
 
-No exploitation is necessary. This edge simply indicates that a volume is exposed to a container.
+No exploitation is necessary. This edge simply indicates that a volume is exposed to a container and accessible from the node filesystem
 
 ## Defences
 
@@ -28,7 +28,7 @@ None
 
 ## Calculation
 
-+ [VolumeExpose](../../pkg/kubehound/graph/edge/volume_expose.go)
++ [VolumeAccess](../../pkg/kubehound/graph/edge/volume_access.go)
 
 ## References:
 

@@ -152,7 +152,7 @@ g.V().hasLabel("Container").has("image", TextP.containing("elasticsearch")).grou
 Now check for any exposed services that could be affected and have a path to a critical asset that can be prioritised for patching/remediation:
 
 ```groovy
-g.V().hasLabel("Container").has("image", "dockerhub.com/elasticsearch:7.1.4").where(inE("ENDPOINT_EXPOSE").outV().has("exposure", gte(3))).where(repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).limit(1))
+g.V().hasLabel("Container").has("image", "dockerhub.com/elasticsearch:7.1.4").where(inE("ENDPOINT_EXPLOIT").outV().has("exposure", gte(3))).where(repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).limit(1))
 ```
 
 ## Threat modelling

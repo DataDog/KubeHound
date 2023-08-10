@@ -365,8 +365,8 @@ func (suite *EdgeTestSuite) TestEdge_PERMISSION_DISCOVER() {
 	suite.Subset(paths, expected)
 }
 
-func (suite *EdgeTestSuite) TestEdge_VOLUME_EXPOSE() {
-	// Every volume should have a VOLUME_EXPOSE incoming from a node
+func (suite *EdgeTestSuite) TestEdge_VOLUME_ACCESS() {
+	// Every volume should have a VOLUME_ACCESS incoming from a node
 	rawCount, err := suite.g.V().
 		HasLabel("Volume").
 		Count().Next()
@@ -378,7 +378,7 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_EXPOSE() {
 
 	rawCount, err = suite.g.V().
 		HasLabel("Node").
-		OutE().HasLabel("VOLUME_EXPOSE").
+		OutE().HasLabel("VOLUME_ACCESS").
 		InV().HasLabel("Volume").
 		Dedup().
 		Path().
@@ -390,8 +390,8 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_EXPOSE() {
 	suite.Equal(volumeCount, pathCount)
 }
 
-func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
-	// Every volume should have a VOLUME_MOUNT incoming from a container
+func (suite *EdgeTestSuite) TestEdge_VOLUME_DISCOVER() {
+	// Every volume should have a VOLUME_DISCOVER incoming from a container
 	rawCount, err := suite.g.V().
 		HasLabel("Volume").
 		Count().Next()
@@ -403,7 +403,7 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 
 	rawCount, err = suite.g.V().
 		HasLabel("Container").
-		OutE().HasLabel("VOLUME_MOUNT").
+		OutE().HasLabel("VOLUME_DISCOVER").
 		InV().HasLabel("Volume").
 		Dedup().
 		Path().
@@ -493,7 +493,7 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_STEAL() {
 func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_READ() {
 	results, err := suite.g.V().
 		HasLabel("Container").
-		OutE().HasLabel("VOLUME_MOUNT").
+		OutE().HasLabel("VOLUME_DISCOVER").
 		InV().HasLabel("Volume").
 		Where(__.OutE().HasLabel("EXPLOIT_HOST_READ").
 			InV().HasLabel("Node")).
@@ -514,7 +514,7 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_READ() {
 func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_WRITE() {
 	results, err := suite.g.V().
 		HasLabel("Container").
-		OutE().HasLabel("VOLUME_MOUNT").
+		OutE().HasLabel("VOLUME_DISCOVER").
 		InV().HasLabel("Volume").
 		Where(__.OutE().HasLabel("EXPLOIT_HOST_WRITE").
 			InV().HasLabel("Node")).
@@ -554,7 +554,7 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_TRAVERSE() {
 		results, err = suite.g.V().
 			HasLabel("Container").
 			Has("name", c).
-			OutE().HasLabel("VOLUME_MOUNT").
+			OutE().HasLabel("VOLUME_DISCOVER").
 			InV().HasLabel("Volume").
 			OutE().HasLabel("EXPLOIT_HOST_TRAVERSE").
 			InV().HasLabel("Volume").
@@ -572,12 +572,12 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_TRAVERSE() {
 	}
 }
 
-func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_ContainerPort() {
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPLOIT_ContainerPort() {
 	results, err := suite.g.V().
 		HasLabel("Endpoint").
 		Where(
 			__.Has("exposure", P.Eq(int(shared.EndpointExposureClusterIP))).
-				OutE("ENDPOINT_EXPOSE").
+				OutE("ENDPOINT_EXPLOIT").
 				InV().
 				HasLabel("Container")).
 		Values("serviceEndpoint").
@@ -594,12 +594,12 @@ func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_ContainerPort() {
 	suite.Subset(paths, expected)
 }
 
-func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_NodePort() {
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPLOIT_NodePort() {
 	results, err := suite.g.V().
 		HasLabel("Endpoint").
 		Where(
 			__.Has("exposure", P.Eq(int(shared.EndpointExposureNodeIP))).
-				OutE("ENDPOINT_EXPOSE").
+				OutE("ENDPOINT_EXPLOIT").
 				InV().
 				HasLabel("Container")).
 		Values("serviceEndpoint").
@@ -616,12 +616,12 @@ func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_NodePort() {
 	suite.Subset(paths, expected)
 }
 
-func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPOSE_External() {
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPLOIT_External() {
 	results, err := suite.g.V().
 		HasLabel("Endpoint").
 		Where(
 			__.Has("exposure", P.Eq(int(shared.EndpointExposureExternal))).
-				OutE("ENDPOINT_EXPOSE").
+				OutE("ENDPOINT_EXPLOIT").
 				InV().
 				HasLabel("Container")).
 		Values("serviceEndpoint").
