@@ -135,7 +135,7 @@ g.V().hasLabel("Endpoint").has("portName", "jmx").repeat(out().simplePath()).unt
 
 ## Critical asset exposure
 
-All attack paths (up to 5 hops) to a specific critical asset (in this case the `system:auth-delegator`) role from containers/identities/nodes:
+All attack paths (up to 5 hops) to a specific critical asset (in this case the `system:auth-delegator`) permission set from containers/identities/nodes:
 
 ```groovy
 g.V().hasLabel("Container", "Identity", "Node").repeat(out().simplePath()).until(has("name", "system:auth-delegator").or().loops().is(5)).has("name", "system:auth-delegator").hasLabel("Role").path()
@@ -215,8 +215,8 @@ This gives an output of the form:
 
 ```groovy
 {
-  "path[Container, CE_MODULE_LOAD, Node, POD_ATTACH, Pod, CONTAINER_ATTACH, Container, IDENTITY_ASSUME, Identity, ROLE_GRANT, Role]" : 18,
-  "path[Container, IDENTITY_ASSUME, Identity, ROLE_GRANT, Role, TOKEN_BRUTEFORCE, Identity, ROLE_GRANT, Role, TOKEN_BRUTEFORCE, Identity, ROLE_GRANT, Role]" : 1824,
+  "path[Container, CE_MODULE_LOAD, Node, POD_ATTACH, Pod, CONTAINER_ATTACH, Container, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 18,
+  "path[Container, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet, TOKEN_BRUTEFORCE, Identity, PERMISSION_DISCOVER, PermissionSet, TOKEN_BRUTEFORCE, Identity, PERMISSION_DISCOVER, PermissionSet]" : 1824,
 }
 ```
 

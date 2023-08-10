@@ -94,7 +94,7 @@ func (b *Builder) Run(ctx context.Context) error {
 	oic := converter.NewObjectID(b.cache)
 
 	if b.cfg.Builder.Edge.LargeClusterOptimizations {
-		log.I.Warnf("Using large cluster optimizations in graph construction")
+		log.Trace(ctx).Warnf("Using large cluster optimizations in graph construction")
 	}
 
 	// Mutating edges must be built first, sequentially

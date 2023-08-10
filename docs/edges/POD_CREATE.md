@@ -4,7 +4,7 @@ Create a pod with significant privilege (`CAP_SYSADMIN`, `hostPath=/`, etc) and 
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Role](../vertices/ROLE.md) | [Node](../vertices/NODE.md) | [Container Orchestration Job, T1053.007](https://attack.mitre.org/techniques/T1053/007/) |
+| [PermissionSet](../vertices/PERMISSIONSET.md) | [Node](../vertices/NODE.md) | [Container Orchestration Job, T1053.007](https://attack.mitre.org/techniques/T1053/007/) |
 
 ## Details
 

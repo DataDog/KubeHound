@@ -39,7 +39,7 @@ func newEngine() (*RiskEngine, error) {
 // The function expects a single store model input and currently only supports Roles.
 func (ra *RiskEngine) IsCritical(model any) bool {
 	switch o := model.(type) {
-	case *store.Role:
+	case *store.PermissionSet:
 		if ra.roleMap[o.Name] {
 			return true
 		}

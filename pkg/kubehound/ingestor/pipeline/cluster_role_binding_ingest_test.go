@@ -8,6 +8,7 @@ import (
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
@@ -24,6 +25,11 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 
 	ctx := context.Background()
 	fakeCrb, err := loadTestObject[types.ClusterRoleBindingType]("testdata/clusterrolebinding.json")
+	assert.NoError(t, err)
+
+	fakeClusterRole, err := loadTestObject[types.ClusterRoleType]("testdata/clusterrole.json")
+	assert.NoError(t, err)
+	oFakeClusterRole, err := converter.NewStore().ClusterRole(ctx, fakeClusterRole)
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
@@ -45,9 +51,9 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 		Err:   cache.ErrNoEntry,
 	}).Once()
 	c.EXPECT().Get(ctx, cachekey.Role("test-reader", "")).Return(&cache.CacheResult{
-		Value: store.ObjectID().Hex(),
+		Value: *oFakeClusterRole,
 		Err:   nil,
-	}).Once()
+	}).Twice()
 	cw := mockcache.NewAsyncWriter(t)
 	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.identityCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
 	cw.EXPECT().Flush(ctx).Return(nil)
@@ -76,6 +82,19 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	isw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, identities, mock.Anything).Return(isw, nil)
 
+	// Store setup -  permissionsets
+	pssw := storedb.NewAsyncWriter(t)
+	psbs := collections.PermissionSet{}
+	psStoreId := store.ObjectID()
+	pssw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.PermissionSet")).
+		RunAndReturn(func(ctx context.Context, i any) error {
+			i.(*store.PermissionSet).Id = psStoreId
+			return nil
+		}).Once()
+	pssw.EXPECT().Flush(ctx).Return(nil)
+	pssw.EXPECT().Close(ctx).Return(nil)
+	sdb.EXPECT().BulkWriter(ctx, psbs, mock.Anything).Return(pssw, nil)
+
 	// Graph setup
 	vtxInsert := map[string]any{
 		"critical":     false,
@@ -94,6 +113,26 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
 	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Identity"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
+
+	psVtxInsert := map[string]any{
+		"isNamespaced": false,
+		"critical":     false,
+		"name":         "test-reader::app-monitors-read",
+		"namespace":    "",
+		"role":         "test-reader",
+		"roleBinding":  "app-monitors-read",
+		"storeID":      psStoreId.Hex(),
+		"team":         "test-team",
+		"app":          "test-app",
+		"service":      "test-service",
+		"rules":        []interface{}{"API()::R(pods)::N()::V(get,list)", "API()::R(configmaps)::N()::V(get)", "API(apps)::R(statefulsets)::N()::V(get,list)"},
+	}
+
+	psgw := graphdb.NewAsyncVertexWriter(t)
+	psgw.EXPECT().Queue(ctx, psVtxInsert).Return(nil).Once()
+	psgw.EXPECT().Flush(ctx).Return(nil)
+	psgw.EXPECT().Close(ctx).Return(nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.PermissionSet"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(psgw, nil)
 
 	deps := &Dependencies{
 		Collector: client,

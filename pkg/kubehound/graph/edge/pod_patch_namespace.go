@@ -49,7 +49,7 @@ func (e *PodPatchNamespace) Processor(ctx context.Context, oic *converter.Object
 func (e *PodPatchNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	roles := adapter.MongoDB(store).Collection(collections.RoleName)
+	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
@@ -70,6 +70,7 @@ func (e *PodPatchNamespace) Stream(ctx context.Context, store storedb.Provider, 
 								bson.M{"verbs": "update"},
 								bson.M{"verbs": "*"},
 							}},
+							bson.M{"resourcenames": nil}, // TODO: handle resource scope
 						},
 					},
 				},
@@ -112,7 +113,7 @@ func (e *PodPatchNamespace) Stream(ctx context.Context, store storedb.Provider, 
 		},
 	}
 
-	cur, err := roles.Aggregate(context.Background(), pipeline)
+	cur, err := permissionSets.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return err
 	}

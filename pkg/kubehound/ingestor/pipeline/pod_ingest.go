@@ -198,7 +198,7 @@ func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.Vo
 	// Normalize volume to store object format
 	sv, err := i.r.storeConvert.Volume(ctx, volumeMount, pod, container)
 	if err != nil {
-		log.I.Debugf("process volume type: %v (continuing)", err)
+		log.Trace(ctx).Debugf("process volume type: %v (continuing)", err)
 		return nil
 	}
 

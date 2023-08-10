@@ -11,7 +11,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
-	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +39,7 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 	// Cache setup
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
-	cw.EXPECT().Queue(ctx, cachekey.Role("test-reader", ""), mock.AnythingOfType("string")).Return(nil).Once()
+	cw.EXPECT().Queue(ctx, cachekey.Role("test-reader", ""), mock.AnythingOfType("store.Role")).Return(nil).Once()
 	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
@@ -59,34 +58,9 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 	sw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, roles, mock.Anything).Return(sw, nil)
 
-	// Graph setup
-	vtxInsert := map[string]any{
-		"isNamespaced": false,
-		"critical":     false,
-		"name":         "test-reader",
-		"namespace":    "",
-		"rules": []any{
-			"API()::R(pods)::N()::V(get,list)",
-			"API()::R(configmaps)::N()::V(get)",
-			"API(apps)::R(statefulsets)::N()::V(get,list)",
-		},
-		"storeID": storeId.Hex(),
-		"team":    "test-team",
-		"app":     "test-app",
-		"service": "test-service",
-	}
-
-	gdb := graphdb.NewProvider(t)
-	gw := graphdb.NewAsyncVertexWriter(t)
-	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
-	gw.EXPECT().Flush(ctx).Return(nil)
-	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Role"), c, mock.Anything).Return(gw, nil)
-
 	deps := &Dependencies{
 		Collector: client,
 		Cache:     c,
-		GraphDB:   gdb,
 		StoreDB:   sdb,
 		Config: &config.KubehoundConfig{
 			Builder: config.BuilderConfig{

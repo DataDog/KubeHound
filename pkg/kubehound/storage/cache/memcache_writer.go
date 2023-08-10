@@ -16,6 +16,7 @@ type MemCacheAsyncWriter struct {
 	opts *writerOptions
 }
 
+// To support the object writing, we will need at least redis 4 which support the HSET function
 func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, value any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()

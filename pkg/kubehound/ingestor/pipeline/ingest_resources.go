@@ -39,14 +39,6 @@ type resourceOptions struct {
 // IngestResourceOption enables options to be passed to the pipeline initializer.
 type IngestResourceOption func(ctx context.Context, oic *resourceOptions, deps *Dependencies) error
 
-// WithConverterCache initializes a store converter with cache access for the ingest pipeline.
-func WithCacheReader() IngestResourceOption {
-	return func(_ context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		rOpts.cacheReader = deps.Cache
-		return nil
-	}
-}
-
 // WithCacheWriter initializes a cache writer (and registers a cleanup function) for the ingest pipeline.
 func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
@@ -66,7 +58,15 @@ func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
 	}
 }
 
-// WithConverterCache initializes a store converter with cache access for the ingest pipeline.
+// WithCacheReader initializes a cache reader (and registers a cleanup function to close the connection) for the ingest pipeline.
+func WithCacheReader() IngestResourceOption {
+	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
+		rOpts.cacheReader = deps.Cache
+		return nil
+	}
+}
+
+// WithCacheWriter initializes a store converter with cache access for the ingest pipeline.
 func WithConverterCache() IngestResourceOption {
 	return func(_ context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		rOpts.storeConvert = converter.NewStoreWithCache(deps.Cache)
