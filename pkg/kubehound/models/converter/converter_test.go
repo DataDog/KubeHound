@@ -414,6 +414,46 @@ func TestConverter_PermissionSet_InvalidCombination_Namespace(t *testing.T) {
 	assert.ErrorContains(t, err, "incorrect combination ")
 }
 
+func TestConverter_PermissionSet_InvalidCombination_Users(t *testing.T) {
+	t.Parallel()
+
+	r := store.Role{
+		Id:           store.ObjectID(),
+		Name:         "test-ns1-role",
+		Namespace:    "test-ns1",
+		IsNamespaced: true,
+	}
+
+	rb := store.RoleBinding{
+		Name:         "test-rolebinding",
+		Namespace:    "test-ns1",
+		IsNamespaced: true,
+		RoleId:       r.Id,
+		Subjects: []store.BindSubject{
+			{
+				Subject: rbacv1.Subject{
+					Kind:      "User",
+					Name:      "test-user",
+					Namespace: "test-ns2",
+				},
+			},
+		},
+		K8: rbacv1.RoleRef{
+			Kind: "Role",
+			Name: "test-ns1-role",
+		},
+	}
+
+	c := mocks.NewCacheReader(t)
+	c.EXPECT().Get(mock.Anything, cachekey.Role("test-ns1-role", "test-ns1")).Return(&cache.CacheResult{
+		Value: r,
+		Err:   nil,
+	})
+
+	_, err := NewStoreWithCache(c).PermissionSet(context.TODO(), &rb)
+	assert.ErrorContains(t, err, "incorrect combination ")
+}
+
 func TestConverter_PermissionSet_InvalidCombination_Types(t *testing.T) {
 	t.Parallel()
 

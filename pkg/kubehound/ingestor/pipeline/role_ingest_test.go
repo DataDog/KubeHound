@@ -39,7 +39,7 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	c := cache.NewCacheProvider(t)
 	cw := cache.NewAsyncWriter(t)
 
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.roleCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
+	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.roleCacheKey"), mock.AnythingOfType("store.Role")).Return(nil).Once()
 	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
 	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
@@ -58,35 +58,10 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	sw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, roles, mock.Anything).Return(sw, nil)
 
-	// // Graph setup
-	// vtxInsert := map[string]any{
-	// 	"isNamespaced": true,
-	// 	"critical":     false,
-	// 	"name":         "test-reader",
-	// 	"namespace":    "test-app",
-	// 	"rules": []any{
-	// 		"API()::R(pods)::N()::V(get,list)", "API()::R(configmaps)::N()::V(get)",
-	// 		"API(apps)::R(statefulsets)::N()::V(get,list)",
-	// 	},
-	// 	"storeID": storeId.Hex(),
-	// 	"team":    "test-team",
-	// 	"app":     "test-app",
-	// 	"service": "test-service",
-	// }
-
-	// gdb := graphdb.NewProvider(t)
-	// gw := graphdb.NewAsyncVertexWriter(t)
-
-	// gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
-	// gw.EXPECT().Flush(ctx).Return(nil)
-	// gw.EXPECT().Close(ctx).Return(nil)
-	// gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Role"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
-
 	deps := &Dependencies{
 		Collector: client,
 		Cache:     c,
-		// GraphDB:   gdb,
-		StoreDB: sdb,
+		StoreDB:   sdb,
 		Config: &config.KubehoundConfig{
 			Builder: config.BuilderConfig{
 				Edge: config.EdgeBuilderConfig{},
