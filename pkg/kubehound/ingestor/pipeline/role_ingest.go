@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -15,7 +14,6 @@ const (
 )
 
 type RoleIngest struct {
-	vertex     *vertex.PermissionSet
 	collection collections.Role
 	r          *IngestResources
 }
@@ -29,12 +27,10 @@ func (i *RoleIngest) Name() string {
 func (i *RoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
-	i.vertex = &vertex.PermissionSet{}
 	i.collection = collections.Role{}
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(),
-		WithStoreWriter(i.collection),
-		WithGraphWriter(i.vertex))
+		WithStoreWriter(i.collection))
 
 	if err != nil {
 		return err

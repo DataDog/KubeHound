@@ -49,7 +49,7 @@ func (e *TokenListNamespace) Processor(ctx context.Context, oic *converter.Objec
 func (e *TokenListNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	roles := adapter.MongoDB(store).Collection(collections.PermissionSetName)
+	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
@@ -69,6 +69,7 @@ func (e *TokenListNamespace) Stream(ctx context.Context, store storedb.Provider,
 								bson.M{"verbs": "list"},
 								bson.M{"verbs": "*"},
 							}},
+							bson.M{"resourcenames": nil}, // TODO: handle resource scope
 						},
 					},
 				},
@@ -114,7 +115,7 @@ func (e *TokenListNamespace) Stream(ctx context.Context, store storedb.Provider,
 		},
 	}
 
-	cur, err := roles.Aggregate(context.Background(), pipeline)
+	cur, err := permissionSets.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return err
 	}

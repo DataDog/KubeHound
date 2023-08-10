@@ -355,6 +355,9 @@ func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, p
 
 // PermissionSet returns the store representation of a K8s role / rolebinding combination from input K8s objects.
 func (c *StoreConverter) PermissionSet(_ context.Context, role *store.Role, rbid primitive.ObjectID) (*store.PermissionSet, error) {
+
+TODO all the conversion logic in hee for 
+
 	return &store.PermissionSet{
 		Id:            store.ObjectID(),
 		RoleId:        role.Id,

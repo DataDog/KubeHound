@@ -15,28 +15,28 @@ import (
 )
 
 func init() {
-	Register(&PermissionGrant{}, RegisterDefault)
+	Register(&PermissionDiscover{}, RegisterDefault)
 }
 
-type PermissionGrant struct {
+type PermissionDiscover struct {
 	BaseEdge
 }
 
-type permissionGrantGroup struct {
+type permissionDiscoverGroup struct {
 	PermissionSet primitive.ObjectID `bson:"_id" json:"permission_set"`
 	Identity      primitive.ObjectID `bson:"identity_id" json:"identity"`
 }
 
-func (e *PermissionGrant) Label() string {
-	return "PERMISSION_GRANT"
+func (e *PermissionDiscover) Label() string {
+	return "PERMISSION_DISCOVER"
 }
 
-func (e *PermissionGrant) Name() string {
-	return "PermissionGrant"
+func (e *PermissionDiscover) Name() string {
+	return "PermissionDiscover"
 }
 
-func (e *PermissionGrant) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	typed, ok := entry.(*permissionGrantGroup)
+func (e *PermissionDiscover) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*permissionDiscoverGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
@@ -44,7 +44,7 @@ func (e *PermissionGrant) Processor(ctx context.Context, oic *converter.ObjectID
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Identity, typed.PermissionSet)
 }
 
-func (e *PermissionGrant) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *PermissionDiscover) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
@@ -137,5 +137,5 @@ func (e *PermissionGrant) Stream(ctx context.Context, store storedb.Provider, c 
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[permissionGrantGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[permissionDiscoverGroup](ctx, cur, callback, complete)
 }

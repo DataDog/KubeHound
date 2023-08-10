@@ -22,6 +22,12 @@ A full list of identity → role mappings can be retrieved via:
 kubectl get rolebindings,clusterrolebindings --all-namespaces -o wide  
 ```
 
+To discover the permissions of the current identity use:
+
+```bash
+kubectl auth can-i --list
+```
+
 ## Exploitation
 
 No exploitation is necessary. This edge simply indicates that an identity grants a specific set of permissions (effectively represents a `RoleBinding` or `ClusterRoleBinding` in K8s).

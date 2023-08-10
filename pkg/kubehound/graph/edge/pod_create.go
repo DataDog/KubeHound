@@ -103,7 +103,7 @@ func (e *PodCreate) Traversal() types.EdgeTraversal {
 func (e *PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	roles := adapter.MongoDB(store).Collection(collections.PermissionSetName)
+	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
@@ -122,6 +122,7 @@ func (e *PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.
 								bson.M{"verbs": "create"},
 								bson.M{"verbs": "*"},
 							}},
+							bson.M{"resourcenames": nil}, // TODO: handle resource scope
 						},
 					},
 				},
@@ -134,7 +135,7 @@ func (e *PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.
 		},
 	}
 
-	cur, err := roles.Aggregate(context.Background(), pipeline)
+	cur, err := permissionSets.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return err
 	}

@@ -77,7 +77,7 @@ func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *sto
 	if err != nil {
 		switch e := err.(type) {
 		case *cache.OverwriteError:
-			log.I.Debugf("identity cache entry %#v already exists, skipping inserts", ck)
+			log.Trace(ctx).Debugf("identity cache entry %#v already exists, skipping inserts", ck)
 			return nil
 		default:
 			return e
@@ -163,7 +163,7 @@ func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context,
 	o, err := i.r.storeConvert.ClusterRoleBinding(ctx, crb)
 	if err != nil {
 		if err == converter.ErrDanglingRoleBinding {
-			log.I.Warnf("Cluster role binding dropped: %s: %s", err.Error(), crb.Name)
+			log.Trace(ctx).Warnf("Cluster role binding dropped: %s: %s", err.Error(), crb.Name)
 			return nil
 		}
 

@@ -22,8 +22,8 @@ volume = mgmt.makeVertexLabel('Volume').make();
 endpoint = mgmt.makeVertexLabel('Endpoint').make();
 
 // Create our edge labels and connections
-permissionGrant = mgmt.makeEdgeLabel('PERMISSION_GRANT').multiplicity(MULTI).make();
-mgmt.addConnection(permissionGrant, identity, permissionSet);
+permissionDiscover = mgmt.makeEdgeLabel('PERMISSION_DISCOVER').multiplicity(MULTI).make();
+mgmt.addConnection(permissionDiscover, identity, permissionSet);
 
 volumeMount = mgmt.makeEdgeLabel('VOLUME_MOUNT').multiplicity(MULTI).make();
 mgmt.addConnection(volumeMount, container, volume);
@@ -143,6 +143,9 @@ identityName = mgmt.makePropertyKey('identity').dataType(String.class).cardinali
 addressType = mgmt.makePropertyKey('addressType').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 addresses = mgmt.makePropertyKey('addresses').dataType(String.class).cardinality(Cardinality.LIST).make();
 protocol = mgmt.makePropertyKey('protocol').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+role = mgmt.makePropertyKey('role').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+roleBinding = mgmt.makePropertyKey('roleBinding').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+
 
 // Define properties for each vertex 
 mgmt.addProperties(container, cls, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, 
@@ -150,7 +153,7 @@ mgmt.addProperties(container, cls, storeID, app, team, service, isNamespaced, na
 mgmt.addProperties(identity, cls, storeID, app, team, service, name, isNamespaced, namespace, type, critical);
 mgmt.addProperties(node, cls, storeID, app, team, service, name, isNamespaced, namespace, compromised, critical);
 mgmt.addProperties(pod, cls, storeID, app, team, service, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
-mgmt.addProperties(permissionSet, cls, storeID, app, team, service, name, isNamespaced, namespace, rules, critical);
+mgmt.addProperties(permissionSet, cls, storeID, app, team, service, name, isNamespaced, namespace, role, roleBinding, rules, critical);
 mgmt.addProperties(volume, cls, storeID, app, team, service, name, isNamespaced, namespace, type, sourcePath, mountPath, readonly);
 mgmt.addProperties(endpoint, cls, storeID, app, team, service, name, isNamespaced, namespace, serviceEndpoint, serviceDns, addressType, 
     addresses, port, portName, protocol, exposure, compromised);

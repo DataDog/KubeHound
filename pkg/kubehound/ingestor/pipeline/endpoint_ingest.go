@@ -61,7 +61,7 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 			o, err := i.r.storeConvert.Endpoint(ctx, addr, port, eps)
 			if err != nil {
 				if err == converter.ErrEndpointTarget {
-					log.I.Warnf("Endpoint dropped: %s: %s", err.Error(), addr.TargetRef)
+					log.Trace(ctx).Warnf("Endpoint dropped: %s: %s", err.Error(), addr.TargetRef)
 					return nil
 				}
 

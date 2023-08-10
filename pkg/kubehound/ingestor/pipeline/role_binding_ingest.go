@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"errors"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -17,6 +18,10 @@ import (
 
 const (
 	RoleBindingIngestName = "k8s-role-binding-ingest"
+)
+
+var (
+	ErrRoleCacheMiss = errors.New("Missing role in cache")
 )
 
 type RoleBindingIngest struct {
@@ -77,7 +82,7 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	if err != nil {
 		switch e := err.(type) {
 		case *cache.OverwriteError:
-			log.I.Debugf("identity cache entry %#v already exists, skipping inserts", ck)
+			log.Trace(ctx).Debugf("identity cache entry %#v already exists, skipping inserts", ck)
 			return nil
 		default:
 			return e
@@ -115,10 +120,19 @@ RBAC rules and limitation:
 */
 func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.RoleBindingType, rbid primitive.ObjectID) error {
 
-	// Get Role from cache
-	role, err := i.r.cacheReader.Get(ctx, cachekey.Role(rb.RoleRef.Name, rb.Namespace)).Role()
+	// MOVE TO CONVERTER BEGIN
+
+	// Get matching role from cache
+	var ck cachekey.CacheKey
+	if rb.RoleRef.Kind == "ClusterRole" {
+		ck = cachekey.Role(rb.RoleRef.Name, "")
+	} else {
+		ck = cachekey.Role(rb.RoleRef.Name, rb.Namespace)
+	}
+
+	role, err := i.r.readCache(ctx, ck).Role()
 	if err != nil {
-		return err
+		return ErrRoleCacheMiss
 	}
 
 	// Normalize K8s role binding to store object format
@@ -127,14 +141,15 @@ func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.Ro
 		return err
 	}
 
-	// Roles and RoleBindings must exist in the same namespace.
-	if rb.Namespace != role.Namespace {
-		log.I.Warnf("The role namespace does not match the rolebinding, skipping the permissionset: r::%s/rb::%s", role.Namespace, rb.Namespace)
+	// Roles and role bindings must exist in the same namespace or the role must be a ClusterRole
+	if rb.Namespace != role.Namespace && role.Namespace != "" {
+		log.Trace(ctx).Warnf("The role namespace (%s) does not match the rolebinding namespace (%s), skipping permissionset creation",
+			role.Namespace, rb.Namespace)
 		return nil
 	}
 
 	// RoleBindings can exist in separate namespaces to Service Accounts.
-	// Will be FULLY handled in the PERMISSION_GRANT edge, just checking if no match is being found
+	// Will be FULLY handled in the PERMISSION_DISCOVER edge, just checking if no match is being found
 	isEffective := false
 	for _, subj := range rb.Subjects {
 		// Service Account
@@ -145,7 +160,7 @@ func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.Ro
 	}
 
 	if !isEffective {
-		log.I.Warnf("The rolebinding/subjects are ALL not in the same namespace: rb::%s/rb.sbj::%s", rb.Namespace, rb.Subjects)
+		log.Trace(ctx).Warnf("The rolebinding/subjects are ALL not in the same namespace: rb::%s/rb.sbj::%s", rb.Namespace, rb.Subjects)
 		return nil
 	}
 
@@ -154,6 +169,9 @@ func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.Ro
 		o.IsNamespaced = true
 		o.Namespace = rb.Namespace
 	}
+
+	// MOVE TO CONVERTER END
+
 	// Async write role binding to store
 	if err := i.r.writeStore(ctx, i.permissionset, o); err != nil {
 		return err
@@ -185,7 +203,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	o, err := i.r.storeConvert.RoleBinding(ctx, rb)
 	if err != nil {
 		if err == converter.ErrDanglingRoleBinding {
-			log.I.Warnf("%s: r::%s/rb::%s ", err.Error(), rb.RoleRef.Name, rb.Name)
+			log.Trace(ctx).Warnf("Role binding dropped (%s::%s): %s", rb.Namespace, rb.Name, err.Error())
 			return nil
 		}
 
@@ -208,8 +226,16 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	}
 
 	// Create permission from Rolebinding entry
-	return i.createPermissionSet(ctx, rb, o.Id)
-	//return nil
+	err = i.createPermissionSet(ctx, rb, o.Id)
+	switch err {
+	case nil:
+	case ErrRoleCacheMiss:
+		log.Trace(ctx).Warnf("Permission set dropped (%s::%s): %v", rb.Namespace, rb.Name, err)
+	default:
+		return err
+	}
+
+	return nil
 }
 
 // completeCallback is invoked by the collector when all roles have been streamed.

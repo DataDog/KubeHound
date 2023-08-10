@@ -238,7 +238,7 @@ func (suite *VertexTestSuite) TestVertexPod() {
 	suite.Equal(expectedPods, resultsMap)
 }
 
-func (suite *VertexTestSuite) TestVertexRole() {
+func (suite *VertexTestSuite) TestVertexPerrmissionSet() {
 	results, err := suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "impersonate").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
@@ -258,6 +258,8 @@ func (suite *VertexTestSuite) TestVertexRole() {
 	results, err = suite.g.V().HasLabel(vertex.PermissionSetLabel).Has("name", "rolebind").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
+
+	// TODO check the namespacing logic of the permission grant tests
 }
 
 func (suite *VertexTestSuite) TestVertexVolume() {
