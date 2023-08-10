@@ -29,8 +29,8 @@ var (
 	ErrDanglingRoleBinding   = errors.New("role binding found with no matching role")
 	ErrProjectedDefaultToken = errors.New("projected volume grant no access (default serviceaccount)")
 	ErrEndpointTarget        = errors.New("target reference for an endpoint could not be resolved")
-	ErrRoleCacheMiss         = errors.New("Missing role in cache")
-	ErrRoleBindProperties    = errors.New("Incorrect combination of (cluster) role and (cluster) role binding properties")
+	ErrRoleCacheMiss         = errors.New("missing role in cache")
+	ErrRoleBindProperties    = errors.New("incorrect combination of (cluster) role and (cluster) role binding properties")
 )
 
 // StoreConverter enables converting between an input K8s model to its equivalent store model.
@@ -375,7 +375,7 @@ func (c *StoreConverter) PermissionSet(ctx context.Context, roleBinding *store.R
 	// Get matching role from cache
 	var ck cachekey.CacheKey
 	if roleBinding.K8.Kind == "ClusterRole" {
-		ck = cachekey.Role(roleBinding.K8.Name, "")
+		ck = cachekey.Role(roleBinding.K8.Name, EmptyNamespace)
 	} else {
 		ck = cachekey.Role(roleBinding.K8.Name, roleBinding.Namespace)
 	}
@@ -398,7 +398,7 @@ func (c *StoreConverter) PermissionSet(ctx context.Context, roleBinding *store.R
 	for _, s := range roleBinding.Subjects {
 		// Service Account
 		// User or Group have to be on the same namespace
-		if s.Subject.Kind == "ServiceAccount" || s.Subject.Namespace == roleBinding.Namespace || s.Subject.Namespace == "" {
+		if s.Subject.Kind == "ServiceAccount" || s.Subject.Namespace == roleBinding.Namespace || s.Subject.Namespace == EmptyNamespace {
 			isEffective = true
 		}
 	}
