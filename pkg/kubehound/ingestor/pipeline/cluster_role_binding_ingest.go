@@ -12,7 +12,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -112,24 +111,11 @@ RBAC rules and limitation:
   - ClusterRoleBindings link accounts to ClusterRoles and grant access across all resources.
   - ClusterRoleBindings can not reference Roles.
 */
-func (i *ClusterRoleBindingIngest) createPermissionSet(ctx context.Context, crb types.ClusterRoleBindingType, rbid primitive.ObjectID) error {
-
-	// Get Role from cache
-	role, err := i.r.cacheReader.Get(ctx, cachekey.Role(crb.RoleRef.Name, crb.Namespace)).Role()
-	if err != nil {
-		return err
-	}
-
+func (i *ClusterRoleBindingIngest) createPermissionSet(ctx context.Context, crb *store.RoleBinding) error {
 	// Normalize K8s role binding to store object format
-	o, err := i.r.storeConvert.PermissionSet(ctx, role, rbid)
+	o, err := i.r.storeConvert.PermissionSetCluster(ctx, crb)
 	if err != nil {
 		return err
-	}
-
-	// CusterRoleBindings can not reference Roles.
-	if role.IsNamespaced {
-		log.Trace(ctx).Warnf("The clusterrolebinding bind a role and not a clusterrole, skipping the permissionset: r::%s/cr::%s", role.Namespace, crb.Namespace)
-		return nil
 	}
 
 	// Async write role binding to store
@@ -186,7 +172,16 @@ func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context,
 	}
 
 	// Create permission from Rolebinding entry
-	return i.createPermissionSet(ctx, crb, o.Id)
+	err = i.createPermissionSet(ctx, o)
+	switch err {
+	case nil:
+	case converter.ErrRoleCacheMiss, converter.ErrRoleBindProperties:
+		log.Trace(ctx).Warnf("Permission set dropped (%s::%s): %v", crb.Namespace, crb.Name, err)
+	default:
+		return err
+	}
+
+	return nil
 }
 
 // completeCallback is invoked by the collector when all roles have been streamed.

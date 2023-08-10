@@ -2,7 +2,6 @@ package pipeline
 
 import (
 	"context"
-	"errors"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -13,15 +12,10 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
 	RoleBindingIngestName = "k8s-role-binding-ingest"
-)
-
-var (
-	ErrRoleCacheMiss = errors.New("Missing role in cache")
 )
 
 type RoleBindingIngest struct {
@@ -108,69 +102,16 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	return nil
 }
 
-/*
-To create the permissionSets, all the computation will be made through the cache to avoid heavy IO on the storeDB.
-The cache size for all the roles should not exceed 10mb (value in our cluster goes from 0.5mb (100 roles) to 7.5mb (1500 roles)).
-Last, the rolebindings are being processed after the roles (cf pipeline order, file:///pkg/kubehound/ingestor/pipeline_ingestor.go), so all roles should be cached.
-
-RBAC rules and limitation:
-* Roles and RoleBindings must exist in the same namespace.
-* RoleBindings can exist in separate namespaces to Service Accounts.
-* RoleBindings can link ClusterRoles, but they only grant access to the namespace of the RoleBinding.
-*/
-func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb types.RoleBindingType, rbid primitive.ObjectID) error {
-
-	// MOVE TO CONVERTER BEGIN
-
-	// Get matching role from cache
-	var ck cachekey.CacheKey
-	if rb.RoleRef.Kind == "ClusterRole" {
-		ck = cachekey.Role(rb.RoleRef.Name, "")
-	} else {
-		ck = cachekey.Role(rb.RoleRef.Name, rb.Namespace)
-	}
-
-	role, err := i.r.readCache(ctx, ck).Role()
-	if err != nil {
-		return ErrRoleCacheMiss
-	}
-
+// createPermissionSet creates a permission set from an input store role binding.
+// To create the permissionSets, all the computation will be made through the cache to avoid heavy IO on the storeDB.
+// The cache size for all the roles should not exceed 10mb (value in our cluster goes from 0.5mb (100 roles) to 7.5mb (1500 roles)).
+// Last, the rolebindings are being processed after the roles (cf pipeline order, file:///pkg/kubehound/ingestor/pipeline_ingestor.go), so all roles should be cached.
+func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb *store.RoleBinding) error {
 	// Normalize K8s role binding to store object format
-	o, err := i.r.storeConvert.PermissionSet(ctx, role, rbid)
+	o, err := i.r.storeConvert.PermissionSet(ctx, rb)
 	if err != nil {
 		return err
 	}
-
-	// Roles and role bindings must exist in the same namespace or the role must be a ClusterRole
-	if rb.Namespace != role.Namespace && role.Namespace != "" {
-		log.Trace(ctx).Warnf("The role namespace (%s) does not match the rolebinding namespace (%s), skipping permissionset creation",
-			role.Namespace, rb.Namespace)
-		return nil
-	}
-
-	// RoleBindings can exist in separate namespaces to Service Accounts.
-	// Will be FULLY handled in the PERMISSION_DISCOVER edge, just checking if no match is being found
-	isEffective := false
-	for _, subj := range rb.Subjects {
-		// Service Account
-		// User or Group have to be on the same namespace
-		if subj.Kind == "ServiceAccount" || subj.Namespace == rb.Namespace || subj.Namespace == "" {
-			isEffective = true
-		}
-	}
-
-	if !isEffective {
-		log.Trace(ctx).Warnf("The rolebinding/subjects are ALL not in the same namespace: rb::%s/rb.sbj::%s", rb.Namespace, rb.Subjects)
-		return nil
-	}
-
-	// RoleBindings can link ClusterRoles, but they only grant access to the namespace of the RoleBinding.
-	if !role.IsNamespaced {
-		o.IsNamespaced = true
-		o.Namespace = rb.Namespace
-	}
-
-	// MOVE TO CONVERTER END
 
 	// Async write role binding to store
 	if err := i.r.writeStore(ctx, i.permissionset, o); err != nil {
@@ -226,10 +167,10 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	}
 
 	// Create permission from Rolebinding entry
-	err = i.createPermissionSet(ctx, rb, o.Id)
+	err = i.createPermissionSet(ctx, o)
 	switch err {
 	case nil:
-	case ErrRoleCacheMiss:
+	case converter.ErrRoleCacheMiss, converter.ErrRoleBindProperties:
 		log.Trace(ctx).Warnf("Permission set dropped (%s::%s): %v", rb.Namespace, rb.Name, err)
 	default:
 		return err
