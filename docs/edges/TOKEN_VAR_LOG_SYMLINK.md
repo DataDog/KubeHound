@@ -18,7 +18,7 @@ See the [example pod spec](../../test/setup/test-cluster/attacks/TOKEN_VAR_LOG_S
 
 ## Checks
 
-Determine mounted volumes within the container as per [VOLUME_MOUNT](./VOLUME_MOUNT.md#checks) If the host `/var/log` (or any parent directory) is mounted, this attack will be possible. Example output below:
+Determine mounted volumes within the container as per [VOLUME_DISCOVER](./VOLUME_DISCOVER.md#checks) If the host `/var/log` (or any parent directory) is mounted, this attack will be possible. Example output below:
 
 ```bash
 cat /proc/self/mounts

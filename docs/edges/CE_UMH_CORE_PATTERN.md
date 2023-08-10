@@ -18,7 +18,7 @@ See the [example pod spec](../../test/setup/test-cluster/attacks/CE_UMH_CORE_PAT
 
 ## Checks
 
-Determine mounted volumes within the container as per [VOLUME_MOUNT](./VOLUME_MOUNT.md#checks). If the host `/proc/sys/kernel` (or any parent directory) is mounted, this attack will be possible. Example below.
+Determine mounted volumes within the container as per [VOLUME_DISCOVER](./VOLUME_DISCOVER.md#checks). If the host `/proc/sys/kernel` (or any parent directory) is mounted, this attack will be possible. Example below.
 
 ```bash
 $ cat /proc/self/mounts
@@ -30,7 +30,7 @@ proc /hostproc proc rw,nosuid,nodev,noexec,relatime 0 0
 
 ## Exploitation
 
-First find the path of the container’s filesystem on the host. This can be done by retrieving the current mounts (see [VOLUME_MOUNT](./VOLUME_MOUNT.md#checks)). Looks for the `upperdir` value of the overlayfs entry associated with containerd:
+First find the path of the container’s filesystem on the host. This can be done by retrieving the current mounts (see [VOLUME_DISCOVER](./VOLUME_DISCOVER.md#checks)). Looks for the `upperdir` value of the overlayfs entry associated with containerd:
 
 ```bash
 $ cat /etc/mtab
