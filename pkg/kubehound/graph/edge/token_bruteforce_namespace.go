@@ -60,7 +60,7 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 		}}
 	}
 
-	roles := adapter.MongoDB(store).Collection(collections.RoleName)
+	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
@@ -77,6 +77,7 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 								bson.M{"resources": "*"},
 							}},
 							verbMatcher,
+							bson.M{"resourcenames": nil}, // TODO: handle resource scope
 						},
 					},
 				},
@@ -122,7 +123,7 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 		},
 	}
 
-	cur, err := roles.Aggregate(context.Background(), pipeline)
+	cur, err := permissionSets.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return err
 	}

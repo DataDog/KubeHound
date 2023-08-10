@@ -37,7 +37,8 @@ func (mp *MemCacheProvider) Name() string {
 }
 
 func (m *MemCacheProvider) Close(ctx context.Context) error {
-	m.data = make(map[string]any)
+	// No data should be access after the Close(), this will create a crash on Get() access which will make debuging easier
+	m.data = nil
 	return nil
 }
 
@@ -71,6 +72,10 @@ func (m *MemCacheProvider) BulkWriter(ctx context.Context, opts ...WriterOption)
 	wOpts := &writerOptions{}
 	for _, o := range opts {
 		o(wOpts)
+	}
+
+	if wOpts.ExpectOverwrite && wOpts.Test {
+		return nil, fmt.Errorf("mutually exclusive cache writer options: %#v", wOpts)
 	}
 
 	memCacheWriter.opts = wOpts

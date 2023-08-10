@@ -1,6 +1,6 @@
-# VOLUME_MOUNT
+# VOLUME_DISCOVER
 
-Represents a container's access to a mounted volume.
+Represents an attacker within a container discovering a mounted volume.
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
@@ -86,7 +86,7 @@ None
 
 ## Calculation
 
-+ [VolumeMount](../../pkg/kubehound/graph/edge/volume_mount.go)
++ [VolumeDiscover](../../pkg/kubehound/graph/edge/volume_discover.go)
 
 ## References:
 

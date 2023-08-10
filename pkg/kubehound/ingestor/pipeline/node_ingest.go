@@ -35,7 +35,8 @@ func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(),
 		WithStoreWriter(i.collection),
-		WithGraphWriter(i.vertex))
+		WithGraphWriter(i.vertex),
+		WithConverterCache())
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,6 @@ func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error 
 	if err := i.r.writeCache(ctx, cachekey.Node(o.K8.Name), o.Id.Hex()); err != nil {
 		return err
 	}
-
 	// Transform store model to vertex input
 	insert, err := i.r.graphConvert.Node(o)
 	if err != nil {

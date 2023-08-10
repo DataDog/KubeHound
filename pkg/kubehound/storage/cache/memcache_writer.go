@@ -16,20 +16,25 @@ type MemCacheAsyncWriter struct {
 	opts *writerOptions
 }
 
+// To support the object writing, we will need at least redis 4 which support the HSET function
 func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, value any) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	_ = statsd.Incr(telemetry.MetricCacheWrite, []string{}, 1)
 	keyId := computeKey(key)
-	_, ok := m.data[keyId]
+	entry, ok := m.data[keyId]
 	if ok {
 		if m.opts.Test {
-			return ErrCacheEntryOverwrite
+			// if test & set behaviour is specified, return an error containing the existing value in the cache
+			return NewOverwriteError(&CacheResult{Value: entry})
 		}
 
-		_ = statsd.Incr(telemetry.MetricCacheDuplicateEntry, []string{keyId}, 1)
-		log.Trace(ctx).Warnf("overwriting cache entry: [key]%s", keyId)
+		if !m.opts.ExpectOverwrite {
+			// if overwrite is expected (e.g fast tracking of existence regardless of value), suppress metrics and logs
+			_ = statsd.Incr(telemetry.MetricCacheDuplicateEntry, []string{keyId}, 1)
+			log.Trace(ctx).Warnf("overwriting cache entry key=%s old=%#v new=%#v", keyId, entry, value)
+		}
 	}
 
 	m.data[keyId] = value

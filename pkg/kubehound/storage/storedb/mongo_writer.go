@@ -62,10 +62,10 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 				_ = statsd.Count(telemetry.MetricStoredbBackgroundWriterCall, 1, maw.tags, 1)
 				err := maw.batchWrite(ctx, data)
 				if err != nil {
-					log.I.Errorf("write data in background batch writer: %v", err)
+					log.Trace(ctx).Errorf("write data in background batch writer: %v", err)
 				}
 			case <-ctx.Done():
-				log.I.Debug("Closed background mongodb worker")
+				log.Trace(ctx).Debug("Closed background mongodb worker")
 				return
 			}
 		}
@@ -119,7 +119,7 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 	}
 
 	if len(maw.ops) == 0 {
-		log.I.Debugf("Skipping flush on %s as no write operations", maw.collection.Name())
+		log.Trace(ctx).Debugf("Skipping flush on %s as no write operations", maw.collection.Name())
 		// we need to send something to the channel from this function whenever we don't return an error
 		// we cannot defer it because the go routine may last longer than the current function
 		// the defer is going to be executed at the return time, whetever or not the inner go routine is processing data

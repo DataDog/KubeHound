@@ -8,6 +8,7 @@ import (
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	mockcache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
@@ -44,7 +45,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 
 	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
-	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
+	c.EXPECT().BulkWriter(ctx, mock.AnythingOfType("cache.WriterOption")).Return(cw, nil)
 	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.nodeCacheKey")).Return(&cache.CacheResult{
 		Value: store.ObjectID().Hex(),
 		Err:   nil,
@@ -52,6 +53,10 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.identityCacheKey")).Return(&cache.CacheResult{
 		Value: store.ObjectID().Hex(),
 		Err:   nil,
+	})
+	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.endpointCacheKey")).Return(&cache.CacheResult{
+		Value: nil,
+		Err:   cache.ErrNoEntry,
 	})
 
 	// Store setup - pods
@@ -92,9 +97,23 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	vsw.EXPECT().Flush(ctx).Return(nil)
 	vsw.EXPECT().Close(ctx).Return(nil)
 
+	// Store setup - endpoint
+	esw := storedb.NewAsyncWriter(t)
+	endpoints := collections.Endpoint{}
+	eid := store.ObjectID()
+	esw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Endpoint")).
+		RunAndReturn(func(ctx context.Context, i any) error {
+			i.(*store.Endpoint).Id = eid
+			return nil
+		}).Once()
+
+	esw.EXPECT().Flush(ctx).Return(nil)
+	esw.EXPECT().Close(ctx).Return(nil)
+
 	sdb.EXPECT().BulkWriter(ctx, pods, mock.Anything).Return(psw, nil)
 	sdb.EXPECT().BulkWriter(ctx, containers, mock.Anything).Return(csw, nil)
 	sdb.EXPECT().BulkWriter(ctx, volumes, mock.Anything).Return(vsw, nil)
+	sdb.EXPECT().BulkWriter(ctx, endpoints, mock.Anything).Return(esw, nil)
 
 	// Graph setup - pods
 	pv := map[string]any{
@@ -133,7 +152,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"name":         "elasticsearch",
 		"node":         "test-node.ec2.internal",
 		"pod":          "app-monitors-client-78cb6d7899-j2rjp",
-		"ports":        []any{"9200", "9300"},
+		"ports":        []any{"9200"},
 		"privesc":      false,
 		"privileged":   false,
 		"runAsUser":    float64(0),
@@ -168,9 +187,35 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	vgw.EXPECT().Flush(ctx).Return(nil)
 	vgw.EXPECT().Close(ctx).Return(nil)
 
+	// Graph setup - endpoints
+
+	ev := map[string]interface{}{
+		"addressType":     "IPv4",
+		"addresses":       []interface{}{"10.1.1.2"},
+		"app":             "test-app",
+		"compromised":     float64(0),
+		"exposure":        float64(shared.EndpointExposureNodeIP),
+		"isNamespaced":    true,
+		"name":            "test-app::app-monitors-client-78cb6d7899-j2rjp::TCP::9200",
+		"namespace":       "test-app",
+		"port":            float64(9200),
+		"portName":        "http",
+		"protocol":        "TCP",
+		"service":         "test-service",
+		"serviceDns":      "",
+		"serviceEndpoint": "http",
+		"storeID":         eid.Hex(),
+		"team":            "test-team",
+	}
+	egw := graphdb.NewAsyncVertexWriter(t)
+	egw.EXPECT().Queue(ctx, ev).Return(nil).Once()
+	egw.EXPECT().Flush(ctx).Return(nil)
+	egw.EXPECT().Close(ctx).Return(nil)
+
 	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Pod"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(pgw, nil)
 	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Container"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(cgw, nil)
 	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Volume"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(vgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Endpoint"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(egw, nil)
 
 	deps := &Dependencies{
 		Collector: client,

@@ -1,0 +1,21 @@
+# IDENTITY_ASSUME edge (node users)
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: node-api-access
+rules:
+  - apiGroups: ["*"]
+    resources: ["pods"]
+    verbs: ["list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-api-access
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: node-api-access
+subjects:
+  - kind: Group
+    name: system:nodes

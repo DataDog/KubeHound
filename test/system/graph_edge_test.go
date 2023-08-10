@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"github.com/stretchr/testify/suite"
@@ -152,7 +153,7 @@ func (suite *EdgeTestSuite) TestEdge_CONTAINER_ATTACH() {
 	suite.Equal(containerCount, pathCount)
 }
 
-func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME() {
+func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME_Container() {
 	// We currently have 6 custom accounts configured (excluding the default)
 	// 	➜  KubeHound ✗ k get sa
 	// NAME             SECRETS   AGE
@@ -187,6 +188,27 @@ func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME() {
 	suite.Subset(paths, expected)
 }
 
+func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME_Node() {
+	results, err := suite.g.V().
+		HasLabel("Node").
+		OutE().HasLabel("IDENTITY_ASSUME").
+		InV().HasLabel("Identity").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 3)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		"path[map[name:[kubehound.test.local-control-plane]], map[], map[name:[system:nodes]",
+		"path[map[name:[kubehound.test.local-worker]], map[], map[name:[system:nodes]",
+		"path[map[name:[kubehound.test.local-worker2]], map[], map[name:[system:nodes]",
+	}
+	suite.Subset(paths, expected)
+}
+
 func (suite *EdgeTestSuite) TestEdge_POD_ATTACH() {
 	// Every pod should have a POD_ATTACH incoming from a node
 	rawCount, err := suite.g.V().
@@ -216,7 +238,8 @@ func (suite *EdgeTestSuite) TestEdge_POD_PATCH() {
 	// We have one bespoke container running with pod/patch permissions which should reach all nodes
 	// since they are not namespaced
 	results, err := suite.g.V().
-		HasLabel("Role").
+		HasLabel("PermissionSet").
+		Has("namespace", "default").
 		OutE().HasLabel("POD_PATCH").
 		InV().HasLabel("Pod").
 		Path().
@@ -227,20 +250,20 @@ func (suite *EdgeTestSuite) TestEdge_POD_PATCH() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[patch-pods]], map[], map[name:[impersonate-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[modload-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[pod-create-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[rolebind-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[tokenlist-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[netadmin-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[priv-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[tokenget-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[nsenter-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[varlog-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[sharedps-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[umh-core-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[pod-patch-pod]",
-		"path[map[name:[patch-pods]], map[], map[name:[pod-exec-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[impersonate-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[modload-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[pod-create-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[rolebind-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[tokenlist-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[netadmin-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[priv-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[tokenget-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[nsenter-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[varlog-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[sharedps-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[umh-core-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[pod-patch-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[pod-exec-pod]",
 	}
 	suite.Subset(paths, expected)
 }
@@ -249,7 +272,8 @@ func (suite *EdgeTestSuite) TestEdge_POD_CREATE() {
 	// We have one bespoke container running with pod/create permissions which should reach all nodes
 	// since they are not namespaced
 	results, err := suite.g.V().
-		HasLabel("Role").
+		HasLabel("PermissionSet").
+		Has("namespace", "default").
 		OutE().HasLabel("POD_CREATE").
 		InV().HasLabel("Node").
 		Path().
@@ -261,9 +285,9 @@ func (suite *EdgeTestSuite) TestEdge_POD_CREATE() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-control-plane]",
-		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-worker]",
-		"path[map[name:[create-pods]], map[], map[name:[kubehound.test.local-worker2]",
+		"path[map[name:[create-pods::pod-create-pods]], map[], map[name:[kubehound.test.local-control-plane]",
+		"path[map[name:[create-pods::pod-create-pods]], map[], map[name:[kubehound.test.local-worker]",
+		"path[map[name:[create-pods::pod-create-pods]], map[], map[name:[kubehound.test.local-worker2]",
 	}
 	suite.Subset(paths, expected)
 }
@@ -271,7 +295,8 @@ func (suite *EdgeTestSuite) TestEdge_POD_CREATE() {
 func (suite *EdgeTestSuite) TestEdge_POD_EXEC() {
 	// We have one bespoke container running with pod/exec permissions which should reach all pods in the namespace
 	results, err := suite.g.V().
-		HasLabel("Role").
+		HasLabel("PermissionSet").
+		Has("namespace", "default").
 		OutE().HasLabel("POD_EXEC").
 		InV().HasLabel("Pod").
 		Path().
@@ -283,25 +308,25 @@ func (suite *EdgeTestSuite) TestEdge_POD_EXEC() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[exec-pods]], map[], map[name:[impersonate-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[modload-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[pod-create-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[rolebind-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[tokenlist-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[netadmin-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[priv-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[tokenget-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[nsenter-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[varlog-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[sharedps-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[umh-core-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[pod-patch-pod]",
-		"path[map[name:[exec-pods]], map[], map[name:[pod-exec-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[impersonate-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[modload-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[pod-create-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[rolebind-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[tokenlist-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[netadmin-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[priv-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[tokenget-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[nsenter-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[varlog-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[sharedps-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[umh-core-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[pod-patch-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[pod-exec-pod]",
 	}
 	suite.Subset(paths, expected)
 }
 
-func (suite *EdgeTestSuite) TestEdge_ROLE_GRANT() {
+func (suite *EdgeTestSuite) TestEdge_PERMISSION_DISCOVER() {
 
 	// We currently have 6 custom accounts configured (excluding the default)
 	// 	➜  KubeHound ✗ k get sa
@@ -315,8 +340,9 @@ func (suite *EdgeTestSuite) TestEdge_ROLE_GRANT() {
 	// tokenlist-sa     0         7h39m
 	results, err := suite.g.V().
 		HasLabel("Identity").
-		OutE().HasLabel("ROLE_GRANT").
-		InV().HasLabel("Role").
+		Has("namespace", "default").
+		OutE().HasLabel("PERMISSION_DISCOVER").
+		InV().HasLabel("PermissionSet").
 		Path().
 		By(__.ValueMap("name")).
 		ToList()
@@ -326,18 +352,21 @@ func (suite *EdgeTestSuite) TestEdge_ROLE_GRANT() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[pod-create-sa]], map[], map[name:[create-pods]",
-		"path[map[name:[rolebind-sa]], map[], map[name:[rolebind]",
-		"path[map[name:[tokenlist-sa]], map[], map[name:[list-secrets]",
-		"path[map[name:[impersonate-sa]], map[], map[name:[impersonate]",
-		"path[map[name:[tokenget-sa]], map[], map[name:[read-secrets]",
-		"path[map[name:[pod-patch-sa]], map[], map[name:[patch-pods]",
+		"path[map[name:[rolebind-sa]], map[], map[name:[rolebind::pod-bind-role]",
+		"path[map[name:[pod-patch-sa]], map[], map[name:[patch-pods::pod-patch-pods]",
+		"path[map[name:[pod-create-sa]], map[], map[name:[create-pods::pod-create-pods]",
+		"path[map[name:[tokenget-sa]], map[], map[name:[read-secrets::pod-get-secrets]",
+		"path[map[name:[tokenlist-sa]], map[], map[name:[list-secrets::pod-list-secrets]",
+		"path[map[name:[pod-exec-sa]], map[], map[name:[exec-pods::pod-exec-pods]",
+		"path[map[name:[impersonate-sa]], map[], map[name:[impersonate::pod-impersonate]",
+		"path[map[name:[varrlog-sa]], map[], map[name:[read-logs::pod-read-logs]",
 	}
+
 	suite.Subset(paths, expected)
 }
 
-func (suite *EdgeTestSuite) TestEdge_VOLUME_EXPOSE() {
-	// Every volume should have a VOLUME_EXPOSE incoming from a node
+func (suite *EdgeTestSuite) TestEdge_VOLUME_ACCESS() {
+	// Every volume should have a VOLUME_ACCESS incoming from a node
 	rawCount, err := suite.g.V().
 		HasLabel("Volume").
 		Count().Next()
@@ -349,7 +378,7 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_EXPOSE() {
 
 	rawCount, err = suite.g.V().
 		HasLabel("Node").
-		OutE().HasLabel("VOLUME_EXPOSE").
+		OutE().HasLabel("VOLUME_ACCESS").
 		InV().HasLabel("Volume").
 		Dedup().
 		Path().
@@ -361,8 +390,8 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_EXPOSE() {
 	suite.Equal(volumeCount, pathCount)
 }
 
-func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
-	// Every volume should have a VOLUME_MOUNT incoming from a container
+func (suite *EdgeTestSuite) TestEdge_VOLUME_DISCOVER() {
+	// Every volume should have a VOLUME_DISCOVER incoming from a container
 	rawCount, err := suite.g.V().
 		HasLabel("Volume").
 		Count().Next()
@@ -374,7 +403,7 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 
 	rawCount, err = suite.g.V().
 		HasLabel("Container").
-		OutE().HasLabel("VOLUME_MOUNT").
+		OutE().HasLabel("VOLUME_DISCOVER").
 		InV().HasLabel("Volume").
 		Dedup().
 		Path().
@@ -388,7 +417,8 @@ func (suite *EdgeTestSuite) TestEdge_VOLUME_MOUNT() {
 
 func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFORCE() {
 	results, err := suite.g.V().
-		HasLabel("Role").
+		HasLabel("PermissionSet").
+		Has("namespace", "default").
 		OutE().HasLabel("TOKEN_BRUTEFORCE").
 		InV().HasLabel("Identity").
 		Path().
@@ -400,20 +430,21 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_BRUTEFORCE() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[read-secrets]], map[], map[name:[pod-patch-sa]",
-		"path[map[name:[read-secrets]], map[], map[name:[impersonate-sa]",
-		"path[map[name:[read-secrets]], map[], map[name:[tokenlist-sa]",
-		"path[map[name:[read-secrets]], map[], map[name:[pod-exec-sa]",
-		"path[map[name:[read-secrets]], map[], map[name:[tokenget-sa]",
-		"path[map[name:[read-secrets]], map[], map[name:[rolebind-sa]",
-		"path[map[name:[read-secrets]], map[], map[name:[pod-create-sa]",
+		"path[map[name:[read-secrets::pod-get-secrets]], map[], map[name:[pod-patch-sa]",
+		"path[map[name:[read-secrets::pod-get-secrets]], map[], map[name:[impersonate-sa]",
+		"path[map[name:[read-secrets::pod-get-secrets]], map[], map[name:[tokenlist-sa]",
+		"path[map[name:[read-secrets::pod-get-secrets]], map[], map[name:[pod-exec-sa]",
+		"path[map[name:[read-secrets::pod-get-secrets]], map[], map[name:[tokenget-sa]",
+		"path[map[name:[read-secrets::pod-get-secrets]], map[], map[name:[rolebind-sa]",
+		"path[map[name:[read-secrets::pod-get-secrets]], map[], map[name:[pod-create-sa]",
 	}
 	suite.Subset(paths, expected)
 }
 
 func (suite *EdgeTestSuite) TestEdge_TOKEN_LIST() {
 	results, err := suite.g.V().
-		HasLabel("Role").
+		HasLabel("PermissionSet").
+		Has("namespace", "default").
 		OutE().HasLabel("TOKEN_LIST").
 		InV().HasLabel("Identity").
 		Path().
@@ -425,13 +456,13 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_LIST() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[list-secrets]], map[], map[name:[pod-patch-sa]",
-		"path[map[name:[list-secrets]], map[], map[name:[impersonate-sa]",
-		"path[map[name:[list-secrets]], map[], map[name:[tokenlist-sa]",
-		"path[map[name:[list-secrets]], map[], map[name:[pod-exec-sa]",
-		"path[map[name:[list-secrets]], map[], map[name:[tokenget-sa]",
-		"path[map[name:[list-secrets]], map[], map[name:[rolebind-sa]",
-		"path[map[name:[list-secrets]], map[], map[name:[pod-create-sa]",
+		"path[map[name:[list-secrets::pod-list-secrets]], map[], map[name:[pod-patch-sa]",
+		"path[map[name:[list-secrets::pod-list-secrets]], map[], map[name:[impersonate-sa]",
+		"path[map[name:[list-secrets::pod-list-secrets]], map[], map[name:[tokenlist-sa]",
+		"path[map[name:[list-secrets::pod-list-secrets]], map[], map[name:[pod-exec-sa]",
+		"path[map[name:[list-secrets::pod-list-secrets]], map[], map[name:[tokenget-sa]",
+		"path[map[name:[list-secrets::pod-list-secrets]], map[], map[name:[rolebind-sa]",
+		"path[map[name:[list-secrets::pod-list-secrets]], map[], map[name:[pod-create-sa]",
 	}
 	suite.Subset(paths, expected)
 }
@@ -462,7 +493,7 @@ func (suite *EdgeTestSuite) TestEdge_TOKEN_STEAL() {
 func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_READ() {
 	results, err := suite.g.V().
 		HasLabel("Container").
-		OutE().HasLabel("VOLUME_MOUNT").
+		OutE().HasLabel("VOLUME_DISCOVER").
 		InV().HasLabel("Volume").
 		Where(__.OutE().HasLabel("EXPLOIT_HOST_READ").
 			InV().HasLabel("Node")).
@@ -483,7 +514,7 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_READ() {
 func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_WRITE() {
 	results, err := suite.g.V().
 		HasLabel("Container").
-		OutE().HasLabel("VOLUME_MOUNT").
+		OutE().HasLabel("VOLUME_DISCOVER").
 		InV().HasLabel("Volume").
 		Where(__.OutE().HasLabel("EXPLOIT_HOST_WRITE").
 			InV().HasLabel("Node")).
@@ -523,7 +554,7 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_TRAVERSE() {
 		results, err = suite.g.V().
 			HasLabel("Container").
 			Has("name", c).
-			OutE().HasLabel("VOLUME_MOUNT").
+			OutE().HasLabel("VOLUME_DISCOVER").
 			InV().HasLabel("Volume").
 			OutE().HasLabel("EXPLOIT_HOST_TRAVERSE").
 			InV().HasLabel("Volume").
@@ -539,6 +570,72 @@ func (suite *EdgeTestSuite) TestEdge_EXPLOIT_HOST_TRAVERSE() {
 		// Assert the 2 lists are the same
 		suite.ElementsMatch(expected, reachable)
 	}
+}
+
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPLOIT_ContainerPort() {
+	results, err := suite.g.V().
+		HasLabel("Endpoint").
+		Where(
+			__.Has("exposure", P.Eq(int(shared.EndpointExposureClusterIP))).
+				OutE("ENDPOINT_EXPLOIT").
+				InV().
+				HasLabel("Container")).
+		Values("serviceEndpoint").
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.resultsToStringArray(results)
+	expected := []string{
+		"jmx",
+	}
+
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPLOIT_NodePort() {
+	results, err := suite.g.V().
+		HasLabel("Endpoint").
+		Where(
+			__.Has("exposure", P.Eq(int(shared.EndpointExposureNodeIP))).
+				OutE("ENDPOINT_EXPLOIT").
+				InV().
+				HasLabel("Container")).
+		Values("serviceEndpoint").
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.resultsToStringArray(results)
+	expected := []string{
+		"host-port-svc",
+	}
+
+	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPLOIT_External() {
+	results, err := suite.g.V().
+		HasLabel("Endpoint").
+		Where(
+			__.Has("exposure", P.Eq(int(shared.EndpointExposureExternal))).
+				OutE("ENDPOINT_EXPLOIT").
+				InV().
+				HasLabel("Container")).
+		Values("serviceEndpoint").
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.resultsToStringArray(results)
+	expected := []string{
+		"webproxy-service",
+	}
+
+	suite.Subset(paths, expected)
 }
 
 func (suite *EdgeTestSuite) Test_NoEdgeCase() {

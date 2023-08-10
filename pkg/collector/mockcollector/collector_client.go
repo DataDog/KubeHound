@@ -244,6 +244,49 @@ func (_c *CollectorClient_StreamClusterRoles_Call) RunAndReturn(run func(context
 	return _c
 }
 
+// StreamEndpoints provides a mock function with given fields: ctx, ingestor
+func (_m *CollectorClient) StreamEndpoints(ctx context.Context, ingestor collector.EndpointIngestor) error {
+	ret := _m.Called(ctx, ingestor)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, collector.EndpointIngestor) error); ok {
+		r0 = rf(ctx, ingestor)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CollectorClient_StreamEndpoints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StreamEndpoints'
+type CollectorClient_StreamEndpoints_Call struct {
+	*mock.Call
+}
+
+// StreamEndpoints is a helper method to define mock.On call
+//   - ctx context.Context
+//   - ingestor collector.EndpointIngestor
+func (_e *CollectorClient_Expecter) StreamEndpoints(ctx interface{}, ingestor interface{}) *CollectorClient_StreamEndpoints_Call {
+	return &CollectorClient_StreamEndpoints_Call{Call: _e.mock.On("StreamEndpoints", ctx, ingestor)}
+}
+
+func (_c *CollectorClient_StreamEndpoints_Call) Run(run func(ctx context.Context, ingestor collector.EndpointIngestor)) *CollectorClient_StreamEndpoints_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(collector.EndpointIngestor))
+	})
+	return _c
+}
+
+func (_c *CollectorClient_StreamEndpoints_Call) Return(_a0 error) *CollectorClient_StreamEndpoints_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CollectorClient_StreamEndpoints_Call) RunAndReturn(run func(context.Context, collector.EndpointIngestor) error) *CollectorClient_StreamEndpoints_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StreamNodes provides a mock function with given fields: ctx, ingestor
 func (_m *CollectorClient) StreamNodes(ctx context.Context, ingestor collector.NodeIngestor) error {
 	ret := _m.Called(ctx, ingestor)

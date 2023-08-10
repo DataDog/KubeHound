@@ -4,7 +4,7 @@ A role that grants permission to create or modify `(Cluster)RoleBindings` can al
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Role](../vertices/ROLE.md)  | [Role](../vertices/ROLE.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+| [PermissionSet](../vertices/PERMISSIONSET.md)  | [PermissionSet](../vertices/PERMISSIONSET.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
 
 ## Details
 

@@ -16,48 +16,47 @@ import (
 )
 
 func init() {
-	Register(&VolumeExpose{}, RegisterDefault)
+	Register(&VolumeDiscover{}, RegisterDefault)
 }
 
-type VolumeExpose struct {
+type VolumeDiscover struct {
 	BaseEdge
 }
 
-type volumeExposeGroup struct {
-	Volume primitive.ObjectID `bson:"_id" json:"volume"`
-	Node   primitive.ObjectID `bson:"node_id" json:"node"`
+type volumeMountGroup struct {
+	Volume    primitive.ObjectID `bson:"_id" json:"volume"`
+	Container primitive.ObjectID `bson:"container_id" json:"container"`
 }
 
-func (e *VolumeExpose) Label() string {
-	return "VOLUME_EXPOSE"
+func (e *VolumeDiscover) Label() string {
+	return "VOLUME_DISCOVER"
 }
 
-func (e *VolumeExpose) Name() string {
-	return "VolumeExpose"
+func (e *VolumeDiscover) Name() string {
+	return "VolumeDiscover"
 }
 
-func (e *VolumeExpose) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	typed, ok := entry.(*volumeExposeGroup)
+func (e *VolumeDiscover) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+	typed, ok := entry.(*volumeMountGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Node, typed.Volume)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Volume)
 }
 
-func (e *VolumeExpose) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *VolumeDiscover) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)
 
-	// We just need a 1:1 mapping of the node and volume to create this edge
-	projection := bson.M{"_id": 1, "node_id": 1}
+	// We just need a 1:1 mapping of the container and volume to create this edge
+	projection := bson.M{"_id": 1, "container_id": 1}
 
 	cur, err := volumes.Find(context.Background(), bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[volumeExposeGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[volumeMountGroup](ctx, cur, callback, complete)
 }

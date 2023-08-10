@@ -5,13 +5,15 @@ const (
 )
 
 const (
-	NodeName        = "nodes"
-	PodName         = "pods"
-	ContainerName   = "containers"
-	VolumeName      = "volumes"
-	RoleName        = "roles"
-	RoleBindingName = "rolebindings"
-	IdentityName    = "identities"
+	NodeName          = "nodes"
+	PodName           = "pods"
+	ContainerName     = "containers"
+	VolumeName        = "volumes"
+	RoleName          = "roles"
+	RoleBindingName   = "rolebindings"
+	IdentityName      = "identities"
+	PermissionSetName = "permissionsets"
+	EndpointName      = "endpoints"
 )
 
 // Collection provides a common abstraction of a SQL database table or a NoSQL object

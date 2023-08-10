@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -15,7 +14,6 @@ const (
 )
 
 type ClusterRoleIngest struct {
-	vertex     *vertex.Role
 	collection collections.Role
 	r          *IngestResources
 }
@@ -29,13 +27,11 @@ func (i *ClusterRoleIngest) Name() string {
 func (i *ClusterRoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
-	i.vertex = &vertex.Role{}
 	i.collection = collections.Role{}
 
 	i.r, err = CreateResources(ctx, deps,
 		WithCacheWriter(),
-		WithStoreWriter(i.collection),
-		WithGraphWriter(i.vertex))
+		WithStoreWriter(i.collection))
 	if err != nil {
 		return err
 	}
@@ -63,18 +59,7 @@ func (i *ClusterRoleIngest) IngestClusterRole(ctx context.Context, role types.Cl
 	}
 
 	// Async write to cache
-	if err := i.r.writeCache(ctx, cachekey.Role(o.Name, o.Namespace), o.Id.Hex()); err != nil {
-		return err
-	}
-
-	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Role(o)
-	if err != nil {
-		return err
-	}
-
-	// Aysnc write to graph
-	if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
+	if err := i.r.writeCache(ctx, cachekey.Role(o.Name, o.Namespace), *o); err != nil {
 		return err
 	}
 

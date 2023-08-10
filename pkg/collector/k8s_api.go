@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -244,6 +245,51 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 	if err != nil {
 		return err
 	}
+	return ingestor.Complete(ctx)
+}
+
+// streamEndpointsNamespace streams the endpoint slice objects corresponding to a cluster namespace.
+func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespace string, ingestor EndpointIngestor) error {
+	err := c.checkNamespaceExists(ctx, namespace)
+	if err != nil {
+		return err
+	}
+
+	opts := metav1.ListOptions{}
+
+	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
+		entries, err := c.clientset.DiscoveryV1().EndpointSlices(namespace).List(ctx, opts)
+		if err != nil {
+			return nil, fmt.Errorf("getting K8s endpoint slices for namespace %s: %w", namespace, err)
+		}
+		return entries, err
+	}))
+
+	c.setPagerConfig(pager)
+
+	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
+		_ = statsd.Incr(telemetry.MetricCollectorEndpointCount, c.tags, 1)
+		c.rl.Take()
+		item := obj.(*discoveryv1.EndpointSlice)
+		err := ingestor.IngestEndpoint(ctx, item)
+		if err != nil {
+			return fmt.Errorf("processing K8s endpoint slice %s for namespace %s: %w", item.Name, namespace, err)
+		}
+		return nil
+	})
+}
+
+func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
+	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceEndpoints)
+	defer span.Finish()
+
+	// passing an empty namespace will collect all namespaces
+	err := c.streamEndpointsNamespace(ctx, "", ingestor)
+	if err != nil {
+		return err
+	}
+
 	return ingestor.Complete(ctx)
 }
 

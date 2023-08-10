@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/ratelimit"
 	corev1 "k8s.io/api/core/v1"
+	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -600,6 +601,80 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamClusterRoleBindings(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamClusterRoleBindings() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func fakeEndpoint(name string, namespace string) *discoveryv1.EndpointSlice {
+	return &discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+}
+
+func Test_k8sAPICollector_StreamEndpoints(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	// 0 endpoints found
+	test1 := func(t *testing.T) (*fake.Clientset, *mocks.EndpointIngestor) {
+		clientset := fake.NewSimpleClientset()
+		m := mocks.NewEndpointIngestor(t)
+		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+		return clientset, m
+	}
+
+	// Listing all the endpoints bindings from all namespaces
+	test2 := func(t *testing.T) (*fake.Clientset, *mocks.EndpointIngestor) {
+		clienset := fake.NewSimpleClientset(
+			[]runtime.Object{
+				fakeEndpoint("namespace1", "name1"),
+				fakeEndpoint("namespace2", "name2"),
+			}...,
+		)
+		m := mocks.NewEndpointIngestor(t)
+		m.EXPECT().IngestEndpoint(mock.Anything, mock.AnythingOfType("types.EndpointType")).Return(nil).Twice()
+		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+		return clienset, m
+	}
+
+	type args struct {
+		ctx context.Context
+	}
+	tests := []struct {
+		name    string
+		testfct func(t *testing.T) (*fake.Clientset, *mocks.EndpointIngestor)
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "no entry",
+			testfct: test1,
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+		{
+			name:    "all namespace",
+			testfct: test2,
+			args: args{
+				ctx: ctx,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			clientset, mock := tt.testfct(t)
+			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
+			if err := c.StreamEndpoints(tt.args.ctx, mock); (err != nil) != tt.wantErr {
+				t.Errorf("k8sAPICollector.StreamEndpoints() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

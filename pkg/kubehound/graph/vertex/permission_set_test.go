@@ -10,19 +10,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRole_Traversal(t *testing.T) {
+func TestPermissionSet_Traversal(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name string
 		want types.VertexTraversal
-		data graph.Role
+		data graph.PermissionSet
 	}{
 		{
 			name: "Add Identities in JanusGraph",
 			// We set the values to all field with non default values
 			// so we are sure all are correctly propagated.
-			data: graph.Role{
+			data: graph.PermissionSet{
 				StoreID:      "test id",
 				Name:         "test name role",
 				IsNamespaced: true,
@@ -35,7 +35,7 @@ func TestRole_Traversal(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			v := Role{}
+			v := PermissionSet{}
 
 			g := gremlingo.GraphTraversalSource{}
 

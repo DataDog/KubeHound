@@ -25,6 +25,7 @@ type CleanupFunc func(ctx context.Context) error
 // resourceOptions is a generic container to hold dependencies created on initialization.
 // Should not be used directly, but modified via ObjectIngestOption functions.
 type resourceOptions struct {
+	cacheReader  cache.CacheReader                    // Cache reader
 	cacheWriter  cache.AsyncWriter                    // Cache provider
 	collect      collector.CollectorClient            // Collector fromm which to steam data
 	flush        []FlushFunc                          // Array of writer flush functions to be called on a flush
@@ -53,6 +54,14 @@ func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
 
 		rOpts.flush = append(rOpts.flush, rOpts.cacheWriter.Flush)
 
+		return nil
+	}
+}
+
+// WithCacheReader initializes a cache reader (and registers a cleanup function to close the connection) for the ingest pipeline.
+func WithCacheReader() IngestResourceOption {
+	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
+		rOpts.cacheReader = deps.Cache
 		return nil
 	}
 }
@@ -117,8 +126,13 @@ type IngestResources struct {
 }
 
 // writeCache delegates a write to the cache writer.
-func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value string) error {
+func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value any) error {
 	return i.cacheWriter.Queue(ctx, ck, value)
+}
+
+// readCache delegates a read request to the cache reader.
+func (i *IngestResources) readCache(ctx context.Context, ck cachekey.CacheKey) *cache.CacheResult {
+	return i.cacheReader.Get(ctx, ck)
 }
 
 // writeStore delegates a write to the registered store writer.

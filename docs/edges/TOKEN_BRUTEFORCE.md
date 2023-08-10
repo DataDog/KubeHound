@@ -4,7 +4,7 @@ An identity with a role that allows *get* on secrets (vs list) can potentially v
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Role](../vertices/ROLE.md) | [Identity](../vertices/IDENTITY.md) | [Steal Application Access Token, T1528](https://attack.mitre.org/techniques/T1528/) |
+| [PermissionSet](../vertices/PERMISSIONSET.md) | [Identity](../vertices/IDENTITY.md) | [Steal Application Access Token, T1528](https://attack.mitre.org/techniques/T1528/) |
 
 ## Details
 
