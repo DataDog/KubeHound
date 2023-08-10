@@ -4,7 +4,7 @@ With the correct privileges an attacker can use the Kubernetes API to obtain a s
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Role](../vertices/ROLE.md)  | [Pod](../vertices/POD.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/)  |
+| [PermissionSet](../vertices/PERMISSIONSET.md)  | [Pod](../vertices/POD.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/)  |
 
 ## Details
 

@@ -172,17 +172,19 @@ func (c *GraphConverter) flattenPolicyRules(input []rbacv1.PolicyRule) []string 
 	return rules
 }
 
-// Role returns the graph representation of a role vertex from a store role model input.
-func (c *GraphConverter) Role(input *store.Role) (*graph.Role, error) {
-	output := &graph.Role{
-		StoreID:   input.Id.Hex(),
-		App:       input.Ownership.Application,
-		Team:      input.Ownership.Team,
-		Service:   input.Ownership.Service,
-		Name:      input.Name,
-		Namespace: input.Namespace,
-		Rules:     c.flattenPolicyRules(input.Rules),
-		Critical:  risk.Engine().IsCritical(input),
+// PermissionSet returns the graph representation of a role vertex from a store role model input.
+func (c *GraphConverter) PermissionSet(input *store.PermissionSet) (*graph.PermissionSet, error) {
+	output := &graph.PermissionSet{
+		StoreID:     input.Id.Hex(),
+		App:         input.Ownership.Application,
+		Team:        input.Ownership.Team,
+		Service:     input.Ownership.Service,
+		Name:        input.Name,
+		Namespace:   input.Namespace,
+		Role:        input.RoleName,
+		RoleBinding: input.RoleBindingName,
+		Rules:       c.flattenPolicyRules(input.Rules),
+		Critical:    risk.Engine().IsCritical(input),
 	}
 
 	if output.Namespace != "" {

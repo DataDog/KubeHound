@@ -61,3 +61,4 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 + [Compendium Of Container Escapes](https://i.blackhat.com/USA-19/Thursday/us-19-Edwards-Compendium-Of-Container-Escapes-up.pdf)
 + [Linux Privilege Escalation - Exploiting Capabilities - StefLan's Security Blog](https://steflan-security.com/linux-privilege-escalation-exploiting-capabilities/)
++ [Module Load Breakout](https://raesene.github.io/blog/2023/08/06/fun-with-privileged-container-breakout/)

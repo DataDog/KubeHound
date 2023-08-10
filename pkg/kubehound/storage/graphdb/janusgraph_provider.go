@@ -98,7 +98,7 @@ func (jgp *JanusGraphProvider) HealthCheck(ctx context.Context) (bool, error) {
 	}
 
 	if value != 1 {
-		log.I.Errorf("healthcheck returned wrong value, got: %d wanted: %s", value, wantValue)
+		log.Trace(ctx).Errorf("healthcheck returned wrong value, got: %d wanted: %s", value, wantValue)
 		return false, nil
 	}
 
