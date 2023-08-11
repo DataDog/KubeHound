@@ -1,10 +1,21 @@
-# VOLUME_DISCOVER
+---
+title: VOLUME_DISCOVER
+---
 
-Represents an attacker within a container discovering a mounted volume.
+<!--
+id: VOLUME_DISCOVER
+name: "Enumerate mounted volumes"
+mitreAttackTechnique: T1613 - Container and Resource Discovery
+mitreAttackTactic: TA0007 - Discovery
+-->
+
+# VOLUME_DISCOVER
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
 | [Container](../entities/container.md) | [Volume](../entities/volume.md) | [Container and Resource Discovery, T1613](https://attack.mitre.org/techniques/T1613/) |
+
+Represents an attacker within a container discovering a mounted volume.
 
 ## Details
 

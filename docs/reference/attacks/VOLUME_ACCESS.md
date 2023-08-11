@@ -1,10 +1,21 @@
-# VOLUME_ACCESS
+---
+title: VOLUME_ACCESS
+---
 
-Represents an attacker with access to a node filesystem gaining access to any volumes mounted inside a container (by definition).
+<!--
+id: VOLUME_ACCESS
+name: "Access host volume"
+mitreAttackTechnique: T1613 - Container and Resource Discovery
+mitreAttackTactic: TA0007 - Discovery
+-->
+
+# VOLUME_ACCESS
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
 | [Node](../entities/container.md) | [Volume](../entities/volume.md) | [Container and Resource Discovery, T1613](https://attack.mitre.org/techniques/T1613/) |
+
+Represents an attacker with access to a node filesystem gaining access to any volumes mounted inside a container (by definition).
 
 ## Details
 

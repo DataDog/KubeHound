@@ -1,10 +1,21 @@
-# PERMISSION_GRANT
+---
+title: PERMISSION_DISCOVER
+---
+
+<!--
+id: PERMISSION_DISCOVER
+name: "Enumerate permissions"
+mitreAttackTechnique: T1069 - Permission Groups Discovery
+mitreAttackTactic: TA0007 - Discovery
+-->
+
+# PERMISSION_DISCOVER
 
 Represents the permissions granted to an identity that can be discovered by an attacker.
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Identity](../entities/identity.md) | [PermissionSet](../entities/permissionset.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+| [Identity](../entities/identity.md) | [PermissionSet](../entities/permissionset.md) | [Permission Groups Discovery, T1069](https://attack.mitre.org/techniques/T1078/) |
 
 ## Details
 

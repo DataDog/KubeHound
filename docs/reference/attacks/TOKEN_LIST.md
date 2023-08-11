@@ -1,10 +1,21 @@
-# TOKEN_LIST
+---
+title: TOKEN_LIST
+---
 
-An identity with a role that allows listing secrets can potentially view all the secrets in a specific namespace or in the whole cluster (with ClusterRole).
+<!--
+id: TOKEN_LIST
+name: "Access service account token secrets"
+mitreAttackTechnique: T1528 - Steal Application Access Token
+mitreAttackTactic: TA0006 - Credential Access
+-->
+
+# TOKEN_LIST
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
 | [PermissionSet](../entities/permissionset.md) | [Identity](../entities/identity.md) | [Steal Application Access Token, T1528](https://attack.mitre.org/techniques/T1528/) |
+
+An identity with a role that allows listing secrets can potentially view all the secrets in a specific namespace or in the whole cluster (with ClusterRole).
 
 ## Details
 

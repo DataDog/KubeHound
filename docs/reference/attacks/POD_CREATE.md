@@ -1,3 +1,7 @@
+---
+title: POD_CREATE
+---
+
 <!--
 id: POD_CREATE
 name: "Create privileged pod"

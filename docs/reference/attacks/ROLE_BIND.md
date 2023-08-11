@@ -1,3 +1,15 @@
+---
+title: ROLE_BIND
+---
+
+<!--
+id: ROLE_BIND
+name: "Create role binding"
+mitreAttackTechnique: T1078 - Valid Accounts
+mitreAttackTactic: TA0004 - Privilege Escalation
+-->
+
+
 # ROLE_BIND
 
 A role that grants permission to create or modify `(Cluster)RoleBindings` can allow an attacker to escalate privileges on a compromised user.
