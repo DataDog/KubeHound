@@ -22,6 +22,8 @@ jobs:
             api.github.com:443
             github.com:443
             goreleaser.com:443
+            golang.org:443
+            go.dev:443
             objects.githubusercontent.com:443
             proxy.golang.org:443
             storage.googleapis.com:443
