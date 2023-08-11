@@ -37,6 +37,7 @@ func (c *GraphConverter) Container(input *store.Container, parent *store.Pod) (*
 		HostNetwork: input.Inherited.HostNetwork,
 		Pod:         input.Inherited.PodName,
 		Node:        input.Inherited.NodeName,
+		RunAsUser:   input.Inherited.RunAsUser,
 	}
 
 	// Determine if a user is set in the security context

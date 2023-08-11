@@ -52,7 +52,7 @@ func NewStoreWithCache(cache cache.CacheReader) *StoreConverter {
 
 // Container returns the store representation of a K8s container from an input K8s container object.
 func (c *StoreConverter) Container(_ context.Context, input types.ContainerType, parent *store.Pod) (*store.Container, error) {
-	return &store.Container{
+	output := &store.Container{
 		Id:     store.ObjectID(),
 		PodId:  parent.Id,
 		NodeId: parent.NodeId,
@@ -67,7 +67,17 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 		},
 		K8:        corev1.Container(*input),
 		Ownership: store.ExtractOwnership(parent.K8.Labels),
-	}, nil
+	}
+
+	// Certain fields are set by the PodSecurityContext and overriden by the container's SecurityContext.
+	// Currently we only consider the RunAsUser field.
+	if input.SecurityContext != nil && input.SecurityContext.RunAsUser != nil {
+		output.Inherited.RunAsUser = *input.SecurityContext.RunAsUser
+	} else if parent.K8.Spec.SecurityContext != nil && parent.K8.Spec.SecurityContext.RunAsUser != nil {
+		output.Inherited.RunAsUser = *parent.K8.Spec.SecurityContext.RunAsUser
+	}
+
+	return output, nil
 }
 
 // Node returns the store representation of a K8s node from an input K8s node object.
