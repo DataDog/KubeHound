@@ -1,9 +1,5 @@
-<<<<<<<< HEAD:docs/reference/attacks/ENDPOINT_EXPLOIT.md
 # ENDPOINT_EXPLOIT
-========
 
-# ENDPOINT_EXPOSE
->>>>>>>> a625a6a (First version of docs website):docs/reference/attacks/ENDPOINT_EXPOSE.md
 
 Represents a network endpoint exposed by a container that could be exploited by an attacker (via means known or unknown). This can correspond to a Kubernetes service, node service, node port, or container port.
 
