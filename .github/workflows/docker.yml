@@ -1,9 +1,10 @@
 name: docker
 
 on:
-  push:
-    tags:
-      - "*"
+  workflow_dispatch:
+  # push:
+  #   tags:
+  #     - "*"
 
 env:
   REGISTRY: ghcr.io
