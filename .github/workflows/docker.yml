@@ -1,9 +1,10 @@
 name: docker
 
 on:
-  push:
-    tags:
-      - "*"
+  workflow_dispatch:
+  # push:
+  #   tags:
+  #     - "*"
 
 env:
   REGISTRY: ghcr.io
@@ -28,7 +29,7 @@ jobs:
       packages: write
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969
+        uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
         with:
           egress-policy: block
           allowed-endpoints: >

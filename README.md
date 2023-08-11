@@ -25,7 +25,32 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
 
 ## Quick Start
 
-### Run KubeHound
+### Prebuilt Releases
+
+Release binaries are available for Linux / Windows / Mac OS via the [releases](https://github.com/DataDog/KubeHound/releases) page. These provide access to core KubeHound functionality but lack support for the `make` commands detailed in subsequent sections. Once the release archive is downloaded and extracted start the backend via:
+
+```bash
+./kubehound.sh backend-up
+```
+
+Next choose a target Kubernetes cluster, either:
+
+* Select the targeted cluster via `kubectx` (need to be installed separately)     
+* Use a specific kubeconfig file by exporting the env variable: `export KUBECONFIG=/your/path/to/.kube/config`
+
+Finally run the compiled binary with packaged configuration (`config.yaml`):
+
+```bash
+./kubehound.sh run
+```
+
+### From Source
+
+Clone this repository via git:
+
+```bash
+git clone https://github.com/DataDog/KubeHound.git
+```
 
 KubeHound ships with a sensible default configuration designed to get new users up and running quickly. First step is to prepare the application:
 

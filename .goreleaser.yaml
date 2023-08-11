@@ -1,0 +1,50 @@
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -X pkg/config.BuildVersion={{.Version}}
+
+    dir: cmd/kubehound
+    binary: kubehound
+archives:
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    wrap_in_directory: true
+    files:
+      - LICENSE
+      - LICENSE-3rdparty.csv
+      - NOTICE
+      - README.md
+      - deployments/kubehound/**/*
+      - deployments/kubehound/docker-compose.yaml
+      - deployments/kubehound/docker-compose.datadog.yaml
+      - deployments/kubehound/docker-compose.release.yaml
+      - src: scripts/kubehound.sh
+        dst: kubehound.sh
+      - src: scripts/kubehound.bat
+        dst: kubehound.bat
+      - src: configs/etc/kubehound.yaml
+        dst: config.yaml
+      - src: configs/etc/kubehound-reference.yaml
+        dst: config-reference.yaml
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

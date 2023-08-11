@@ -1,18 +1,21 @@
-name: KubeHound Linter
+name: KubeHound Release
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
+    tags:
+      - "*"
 
 permissions:
   contents: read
 
 jobs:
-  linter:
-    runs-on: ubuntu-latest
-    steps:      
+  goreleaser:
+    runs-on: 
+        group: Large Runner Shared Public 
+        labels: ubuntu-8-core-latest
+    permissions:
+      contents: write
+    steps:
       - name: Harden Runner
         uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
         with:
@@ -28,17 +31,23 @@ jobs:
             storage.googleapis.com:443
             uploads.github.com:443
             sum.golang.org:443
-            
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
       - name: Setup Golang
         uses: actions/setup-go@v4
         with:
           go-version: "1.20"
 
-      - name: Checkout Git Repo
-        uses: actions/checkout@v3
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+      - name: Run GoReleaser
+        timeout-minutes: 60
+        uses: goreleaser/goreleaser-action@336e29918d653399e599bfca99fadc1d7ffbc9f7
         with:
-          version: v1.53.1
-          args: ./...
+          distribution: goreleaser
+          version: latest
+          args: release --clean --config .goreleaser.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
