@@ -17,6 +17,7 @@ type ContainerInherited struct {
 	HostIPC        bool   `bson:"host_ipc"`
 	HostNetwork    bool   `bson:"host_net"`
 	ServiceAccount string `bson:"service_account"`
+	RunAsUser      int64  `bson:"run_as_user"`
 }
 
 type Container struct {

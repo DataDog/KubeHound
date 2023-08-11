@@ -155,7 +155,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"ports":        []any{"9200"},
 		"privesc":      false,
 		"privileged":   false,
-		"runAsUser":    float64(0),
+		"runAsUser":    float64(1000),
 		"storeID":      cid.Hex(),
 		"team":         "test-team",
 		"app":          "test-app",
