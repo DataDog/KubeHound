@@ -2,10 +2,6 @@
 title: CE_MODULE_LOAD
 ---
 
----
-title: CE_MODULE_LOAD
----
-
 <!--
 id: CE_MODULE_LOAD
 name: "Container escape: Load kernel module"
