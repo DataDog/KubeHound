@@ -1,17 +1,21 @@
+---
+title: POD_ATTACH
+---
+
 <!--
 id: POD_ATTACH
 name: "Attach to running pod"
-mitreAttackTechnique: N/A - N/A
+mitreAttackTechnique: N/A - N/ATODO
 mitreAttackTactic: TA0008 - Lateral Movement
 -->
 
 # POD_ATTACH
 
-Attach to a running K8s pod from a K8s node.
-
 | Source                      | Destination                           | MITRE                            |
 | --------------------------- | ------------------------------------- |----------------------------------|
-| [Node](../vertices/NODE.md) | [Pod](../vertices/POD.md)  | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+| [Node](../entities/node.md) | [Pod](../entities/pod.md)  | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+
+Attach to a running K8s pod from a K8s node.
 
 ## Details
 
@@ -135,7 +139,7 @@ ctr -n k8s.io task exec -t --exec-id full-control 0f36d12d60d12d041df8941
 
 ## Calculation
 
-+ [PodAttach](../../pkg/kubehound/graph/edge/pod_attach.go)
++ [PodAttach](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/pod_attach.go)
 
 ## References:
 

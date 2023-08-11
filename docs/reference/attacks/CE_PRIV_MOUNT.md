@@ -1,17 +1,21 @@
+---
+title: CE_PRIV_MOUNT
+---
+
 <!--
 id: CE_PRIV_MOUNT
-name: "Container escape: mount host filesystem"
+name: "Container escape: Mount host filesystem"
 mitreAttackTechnique: T1611 - Escape to host
 mitreAttackTactic: TA0004 - Privilege escalation
 -->
 
 # CE_PRIV_MOUNT
 
-Mount the host disk and gain access to the host via arbitrary filesystem write
-
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../vertices/CONTAINER.md) | [Node](../vertices/NODE.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+| [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+
+Mount the host disk and gain access to the host via arbitrary filesystem write
 
 ## Details
 
@@ -21,7 +25,7 @@ A container running with `privileged: true` disables almost all the container is
 
 Execution within a privileged container process.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/CE_PRIV_MOUNT.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/CE_PRIV_MOUNT.yaml).
 
 ## Checks
 
@@ -74,7 +78,7 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 ## Calculation
 
-+ [EscapePrivMount](../../pkg/kubehound/graph/edge/escape_priv_mount.go)
++ [EscapePrivMount](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/escape_priv_mount.go)
 
 ## References:
 

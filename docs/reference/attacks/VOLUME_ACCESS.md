@@ -4,7 +4,7 @@ Represents an attacker with access to a node filesystem gaining access to any vo
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Node](../vertices/CONTAINER.md) | [Volume](../vertices/VOLUME.md) | [Container and Resource Discovery, T1613](https://attack.mitre.org/techniques/T1613/) |
+| [Node](../entities/container.md) | [Volume](../entities/volume.md) | [Container and Resource Discovery, T1613](https://attack.mitre.org/techniques/T1613/) |
 
 ## Details
 
@@ -28,7 +28,7 @@ None
 
 ## Calculation
 
-+ [VolumeAccess](../../pkg/kubehound/graph/edge/volume_access.go)
++ [VolumeAccess](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/volume_access.go)
 
 ## References:
 

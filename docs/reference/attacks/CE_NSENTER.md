@@ -1,3 +1,7 @@
+---
+title: CE_NSENTER
+---
+
 <!--
 id: CE_NSENTER
 name: "Container escape: nsenter"
@@ -7,11 +11,11 @@ mitreAttackTactic: TA0004 - Privilege escalation
 
 # CE_NSENTER
 
-Container escape via the nsenter built-in linux program that allows executing a binary into another namespace.
-
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../vertices/CONTAINER.md) | [Node](../vertices/NODE.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+| [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+
+Container escape via the nsenter built-in linux program that allows executing a binary into another namespace.
 
 ## Details
 
@@ -21,7 +25,7 @@ When both `hostPID: true` and `privileged: true` are set, the pod can see all of
 
 Execution within a container process created with `--privileged` AND the `--pid=host` enabled.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/CE_NSENTER.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/CE_NSENTER.yaml).
 
 ## Checks
 
@@ -75,7 +79,7 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 ## Calculation
 
-+ [EscapeNsenter](../../pkg/kubehound/graph/edge/escape_nsenter.go)
++ [EscapeNsenter](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/escape_nsenter.go)
 
 ## References:
 

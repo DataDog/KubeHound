@@ -1,11 +1,22 @@
+---
+title: SHARED_PS_NAMESPACE
+---
+
+<!--
+id: SHARED_PS_NAMESPACE
+TODO: phrase as an attack
+name: "Access container in shared process namespace"
+mitreAttackTechnique: N/A - N/A
+mitreAttackTactic: TA0008 - Lateral Movement
+-->
+
 # SHARED_PS_NAMESPACE
-
-Represents a relationship between containers within the same pod that share a process namespace. 
-
 
 | Source                      | Destination                           | MITRE                            |
 | --------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../vertices/CONTAINER.md) | [Container](../vertices/CONTAINER.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+| [Container](../entities/container.md) | [Container](../entities/container.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+
+Represents a relationship between containers within the same pod that share a process namespace. 
 
 ## Details
 
@@ -15,7 +26,7 @@ Pods represent one or more containers with shared storage and network resources.
 
 Access to a container within a pod running other containers with shared process nanespaces
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/SHARED_PS_NAMESPACE.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/SHARED_PS_NAMESPACE.yaml).
 
 ## Checks
 
@@ -76,7 +87,7 @@ Prevent the use of shared namespaces in pods, where containers have different ri
 
 ## Calculation
 
-+ [SharedPsNamespace](../../pkg/kubehound/graph/edge/shared_ps_namespace.go)
++ [SharedPsNamespace](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/shared_ps_namespace.go)
 
 ## References:
 

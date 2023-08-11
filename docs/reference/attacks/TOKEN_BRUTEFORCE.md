@@ -4,7 +4,7 @@ An identity with a role that allows *get* on secrets (vs list) can potentially v
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [PermissionSet](../vertices/PERMISSIONSET.md) | [Identity](../vertices/IDENTITY.md) | [Steal Application Access Token, T1528](https://attack.mitre.org/techniques/T1528/) |
+| [PermissionSet](../entities/permissionset.md) | [Identity](../entities/identity.md) | [Steal Application Access Token, T1528](https://attack.mitre.org/techniques/T1528/) |
 
 ## Details
 
@@ -14,7 +14,7 @@ An attacker in possession of a token with permission to read a secret cannot use
 
 Ability to interrogate the K8s API with a role allowing get access to secrets.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/TOKEN_BRUTEFORCE.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/TOKEN_BRUTEFORCE.yaml).
 
 ## Checks
 
@@ -41,8 +41,8 @@ Even *get* on secrets is a very powerful privilege and should not be required by
 
 ## Calculation
 
-+ [TokenBruteforce](../../pkg/kubehound/graph/edge/token_bruteforce.go)
-+ [TokenBruteforceNamespace](../../pkg/kubehound/graph/edge/token_bruteforce_namespace.go)
++ [TokenBruteforce](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/token_bruteforce.go)
++ [TokenBruteforceNamespace](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/token_bruteforce_namespace.go)
 
 ## References:
 

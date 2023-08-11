@@ -1,10 +1,21 @@
-# TOKEN_STEAL
+---
+title: TOKEN_STEAL
+---
 
-This attack represents the ability to steal a K8s API token from an accessible volume.
+<!--
+id: TOKEN_STEAL
+name: "Steal service account token from volume"
+mitreAttackTechnique: T1552 - Unsecured Credentials
+mitreAttackTactic: TA0006 - Credential Access
+-->
+
+# TOKEN_STEAL
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Volume](../vertices/VOLUME.md) | [Identity](../vertices/IDENTITY.md) | [Unsecured Credentials, T1552](https://attack.mitre.org/techniques/T1552/) |
+| [Volume](../entities/volume.md) | [Identity](../entities/identity.md) | [Unsecured Credentials, T1552](https://attack.mitre.org/techniques/T1552/) |
+
+This attack represents the ability to steal a K8s API token from an accessible volume.
 
 ## Details
 
@@ -94,7 +105,7 @@ automountServiceAccountToken: false
 
 ## Calculation
 
-+ [TokenSteal](../../pkg/kubehound/graph/edge/token_steal.go)
++ [TokenSteal](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/token_steal.go)
 
 ## References:
 

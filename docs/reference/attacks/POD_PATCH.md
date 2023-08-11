@@ -11,7 +11,7 @@ With the correct privileges an attacker can use the Kubernetes API to modify cer
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [PermissionSet](../vertices/PERMISSIONSET.md)  | [Pod](../vertices/POD.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/)  |
+| [PermissionSet](../entities/permissionset.md)  | [Pod](../entities/pod.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/)  |
 
 ## Details
 
@@ -28,7 +28,7 @@ However, this is still just enough to allow an attacker to achieve execution in 
 
 Ability to interrogate the K8s API with a role allowing pod patch access.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/POD_PATCH.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/POD_PATCH.yaml).
 
 ## Checks
 
@@ -71,8 +71,8 @@ Pod patch is a very powerful privilege and should not be required by the majorit
 
 ## Calculation
 
-+ [PodPatch](../../pkg/kubehound/graph/edge/pod_patch.go)
-+ [PodPatchNamespace](../../pkg/kubehound/graph/edge/pod_patch_namespace.go)
++ [PodPatch](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/pod_patch.go)
++ [PodPatchNamespace](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/pod_patch_namespace.go)
 
 ## References:
 

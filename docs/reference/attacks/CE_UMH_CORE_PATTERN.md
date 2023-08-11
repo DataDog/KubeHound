@@ -11,7 +11,7 @@ Container escape via the `core_pattern` `usermode_helper` in the case of an expo
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../vertices/CONTAINER.md) | [Node](../vertices/NODE.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+| [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
 
 ## Details
 
@@ -21,7 +21,7 @@ Container escape via the `core_pattern` `usermode_helper` in the case of an expo
 
 Execution within a container process with the host `/proc/sys/kernel` (or any parent directory) mounted inside the container.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/CE_UMH_CORE_PATTERN.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/CE_UMH_CORE_PATTERN.yaml).
 
 ## Checks
 
@@ -101,7 +101,7 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 ## Calculation
 
-+ [EscapeUmhCorePattern](../../pkg/kubehound/graph/edge/escape_umh_core_pattern.go)
++ [EscapeUmhCorePattern](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/escape_umh_core_pattern.go)
 
 ## References:
 

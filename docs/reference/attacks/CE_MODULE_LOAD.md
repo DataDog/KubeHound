@@ -1,17 +1,25 @@
+---
+title: CE_MODULE_LOAD
+---
+
+---
+title: CE_MODULE_LOAD
+---
+
 <!--
 id: CE_MODULE_LOAD
-name: "Container escape: load a kernel module"
+name: "Container escape: Load kernel module"
 mitreAttackTechnique: T1611 - Escape to host
 mitreAttackTactic: TA0004 - Privilege escalation
 -->
 
 # CE_MODULE_LOAD
 
-Load a kernel module from within an overprivileged container to breakout into the node.
-
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../vertices/CONTAINER.md) | [Node](../vertices/NODE.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+| [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+
+Load a kernel module from within an overprivileged container to breakout into the node.
 
 ## Details
 
@@ -21,7 +29,7 @@ Container isolation mechanisms are restricted to user-space execution. If an att
 
 Execution within a container process with the `CAP_SYS_MODULE` capability enabled.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/CE_MODULE_LOAD.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/CE_MODULE_LOAD.yaml).
 
 ## Checks
 
@@ -62,7 +70,7 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 ## Calculation
 
-+ [EscapeModuleLoad](../../pkg/kubehound/graph/edge/escape_module_load.go)
++ [EscapeModuleLoad](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/escape_module_load.go)
 
 ## References:
 

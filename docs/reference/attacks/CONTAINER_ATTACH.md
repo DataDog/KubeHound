@@ -1,3 +1,7 @@
+---
+title: CONTAINER_ATTACH
+---
+
 <!--
 id: CONTAINER_ATTACH
 name: "Attach to running container"
@@ -7,11 +11,11 @@ mitreAttackTactic: TA0008 - Lateral Movement
 
 # CONTAINER_ATTACH
 
-Attach to a container running within a pod given access to the pod.
-
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Pod](../vertices/POD.md) | [Container](../vertices/CONTAINER.md)  | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+| [Pod](../entities/pod.md) | [Container](../entities/container.md)  | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+
+Attach to a container running within a pod given access to the pod.
 
 ## Details
 
@@ -61,7 +65,7 @@ kubectl describe pod <pod name>
 
 ## Calculation
 
-+ [ContainerAttach](../../pkg/kubehound/graph/edge/container_attach.go)
++ [ContainerAttach](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/container_attach.go)
 
 ## References:
 

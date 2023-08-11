@@ -4,7 +4,7 @@ Represents the permissions granted to an identity that can be discovered by an a
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Identity](../vertices/IDENTITY.md) | [PermissionSet](../vertices/PERMISSIONSET.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+| [Identity](../entities/identity.md) | [PermissionSet](../entities/permissionset.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
 
 ## Details
 
@@ -38,7 +38,7 @@ None
 
 ## Calculation
 
-+ [PermissionDiscover](../../pkg/kubehound/graph/edge/permission_discover.go)
++ [PermissionDiscover](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/permission_discover.go)
 
 ## References:
 

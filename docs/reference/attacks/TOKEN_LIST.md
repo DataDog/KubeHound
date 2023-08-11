@@ -4,7 +4,7 @@ An identity with a role that allows listing secrets can potentially view all the
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [PermissionSet](../vertices/PERMISSIONSET.md) | [Identity](../vertices/IDENTITY.md) | [Steal Application Access Token, T1528](https://attack.mitre.org/techniques/T1528/) |
+| [PermissionSet](../entities/permissionset.md) | [Identity](../entities/identity.md) | [Steal Application Access Token, T1528](https://attack.mitre.org/techniques/T1528/) |
 
 ## Details
 
@@ -14,7 +14,7 @@ Obtaining the listing secrets permission will be a significant advantage to an a
 
 Ability to interrogate the K8s API with a role allowing list access to secrets.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/TOKEN_LIST.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/TOKEN_LIST.yaml).
 
 ## Checks
 
@@ -44,8 +44,8 @@ Listing secrets is a very powerful privilege and should not be required by the m
 
 ## Calculation
 
-+ [TokenList](../../pkg/kubehound/graph/edge/token_list.go)
-+ [TokenListNamespace](../../pkg/kubehound/graph/edge/token_list_namespace.go)
++ [TokenList](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/token_list.go)
++ [TokenListNamespace](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/token_list_namespace.go)
 
 ## References:
 

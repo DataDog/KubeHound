@@ -11,7 +11,7 @@ Create a pod with significant privilege (`CAP_SYSADMIN`, `hostPath=/`, etc) and 
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [PermissionSet](../vertices/PERMISSIONSET.md) | [Node](../vertices/NODE.md) | [Container Orchestration Job, T1053.007](https://attack.mitre.org/techniques/T1053/007/) |
+| [PermissionSet](../entities/permissionset.md) | [Node](../entities/node.md) | [Container Orchestration Job, T1053.007](https://attack.mitre.org/techniques/T1053/007/) |
 
 ## Details
 
@@ -86,7 +86,7 @@ Use a pod security policy or admission controller to prevent or limit the creati
 
 ## Calculation
 
-+ [PodCreate](../../pkg/kubehound/graph/edge/pod_create.go)
++ [PodCreate](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/pod_create.go)
 
 ## References:
 

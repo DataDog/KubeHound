@@ -1,17 +1,21 @@
+---
+title: CE_SYS_PTRACE
+---
+
 <!--
 id: CE_SYS_PTRACE
-name: "Container escape: attach to a host process through SYS_PTRACE"
+name: "Container escape: Attach to host process via SYS_PTRACE"
 mitreAttackTechnique: T1611 - Escape to host
 mitreAttackTactic: TA0004 - Privilege escalation
 -->
 
 # CE_SYS_PTRACE
 
-Given the requisite capabilities, abuse the legitimate OS debugging mechanisms to escape the container via attaching to a node process.
-
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../vertices/CONTAINER.md) | [Node](../vertices/NODE.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+| [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
+
+Given the requisite capabilities, abuse the legitimate OS debugging mechanisms to escape the container via attaching to a node process.
 
 ## Details
 
@@ -21,7 +25,7 @@ The `SYS_PTRACE` capability, which allows the use of `ptrace()`. This system cal
 
 To perform this attack, the container must be started with the option `--pid=host`, which enables the sharing of the PID address space between the container and the host operating system, allowing the container process to see every other process running on the host. And the container needs to be granted `SYS_PTRACE` and `SYS_ADMIN` capabilities. 
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/CE_SYS_PTRACE.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/CE_SYS_PTRACE.yaml).
 
 ## Checks
 
@@ -75,7 +79,7 @@ Avoid running containers as the root user. Specify an unprivileged user account 
 
 ## Calculation
 
-+ [EscapeSysPtrace](../../pkg/kubehound/graph/edge/escape_sys_ptrace.go)
++ [EscapeSysPtrace](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/escape_sys_ptrace.go)
 
 ## References:
 

@@ -4,7 +4,7 @@ Represents an attacker within a container discovering a mounted volume.
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../vertices/CONTAINER.md) | [Volume](../vertices/VOLUME.md) | [Container and Resource Discovery, T1613](https://attack.mitre.org/techniques/T1613/) |
+| [Container](../entities/container.md) | [Volume](../entities/volume.md) | [Container and Resource Discovery, T1613](https://attack.mitre.org/techniques/T1613/) |
 
 ## Details
 
@@ -86,7 +86,7 @@ None
 
 ## Calculation
 
-+ [VolumeDiscover](../../pkg/kubehound/graph/edge/volume_discover.go)
++ [VolumeDiscover](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/volume_discover.go)
 
 ## References:
 

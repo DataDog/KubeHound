@@ -77,10 +77,11 @@ nav:
       - Common Operations: user-guide/common-operations.md
       - Troubleshooting: user-guide/troubleshooting.md
   - Reference:
-      - Attacks: reference/attacks/index.md
-      - Entities: reference/entities/index.md
-      - ... | reference/attacks/*.md
-      - ... | reference/entities/*.md
+      - ... |reference/*/*.md
+      #- Attacks: reference/attacks/index.md
+      #- Entities: reference/entities/index.md
+      #- ... | reference/attacks/*.md
+      #- ... | reference/entities/*.md
   - Query Library:
       - queries/index.md
 

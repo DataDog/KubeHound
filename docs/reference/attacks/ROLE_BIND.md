@@ -4,7 +4,7 @@ A role that grants permission to create or modify `(Cluster)RoleBindings` can al
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [PermissionSet](../vertices/PERMISSIONSET.md)  | [PermissionSet](../vertices/PERMISSIONSET.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+| [PermissionSet](../entities/permissionset.md)  | [PermissionSet](../entities/permissionset.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
 
 ## Details
 
@@ -14,7 +14,7 @@ An attacker with sufficient permission can create a `RoleBinding` with the defau
 
 Ability to interact with the K8s API with a role allowing modify or create access to `(Cluster)RoleBindings`.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/ROLE_BIND.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/ROLE_BIND.yaml).
 
 ## Checks
 
@@ -63,8 +63,8 @@ Creating `(Cluster)RoleBinding` is a very powerful privilege and should not be r
 
 ## Calculation
 
-+ [RoleBind](../../pkg/kubehound/graph/edge/role_bind.go)
-+ [RoleBindNamespace](../../pkg/kubehound/graph/edge/role_bind_namespace.go)
++ [RoleBind](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/role_bind.go)
++ [RoleBindNamespace](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/role_bind_namespace.go)
 
 ## References:
 

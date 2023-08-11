@@ -11,7 +11,7 @@ With the correct privileges an attacker can use the Kubernetes API to obtain a s
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [PermissionSet](../vertices/PERMISSIONSET.md)  | [Pod](../vertices/POD.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/)  |
+| [PermissionSet](../entities/permissionset.md)  | [Pod](../entities/pod.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/)  |
 
 ## Details
 
@@ -21,7 +21,7 @@ An attacker with sufficient permissions can execute arbitrary commands inside th
 
 Ability to interrogate the K8s API with a role allowing exec access to pods.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/POD_EXEC.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/POD_EXEC.yaml).
 
 ## Checks
 
@@ -52,8 +52,8 @@ Pod interactive execution is a very powerful privilege and should not be require
 
 ## Calculation
 
-+ [PodExec](../../pkg/kubehound/graph/edge/pod_exec.go)
-+ [PodExecNamespace](../../pkg/kubehound/graph/edge/pod_exec_namespace.go)
++ [PodExec](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/pod_exec.go)
++ [PodExecNamespace](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/pod_exec_namespace.go)
 
 ## References:
 

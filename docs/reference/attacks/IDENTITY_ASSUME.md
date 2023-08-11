@@ -1,10 +1,21 @@
-# IDENTITY_ASSUME
+---
+title: IDENTITY_ASSUME
+---
 
-Represents the capacity to act as an [Identity](../vertices/IDENTITY.md) via ownership of a service account token, user PKI certificate, etc.
+<!--
+id: IDENTITY_ASSUME
+name: "Act as identity"
+mitreAttackTechnique: T1078 - Valid Accounts
+mitreAttackTactic: TA0004 - Privilege escalation
+-->
+
+# IDENTITY_ASSUME
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../vertices/CONTAINER.md), [Node](../vertices/NODE.md) | [Identity](../vertices/IDENTITY.md)  | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+| [Container](../entities/container.md), [Node](../entities/node.md) | [Identity](../entities/identity.md)  | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+
+Represents the capacity to act as an [Identity](../entities/identity.md) via ownership of a service account token, user PKI certificate, etc.
 
 ## Details
 
@@ -81,8 +92,8 @@ Use a pod security policy or admission controller to prevent or limit the identi
 
 ## Calculation
 
-+ [IdentityAssumeContainer](../../pkg/kubehound/graph/edge/identity_assume_container.go)
-+ [IdentityAssumeNode](../../pkg/kubehound/graph/edge/identity_assume_node.go)
++ [IdentityAssumeContainer](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/identity_assume_container.go)
++ [IdentityAssumeNode](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/identity_assume_node.go)
 
 ## References:  
 

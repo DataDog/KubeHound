@@ -85,7 +85,7 @@ You can use any client that supports accessing JanusGraph - we recommend using [
 
 Once the data is loaded in the graph database, it's time to visualize and query it! 
 
-You can explore it interactively in your graph client. Then, refer to KubeHound's [query library](/queries/) to start asking questions to your data.
+You can explore it interactively in your graph client. Then, refer to KubeHound's [query library](../queries/index.md) to start asking questions to your data.
 
 ## Generating sample data
 

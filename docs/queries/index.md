@@ -106,7 +106,7 @@ g.V().hasLabel("Container").has("image", TextP.containing("elasticsearch")).grou
 Then, check any exposed services that could be affected and have a path to a critical asset. This helps prioritizing patching and remediation.
 
 ```java
-g.V().hasLabel("Container").has("image", "dockerhub.com/elasticsearch:7.1.4").where(inE("ENDPOINT_EXPOSE").outV().has("exposure", gte(3))).where(repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).limit(1))
+g.V().hasLabel("Container").has("image", "dockerhub.com/elasticsearch:7.1.4").where(inE("ENDPOINT_EXPLOIT").outV().has("exposure", gte(3))).where(repeat(out().simplePath()).until(has("critical", true).or().loops().is(10)).has("critical", true).limit(1))
 ```
 
 ## Assessing the value of implementing new security controls
@@ -130,9 +130,9 @@ g.V().hasLabel("Container").repeat(outE().inV().simplePath()).emit()
 /* Sample output:
 
   {
-    "path[Container, IDENTITY_ASSUME, Identity, ROLE_GRANT, Role, TOKEN_LIST, Identity, ROLE_GRANT, Role, TOKEN_LIST, Identity, ROLE_GRANT, Role]" : 191,
-    "path[Container, CE_SYS_PTRACE, Node, VOLUME_EXPOSE, Volume, TOKEN_STEAL, Identity, ROLE_GRANT, Role, TOKEN_LIST, Identity, ROLE_GRANT, Role]" : 48,
-    "path[Container, IDENTITY_ASSUME, Identity, ROLE_GRANT, Role, TOKEN_BRUTEFORCE, Identity, ROLE_GRANT, Role, TOKEN_LIST, Identity, ROLE_GRANT, Role]" : 48,
+    "path[Container, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet, TOKEN_LIST, Identity, PERMISSION_DISCOVER, PermissionSet, TOKEN_LIST, Identity, PERMISSION_DISCOVER, PermissionSet]" : 191,
+    "path[Container, CE_SYS_PTRACE, Node, VOLUME_EXPOSE, Volume, TOKEN_STEAL, Identity, PERMISSION_DISCOVER, PermissionSet, TOKEN_LIST, Identity, PERMISSION_DISCOVER, PermissionSet]" : 48,
+    "path[Container, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet, TOKEN_BRUTEFORCE, Identity, PERMISSION_DISCOVER, PermissionSet, TOKEN_LIST, Identity, PERMISSION_DISCOVER, PermissionSet]" : 48,
     ...
   }
 */

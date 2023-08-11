@@ -17,5 +17,5 @@ KubeHound was built with efficiency in mind and can consequently handle very lar
 
 Next steps:
 
-- Learn more about KubeHound [architecture](./architecture) and [terminology](./terminology)
-- [Get started](/user-guide/getting-started) using KubeHound
+- Learn more about KubeHound [architecture](./architecture.md) and [terminology](./terminology.md)
+- [Get started](./user-guide/getting-started.md) using KubeHound

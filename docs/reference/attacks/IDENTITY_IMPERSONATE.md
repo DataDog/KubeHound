@@ -11,7 +11,7 @@ With a [user impersonation privilege](https://kubernetes.io/docs/reference/acces
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [PermissionSet](../vertices/PERMISSIONSET.md)  | [Identity](../vertices/IDENTITY.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+| [PermissionSet](../entities/permissionset.md)  | [Identity](../entities/identity.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
 
 ## Details
 
@@ -21,7 +21,7 @@ Obtaining the `impersonate users/groups` permission will allow an attacker to ex
 
 Ability to interrogate the K8s API with a role allowing impersonate access to users and/or groups.
 
-See the [example pod spec](../../test/setup/test-cluster/attacks/IDENTITY_IMPERSONATE.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/IDENTITY_IMPERSONATE.yaml).
 
 ## Checks
 
@@ -52,8 +52,8 @@ Impersonating users is a very powerful privilege and should not be required by t
 
 ## Calculation
 
-+ [IdentityImpersonate](../../pkg/kubehound/graph/edge/identity_impersonate.go)
-+ [IdentityImpersonateNamespace](../../pkg/kubehound/graph/edge/identity_impersonate_namespace.go)
++ [IdentityImpersonate](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/identity_impersonate.go)
++ [IdentityImpersonateNamespace](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/identity_impersonate_namespace.go)
 
 ## References:
 
