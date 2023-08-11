@@ -26,6 +26,7 @@ go.work
 
 # Binaries
 bin/
+dist/
 
 cmd/kubehound
 deployments/kubehound/data
