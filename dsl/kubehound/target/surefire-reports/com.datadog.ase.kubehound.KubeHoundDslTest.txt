@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.datadog.ase.kubehound.KubeHoundDslTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.151 s - in com.datadog.ase.kubehound.KubeHoundDslTest

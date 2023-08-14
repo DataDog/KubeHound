@@ -43,3 +43,6 @@ test/system/generator/generator
 *.env
 *.kube-config
 scripts/collectors/
+
+# java
+graph-dsl/target

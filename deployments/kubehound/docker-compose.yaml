@@ -46,6 +46,9 @@ services:
       # Performance tweaks based on: https://www.sailpoint.com/blog/souping-up-the-gremlin/
       - gremlinserver.gremlinPool=0 # will default to Runtime.availableProcessors()
       - gremlinserver.threadPoolWorker=8 # should be 2x VCPU (TODO: can we set dynamically?)
+      # Custom SCRIPT plugin for DSL support
+      - gremlinserver.scriptEngines.gremlin-groovy.plugins[org.apache.tinkerpop.gremlin.jsr223.ImportGremlinPlugin].classImports[+]=com.datadog.ase.kubehound.KubeHoundTraversalSource # TODO might not need this
+      - gremlinserver.scriptEngines.gremlin-groovy.plugins[org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin].files[+]=scripts/kubehound-dsl-init.groovy
     healthcheck:
       test: ["CMD", "bin/gremlin.sh", "-e", "scripts/remote-connect.groovy"]
       interval: 60s 
