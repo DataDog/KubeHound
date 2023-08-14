@@ -1,0 +1,44 @@
+Basic
+-----
+
+kh.containers()
+kh.nodes()
+kh.pods()
+
+
+kh.identitys()
+kh.sas()
+kh.users()
+kh.groups()
+
+kh.permissions()
+
+kh.endpoints()
+kh.endpoints(EndpointExposurerType max)
+kh.services()
+kh.hostPorts()
+
+kh.volumes()
+kh.hostVolumes()
+sourcePath()
+
+Basic
+-----
+
+attacks() -> all out edges from vertex
+escapes() -. containe escapes
+
+Complex Paths
+-----
+
+shortestAttackPath() // Duh
+attackPath() // simplePath()).until(has("critical", true))
+attackPathMax(int hops) // simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true)
+attackPathTo(Traversal)
+hasAttackPath() // where(criticalPath().limit(1))
+
+attackMap() // thrrea modelling use cases
+
+Use cases
+---------
+
