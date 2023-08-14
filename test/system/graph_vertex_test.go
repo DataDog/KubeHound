@@ -273,6 +273,26 @@ func (suite *VertexTestSuite) TestVertexPerrmissionSet() {
 	suite.Subset(present, expected)
 }
 
+func (suite *VertexTestSuite) TestVertexCritical() {
+	results, err := suite.g.V().
+		HasLabel(vertex.PermissionSetLabel).
+		Has("critical", true).
+		Values("role").
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	present := suite.resultsToStringArray(results)
+	expected := []string{
+		"cluster-admin",
+		"system:node-bootstrapper",
+		"system:kube-scheduler",
+	}
+
+	suite.Subset(present, expected)
+}
+
 func (suite *VertexTestSuite) TestVertexVolume() {
 	results, err := suite.g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
 	suite.NoError(err)
