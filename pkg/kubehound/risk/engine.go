@@ -40,7 +40,7 @@ func newEngine() (*RiskEngine, error) {
 func (ra *RiskEngine) IsCritical(model any) bool {
 	switch o := model.(type) {
 	case *store.PermissionSet:
-		if ra.roleMap[o.Name] {
+		if ra.roleMap[o.RoleName] && !o.IsNamespaced {
 			return true
 		}
 	}
