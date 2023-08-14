@@ -57,7 +57,6 @@ var CriticalRoleMap = map[string]bool{
 	"system:kube-scheduler":                                                true,
 	"system:kubelet-api-admin":                                             true,
 	"system:monitoring":                                                    true,
-	"system:node":                                                          true,
 	"system:node-bootstrapper":                                             true,
 	"system:node-problem-detector":                                         true,
 	"system:node-proxier":                                                  true,
