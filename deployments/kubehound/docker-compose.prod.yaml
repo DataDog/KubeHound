@@ -6,21 +6,9 @@ services:
       - mongodb_data:/data/db
 
   janusgraph:
-    image: ghcr.io/datadog/kubehound/kubehound-janusgraph:latest
+    image: ghcr.io/datadog/kubehound/kubehound-graph:latest
     volumes:
       - janusgraph_data:/var/lib/janusgraph
-
-  kubehound:
-    container_name: ${COMPOSE_PROJECT_NAME}-core
-    profiles: ["core"]
-    restart: unless-stopped
-    image: ghcr.io/datadog/kubehound/kubehound-core:latest
-    environment:
-      - KUBECONFIG=/tmp/.kube/config
-    volumes:
-      - ./.kube-config:/tmp/.kube/config
-    networks:
-      - kubenet
 
 volumes:
   mongodb_data:

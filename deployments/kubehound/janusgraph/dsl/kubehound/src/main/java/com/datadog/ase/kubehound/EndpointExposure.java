@@ -18,7 +18,6 @@
  */
 package com.datadog.ase.kubehound;
 
-
 /**
  * Defines the exposure of an endpoint within the KubeHound model
  */

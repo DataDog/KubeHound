@@ -96,16 +96,30 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
         return has("critical", true);
     }
 
-    // @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
-    // public default GraphTraversal<S, E> criticalPaths() {
-    //     // Issue is the starting argument to repeat??
-    //     return repeat(out().simplePath())
-    //     .until(
-    //         critical()
-    //         .or()
-    //         .loops()
-    //         .is(6)
-    //     )   
-    //     .critical();
+    @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
+    public default GraphTraversal<S, E> criticalPaths(int maxHops) {
+
+        // TODO validate args
+
+        return has("critical", false)
+            .repeat((
+                (KubeHoundTraversalDsl) __.out())
+                .simplePath()
+            ).until(
+                __.has("critical", true)
+                .or()
+                .loops()
+                .is(maxHops)
+            ).has("critical", true)
+            .path();
+    }
+
+    @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
+    public default GraphTraversal<S, E> criticalPaths() {
+        return criticalPaths(100); // TODO make constant
+    }
+
+    // public default <E2 extends Number> GraphTraversal<S, E2> shortestCriticalPath() {
+    //     return ((KubeHoundTraversalDsl) out("knows")).person().values("age").min();
     // }
 }

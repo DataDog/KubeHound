@@ -1,4 +1,4 @@
-FROM janusgraph/janusgraph:1.0.0-20230627-064806.4d9975e
+FROM janusgraph/janusgraph:1.0.0-rc2
 LABEL org.opencontainers.image.source="https://github.com/DataDog/kubehound/"
 
 # TODO TODO build DSL JAR FILE
@@ -11,7 +11,9 @@ COPY --chown=janusgraph:janusgraph kubehound-db-init.groovy /docker-entrypoint-i
 COPY --chown=janusgraph:janusgraph lib/jmx_prometheus_javaagent-0.18.0.jar ${JANUS_HOME}/lib/jmx_prometheus_javaagent-0.18.0.jar
 COPY --chown=janusgraph:janusgraph lib/exporter-config.yaml ${JANUS_HOME}/lib/exporter-config.yaml
 COPY --chown=janusgraph:janusgraph conf/jvm.options ${JANUS_HOME}/conf/jvm.options
-COPY --chown=janusgraph:janusgraph lib/kubehound-1.0.0.jar ${JANUS_HOME}/lib/kubehound-1.0.0.jar
+
+# TODO TOD build properly
+COPY --chown=janusgraph:janusgraph dsl/kubehound/target/kubehound-1.0.0.jar ${JANUS_HOME}/lib/kubehound-1.0.0.jar
 
 # Custom health check script
 COPY --chown=janusgraph:janusgraph scripts/health-check.groovy ${JANUS_HOME}/scripts/

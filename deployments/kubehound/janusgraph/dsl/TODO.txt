@@ -31,8 +31,8 @@ Complex Paths
 -----
 
 shortestCriticalPath() // Duh
-criticalPath() // simplePath()).until(has("critical", true))
-criticalPathLimit(int hops) // simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true)
+criticalPath() // simplePath()).until(has("critical", true)) DONE
+criticalPathLimit(int hops) // simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true) DONE
 attackPathTo(Traversal)
 hasCriticalPayj() // where(criticalPath().limit(1))
 

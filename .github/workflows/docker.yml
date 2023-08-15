@@ -1,10 +1,9 @@
 name: Build KubeGraph Image
 
 on:
-  workflow_dispatch:
-  # push:
-  #   tags:
-  #     - "v*"
+  push:
+    tags:
+      - "v*"
 
 env:
   REGISTRY: ghcr.io
@@ -21,7 +20,7 @@ jobs:
         matrix:
           include:
             - dockerfile: deployments/kubehound/janusgraph/Dockerfile
-              image: kubegraph
+              image: graph
     permissions:
       contents: read
       packages: write
