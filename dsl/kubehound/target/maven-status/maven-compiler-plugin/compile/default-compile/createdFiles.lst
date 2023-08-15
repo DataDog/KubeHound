@@ -1,7 +1,0 @@
-com/datadog/ase/kubehound/KubeHoundTraversalDsl.class
-com/datadog/ase/kubehound/__.class
-com/datadog/ase/kubehound/KubeHoundTraversalSourceDsl.class
-com/datadog/ase/kubehound/KubeHoundTraversalSource.class
-com/datadog/ase/kubehound/EndpointExposure.class
-com/datadog/ase/kubehound/DefaultKubeHoundTraversal.class
-com/datadog/ase/kubehound/KubeHoundTraversal.class

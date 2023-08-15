@@ -1,7 +1,8 @@
-FROM janusgraph/janusgraph:1.0.0-rc2
+FROM janusgraph/janusgraph:1.0.0-20230627-064806.4d9975e
 LABEL org.opencontainers.image.source="https://github.com/DataDog/kubehound/"
 
-ENV JAVA_OPTIONS_FILE ${JANUS_HOME}/conf/jvm.options
+# TODO TODO build DSL JAR FILE
+
 # Add our initialization script for the database schema to the startup directory
 # See https://github.com/JanusGraph/janusgraph-docker#initialization
 COPY --chown=janusgraph:janusgraph kubehound-db-init.groovy /docker-entrypoint-initdb.d/
@@ -17,3 +18,37 @@ COPY --chown=janusgraph:janusgraph scripts/health-check.groovy ${JANUS_HOME}/scr
 
 # DSL support
 COPY --chown=janusgraph:janusgraph kubehound-dsl-init.groovy ${JANUS_HOME}/scripts/
+
+# Set JVM configuration
+ENV JAVA_OPTIONS_FILE ${JANUS_HOME}/conf/jvm.options
+
+# Optimize for writes
+ENV janusgraph.ids.block-size=3000000
+
+# Enforce strict schema constraints as per https://docs.janusgraph.org/configs/configuration-reference/#schema
+ENV janusgraph.schema.constraints=true
+ENV janusgraph.schema.default=none
+
+# Bump content length of web-socket buffer to enable bulk insert queries
+ENV gremlinserver.maxContentLength=2097152
+
+# Bump evaluation timeout
+ENV gremlinserver.evaluationTimeout=240000
+
+# Enable metrics only for jmxReporter
+ENV gremlinserver.metrics.jmxReporter.enabled=true
+ENV gremlinserver.metrics.consoleReporter.enabled=false
+ENV gremlinserver.metrics.slf4jReporter.enabled=false
+ENV gremlinserver.metrics.graphiteReporter.enabled=false
+ENV gremlinserver.metrics.csvReporter.enabled=false
+
+# Performance tweaks based on: https://www.sailpoint.com/blog/souping-up-the-gremlin/
+# gremlinPool will default to Runtime.availableProcessors()
+ENV gremlinserver.gremlinPool=0 
+# threadPoolWorker should be 2x VCPU (TODO: can we set dynamically?)
+ENV gremlinserver.threadPoolWorker=8
+
+# Custom SCRIPT plugin for DSL support
+ENV gremlinserver.scriptEngines.gremlin-groovy.plugins[org.apache.tinkerpop.gremlin.jsr223.ImportGremlinPlugin].classImports[+]=com.datadog.ase.kubehound.KubeHoundTraversalSource
+ENV gremlinserver.scriptEngines.gremlin-groovy.plugins[org.apache.tinkerpop.gremlin.jsr223.ImportGremlinPlugin].classImports[+]=com.datadog.ase.kubehound.EndpointExposure
+ENV gremlinserver.scriptEngines.gremlin-groovy.plugins[org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin].files[+]=scripts/kubehound-dsl-init.groovy

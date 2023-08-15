@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   # push:
   #   tags:
-  #     - "*"
+  #     - "v*"
 
 env:
   REGISTRY: ghcr.io
@@ -20,10 +20,8 @@ jobs:
         # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
         matrix:
           include:
-            - dockerfile: ./Dockerfile
-              component: core
             - dockerfile: deployments/kubehound/janusgraph/Dockerfile
-              image: janusgraph
+              image: kubegraph
     permissions:
       contents: read
       packages: write

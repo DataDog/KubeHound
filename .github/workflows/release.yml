@@ -3,7 +3,7 @@ name: KubeHound Release
 on:
   push:
     tags:
-      - "*"
+      - "v*"
 
 permissions:
   contents: read

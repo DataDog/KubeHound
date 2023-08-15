@@ -9,6 +9,8 @@ bin/
 *.so
 *.dylib
 *.jar
+*.class
+*.lst
 
 # Test binary, built with `go test -c`
 *.test
