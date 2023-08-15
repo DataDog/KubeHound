@@ -154,15 +154,75 @@ public class KubeHoundTraversalSource extends KubeHoundTraversalSourceDsl {
   }
 
   @Override
-  public KubeHoundTraversal<Vertex, Vertex> persons(String... names) {
-    KubeHoundTraversalSource clone = this.clone();
-    return new DefaultKubeHoundTraversal (clone, super.persons(names).asAdmin());
-  }
-
-  @Override
   public KubeHoundTraversal<Vertex, Vertex> containers(String... names) {
     KubeHoundTraversalSource clone = this.clone();
     return new DefaultKubeHoundTraversal (clone, super.containers(names).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> pods(String... names) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.pods(names).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> nodes(String... names) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.nodes(names).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> endpoints(EndpointExposure exposure) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.endpoints(exposure).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> services(String... names) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.services(names).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> volumes() {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.volumes().asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> hostMounts(String... sourcePaths) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.hostMounts(sourcePaths).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> identities(String... names) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.identities(names).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> sas(String... names) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.sas(names).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> users(String... names) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.users(names).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> groups(String... names) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.groups(names).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> permissions(String... roles) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.permissions(roles).asAdmin());
   }
 
   @Override

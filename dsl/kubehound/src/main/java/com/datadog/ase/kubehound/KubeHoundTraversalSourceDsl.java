@@ -49,39 +49,178 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
         super(connection);
     }
 
-    /**
-     * Starts a traversal that finds all vertices with a "person" label and optionally allows filtering of those
-     * vertices on the "name" property.
-     *
-     * @param names list of person names to filter on
-     */
-    public GraphTraversal<Vertex, Vertex> persons(String... names) {
-        GraphTraversalSource clone = this.clone();
+    // /**
+    //  * Starts a traversal that finds all vertices with a "person" label and optionally allows filtering of those
+    //  * vertices on the "name" property.
+    //  *
+    //  * @param names list of person names to filter on
+    //  */
+    // public GraphTraversal<Vertex, Vertex> persons(String... names) {
+    //     GraphTraversalSource clone = this.clone();
 
-        // Manually add a "start" step for the traversal in this case the equivalent of V(). GraphStep is marked
-        // as a "start" step by passing "true" in the constructor.
-        clone.getBytecode().addStep(GraphTraversal.Symbols.V);
-        GraphTraversal<Vertex, Vertex> traversal = new DefaultGraphTraversal<>(clone);
-        traversal.asAdmin().addStep(new GraphStep<>(traversal.asAdmin(), Vertex.class, true));
+    //     // Manually add a "start" step for the traversal in this case the equivalent of V(). GraphStep is marked
+    //     // as a "start" step by passing "true" in the constructor.
+    //     clone.getBytecode().addStep(GraphTraversal.Symbols.V);
+    //     GraphTraversal<Vertex, Vertex> traversal = new DefaultGraphTraversal<>(clone);
+    //     traversal.asAdmin().addStep(new GraphStep<>(traversal.asAdmin(), Vertex.class, true));
 
-        traversal = traversal.hasLabel("person");
-        if (names.length > 0) traversal = traversal.has("name", P.within(names));
+    //     traversal = traversal.hasLabel("person");
+    //     if (names.length > 0) traversal = traversal.has("name", P.within(names));
 
-        return traversal;
-    }
+    //     return traversal;
+    // }
+
+    // private GraphTraversal<Vertex, Vertex> startTraversal() {
+    //     GraphTraversalSource clone = this.clone();
+
+    //     // Manually add a "start" step for the traversal in this case the equivalent of V(). GraphStep is marked
+    //     // as a "start" step by passing "true" in the constructor.
+    //     clone.getBytecode().addStep(GraphTraversal.Symbols.V);
+    //     GraphTraversal<Vertex, Vertex> traversal = new DefaultGraphTraversal<>(clone);
+    //     traversal.asAdmin().addStep(new GraphStep<>(traversal.asAdmin(), Vertex.class, true));
+
+    //     return traversal;
+    // }
 
     public GraphTraversal<Vertex, Vertex> containers(String... names) {
-        GraphTraversalSource clone = this.clone();
-
-        // Manually add a "start" step for the traversal in this case the equivalent of V(). GraphStep is marked
-        // as a "start" step by passing "true" in the constructor.
-        clone.getBytecode().addStep(GraphTraversal.Symbols.V);
-        GraphTraversal<Vertex, Vertex> traversal = new DefaultGraphTraversal<>(clone);
-        traversal.asAdmin().addStep(new GraphStep<>(traversal.asAdmin(), Vertex.class, true));
+        GraphTraversal traversal = this.clone().V();
 
         traversal = traversal.hasLabel("Container");
         if (names.length > 0) {
             traversal = traversal.has("name", P.within(names));
+        } 
+
+        return traversal;
+    }
+
+     public GraphTraversal<Vertex, Vertex> pods(String... names) {
+        GraphTraversal traversal = this.clone().V();
+
+        traversal = traversal.hasLabel("Pod");
+        if (names.length > 0) {
+            traversal = traversal.has("name", P.within(names));
+        } 
+
+        return traversal;
+    }
+
+     public GraphTraversal<Vertex, Vertex> nodes(String... names) {
+        GraphTraversal traversal = this.clone().V();
+
+        traversal = traversal.hasLabel("Node");
+        if (names.length > 0) {
+            traversal = traversal.has("name", P.within(names));
+        } 
+
+        return traversal;
+    }
+
+    public GraphTraversal<Vertex, Vertex> endpoints(EndpointExposure exposure) {
+        GraphTraversal traversal = this.clone().V();
+        
+        traversal = traversal
+            .hasLabel("Endpoint")
+            .has("exposure", P.gte(exposure.ordinal()));
+
+        return traversal;
+    }
+
+    public GraphTraversal<Vertex, Vertex> services(String... names) {
+        GraphTraversal traversal = this.clone().V();
+        
+        traversal = traversal
+            .hasLabel("Endpoint")
+            .has("exposure", P.gte(EndpointExposure.External.ordinal()));
+
+        if (names.length > 0) {
+            traversal = traversal.has("name", P.within(names));
+        } 
+
+        return traversal;
+    }
+
+
+    public GraphTraversal<Vertex, Vertex> volumes() {
+        GraphTraversal traversal = this.clone().V();
+        
+        traversal = traversal.hasLabel("Volume");
+
+        return traversal;
+    }
+
+    public GraphTraversal<Vertex, Vertex> hostMounts(String... sourcePaths) {
+        GraphTraversal traversal = this.clone().V();
+        
+        traversal = traversal
+            .hasLabel("Volume")
+            .has("type", "HostPath");
+
+        if (sourcePaths.length > 0) {
+            traversal = traversal.has("sourcePath", P.within(sourcePaths));
+        } 
+
+        return traversal;
+    }
+
+    public GraphTraversal<Vertex, Vertex> identities(String... names) {
+        GraphTraversal traversal = this.clone().V();
+        
+        traversal = traversal.hasLabel("Identity");
+        if (names.length > 0) {
+            traversal = traversal.has("name", P.within(names));
+        } 
+
+        return traversal;
+    }
+
+    public GraphTraversal<Vertex, Vertex> sas(String... names) {
+        GraphTraversal traversal = this.clone().V();
+        
+        traversal = traversal
+            .hasLabel("Identity")
+            .has("type", "ServiceAccount");
+
+        if (names.length > 0) {
+            traversal = traversal.has("name", P.within(names));
+        } 
+
+        return traversal;
+    }
+
+    public GraphTraversal<Vertex, Vertex> users(String... names) {
+        GraphTraversal traversal = this.clone().V();
+        
+        traversal = traversal
+            .hasLabel("Identity")
+            .has("type", "User");
+
+        if (names.length > 0) {
+            traversal = traversal.has("name", P.within(names));
+        } 
+
+        return traversal;
+    }
+
+    public GraphTraversal<Vertex, Vertex> groups(String... names) {
+        GraphTraversal traversal = this.clone().V();
+         
+        traversal = traversal
+            .hasLabel("Identity")
+            .has("type", "Group");
+
+        if (names.length > 0) {
+            traversal = traversal.has("name", P.within(names));
+        } 
+
+        return traversal;
+    }
+
+    public GraphTraversal<Vertex, Vertex> permissions(String... roles) {
+        GraphTraversal traversal = this.clone().V();
+        
+        traversal = traversal.hasLabel("PermissionSet");
+        if (roles.length > 0) {
+            traversal = traversal.has("name", P.within(roles));
         } 
 
         return traversal;

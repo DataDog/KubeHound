@@ -24,6 +24,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
+import org.apache.tinkerpop.gremlin.process.traversal.Path;
 
 /**
  * This Social DSL is meant to be used with the TinkerPop "modern" toy graph.
@@ -48,6 +49,16 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     public default GraphTraversal<S, Vertex> knows(String personName) {
         return ((KubeHoundTraversalDsl) out("knows")).person().has("name", personName);
     }
+
+    // /**
+    //  * From a {@code Vertex} traverse "knows" edges to adjacent "person" vertices and filter those vertices on the
+    //  * "name" property.
+    //  *
+    //  * @param personName the name of the person to filter on
+    //  */
+    // public default GraphTraversal<S, Vertex> hasCriticalPath(int limit) {
+    //     return where(repeat(__.out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().limit(1));
+    // }
 
     /**
      * From a {@code Vertex} traverse "knows" edges to adjacent "person" vertices and determine the youngest age of
@@ -76,6 +87,19 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
 
     @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
     public default GraphTraversal<S, E> critical() {
-        return  has("critical", true);
+        return has("critical", true);
     }
+
+    // @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
+    // public default GraphTraversal<S, Path> criticalPaths() {
+    //     return repeat( __.out().simplePath())
+    //     .until(
+    //         __.critical()
+    //         .or()
+    //         .loops()
+    //         .is(6)
+    //     )   
+    //     .critical()
+    //     .path();
+    // }
 }

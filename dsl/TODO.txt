@@ -1,41 +1,40 @@
 Basic
 -----
 
-kh.containers()
-kh.nodes()
-kh.pods()
+kh.containers() DONE
+kh.nodes() DONE
+kh.pods() DONE
 
 
-kh.identitys()
-kh.sas()
-kh.users()
-kh.groups()
+kh.identitys() DONE
+kh.sas() DONE
+kh.users() DONE
+kh.groups() DONE
 
-kh.permissions()
+kh.permissions() DONE
 
-kh.endpoints()
-kh.endpoints(EndpointExposurerType max)
-kh.services()
-kh.hostPorts()
+kh.endpoints() DONE
+kh.endpoints(EndpointExposurerType max) DONE
+kh.services() DONE
 
-kh.volumes()
-kh.hostVolumes()
-sourcePath()
+kh.volumes() DONE
+kh.hostVolumes() DONE
+
 
 Basic
 -----
-
+mountPaths() -> mpounted paths with grroupCOunt
 attacks() -> all out edges from vertex
 escapes() -. containe escapes
 
 Complex Paths
 -----
 
-shortestAttackPath() // Duh
-attackPath() // simplePath()).until(has("critical", true))
-attackPathMax(int hops) // simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true)
+shortestCriticalPath() // Duh
+criticalPath() // simplePath()).until(has("critical", true))
+criticalPathLimit(int hops) // simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true)
 attackPathTo(Traversal)
-hasAttackPath() // where(criticalPath().limit(1))
+hasCriticalPayj() // where(criticalPath().limit(1))
 
 attackMap() // thrrea modelling use cases
 

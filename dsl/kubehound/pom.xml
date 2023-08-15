@@ -20,7 +20,7 @@ limitations under the License.
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.datadog.ase</groupId>
     <artifactId>kubehound</artifactId>
-    <version>3.6.2</version>
+    <version>1.0.0</version>
 
     <name>KubeHound DSL: Kubernetes Attack Paths</name>
 

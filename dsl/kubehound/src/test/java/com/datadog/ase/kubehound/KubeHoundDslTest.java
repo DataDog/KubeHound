@@ -31,28 +31,28 @@ import static org.junit.Assert.assertTrue;
 
 public class KubeHoundDslTest {
 
-    private Graph graph = TinkerFactory.createModern();
-    private KubeHoundTraversalSource social = traversal(KubeHoundTraversalSource.class).withGraph(graph);
+    // private Graph graph = TinkerFactory.createModern();
+    // private KubeHoundTraversalSource social = traversal(KubeHoundTraversalSource.class).withEmbedded(graph);
 
-    @Test
-    public void shouldValidateThatMarkoKnowsJosh() {
-        assertTrue(social.V().has("name","marko").knows("josh").hasNext());
-        assertTrue(social.persons("marko").knows("josh").hasNext());
-    }
+    // @Test
+    // public void shouldValidateThatMarkoKnowsJosh() {
+    //     assertTrue(social.V().has("name","marko").knows("josh").hasNext());
+    //     assertTrue(social.persons("marko").knows("josh").hasNext());
+    // }
 
-    @Test
-    public void shouldGetAgeOfYoungestFriendOfMarko() {
-        assertEquals(27, social.V().has("name","marko").youngestFriendsAge().next().intValue());
-        assertEquals(27, social.persons("marko").youngestFriendsAge().next().intValue());
-    }
+    // @Test
+    // public void shouldGetAgeOfYoungestFriendOfMarko() {
+    //     assertEquals(27, social.V().has("name","marko").youngestFriendsAge().next().intValue());
+    //     assertEquals(27, social.persons("marko").youngestFriendsAge().next().intValue());
+    // }
 
-    @Test
-    public void shouldFindAllPersons() {
-        assertEquals(4, social.persons().count().next().intValue());
-    }
+    // @Test
+    // public void shouldFindAllPersons() {
+    //     assertEquals(4, social.persons().count().next().intValue());
+    // }
 
-    @Test
-    public void shouldFindAllPersonsWithTwoOrMoreProjects() {
-        assertEquals(1, social.persons().filter(__.createdAtLeast(2)).count().next().intValue());
-    }
+    // @Test
+    // public void shouldFindAllPersonsWithTwoOrMoreProjects() {
+    //     assertEquals(1, social.persons().filter(__.createdAtLeast(2)).count().next().intValue());
+    // }
 }
