@@ -31,6 +31,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.util.TraversalHelper;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.process.traversal.Path;
 
 /**
  * See {@code KubeHoundTraversalDsl} for more information about this DSL.
@@ -113,6 +114,22 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
         } 
 
         return traversal;
+    }
+
+    public GraphTraversal<Vertex, Path> escapes(String... nodeNames) {
+        GraphTraversal traversal = this.clone().V();
+
+        traversal = traversal
+            .hasLabel("Container")
+            .out()
+            .hasLabel("Node");
+
+        if (nodeNames.length > 0) {
+            traversal = traversal.has("name", P.within(nodeNames));
+        } 
+
+
+        return traversal.path();
     }
 
     public GraphTraversal<Vertex, Vertex> endpoints(EndpointExposure exposure) {
@@ -220,7 +237,7 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
         
         traversal = traversal.hasLabel("PermissionSet");
         if (roles.length > 0) {
-            traversal = traversal.has("name", P.within(roles));
+            traversal = traversal.has("role", P.within(roles));
         } 
 
         return traversal;

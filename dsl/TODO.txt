@@ -23,9 +23,9 @@ kh.hostVolumes() DONE
 
 Basic
 -----
-mountPaths() -> mpounted paths with grroupCOunt
-attacks() -> all out edges from vertex
-escapes() -. containe escapes
+mountPaths() -> mpounted paths with grroupCOunt ?? maybe not required
+attacks() -> all out edges from vertex DONE
+escapes() -. containe escapes DONE
 
 Complex Paths
 -----
@@ -41,4 +41,13 @@ attackMap() // thrrea modelling use cases
 Use cases
 ---------
 
-So to load out stuff in 
+Geenr
+
+getAnonymousTraversalClass
+
+Build janusgporag image as kubegraph
+Env variballes in docker file vs compose
+Ditch kubehound Dockerfile
+Fix docker CI
+Include DSL in kubegraph
+Fix doocs & compose flags - dev = us, local = local compile for user, releasse = via release binaries

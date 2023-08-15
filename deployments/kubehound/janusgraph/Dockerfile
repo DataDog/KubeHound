@@ -10,7 +10,7 @@ COPY --chown=janusgraph:janusgraph kubehound-db-init.groovy /docker-entrypoint-i
 COPY --chown=janusgraph:janusgraph lib/jmx_prometheus_javaagent-0.18.0.jar ${JANUS_HOME}/lib/jmx_prometheus_javaagent-0.18.0.jar
 COPY --chown=janusgraph:janusgraph lib/exporter-config.yaml ${JANUS_HOME}/lib/exporter-config.yaml
 COPY --chown=janusgraph:janusgraph conf/jvm.options ${JANUS_HOME}/conf/jvm.options
-COPY --chown=janusgraph:janusgraph lib/kubehound-3.6.2.jar ${JANUS_HOME}/lib/kubehound-3.6.2.jar
+COPY --chown=janusgraph:janusgraph lib/kubehound-1.0.0.jar ${JANUS_HOME}/lib/kubehound-1.0.0.jar
 
 # Custom health check script
 COPY --chown=janusgraph:janusgraph scripts/health-check.groovy ${JANUS_HOME}/scripts/

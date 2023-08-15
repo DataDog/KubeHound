@@ -23,6 +23,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl.AnonymousMe
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 
@@ -46,43 +47,48 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
      *
      * @param personName the name of the person to filter on
      */
-    public default GraphTraversal<S, Vertex> knows(String personName) {
-        return ((KubeHoundTraversalDsl) out("knows")).person().has("name", personName);
-    }
-
-    // /**
-    //  * From a {@code Vertex} traverse "knows" edges to adjacent "person" vertices and filter those vertices on the
-    //  * "name" property.
-    //  *
-    //  * @param personName the name of the person to filter on
-    //  */
-    // public default GraphTraversal<S, Vertex> hasCriticalPath(int limit) {
-    //     return where(repeat(__.out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().limit(1));
+    // public default GraphTraversal<S, Vertex> knows(String personName) {
+    //     return ((KubeHoundTraversalDsl) out("knows")).person().has("name", personName);
     // }
 
-    /**
-     * From a {@code Vertex} traverse "knows" edges to adjacent "person" vertices and determine the youngest age of
-     * those persons.
-     */
-    public default <E2 extends Number> GraphTraversal<S, E2> youngestFriendsAge() {
-        return ((KubeHoundTraversalDsl) out("knows")).person().values("age").min();
-    }
+    // // /**
+    // //  * From a {@code Vertex} traverse "knows" edges to adjacent "person" vertices and filter those vertices on the
+    // //  * "name" property.
+    // //  *
+    // //  * @param personName the name of the person to filter on
+    // //  */
+    // // public default GraphTraversal<S, Vertex> hasCriticalPath(int limit) {
+    // //     return where(repeat(__.out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().limit(1));
+    // // }
 
-    /**
-     * Designed to be used as a filter for "person" vertices based on the number of "created" edges encountered.
-     *
-     * @param number the minimum number of projects a person created
-     */
-    public default GraphTraversal<S, Long> createdAtLeast(int number) {
-        return outE("created").count().is(P.gte(number));
-    }
+    // /**
+    //  * From a {@code Vertex} traverse "knows" edges to adjacent "person" vertices and determine the youngest age of
+    //  * those persons.
+    //  */
+    // public default <E2 extends Number> GraphTraversal<S, E2> youngestFriendsAge() {
+    //     return ((KubeHoundTraversalDsl) out("knows")).person().values("age").min();
+    // }
+
+    // /**
+    //  * Designed to be used as a filter for "person" vertices based on the number of "created" edges encountered.
+    //  *
+    //  * @param number the minimum number of projects a person created
+    //  */
+    // public default GraphTraversal<S, Long> createdAtLeast(int number) {
+    //     return outE("created").count().is(P.gte(number));
+    // }
 
     /**
      * Filters objects by the "person" label. This step is designed to work with incoming vertices.
      */
-    @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
-    public default GraphTraversal<S, E> person() {
-        return hasLabel("person");
+    // @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
+    // public default GraphTraversal<S, Path> person() {
+    //     return hasLabel("person");
+    // }
+
+
+    public default GraphTraversal<S, Edge> attacks() {
+        return outE();
     }
 
     @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
@@ -91,15 +97,15 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     }
 
     // @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
-    // public default GraphTraversal<S, Path> criticalPaths() {
-    //     return repeat( __.out().simplePath())
+    // public default GraphTraversal<S, E> criticalPaths() {
+    //     // Issue is the starting argument to repeat??
+    //     return repeat(out().simplePath())
     //     .until(
-    //         __.critical()
+    //         critical()
     //         .or()
     //         .loops()
     //         .is(6)
     //     )   
-    //     .critical()
-    //     .path();
+    //     .critical();
     // }
 }

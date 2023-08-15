@@ -1,4 +1,4 @@
-name: docker
+name: Build KubeGraph Image
 
 on:
   workflow_dispatch:
@@ -27,6 +27,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09

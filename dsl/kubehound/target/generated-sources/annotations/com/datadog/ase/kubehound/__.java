@@ -4,7 +4,6 @@ import java.lang.Comparable;
 import java.lang.Double;
 import java.lang.Integer;
 import java.lang.Long;
-import java.lang.Number;
 import java.lang.Object;
 import java.lang.String;
 import java.util.Collection;
@@ -40,20 +39,8 @@ public final class __ {
     return new DefaultKubeHoundTraversal<>();
   }
 
-  public static <S> KubeHoundTraversal<S, Vertex> knows(String personName) {
-    return __.<S>start().knows(personName);
-  }
-
-  public static <E2 extends Number, S> KubeHoundTraversal<S, E2> youngestFriendsAge() {
-    return __.<S>start().youngestFriendsAge();
-  }
-
-  public static <S> KubeHoundTraversal<S, Long> createdAtLeast(int number) {
-    return __.<S>start().createdAtLeast(number);
-  }
-
-  public static <A> KubeHoundTraversal<A, A> person() {
-    return __.<A>start().person();
+  public static <S> KubeHoundTraversal<S, Edge> attacks() {
+    return __.<S>start().attacks();
   }
 
   public static <A> KubeHoundTraversal<A, A> critical() {

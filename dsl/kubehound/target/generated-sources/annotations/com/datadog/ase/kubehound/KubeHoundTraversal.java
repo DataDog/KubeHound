@@ -39,23 +39,8 @@ import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
 public interface KubeHoundTraversal<S, E> extends KubeHoundTraversalDsl<S, E> {
   @Override
-  default KubeHoundTraversal<S, Vertex> knows(String personName) {
-    return (KubeHoundTraversal) KubeHoundTraversalDsl.super.knows(personName);
-  }
-
-  @Override
-  default <E2 extends Number> KubeHoundTraversal<S, E2> youngestFriendsAge() {
-    return (KubeHoundTraversal) KubeHoundTraversalDsl.super.youngestFriendsAge();
-  }
-
-  @Override
-  default KubeHoundTraversal<S, Long> createdAtLeast(int number) {
-    return (KubeHoundTraversal) KubeHoundTraversalDsl.super.createdAtLeast(number);
-  }
-
-  @Override
-  default KubeHoundTraversal<S, E> person() {
-    return (KubeHoundTraversal) KubeHoundTraversalDsl.super.person();
+  default KubeHoundTraversal<S, Edge> attacks() {
+    return (KubeHoundTraversal) KubeHoundTraversalDsl.super.attacks();
   }
 
   @Override

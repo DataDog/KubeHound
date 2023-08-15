@@ -11,6 +11,7 @@ import java.util.function.UnaryOperator;
 import org.apache.tinkerpop.gremlin.process.computer.Computer;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
 import org.apache.tinkerpop.gremlin.process.remote.RemoteConnection;
+import org.apache.tinkerpop.gremlin.process.traversal.Path;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategy;
@@ -169,6 +170,12 @@ public class KubeHoundTraversalSource extends KubeHoundTraversalSourceDsl {
   public KubeHoundTraversal<Vertex, Vertex> nodes(String... names) {
     KubeHoundTraversalSource clone = this.clone();
     return new DefaultKubeHoundTraversal (clone, super.nodes(names).asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Path> escapes(String... nodeNames) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.escapes(nodeNames).asAdmin());
   }
 
   @Override
