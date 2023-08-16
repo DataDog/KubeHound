@@ -119,8 +119,18 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
             traversal = traversal.has("name", P.within(nodeNames));
         } 
 
-        // TODO do we just want the edge??
         return traversal.path();
+    }
+
+    /**
+     * Starts a traversal that finds all vertices with a "Endpoint" label.
+     */
+    public GraphTraversal<Vertex, Vertex> endpoints() {
+        GraphTraversal traversal = this.clone().V();
+    
+        traversal = traversal.hasLabel("Endpoint");
+
+        return traversal;
     }
 
     /**
@@ -130,21 +140,19 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
      * @param exposure EndpointExposure enum value to filter on
      */
     public GraphTraversal<Vertex, Vertex> endpoints(EndpointExposure exposure) {
+        if (exposure.ordinal() > EndpointExposure.Max.ordinal()) {
+            throw new IllegalArgumentException(String.format("invalid exposure value (must be <= %d)", EndpointExposure.Max.ordinal()));
+        }
+
+        if (exposure.ordinal() < EndpointExposure.None.ordinal()) {
+            throw new IllegalArgumentException(String.format("invalid exposure value (must be >= %d)", EndpointExposure.None.ordinal()));
+        }
+
         GraphTraversal traversal = this.clone().V();
         
-        // TODO check the exposure value!
-
         traversal = traversal
             .hasLabel("Endpoint")
             .has("exposure", P.gte(exposure.ordinal()));
-
-        return traversal;
-    }
-
-    public GraphTraversal<Vertex, Vertex> endpoints() {
-        GraphTraversal traversal = this.clone().V();
-    
-        traversal = traversal.hasLabel("Endpoint");
 
         return traversal;
     }

@@ -39,7 +39,7 @@ import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
 public interface KubeHoundTraversal<S, E> extends KubeHoundTraversalDsl<S, E> {
   @Override
-  default KubeHoundTraversal<S, Edge> attacks() {
+  default KubeHoundTraversal<S, Path> attacks() {
     return (KubeHoundTraversal) KubeHoundTraversalDsl.super.attacks();
   }
 
@@ -49,12 +49,12 @@ public interface KubeHoundTraversal<S, E> extends KubeHoundTraversalDsl<S, E> {
   }
 
   @Override
-  default KubeHoundTraversal<S, E> criticalPaths(int maxHops) {
+  default KubeHoundTraversal<S, Path> criticalPaths(int maxHops) {
     return (KubeHoundTraversal) KubeHoundTraversalDsl.super.criticalPaths(maxHops);
   }
 
   @Override
-  default KubeHoundTraversal<S, E> criticalPaths() {
+  default KubeHoundTraversal<S, Path> criticalPaths() {
     return (KubeHoundTraversal) KubeHoundTraversalDsl.super.criticalPaths();
   }
 

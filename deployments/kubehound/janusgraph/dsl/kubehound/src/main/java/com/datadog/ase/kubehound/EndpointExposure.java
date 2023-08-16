@@ -27,4 +27,6 @@ public enum EndpointExposure {
 	NodeIP,                         // Kubernetes endpoint exposed outside the cluster
 	External,                       // Kubernetes endpoint exposed outside the cluster
 	Public,                         // External DNS API endpoint
+
+	Max,                         	// Maximum for bounds checking. MUST be final entry
 }

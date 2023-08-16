@@ -39,7 +39,7 @@ public final class __ {
     return new DefaultKubeHoundTraversal<>();
   }
 
-  public static <S> KubeHoundTraversal<S, Edge> attacks() {
+  public static <S> KubeHoundTraversal<S, Path> attacks() {
     return __.<S>start().attacks();
   }
 
@@ -47,12 +47,12 @@ public final class __ {
     return __.<A>start().critical();
   }
 
-  public static <A> KubeHoundTraversal<A, A> criticalPaths(int maxHops) {
-    return __.<A>start().criticalPaths(maxHops);
+  public static <S> KubeHoundTraversal<S, Path> criticalPaths(int maxHops) {
+    return __.<S>start().criticalPaths(maxHops);
   }
 
-  public static <A> KubeHoundTraversal<A, A> criticalPaths() {
-    return __.<A>start().criticalPaths();
+  public static <S> KubeHoundTraversal<S, Path> criticalPaths() {
+    return __.<S>start().criticalPaths();
   }
 
   public static <A> KubeHoundTraversal<A, A> __(A... starts) {

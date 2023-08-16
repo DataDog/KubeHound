@@ -179,15 +179,15 @@ public class KubeHoundTraversalSource extends KubeHoundTraversalSourceDsl {
   }
 
   @Override
-  public KubeHoundTraversal<Vertex, Vertex> endpoints(EndpointExposure exposure) {
-    KubeHoundTraversalSource clone = this.clone();
-    return new DefaultKubeHoundTraversal (clone, super.endpoints(exposure).asAdmin());
-  }
-
-  @Override
   public KubeHoundTraversal<Vertex, Vertex> endpoints() {
     KubeHoundTraversalSource clone = this.clone();
     return new DefaultKubeHoundTraversal (clone, super.endpoints().asAdmin());
+  }
+
+  @Override
+  public KubeHoundTraversal<Vertex, Vertex> endpoints(EndpointExposure exposure) {
+    KubeHoundTraversalSource clone = this.clone();
+    return new DefaultKubeHoundTraversal (clone, super.endpoints(exposure).asAdmin());
   }
 
   @Override

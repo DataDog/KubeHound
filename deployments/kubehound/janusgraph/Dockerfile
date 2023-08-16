@@ -1,7 +1,14 @@
+# Build the KubeHound DSL .jar in a separate container
+FROM maven:3-openjdk-11-slim AS build
+
+COPY dsl/kubehound/src /home/app/src
+COPY dsl/kubehound/pom.xml /home/app
+
+RUN mvn -f /home/app/pom.xml clean install
+
+# Now build our janusgraph wrapper container with KubeHound customizations
 FROM janusgraph/janusgraph:1.0.0-rc2
 LABEL org.opencontainers.image.source="https://github.com/DataDog/kubehound/"
-
-# TODO TODO build DSL JAR FILE
 
 # Add our initialization script for the database schema to the startup directory
 # See https://github.com/JanusGraph/janusgraph-docker#initialization
@@ -12,8 +19,8 @@ COPY --chown=janusgraph:janusgraph lib/jmx_prometheus_javaagent-0.18.0.jar ${JAN
 COPY --chown=janusgraph:janusgraph lib/exporter-config.yaml ${JANUS_HOME}/lib/exporter-config.yaml
 COPY --chown=janusgraph:janusgraph conf/jvm.options ${JANUS_HOME}/conf/jvm.options
 
-# TODO TOD build properly
-COPY --chown=janusgraph:janusgraph dsl/kubehound/target/kubehound-1.0.0.jar ${JANUS_HOME}/lib/kubehound-1.0.0.jar
+# Copy the DSL .jar from the build container
+COPY --from=build --chown=janusgraph:janusgraph /home/app/target/kubehound-1.0.0.jar ${JANUS_HOME}/lib/kubehound-1.0.0.jar
 
 # Custom health check script
 COPY --chown=janusgraph:janusgraph scripts/health-check.groovy ${JANUS_HOME}/scripts/
