@@ -178,19 +178,28 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
     }
 
     /**
-     * Starts a traversal that finds all vertices with a "Volumes" label exposed OUTSIDE the cluster as a service 
-     * and optionally allows filtering of those vertices on the "portName" property.
-     * TODO TODO
-     * @param portNames list of port names to filter on
+     * Starts a traversal that finds all vertices with a "Volume" label and optionally allows filtering of those
+     * vertices on the "name" property.
+     *
+     * @param names list of volume names to filter on
      */
-    public GraphTraversal<Vertex, Vertex> volumes() {
+    public GraphTraversal<Vertex, Vertex> volumes(String... names) {
         GraphTraversal traversal = this.clone().V();
         
         traversal = traversal.hasLabel("Volume");
+        if (names.length > 0) {
+            traversal = traversal.has("name", P.within(names));
+        } 
 
         return traversal;
     }
 
+    /**
+     * Starts a traversal that finds all vertices representing volume host mounts and optionally allows filtering of those
+     * vertices on the "sourcePath" property.
+     *
+     * @param sourcePaths list of host source paths to filter on
+     */
     public GraphTraversal<Vertex, Vertex> hostMounts(String... sourcePaths) {
         GraphTraversal traversal = this.clone().V();
         
@@ -205,6 +214,12 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
         return traversal;
     }
 
+    /**
+     * Starts a traversal that finds all vertices with a "Identity" label and optionally allows filtering of those
+     * vertices on the "name" property.
+     *
+     * @param names list of identity names to filter on
+     */
     public GraphTraversal<Vertex, Vertex> identities(String... names) {
         GraphTraversal traversal = this.clone().V();
         
@@ -216,6 +231,12 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
         return traversal;
     }
 
+    /**
+     * Starts a traversal that finds all vertices representing service accounts and optionally allows filtering of those
+     * vertices on the "name" property.
+     *
+     * @param names list of service account names to filter on
+     */
     public GraphTraversal<Vertex, Vertex> sas(String... names) {
         GraphTraversal traversal = this.clone().V();
         
@@ -230,6 +251,12 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
         return traversal;
     }
 
+    /**
+     * Starts a traversal that finds all vertices representing users and optionally allows filtering of those
+     * vertices on the "name" property.
+     *
+     * @param names list of user names to filter on
+     */
     public GraphTraversal<Vertex, Vertex> users(String... names) {
         GraphTraversal traversal = this.clone().V();
         
@@ -244,6 +271,12 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
         return traversal;
     }
 
+    /**
+     * Starts a traversal that finds all vertices representing groups and optionally allows filtering of those
+     * vertices on the "name" property.
+     *
+     * @param names list of groups names to filter on
+     */
     public GraphTraversal<Vertex, Vertex> groups(String... names) {
         GraphTraversal traversal = this.clone().V();
          
@@ -258,6 +291,12 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
         return traversal;
     }
 
+    /**
+     * Starts a traversal that finds all vertices with a "PermissionSet" label and optionally allows filtering of those
+     * vertices on the "role" property.
+     *
+     * @param roles list of underlying role names to filter on
+     */
     public GraphTraversal<Vertex, Vertex> permissions(String... roles) {
         GraphTraversal traversal = this.clone().V();
         

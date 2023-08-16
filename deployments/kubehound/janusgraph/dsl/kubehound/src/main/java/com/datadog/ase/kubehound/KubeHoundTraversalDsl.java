@@ -28,7 +28,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
 
 /**
- * This Social DSL is meant to be used with the TinkerPop "modern" toy graph.
+ * This KubeHound DSL is meant to be used with the Kubernetes attack graph created by the KubeHound application.
  * <p/>
  * All DSLs should extend {@code GraphTraversal.Admin} and be suffixed with "TraversalDsl". Simply add DSL traversal
  * methods to this interface. Use Gremlin's steps to build the underlying traversal in these methods to ensure
@@ -88,24 +88,63 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
             .path();
     }
 
-    public default GraphTraversal<S, Path> criticalPathsFilter() {
-        TODO with filter of discarded attackjs (for ROI calculation etc)
+    public default GraphTraversal<S, Path> criticalPathsFilter(String[] exclusions, int maxHops) {
+        if (exclusions.length <= 0) throw new IllegalArgumentException("exclusions must be provided (otherwise use criticalPaths())");
+        if (maxHops < PATH_HOPS_MIN) throw new IllegalArgumentException(String.format("maxHops must be >= %d", PATH_HOPS_MIN));
+        if (maxHops > PATH_HOPS_MAX) throw new IllegalArgumentException(String.format("maxHops must be <= %d", PATH_HOPS_MAX));
+
+         return repeat((
+                (KubeHoundTraversalDsl) __.outE())
+                .hasLabel(P.not(P.within(exclusions)))
+                .inV()
+                .simplePath()
+            ).until(
+                __.has("critical", true)
+                .or()
+                .loops()
+                .is(maxHops)
+            ).has("critical", true)
+            .path();
     }
 
     @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
     public default GraphTraversal<S, E> hasCriticalPath() {
-        TODO 
+        return where(criticalPaths().limit(1)); 
     }
 
-    public default <E2 extends Number> GraphTraversal<S, E2> shortestCriticalPath() {
-        return ((KubeHoundTraversalDsl) out("knows")).person().values("age").min();
-    }
+    // public default <E2 extends Number> GraphTraversal<S, E2> shortestCriticalPath() {
+    //      return repeat((
+    //             (KubeHoundTraversalDsl) __.out())
+    //             .simplePath()
+    //         ).until(
+    //             __.has("critical", true)
+    //             .or()
+    //             .loops()
+    //             .is(PATH_HOPS_DEFAULT)
+    //         ).has("critical", true)
+    //         .path()
+    //         .count(local)
+    //         .min();
+    // }
 
-    public default GraphTraversal<S, Path> pathTo() {
-        TODO g.V().hasLabel("Container", "Identity", "Node").repeat(out().simplePath()).until(has("name", "system:auth-delegator").or().loops().is(5)).has("name", "system:auth-delegator").hasLabel("Role").path()
-    }
+    // public default GraphTraversal<S, E> pathTo() {
+    //     TODO g.V().hasLabel("Container", "Identity", "Node").repeat(out().simplePath()).until(has("name", "system:auth-delegator").or().loops().is(5)).has("name", "system:auth-delegator").hasLabel("Role").path()
+    // }
 
-    public default GraphTraversal<S, Path> attackPathMap() {
-        TODO g.V().hasLabel("Container").repeat(outE().inV().simplePath()).emit().until(has("critical", true).or().loops().is(6)).has("critical", true).path().by(label).groupCount()
-    }
+    // public default GraphTraversal<Vertex, Map<String, Long>> attackPathMap() {
+    //      return repeat((
+    //             (KubeHoundTraversalDsl) __.outE())
+    //             .inV()
+    //             .simplePath()
+    //         ).emit()
+    //         .until(
+    //             __.has("critical", true)
+    //             .or()
+    //             .loops()
+    //             .is(PATH_HOPS_DEFAULT)
+    //         ).has("critical", true)
+    //         .path()
+    //         .by(label())
+    //         .groupCount();
+    // }
 }
