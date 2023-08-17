@@ -107,7 +107,7 @@ ifndef KUBEHOUND_ENV
 	$(error KUBEHOUND_ENV is undefined)
 endif
 	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_mongodb_data
-	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_janusgraph_data
+	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_kubegraph_data
 
 .PHONY: backend-reset-hard
 backend-reset-hard: | backend-down backend-wipe backend-up ## Restart the kubehound stack and wipe all data

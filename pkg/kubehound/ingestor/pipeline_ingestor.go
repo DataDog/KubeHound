@@ -39,14 +39,14 @@ func ingestSequence() []pipeline.Sequence {
 					},
 				},
 				{
-					Name: "k8s-rbac-group",
+					Name: "k8s-binding-group",
 					Ingests: []pipeline.ObjectIngest{
 						&pipeline.RoleBindingIngest{},
 						&pipeline.ClusterRoleBindingIngest{},
 					},
 				},
 				{
-					Name: "k8s-node-group",
+					Name: "k8s-core-group",
 					Ingests: []pipeline.ObjectIngest{
 						&pipeline.NodeIngest{},
 						&pipeline.EndpointIngest{},

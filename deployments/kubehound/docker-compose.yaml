@@ -8,7 +8,7 @@ services:
     networks:
       - kubenet
     depends_on:
-      janusgraph:
+      kubegraph:
         condition: service_healthy
     labels:
       com.datadoghq.ad.logs: '[{"app": "mongodb", "service": "kubehound"}]'
@@ -20,8 +20,8 @@ services:
       timeout: 2s
       retries: 10
 
-  janusgraph:
-    build: ./janusgraph/
+  kubegraph:
+    build: ./kubegraph/
     restart: unless-stopped
     profiles: ["infra"]
     container_name: ${COMPOSE_PROJECT_NAME}-graphdb
@@ -33,7 +33,7 @@ services:
       timeout: 30s
       retries: 3
     labels:
-      com.datadoghq.ad.logs: '[{"app": "janusgraph", "service": "kubehound"}]'
+      com.datadoghq.ad.logs: '[{"app": "kubegraph", "service": "kubehound"}]'
 
 networks:
   kubenet:
