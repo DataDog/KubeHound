@@ -74,11 +74,11 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
                 .inV()
                 .simplePath()
             ).until(
-                __.has("critical", true)
+                __.critical()
                 .or()
                 .loops()
                 .is(maxHops)
-            ).has("critical", true)
+            ).critical()
             .path();
     }
 
@@ -107,11 +107,11 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
                 .inV()
                 .simplePath()
             ).until(
-                __.has("critical", true)
+                __.critical()
                 .or()
                 .loops()
                 .is(maxHops)
-            ).has("critical", true)
+            ).critical()
             .path();
     }
 
