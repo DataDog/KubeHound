@@ -45,26 +45,33 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     public static final int PATH_HOPS_DEFAULT = 10;
 
     /**
-     * From a {@code Vertex} traverse "knows" edges to adjacent "person" vertices and filter those vertices on the
-     * "name" property.
+     * From a {@code Vertex} traverse immediate edges to display the next set of possible attacks and targets
      *
-     * @param personName the name of the person to filter on
      */
     public default GraphTraversal<S, Path> attacks() {
         return outE().inV().path();
     }
 
+    /**
+     * From a {@code Vertex} filter on whether incoming vertices are critical assets
+     */
     @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
     public default GraphTraversal<S, E> critical() {
         return has("critical", true);
     }
 
+    /**
+     * From a {@code Vertex} traverse edges until {@code maxHops} is exceeded or a critical asset is reached and return all paths. 
+     *
+     * @param maxHops the maximum number of hops in an attack path
+     */
     public default GraphTraversal<S, Path> criticalPaths(int maxHops) {
         if (maxHops < PATH_HOPS_MIN) throw new IllegalArgumentException(String.format("maxHops must be >= %d", PATH_HOPS_MIN));
         if (maxHops > PATH_HOPS_MAX) throw new IllegalArgumentException(String.format("maxHops must be <= %d", PATH_HOPS_MAX));
 
         return repeat((
-                (KubeHoundTraversalDsl) __.out())
+                (KubeHoundTraversalDsl) __.outE())
+                .inV()
                 .simplePath()
             ).until(
                 __.has("critical", true)
@@ -75,20 +82,21 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
             .path();
     }
 
+    /**
+     * From a {@code Vertex} traverse edges until a critical asset is reached and return all paths. 
+     */
     public default GraphTraversal<S, Path> criticalPaths() {
-        return repeat((
-                (KubeHoundTraversalDsl) __.out())
-                .simplePath()
-            ).until(
-                __.has("critical", true)
-                .or()
-                .loops()
-                .is(PATH_HOPS_DEFAULT)
-            ).has("critical", true)
-            .path();
+        return criticalPaths(PATH_HOPS_DEFAULT);
     }
 
-    public default GraphTraversal<S, Path> criticalPathsFilter(String[] exclusions, int maxHops) {
+    /**
+     * From a {@code Vertex} traverse edges EXCLUDING labels provided in {@code exclusions} until {@code maxHops} is exceeded or 
+     * a critical asset is reached and return all paths. 
+     *
+     * @param maxHops the maximum number of hops in an attack path
+     * @param exclusions edge labels to exclude from paths
+     */
+    public default GraphTraversal<S, Path> criticalPathsFilter(int maxHops, String... exclusions) {
         if (exclusions.length <= 0) throw new IllegalArgumentException("exclusions must be provided (otherwise use criticalPaths())");
         if (maxHops < PATH_HOPS_MIN) throw new IllegalArgumentException(String.format("maxHops must be >= %d", PATH_HOPS_MIN));
         if (maxHops > PATH_HOPS_MAX) throw new IllegalArgumentException(String.format("maxHops must be <= %d", PATH_HOPS_MAX));
@@ -107,44 +115,11 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
             .path();
     }
 
+    /**
+     * From a {@code Vertex} filter on whether incoming vertices have at least one path to a critical asset
+     */
     @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
     public default GraphTraversal<S, E> hasCriticalPath() {
-        return where(criticalPaths().limit(1)); 
+        return where(__.criticalPaths().limit(1)); 
     }
-
-    // public default <E2 extends Number> GraphTraversal<S, E2> shortestCriticalPath() {
-    //      return repeat((
-    //             (KubeHoundTraversalDsl) __.out())
-    //             .simplePath()
-    //         ).until(
-    //             __.has("critical", true)
-    //             .or()
-    //             .loops()
-    //             .is(PATH_HOPS_DEFAULT)
-    //         ).has("critical", true)
-    //         .path()
-    //         .count(local)
-    //         .min();
-    // }
-
-    // public default GraphTraversal<S, E> pathTo() {
-    //     TODO g.V().hasLabel("Container", "Identity", "Node").repeat(out().simplePath()).until(has("name", "system:auth-delegator").or().loops().is(5)).has("name", "system:auth-delegator").hasLabel("Role").path()
-    // }
-
-    // public default GraphTraversal<Vertex, Map<String, Long>> attackPathMap() {
-    //      return repeat((
-    //             (KubeHoundTraversalDsl) __.outE())
-    //             .inV()
-    //             .simplePath()
-    //         ).emit()
-    //         .until(
-    //             __.has("critical", true)
-    //             .or()
-    //             .loops()
-    //             .is(PATH_HOPS_DEFAULT)
-    //         ).has("critical", true)
-    //         .path()
-    //         .by(label())
-    //         .groupCount();
-    // }
 }

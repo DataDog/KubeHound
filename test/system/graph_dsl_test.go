@@ -52,7 +52,6 @@ func (suite *DslTestSuite) testScriptPath(script string) []string {
 	for _, r := range results {
 		path, err := r.GetPath()
 		suite.NoError(err)
-		suite.Len(path.Objects, 3)
 		paths = append(paths, path.String())
 	}
 
@@ -212,6 +211,69 @@ func (suite *DslTestSuite) TestTraversalSource_permissions() {
 	}
 
 	suite.ElementsMatch(ps, expected)
+}
+
+func (suite *DslTestSuite) TestTraversal_attacks() {
+	attacks := suite.testScriptPath("kh.containers('nsenter-pod').attacks().by('name').by(label).by(label)")
+	expected := []string{
+		"path[nsenter-pod, CE_NSENTER, Node]",
+		"path[nsenter-pod, CE_MODULE_LOAD, Node]",
+		"path[nsenter-pod, CE_PRIV_MOUNT, Node]",
+	}
+
+	suite.ElementsMatch(attacks, expected)
+}
+
+func (suite *DslTestSuite) TestTraversal_criticalPaths() {
+	attacks := suite.testScriptPath("kh.services().criticalPaths().by(label).by(label).dedup()")
+
+	// There are A LOT of paths in the test cluster. Just sample a few
+	expected := []string{
+		"path[Endpoint, ENDPOINT_EXPLOIT, Container, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]",
+		"path[Endpoint, ENDPOINT_EXPLOIT, Container, VOLUME_DISCOVER, Volume, TOKEN_STEAL, Identity, PERMISSION_DISCOVER, PermissionSet]",
+		"path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_NSENTER, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]",
+		"path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_MODULE_LOAD, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]",
+		"path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_PRIV_MOUNT, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]",
+	}
+
+	suite.Subset(attacks, expected)
+}
+
+func (suite *DslTestSuite) TestTraversal_hasCriticalPath() {
+	attacks := suite.testScriptArray("kh.containers('modload-pod').hasCriticalPath().values('name')")
+	suite.ElementsMatch(attacks, []string{"modload-pod"})
+}
+
+func (suite *DslTestSuite) TestTraversal_criticalPathsFilter() {
+	// There are critical paths from this container
+	attacks := suite.testScriptPath("kh.containers('modload-pod').criticalPaths().by(label).by(label).dedup()")
+	suite.GreaterOrEqual(len(attacks), 1)
+
+	// But NOT if we exclude CE_MODULE_LOAD
+	raw, err := suite.client.Submit("kh.containers('modload-pod').criticalPathsFilter(10, 'CE_MODULE_LOAD').by(label).by(label).dedup()")
+	suite.NoError(err)
+
+	results, err := raw.All()
+	suite.NoError(err)
+	suite.Empty(results)
+}
+
+func (suite *DslTestSuite) TestTraversal_critical() {
+	raw, err := suite.client.Submit("kh.containers('control-pod').critical().hasNext()")
+	suite.NoError(err)
+
+	critical, ok, err := raw.One()
+	suite.NoError(err)
+	suite.True(ok)
+	suite.False(critical.GetBool())
+
+	raw, err = suite.client.Submit("kh.permissions('cluster-admin').critical().hasNext()")
+	suite.NoError(err)
+
+	critical, ok, err = raw.One()
+	suite.NoError(err)
+	suite.True(ok)
+	suite.True(critical.GetBool())
 }
 
 func TestDslTestSuite(t *testing.T) {
