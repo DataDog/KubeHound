@@ -47,4 +47,4 @@ test/system/generator/generator
 scripts/collectors/
 
 # java
-deployments/kubehound/janusgraph/dsl/kubehound/target
+deployments/kubehound/kubegraph/dsl/kubehound/target

@@ -1,11 +1,9 @@
 # KubeHound DSL
 
-TODO TODO
+A basic [gremlin DSL](http://tinkerpop.apache.org/docs/3.6.2/reference/#dsl) for KubeHound. The project is
+structured with Java and Maven.
 
-This is a starter project that demonstrates how a basic
-link:http://tinkerpop.apache.org/docs/3.6.2/reference/#dsl[Domain Specific Language] (DSL) project is
-structured with Java and Maven. The DSL is built to work with the TinkerPop "modern" toy graph. Please see the unit
-tests in `SocialDslTest` for actual DSL usage.
+Please see the [system tests](../../../../../test/system/graph_dsl_test.go) for actual DSL usage and the core documentation for further details.
 
 ## Prerequisites
 
