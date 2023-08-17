@@ -112,7 +112,8 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
 
         traversal = traversal
             .hasLabel("Container")
-            .out()
+            .outE()
+            .inV()
             .hasLabel("Node");
 
         if (nodeNames.length > 0) {
