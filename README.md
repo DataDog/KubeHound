@@ -1,6 +1,26 @@
-# KubeHound
+# KubeHound  <!-- omit in toc -->
 
 A Kubernetes attack graph tool allowing automated calculation of attack paths between assets in a cluster
+
+- [Quick Links](#quick-links)
+- [Requirements](#requirements)
+  - [Application](#application)
+  - [Test (Development only)](#test-development-only)
+- [Quick Start](#quick-start)
+  - [Prebuilt Releases](#prebuilt-releases)
+  - [From Source](#from-source)
+  - [Sample Data](#sample-data)
+- [Advanced Usage](#advanced-usage)
+  - [Infrastructure Setup](#infrastructure-setup)
+  - [Running Kubehound](#running-kubehound)
+- [Using KubeHound Data](#using-kubehound-data)
+- [Development](#development)
+  - [Build](#build)
+  - [Unit Testing](#unit-testing)
+  - [System Testing](#system-testing)
+    - [Environment variable:](#environment-variable)
+    - [Setup](#setup)
+    - [CI Testing](#ci-testing)
 
 ![Example Path](./docs/images/example-graph.png)
 

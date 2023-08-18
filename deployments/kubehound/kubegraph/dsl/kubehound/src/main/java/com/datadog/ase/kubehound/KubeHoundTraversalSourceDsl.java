@@ -102,10 +102,11 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
     }
 
     /**
-     * Starts a traversal that finds all vertices with a "Node" label and optionally allows filtering of those
-     * vertices on the "name" property.
+     * Starts a traversal that finds all container escape edges from a Container vertex to a Node vertex 
+     * and optionally allows filtering of those vertices on the "nodeNames" property.
      *
      * @param nodeNames list of node names to filter on
+
      */
     public GraphTraversal<Vertex, Path> escapes(String... nodeNames) {
         GraphTraversal traversal = this.clone().V();

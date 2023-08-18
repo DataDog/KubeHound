@@ -151,7 +151,12 @@ help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(HELP_MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: thirdparty-licenses
-thirdparty-licenses:
+thirdparty-licenses: ## Generate the list of 3rd party dependencies and write to LICENSE-3rdparty.csv
 	go get github.com/google/go-licenses
 	go install github.com/google/go-licenses
 	$(GOPATH)/bin/go-licenses csv github.com/DataDog/KubeHound/cmd/kubehound | sort > $(ROOT_DIR)/LICENSE-3rdparty.csv
+
+.PHONY: local-wiki
+local-wiki: ## Generate and serve the mkdocs wiki on localhost
+	pip install mkdocs-material mkdocs-awesome-pages-plugin markdown-captions
+	mkdocs serve

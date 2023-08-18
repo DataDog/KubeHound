@@ -3,6 +3,372 @@
 The KubeHound graph ships with a custom DSL that simplifies queries for the most common use cases
 
 ```groovy
-
+// Example returning all attacks from containers running the cilium 1.11.18 image
+kh.containers().has("image", "eu.gcr.io/internal/cilium:1.11.18").attacks()
 ```
 
+## Using the KubeHound graph
+
+The KubeHound DSL can be used by starting a traversal with `kh` vs the traditional `g`. All gremlin queries will work exactly as normal, but a number of additional steps specific to KubeHound will be available.
+
+```groovy
+// First 100 vertices in the kubehound graph
+kh.V().limit(100)
+```
+
+## Traversal Source Reference
+
+### Containers Step
+
+Starts a traversal that finds all vertices with a "Container" label and optionally allows filtering of those vertices on the "name" property.
+
+```java
+GraphTraversal<Vertex, Vertex> containers(String... names)
+```
+
+Example usage:
+
+```groovy
+// All containers in the graph
+kh.containers()
+
+// All containers in the graph with name filter
+kh.containers("elasticsearch", "mongo")
+
+// All containers in the graph with additional filters
+kh.containers().has("namespace", "ns1").limit(10)
+```
+
+### Pods Step
+
+Starts a traversal that finds all vertices with a "Pod" label and optionally allows filtering of those vertices on the "name" property.
+
+```java
+GraphTraversal<Vertex, Vertex> pods(String... names) 
+```
+
+Example usage:
+
+```groovy
+// All pods in the graph
+kh.pods()
+
+// All pod in the graph with name filter
+kh.pods("app-pod", "sidecar-pod")
+
+// All pods in the graph with additional filters
+kh.pods().has("namespace", "ns1").limit(10)
+```
+
+### Nodes Step
+
+Starts a traversal that finds all vertices with a "Node" label and optionally allows filtering of those vertices on the "name" property.
+
+```java
+GraphTraversal<Vertex, Vertex> nodes(String... names) 
+```
+
+Example usage:
+
+```groovy
+// All nodes in the graph
+kh.nodes()
+
+// All nodes in the graph with name filter
+kh.nodes("control-plane")
+
+// All nodes in the graph with additional filters
+kh.nodes().has("team", "sre").limit(10)
+```
+
+### Escapes Step
+
+Starts a traversal that finds all container escape edges from a Container vertex to a Node vertex and optionally allows filtering of those vertices on the "nodeNames" property.
+
+```java
+GraphTraversal<Vertex, Path> escapes(String... nodeNames) 
+```
+
+Example usage:
+
+```groovy
+// All container escapes in the graph
+kh.escapes()
+
+// All container escapes in the graph with node name filter
+kh.escapes("control-plane")
+```
+
+### Endpoints Step
+
+Starts a traversal that finds all vertices with a "Endpoint" label.
+
+```java
+GraphTraversal<Vertex, Vertex> endpoints()
+GraphTraversal<Vertex, Vertex> endpoints(EndpointExposure exposure)
+```
+
+Example usage:
+
+```groovy
+// All endpoints in the graph
+kh.endpoints()
+
+// All endpoints in the graph with additional filters
+kh.endpoints().has("port", 3000).limit(10)
+
+// All endpoints with K8s service exposure
+kh.endpoints(EndpointExposure.External)
+```
+
+### Services Step
+
+Starts a traversal that finds all vertices with a "Endpoint" label representing K8s services. 
+
+```java
+GraphTraversal<Vertex, Vertex> services(String... portNames) 
+```
+
+Example usage:
+
+```groovy
+// All services in the graph
+kh.services()
+
+// All services in the graph with name filter
+kh.services("jmx", "redis")
+
+// All services in the graph with additional filters
+kh.services().has("port", 9999).limit(10)
+```
+
+### Volumes Step
+
+Starts a traversal that finds all vertices with a "Volume" label and optionally allows filtering of those vertices on the "name" property. 
+
+```java
+GraphTraversal<Vertex, Vertex> volumes(String... names)
+```
+
+Example usage:
+
+```groovy
+// All volumes in the graph
+kh.volumes()
+
+// All volumes in the graph with name filter
+kh.volumes("db-data", "proc-mount")
+
+// All volumes in the graph with additional filters
+kh.volumes().has("sourcePath", "/").has("app", "web-app")
+```
+
+### HostMounts Step
+
+Starts a traversal that finds all vertices representing volume host mounts and optionally allows filtering of those vertices on the "sourcePath" property.
+
+```java
+GraphTraversal<Vertex, Vertex> hostMounts(String... sourcePaths)
+```
+
+Example usage:
+
+```groovy
+// All host mounted volumes in the graph
+kh.hostMounts()
+
+// All host mount volumes in the graph with source path filter
+kh.hostMounts("/", "/proc")
+
+// All host mount volumes in the graph with additional filters
+kh.hostMounts().has("app", "web-app").limit(10)
+```
+
+### Identities Step
+
+Starts a traversal that finds all vertices with a "Identity" label and optionally allows filtering of those vertices on the "name" property.
+
+```java
+GraphTraversal<Vertex, Vertex> identities(String... names)
+```
+
+Example usage:
+
+```groovy
+// All identities in the graph
+kh.identities()
+
+// All identities in the graph with name filter
+kh.identities("postgres-admin", "db-reader")
+
+// All identities in the graph with additional filters
+kh.identities().has("app", "web-app").limit(10)
+```
+
+### SAS Step
+
+Starts a traversal that finds all vertices representing service accounts and optionally allows filtering of those vertices on the "name" property.
+
+```java
+GraphTraversal<Vertex, Vertex> sas(String... names)
+```
+
+Example usage:
+
+```groovy
+// All service accounts in the graph
+kh.sas()
+
+// All service accounts in the graph with name filter
+kh.sas("postgres-admin", "db-reader")
+
+// All service accounts in the graph with additional filters
+kh.sas().has("app", "web-app").limit(10)
+```
+
+### Users Step
+
+Starts a traversal that finds all vertices representing users and optionally allows filtering of those vertices on the "name" property.
+
+```java
+GraphTraversal<Vertex, Vertex> users(String... names)
+```
+
+Example usage:
+
+```groovy
+// All users in the graph
+kh.users()
+
+// All users in the graph with name filter
+kh.users("postgres-admin", "db-reader")
+
+// All users in the graph with additional filters
+kh.users().has("app", "web-app").limit(10)
+```
+
+### Groups Step
+
+Starts a traversal that finds all vertices representing groups and optionally allows filtering of those vertices on the "name" property.
+
+```java
+GraphTraversal<Vertex, Vertex> groups(String... names)
+```
+
+Example usage:
+
+```groovy
+// All groups in the graph
+kh.groups()
+
+// All groups in the graph with name filter
+kh.groups("postgres-admin", "db-reader")
+
+// All groups in the graph with additional filters
+kh.groups().has("app", "web-app").limit(10)
+```
+
+### Permissions Step
+
+Starts a traversal that finds all vertices with a "PermissionSet" label and optionally allows filtering of those vertices on the "role" property.
+
+```java
+GraphTraversal<Vertex, Vertex> permissions(String... roles)
+```
+
+Example usage:
+
+```groovy
+// All permissions sets in the graph
+kh.permissions()
+
+// All permissions sets in the graph with role filter
+kh.permissions("postgres-admin", "db-reader")
+
+// All permissions sets in the graph with additional filters
+kh.permissions().has("app", "web-app").limit(10)
+```
+
+## Traversal Reference
+
+### Attacks Step
+
+From a Vertex traverse immediate edges to display the next set of possible attacks and targets
+
+```java
+GraphTraversal<S, Path> attacks() 
+```
+
+Example usage:
+
+```groovy
+// All attacks possible from a specific container in the graph
+kh.containers("pwned-container").attacks()
+```
+
+### Critical Step
+
+From a Vertex filter on whether incoming vertices are critical assets
+
+```java
+GraphTraversal<S, E> critical()
+```
+
+Example usage:
+
+```groovy
+// All critical assets in the graph
+kh.V().critical()
+
+// Check whether a specific permission set is marked as critical
+kh.permissions("system::kube-controller").critical()
+```
+
+### CriticalPaths Step
+
+From a Vertex traverse edges until {@code maxHops} is exceeded or a critical asset is reached and return all paths.
+
+```java
+GraphTraversal<S, Path> criticalPaths()
+GraphTraversal<S, Path> criticalPaths(int maxHops)
+```
+
+Example usage:
+
+```groovy
+// All attack paths from services to a critical asset
+kh.services().criticalPaths()
+
+// All attack paths (up to 5 hops) from a compromised credential to a critical asset
+kh.group("engineering").criticalPaths(5)
+```
+
+### CriticalPathsFilter Step
+
+From a Vertex traverse edges EXCLUDING labels provided in `exclusions` until `maxHops` is exceeded or a critical asset is reached and return all paths. 
+
+```java
+GraphTraversal<S, Path> criticalPathsFilter(int maxHops, String... exclusions)
+```
+
+Example usage:
+
+```groovy
+// All attack paths (up to 10 hops) from services to a critical asset excluding the TOKEN_BRUTEFORCE and TOKEN_LIST attacks
+kh.services().criticalPathsFilter(10, "TOKEN_BRUTEFORCE", "TOKEN_LIST")
+```
+
+### HasCriticalPath Step
+
+From a Vertex filter on whether incoming vertices have at least one path to a critical asset
+
+```java
+GraphTraversal<S, E> hasCriticalPath()
+```
+
+Example usage:
+
+```groovy
+// All services with an attack path to a critical asset
+kh.services().hasCriticalPath()
+```
