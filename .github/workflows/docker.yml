@@ -20,7 +20,7 @@ jobs:
         # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
         matrix:
           include:
-            - dockerfile: deployments/kubehound/janusgraph/Dockerfile
+            - dockerfile: deployments/kubehound/kubegraph/Dockerfile
               image: graph
     permissions:
       contents: read
