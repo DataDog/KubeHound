@@ -56,6 +56,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
+        if: ${{ github.event_name == 'push' }}
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
           context: .
@@ -64,5 +65,17 @@ jobs:
           build-args: |
             VERSION=${{ github.ref_name }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:${{ github.ref_name }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:${{ github.ref_name }}
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest
+
+      - name: Build and push Docker image
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          build-args: |
+            VERSION=${{ github.sha }}
+          tags: |
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}-snapshot:${{ github.sha }}
