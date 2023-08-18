@@ -1,6 +1,7 @@
 name: Build KubeGraph Image
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - "v*"
