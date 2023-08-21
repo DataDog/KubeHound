@@ -1,4 +1,4 @@
-name: KubeHound System Tests
+name: kubehound-system-tests
 
 on:
   push:

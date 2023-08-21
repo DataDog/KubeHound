@@ -1,4 +1,4 @@
-name: Build KubeGraph Image
+name: build-kubegraph-mage
 
 on:
   workflow_dispatch:
@@ -80,3 +80,4 @@ jobs:
             VERSION=${{ github.sha }}
           tags: |
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:snapshot-${{ github.sha }}
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest

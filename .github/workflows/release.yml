@@ -1,4 +1,4 @@
-name: KubeHound Release
+name: kubehound-release
 
 on:
   push:

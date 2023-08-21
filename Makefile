@@ -160,3 +160,7 @@ thirdparty-licenses: ## Generate the list of 3rd party dependencies and write to
 local-wiki: ## Generate and serve the mkdocs wiki on localhost
 	pip install mkdocs-material mkdocs-awesome-pages-plugin markdown-captions
 	mkdocs serve
+
+.PHONY: local-release
+local-release: ## Generate release packages locally via goreleaser
+	goreleaser release --snapshot --clean --config .goreleaser.yaml

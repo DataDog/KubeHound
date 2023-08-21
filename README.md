@@ -16,6 +16,7 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
 - [Using KubeHound Data](#using-kubehound-data)
 - [Development](#development)
   - [Build](#build)
+  - [Release build](#release-build)
   - [Unit Testing](#unit-testing)
   - [System Testing](#system-testing)
     - [Environment variable:](#environment-variable)
@@ -182,6 +183,14 @@ make build
 ```
 
 All binaries will be output to the [bin](./bin/) folder
+
+### Release build
+
+Build the release packages locally using [goreleaser](https://goreleaser.com/install):
+
+```bash
+make local-release
+```
 
 ### Unit Testing
 

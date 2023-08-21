@@ -1,4 +1,4 @@
-name: KubeHound Unit Tests
+name: kubehound-unit-tests
 
 on:
   push:
