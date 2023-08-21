@@ -22,6 +22,7 @@ jobs:
           include:
             - dockerfile: deployments/kubehound/kubegraph/Dockerfile
               image: graph
+              workdir: deployments/kubehound/kubegraph/
     permissions:
       contents: read
       packages: write
@@ -59,7 +60,7 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
-          context: .
+          context: ${{ matrix.workdir }}
           file: ${{ matrix.dockerfile }}
           push: true
           build-args: |
@@ -72,10 +73,10 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
-          context: .
+          context: ${{ matrix.workdir }}
           file: ${{ matrix.dockerfile }}
           push: true
           build-args: |
             VERSION=${{ github.sha }}
           tags: |
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}-snapshot:${{ github.sha }}
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:snapshot-${{ github.sha }}
