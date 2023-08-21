@@ -1,9 +1,9 @@
-name: KubeHound Release
+name: kubehound-release
 
 on:
   push:
     tags:
-      - "*"
+      - "v*"
 
 permissions:
   contents: read

@@ -8,6 +8,9 @@ bin/
 *.dll
 *.so
 *.dylib
+*.jar
+*.class
+*.lst
 
 # Test binary, built with `go test -c`
 *.test
@@ -42,3 +45,6 @@ test/system/generator/generator
 *.env
 *.kube-config
 scripts/collectors/
+
+# java
+deployments/kubehound/kubegraph/dsl/kubehound/target

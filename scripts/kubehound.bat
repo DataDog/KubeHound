@@ -32,7 +32,7 @@ goto :eof
 :backend-reset-hard
 call :backend-down
 %DOCKER_CMD% volume rm kubehound-%KUBEHOUND_ENV%_mongodb_data
-%DOCKER_CMD% volume rm kubehound-%KUBEHOUND_ENV%_janusgraph_data
+%DOCKER_CMD% volume rm kubehound-%KUBEHOUND_ENV%_kubegraph_data
 call :backend-up
 goto :eof
 

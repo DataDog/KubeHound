@@ -36,8 +36,8 @@ ifndef KUBEHOUND_ENV
 endif
 
 ifeq (,$(filter $(SYSTEM_TEST_CMD),$(MAKECMDGOALS)))
-	ifeq (${KUBEHOUND_ENV}, prod)
-		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.prod.yaml
+	ifeq (${KUBEHOUND_ENV}, release)
+		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.release.yaml
 	else ifeq (${KUBEHOUND_ENV}, dev)
 		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
 	endif
@@ -107,7 +107,7 @@ ifndef KUBEHOUND_ENV
 	$(error KUBEHOUND_ENV is undefined)
 endif
 	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_mongodb_data
-	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_janusgraph_data
+	$(DOCKER_CMD) volume rm kubehound-${KUBEHOUND_ENV}_kubegraph_data
 
 .PHONY: backend-reset-hard
 backend-reset-hard: | backend-down backend-wipe backend-up ## Restart the kubehound stack and wipe all data
@@ -151,7 +151,16 @@ help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(HELP_MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: thirdparty-licenses
-thirdparty-licenses:
+thirdparty-licenses: ## Generate the list of 3rd party dependencies and write to LICENSE-3rdparty.csv
 	go get github.com/google/go-licenses
 	go install github.com/google/go-licenses
 	$(GOPATH)/bin/go-licenses csv github.com/DataDog/KubeHound/cmd/kubehound | sort > $(ROOT_DIR)/LICENSE-3rdparty.csv
+
+.PHONY: local-wiki
+local-wiki: ## Generate and serve the mkdocs wiki on localhost
+	pip install mkdocs-material mkdocs-awesome-pages-plugin markdown-captions
+	mkdocs serve
+
+.PHONY: local-release
+local-release: ## Generate release packages locally via goreleaser
+	goreleaser release --snapshot --clean --config .goreleaser.yaml

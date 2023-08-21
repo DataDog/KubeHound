@@ -7,12 +7,13 @@ services:
     volumes:
       - mongodb_data:/data/db
 
-  janusgraph:
+  kubegraph:
+    build: ./kubegraph/
     ports:
       - "127.0.0.1:8182:8182"
       - "127.0.0.1:8099:8099"
     volumes:
-      - janusgraph_data:/var/lib/janusgraph
+      - kubegraph_data:/var/lib/janusgraph
 
   mongo-express:
     image: mongo-express:1.0.0-alpha
@@ -27,26 +28,10 @@ services:
       - kubenet
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongodb
-  
-  kubehound:
-    container_name: ${COMPOSE_PROJECT_NAME}-core
-    profiles: ["core"]
-    build:
-      context: ../../
-      dockerfile: Dockerfile
-    environment:
-      - KUBECONFIG=/tmp/.kube/config
-    volumes:
-      - ./.kube-config:/tmp/.kube/config
-    networks:
-      - kubenet
-      - kind
-    labels:
-      com.datadoghq.ad.logs: '[{"app": "core", "service": "kubehound"}]'
 
 volumes:
   mongodb_data:
-  janusgraph_data:
+  kubegraph_data:
 
 networks:
   kind:

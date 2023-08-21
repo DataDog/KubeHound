@@ -7,12 +7,15 @@ const (
 	DefaultEdgeBatchSizeSmall         = DefaultEdgeBatchSize / 5
 	DefaultEdgeBatchSizeClusterImpact = 10
 
-	DefaultVertexBatchSize = 500
+	DefaultVertexBatchSize      = 500
+	DefaultVertexBatchSizeSmall = DefaultVertexBatchSize / 5
 )
 
 // VertexBuilderConfig configures vertex builder parameters.
 type VertexBuilderConfig struct {
-	BatchSize int `mapstructure:"batch_size"` // Batch size for inserts
+	BatchSize      int `mapstructure:"batch_size"`       // Batch size for inserts
+	BatchSizeSmall int `mapstructure:"batch_size_small"` // Batch size for expensive inserts
+
 }
 
 // EdgeBuilderConfig configures edge builder parameters.
@@ -21,7 +24,7 @@ type EdgeBuilderConfig struct {
 	WorkerPoolSize            int  `mapstructure:"worker_pool_size"`          // Number of workers for the edge builder worker pool
 	WorkerPoolCapacity        int  `mapstructure:"worker_pool_capacity"`      // Work item capacity for the edge builder worker pool
 	BatchSize                 int  `mapstructure:"batch_size"`                // Batch size for inserts
-	BatchSizeSmall            int  `mapstructure:"batch_size_small"`          // Batch size expensive inserts
+	BatchSizeSmall            int  `mapstructure:"batch_size_small"`          // Batch size for expensive inserts
 	BatchSizeClusterImpact    int  `mapstructure:"batch_size_cluster_impact"` // Batch size for inserts impacting entire cluster e.g POD_PATCH
 }
 

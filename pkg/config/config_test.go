@@ -58,7 +58,8 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				Builder: BuilderConfig{
 					Vertex: VertexBuilderConfig{
-						BatchSize: 500,
+						BatchSize:      500,
+						BatchSizeSmall: 100,
 					},
 					Edge: EdgeBuilderConfig{
 						LargeClusterOptimizations: false,
@@ -109,7 +110,8 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				Builder: BuilderConfig{
 					Vertex: VertexBuilderConfig{
-						BatchSize: 1000,
+						BatchSize:      1000,
+						BatchSizeSmall: 100,
 					},
 					Edge: EdgeBuilderConfig{
 						LargeClusterOptimizations: true,
