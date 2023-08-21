@@ -54,7 +54,9 @@ Release binaries are available for Linux / Windows / Mac OS via the [releases](h
 ./kubehound.sh backend-up
 ```
 
-*NOTE*: you must have [setup GHCR access](https://codefresh.io/docs/docs/integrations/docker-registries/github-container-registry/)
+*NOTE*:
++ If downloading the releases via a browser you must run e.g `xattr -d com.apple.quarantine KubeHound_Darwin_arm64.tar.gz` before running to prevent [MacOS blocking execution](https://support.apple.com/en-gb/guide/mac-help/mchleab3a043/mac)
++ You must have [setup GHCR access](https://codefresh.io/docs/docs/integrations/docker-registries/github-container-registry/)
 
 Next choose a target Kubernetes cluster, either:
 
