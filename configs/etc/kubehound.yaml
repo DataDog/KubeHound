@@ -53,3 +53,6 @@ builder:
     
     # Cluster impact batch size for edge inserts
     batch_size_cluster_impact: 10
+    
+    # Enable for large clusters to prevent number of edges growing exponentially
+    large_cluster_optimizations: true
