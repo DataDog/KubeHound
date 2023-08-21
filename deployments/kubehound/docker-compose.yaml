@@ -8,7 +8,7 @@ services:
     networks:
       - kubenet
     depends_on:
-      janusgraph:
+      kubegraph:
         condition: service_healthy
     labels:
       com.datadoghq.ad.logs: '[{"app": "mongodb", "service": "kubehound"}]'
@@ -20,39 +20,19 @@ services:
       timeout: 2s
       retries: 10
 
-  janusgraph:
-    build: ./janusgraph/
+  kubegraph:
     restart: unless-stopped
     profiles: ["infra"]
     container_name: ${COMPOSE_PROJECT_NAME}-graphdb
     networks:
       - kubenet
-    environment:
-      #  Optimize for writes https://docs.janusgraph.org/operations/bulk-loading/
-      - janusgraph.ids.block-size=3000000
-      # Enforce strict schema constrains as per https://docs.janusgraph.org/configs/configuration-reference/#schema
-      - janusgraph.schema.constraints=true
-      - janusgraph.schema.default=none
-      # Bump content length of web-socket buffer to enable bulk insert queries
-      - gremlinserver.maxContentLength=2097152
-      # Bump evaluation timeout to support our large datasets
-      - gremlinserver.evaluationTimeout=240000
-      # enabling metrics only for jmxReporter
-      - gremlinserver.metrics.jmxReporter.enabled=true
-      - gremlinserver.metrics.consoleReporter.enabled=false
-      - gremlinserver.metrics.slf4jReporter.enabled=false
-      - gremlinserver.metrics.graphiteReporter.enabled=false
-      - gremlinserver.metrics.csvReporter.enabled=false
-      # Performance tweaks based on: https://www.sailpoint.com/blog/souping-up-the-gremlin/
-      - gremlinserver.gremlinPool=0 # will default to Runtime.availableProcessors()
-      - gremlinserver.threadPoolWorker=8 # should be 2x VCPU (TODO: can we set dynamically?)
     healthcheck:
       test: ["CMD", "bin/gremlin.sh", "-e", "scripts/remote-connect.groovy"]
-      interval: 60s 
+      interval: 30s 
       timeout: 30s
       retries: 3
     labels:
-      com.datadoghq.ad.logs: '[{"app": "janusgraph", "service": "kubehound"}]'
+      com.datadoghq.ad.logs: '[{"app": "kubegraph", "service": "kubehound"}]'
 
 networks:
   kubenet:

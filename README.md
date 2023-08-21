@@ -1,6 +1,27 @@
-# KubeHound
+# KubeHound  <!-- omit in toc -->
 
 A Kubernetes attack graph tool allowing automated calculation of attack paths between assets in a cluster
+
+- [Quick Links](#quick-links)
+- [Requirements](#requirements)
+  - [Application](#application)
+  - [Test (Development only)](#test-development-only)
+- [Quick Start](#quick-start)
+  - [Prebuilt Releases](#prebuilt-releases)
+  - [From Source](#from-source)
+  - [Sample Data](#sample-data)
+- [Advanced Usage](#advanced-usage)
+  - [Infrastructure Setup](#infrastructure-setup)
+  - [Running Kubehound](#running-kubehound)
+- [Using KubeHound Data](#using-kubehound-data)
+- [Development](#development)
+  - [Build](#build)
+  - [Release build](#release-build)
+  - [Unit Testing](#unit-testing)
+  - [System Testing](#system-testing)
+    - [Environment variable:](#environment-variable)
+    - [Setup](#setup)
+    - [CI Testing](#ci-testing)
 
 ![Example Path](./docs/images/example-graph.png)
 
@@ -32,6 +53,8 @@ Release binaries are available for Linux / Windows / Mac OS via the [releases](h
 ```bash
 ./kubehound.sh backend-up
 ```
+
+*NOTE*: you must have [setup GHCR access](https://codefresh.io/docs/docs/integrations/docker-registries/github-container-registry/)
 
 Next choose a target Kubernetes cluster, either:
 
@@ -97,13 +120,12 @@ cp deployments/kubehound/.env.tpl deployments/kubehound/.env
 
 Edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`):
 
-* `KUBEHOUND_ENV`: `dev` or `prod` 
+* `KUBEHOUND_ENV`: `dev` or `release` 
 * `DD_API_KEY`: api key you created from https://app.datadoghq.com/ website
 
 Note:
-* `KUBEHOUND_ENV=prod` will use prebuilt image from ghcr.io (:rotating_light: currently NOT supported :rotating_light:)
-* `KUBEHOUND_ENV=dev` will build the images locally
-
+* `KUBEHOUND_ENV=dev` will build the images locally (and provide some local debugging containers e.g `mongo-express`)
+* `KUBEHOUND_ENV=release` will use prebuilt images from ghcr.io 
 
 ### Running Kubehound
 
@@ -162,6 +184,14 @@ make build
 ```
 
 All binaries will be output to the [bin](./bin/) folder
+
+### Release build
+
+Build the release packages locally using [goreleaser](https://goreleaser.com/install):
+
+```bash
+make local-release
+```
 
 ### Unit Testing
 

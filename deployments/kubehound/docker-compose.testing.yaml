@@ -4,7 +4,8 @@ services:
   mongodb:
     ports:
       - "127.0.0.1:27018:27017"
-  janusgraph:
+  kubegraph:
+    build: ./kubegraph/
     ports:
       - "127.0.0.1:8183:8182"
 networks:

@@ -7,16 +7,17 @@ services:
     volumes:
       - mongodb_data:/data/db
 
-  janusgraph:
+  kubegraph:
+    image: ghcr.io/datadog/kubehound-graph:latest
     ports:
       - "127.0.0.1:8182:8182"
       - "127.0.0.1:8099:8099"
     volumes:
-      - janusgraph_data:/var/lib/janusgraph
+      - kubegraph_data:/var/lib/janusgraph
 
 volumes:
   mongodb_data:
-  janusgraph_data:
+  kubegraph_data:
 
 networks:
   kind:

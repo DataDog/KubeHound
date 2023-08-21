@@ -36,7 +36,7 @@ kubectl config set-context <name>
 # alternatively, use https://github.com/ahmetb/kubectx
 ```
 
-Finally, run KubeHound with the default [configuration](TODO):
+Finally, run KubeHound with the default [configuration](https://github.com/DataDog/KubeHound/blob/main/configs/etc/kubehound.yaml):
 
 ```
 bin/kubehound

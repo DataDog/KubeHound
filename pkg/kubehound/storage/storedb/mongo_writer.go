@@ -28,7 +28,7 @@ type MongoAsyncWriter struct {
 	collection      *mongo.Collection
 	batchSize       int
 	consumerChan    chan []mongo.WriteModel
-	writingInFlight sync.WaitGroup
+	writingInFlight *sync.WaitGroup
 	tags            []string
 }
 
@@ -39,10 +39,11 @@ func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection coll
 	}
 
 	maw := MongoAsyncWriter{
-		mongodb:    mp,
-		collection: mp.db.Collection(collection.Name()),
-		batchSize:  collection.BatchSize(),
-		tags:       wOpts.Tags,
+		mongodb:         mp,
+		collection:      mp.db.Collection(collection.Name()),
+		batchSize:       collection.BatchSize(),
+		tags:            wOpts.Tags,
+		writingInFlight: &sync.WaitGroup{},
 	}
 	maw.consumerChan = make(chan []mongo.WriteModel, consumerChanSize)
 	maw.startBackgroundWriter(ctx)

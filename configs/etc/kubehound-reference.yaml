@@ -75,6 +75,9 @@ builder:
   # vertex:
   #   # Batch size for vertex inserts
   #   batch_size: 500
+  # 
+  #   # Small batch size for vertex inserts
+  #   batch_size_small: 100
 
   # Edge builder configuration
   edge:

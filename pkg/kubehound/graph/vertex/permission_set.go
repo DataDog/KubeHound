@@ -2,7 +2,6 @@ package vertex
 
 import (
 	"context"
-	"math"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -13,11 +12,6 @@ import (
 
 const (
 	PermissionSetLabel = "PermissionSet"
-)
-
-const (
-	// Production rulesets can get VERY large, cap the batch size
-	MaxBatchSize = 100
 )
 
 var _ Builder = (*PermissionSet)(nil)
@@ -31,7 +25,7 @@ func (v *PermissionSet) Label() string {
 }
 
 func (v *PermissionSet) BatchSize() int {
-	return int(math.Min(MaxBatchSize, float64(v.cfg.BatchSize)))
+	return v.cfg.BatchSizeSmall
 }
 
 func (v *PermissionSet) Processor(ctx context.Context, entry any) (any, error) {

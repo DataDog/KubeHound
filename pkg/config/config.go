@@ -76,6 +76,7 @@ func SetDefaultValues(c *viper.Viper) {
 
 	// Default values for graph builder
 	c.SetDefault("builder.vertex.batch_size", DefaultVertexBatchSize)
+	c.SetDefault("builder.vertex.batch_size_small", DefaultVertexBatchSizeSmall)
 	c.SetDefault("builder.edge.worker_pool_size", DefaultEdgeWorkerPoolSize)
 	c.SetDefault("builder.edge.worker_pool_capacity", DefaultEdgeWorkerPoolCapacity)
 	c.SetDefault("builder.edge.batch_size", DefaultEdgeBatchSize)

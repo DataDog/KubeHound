@@ -1,4 +1,4 @@
-name: KubeHound Linter
+name: kubehound-linter
 
 on:
   push:
