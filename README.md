@@ -54,6 +54,8 @@ Release binaries are available for Linux / Windows / Mac OS via the [releases](h
 ./kubehound.sh backend-up
 ```
 
+*NOTE*: you must have [setup GHCR access](https://codefresh.io/docs/docs/integrations/docker-registries/github-container-registry/)
+
 Next choose a target Kubernetes cluster, either:
 
 * Select the targeted cluster via `kubectx` (need to be installed separately)     
@@ -118,13 +120,12 @@ cp deployments/kubehound/.env.tpl deployments/kubehound/.env
 
 Edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`):
 
-* `KUBEHOUND_ENV`: `dev` or `prod` 
+* `KUBEHOUND_ENV`: `dev` or `release` 
 * `DD_API_KEY`: api key you created from https://app.datadoghq.com/ website
 
 Note:
-* `KUBEHOUND_ENV=prod` will use prebuilt image from ghcr.io (:rotating_light: currently NOT supported :rotating_light:)
-* `KUBEHOUND_ENV=dev` will build the images locally
-
+* `KUBEHOUND_ENV=dev` will build the images locally (and provide some local debugging containers e.g `mongo-express`)
+* `KUBEHOUND_ENV=release` will use prebuilt images from ghcr.io 
 
 ### Running Kubehound
 

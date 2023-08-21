@@ -30,5 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class KubeHoundDslTest {
-    
+    /* 
+     * Currently testing handled via project system tests due to additional overhead in building up another KubeHound graph in Java
+     */
 }

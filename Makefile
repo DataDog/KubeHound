@@ -36,8 +36,8 @@ ifndef KUBEHOUND_ENV
 endif
 
 ifeq (,$(filter $(SYSTEM_TEST_CMD),$(MAKECMDGOALS)))
-	ifeq (${KUBEHOUND_ENV}, prod)
-		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.prod.yaml
+	ifeq (${KUBEHOUND_ENV}, release)
+		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.release.yaml
 	else ifeq (${KUBEHOUND_ENV}, dev)
 		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
 	endif

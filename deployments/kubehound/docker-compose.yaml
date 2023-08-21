@@ -21,7 +21,6 @@ services:
       retries: 10
 
   kubegraph:
-    build: ./kubegraph/
     restart: unless-stopped
     profiles: ["infra"]
     container_name: ${COMPOSE_PROJECT_NAME}-graphdb
