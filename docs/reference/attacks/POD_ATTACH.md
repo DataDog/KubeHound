@@ -135,7 +135,7 @@ ctr -n k8s.io task exec -t --exec-id full-control 0f36d12d60d12d041df8941
 
 ### Monitoring
 
-+ Monitor for use of the CTR binary within nodes via the Datadog agent. This activity should be very unusual.
++ Monitor for use of the CTR binary (or equivalents such as [crictl](https://kubernetes.io/docs/tasks/debug/debug-cluster/crictl/) or [nerdctl](https://github.com/containerd/nerdctl)) within nodes via the Datadog agent. This activity should be very unusual.
 
 ## Calculation
 

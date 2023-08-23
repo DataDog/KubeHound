@@ -23,7 +23,7 @@ An attacker with sufficient permissions can execute arbitrary commands inside th
 
 ## Prerequisites
 
-Ability to interrogate the K8s API with a role allowing exec access to pods.
+Ability to interrogate the K8s API with a role allowing exec access to pods which have the binary you want to execute (e.g. `/bin/bash`) available.
 
 See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/POD_EXEC.yaml).
 

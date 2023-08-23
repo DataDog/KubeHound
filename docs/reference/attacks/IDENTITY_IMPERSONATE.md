@@ -15,7 +15,7 @@ With a [user impersonation privilege](https://kubernetes.io/docs/reference/acces
 
 ## Details
 
-Obtaining the `impersonate users/groups` permission will allow an attacker to execute K8s API actions on behalf of another user, including `cluster-admin` and other highly privileged users.
+Obtaining the `impersonate users/groups` permission will allow an attacker to execute K8s API actions on behalf of another user, including those with `cluster-admin` rights, and other highly privileged users.
 
 ## Prerequisites
 

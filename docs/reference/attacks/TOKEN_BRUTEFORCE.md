@@ -19,7 +19,7 @@ An identity with a role that allows *get* on secrets (vs list) can potentially v
 
 ## Details
 
-An attacker in possession of a token with permission to read a secret cannot use this permission without knowing the secret’s full name. This permission is different from the listing secrets permission described in [TOKEN_LIST](./TOKEN_LIST.md). However it may be possible to extract secrets via bruteforce for all K8s serviceaccounts due to their predictable naming convention.
+An attacker in possession of a token with permission to read a secret cannot use this permission without knowing the secret’s full name. This permission is different from the list secrets permission described in [TOKEN_LIST](./TOKEN_LIST.md). However it may be possible to extract secrets via bruteforce for all K8s serviceaccounts due to their predictable naming convention.
 
 ## Prerequisites
 

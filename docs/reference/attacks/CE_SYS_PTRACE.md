@@ -23,9 +23,9 @@ The `SYS_PTRACE` capability, which allows the use of `ptrace()`. This system cal
 
 ## Prerequisites
 
-To perform this attack, the container must be started with the option `--pid=host`, which enables the sharing of the PID address space between the container and the host operating system, allowing the container process to see every other process running on the host. And the container needs to be granted `SYS_PTRACE` and `SYS_ADMIN` capabilities. 
+To perform this attack, the container must be started with the option `hostPID: true`, which enables the sharing of the PID address space between the container and the host operating system, allowing the container process to see every other process running on the host. And the container needs to be granted `SYS_PTRACE` and `SYS_ADMIN` capabilities. 
 
-See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/CE_SYS_PTRACE.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/CE_SYS_PTRACE.yaml).
 
 ## Checks
 
@@ -75,7 +75,7 @@ Use a pod security policy or admission controller to prevent or limit the creati
 
 ### Least Privilege
 
-Avoid running containers as the root user. Specify an unprivileged user account using the `securityContext`.
+Avoid running containers as the `root` user. Enforce runnin as an unprivileged user account using the `runAsNonRoot` setting inside `securityContext` (or explicitly setting `runAsUser` to an unprivileged user). Additionally, ensure that `allowPrivilegeEscalation: false` is set in `securityContext` to prevent a container running as an unprivileged user from being able to escalate to running as the `root` user.
 
 ## Calculation
 
