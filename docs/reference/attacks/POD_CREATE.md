@@ -41,7 +41,7 @@ Identify the name of the target (e.g control plane) node via:
 kubectl get nodes -o wide --all-namespaces | grep control-plane
 ```
 
-Create a pod spec for our attack pod:
+Create a pod spec for our attack pod (N.B. If your target node is a control plane one you may need to add a [toleration](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to this manifest to allow it to be scheduled):
 
 ```yaml
 apiVersion: v1
