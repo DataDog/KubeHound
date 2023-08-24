@@ -19,7 +19,7 @@ An identity with a role that allows listing secrets can potentially view all the
 
 ## Details
 
-Obtaining the listing secrets permission will be a significant advantage to an attacker. It may lead to disclosure of application credentials, SSH keys, other more privileged user’s tokens and more.  All of these can be used in different ways depending on their capabilities. For our graph model we focus on the latter case of extracting K8s token only.
+Obtaining the list secrets permission will be a significant advantage to an attacker. It may lead to disclosure of application credentials, SSH keys, other more privileged user’s tokens and more.  All of these can be used in different ways depending on their capabilities. For our graph model we focus on the latter case of extracting K8s tokens only.
 
 ## Prerequisites
 
@@ -51,7 +51,7 @@ kubectl get secrets -o json | jq
 
 ### Implement least privilege access
 
-Listing secrets is a very powerful privilege and should not be required by the majority of users. Use an automated tool such a KubeHound to search for any risky permissions and users in the cluster and look to eliminate them.
+Listing secrets is a very powerful privilege and should not be required by the majority of users. Use an automated tool such as KubeHound to search for any risky permissions and users in the cluster and look to eliminate them.
 
 ## Calculation
 
