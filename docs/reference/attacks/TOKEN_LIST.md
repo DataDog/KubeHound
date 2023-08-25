@@ -62,3 +62,4 @@ Listing secrets is a very powerful privilege and should not be required by the m
 
 + [Official Kubernetes documentation: Secrets](https://kubernetes.io/docs/concepts/configuration/secret/#working-with-secrets)
 + [Securing Kubernetes Clusters by Eliminating Risky Permissions](https://www.cyberark.com/resources/threat-research-blog/securing-kubernetes-clusters-by-eliminating-risky-permissions)
++ [Official Kubernetes documentation: List Secret Risks](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#listing-secrets)

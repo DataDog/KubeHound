@@ -82,3 +82,5 @@ Creating `(Cluster)RoleBinding` is a very powerful privilege and should not be r
 
 + [Official Kubernetes Documentation:Using RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding)
 + [Securing Kubernetes Clusters by Eliminating Risky Permissions](https://www.cyberark.com/resources/threat-research-blog/securing-kubernetes-clusters-by-eliminating-risky-permissions)
++ [Getting into a bind with Kubernetes](https://raesene.github.io/blog/2021/01/16/Getting-Into-A-Bind-with-Kubernetes/)
++ [Official Kubernetes Documentation: Bind verb](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb)

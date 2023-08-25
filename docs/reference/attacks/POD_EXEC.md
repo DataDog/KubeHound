@@ -32,7 +32,7 @@ See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/s
 Simply ask kubectl:
 
 ```bash
-k auth can-i create pod/exec
+kubectl auth can-i create pod/exec
 ```
 
 ## Exploitation
@@ -40,7 +40,7 @@ k auth can-i create pod/exec
 Spawn a new interactive shell on the target pod:
 
 ```bash
-k exec  --stdin --tty <POD NAME> -- /bin/bash
+kubectl exec  --stdin --tty <POD NAME> -- /bin/bash
 ```
 
 ## Defences
