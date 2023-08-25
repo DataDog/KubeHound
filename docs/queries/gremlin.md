@@ -82,7 +82,7 @@ g.V().hasLabel("Endpoint").has("portName", "jmx").repeat(out().simplePath()).unt
 g.V().hasLabel("Endpoint").has("exposure", gte(3)).repeat(out().simplePath()).until(has("critical", true).or().loops().is(7)).has("critical", true).path().count(local).min()
 ```
 
-``` java title="What percentage of internet facing services have an exploitable path to a critical asset?"
+``` java title="What percentage of external facing services have an exploitable path to a critical asset?"
 // Leveraging the "EndpointExposureType" enum value to filter only on services
 // c.f. https://github.com/DataDog/KubeHound/blob/main/pkg/kubehound/models/shared/constants.go
 

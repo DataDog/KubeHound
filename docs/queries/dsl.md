@@ -16,6 +16,24 @@ The KubeHound DSL can be used by starting a traversal with `kh` vs the tradition
 kh.V().limit(100)
 ```
 
+## KubeHound Constants
+
+
+### Endpoint Exposure
+
+Represents the exposure level of endpoints in the KubeHound graph
+
+```java
+// Defines the exposure of an endpoint within the KubeHound model
+public enum EndpointExposure {
+    None,      
+	ClusterIP,                      // Container port exposed to cluster
+	NodeIP,                         // Kubernetes endpoint exposed outside the cluster
+	External,                       // Kubernetes endpoint exposed outside the cluster
+	Public,                         // External DNS API endpoint
+}
+```
+
 ## Traversal Source Reference
 
 ### Containers Step
