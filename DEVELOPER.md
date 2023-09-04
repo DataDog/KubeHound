@@ -6,15 +6,15 @@ To have some indepth metrics and log correlation, all the components are now lin
 
 All the information being gathered are available at:
 
-* Metrics: https://ddstaging.datadoghq.com/metric/summary?filter=kubehound.janusgraph
-* Logs: https://ddstaging.datadoghq.com/logs?query=service%3Akubehound%20&cols=host%2Cservice&index=%2A&messageDisplay=inline&stream_sort=desc&viz=stream&from_ts=1688140043795&to_ts=1688140943795&live=true
+* Metrics: https://app.datadoghq.com/metric/summary?filter=kubehound.janusgraph
+* Logs: https://app.datadoghq.com/logs?query=service%3Akubehound%20&cols=host%2Cservice&index=%2A&messageDisplay=inline&stream_sort=desc&viz=stream&from_ts=1688140043795&to_ts=1688140943795&live=true
 
 To collect the metrics for Janusgraph an exporter from Prometheus is being used:
 * https://github.com/prometheus/jmx_exporter
 
 They are exposed here:
 * Locally: http://127.0.0.1:8099/metrics
-* Datadog: https://ddstaging.datadoghq.com/metric/summary?filter=kubehound.janusgraph
+* Datadog: https://app.datadoghq.com/metric/summary?filter=kubehound.janusgraph
 
 
 ## MongoDB debug interface
