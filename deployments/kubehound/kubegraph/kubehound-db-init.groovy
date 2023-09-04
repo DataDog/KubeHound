@@ -40,7 +40,7 @@ mgmt.addConnection(hostRead, volume, node);
 hostTraverse = mgmt.makeEdgeLabel('EXPLOIT_HOST_TRAVERSE').multiplicity(MULTI).make();
 mgmt.addConnection(hostTraverse, volume, volume);
 
-sharedPs = mgmt.makeEdgeLabel('SHARED_PS_NAMESPACE').multiplicity(MULTI).make();
+sharedPs = mgmt.makeEdgeLabel('SHARE_PS_NAMESPACE').multiplicity(MULTI).make();
 mgmt.addConnection(sharedPs, container, container);
 
 containerAttach = mgmt.makeEdgeLabel('CONTAINER_ATTACH').multiplicity(ONE2MANY).make();
