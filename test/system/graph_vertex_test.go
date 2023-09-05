@@ -224,8 +224,8 @@ func (suite *VertexTestSuite) TestVertexPod() {
 		critical, ok := converted["critical"].(bool)
 		suite.True(ok, "failed to convert critical field to bool")
 
-		sharedProcessNamespace, ok := converted["sharedProcessNamespace"].(bool)
-		suite.True(ok, "failed to convert sharedProcessNamespace field to bool")
+		shareProcessNamespace, ok := converted["shareProcessNamespace"].(bool)
+		suite.True(ok, "failed to convert shareProcessNamespace field to bool")
 
 		serviceAccount, ok := converted["serviceAccount"].(string)
 		suite.True(ok, "failed to convert serviceAccount field to bool")
@@ -236,13 +236,13 @@ func (suite *VertexTestSuite) TestVertexPod() {
 		}
 
 		resultsMap[podName] = graph.Pod{
-			Name:                   podName,
-			ServiceAccount:         serviceAccount,
-			Compromised:            shared.CompromiseType(compromised),
-			SharedProcessNamespace: sharedProcessNamespace,
-			IsNamespaced:           isNamespaced,
-			Namespace:              namespace,
-			Critical:               critical,
+			Name:                  podName,
+			ServiceAccount:        serviceAccount,
+			Compromised:           shared.CompromiseType(compromised),
+			ShareProcessNamespace: shareProcessNamespace,
+			IsNamespaced:          isNamespaced,
+			Namespace:             namespace,
+			Critical:              critical,
 		}
 	}
 	suite.Equal(expectedPods, resultsMap)

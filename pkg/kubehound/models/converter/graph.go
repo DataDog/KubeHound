@@ -112,7 +112,7 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 		Critical:       risk.Engine().IsCritical(input),
 	}
 	if input.K8.Spec.ShareProcessNamespace != nil {
-		output.SharedProcessNamespace = *input.K8.Spec.ShareProcessNamespace
+		output.ShareProcessNamespace = *input.K8.Spec.ShareProcessNamespace
 	}
 	if output.Namespace != "" {
 		output.IsNamespaced = true
