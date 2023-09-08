@@ -2,6 +2,7 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -22,7 +23,8 @@ type SharePSNamespace struct {
 }
 
 type sharedPsNamespaceGroup struct {
-	ContainerA []primitive.ObjectID `bson:"_id" json:"containers"`
+	ContainerA primitive.ObjectID `bson:"_idA" json:"containerA"`
+	ContainerB primitive.ObjectID `bson:"_idB" json:"containerB"`
 }
 
 func (e *SharePSNamespace) Label() string {
@@ -35,7 +37,12 @@ func (e *SharePSNamespace) Name() string {
 
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
 func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
+	typed, ok := entry.(*sharedPsNamespaceGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.ContainerA, typed.ContainerB)
 }
 
 func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
@@ -58,6 +65,7 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 		},
 		bson.D{{Key: "$project", Value: bson.D{{Key: "containers_with_shared_ns", Value: bson.D{{Key: "_id", Value: 1}}}}}},
 	})
+	// TODO: need to split the array into group of pairs of container (A and B).
 
 	if err != nil {
 		return err
