@@ -650,6 +650,17 @@ func (suite *EdgeTestSuite) Test_NoEdgeCase() {
 	suite.Equal(len(results), 0)
 }
 
+func (suite *EdgeTestSuite) Test_CE_VAR_LOG_SYMLINK() {
+	results, err := suite.g.V().
+		HasLabel("Container").
+		Has("name", "varlog-pod").
+		Out().
+		ToList()
+
+	suite.NoError(err)
+	suite.Equal(len(results), 1)
+}
+
 func TestEdgeTestSuite(t *testing.T) {
 	suite.Run(t, new(EdgeTestSuite))
 }
