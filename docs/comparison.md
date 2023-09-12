@@ -13,10 +13,6 @@ BloodHound is one of the first projects (and certainly the most popular) that in
 BOtB is a pentesting tool that attempts to exploit common weaknesses. It runs from inside a compromised container. While very useful when performing a blackbox assessment, it doesn't have a full view of the cluster and does not attempt to find cluster-wide attack paths.
 
 
-## [BOtB](https://github.com/brompwnie/botb)
-
-BOtB is a pentesting tool that attempts to exploit common weaknesses. It runs from inside a compromised container. While very useful when performing a blackbox assessment, it doesn't have a full view of the cluster and does not attempt to find cluster-wide attack paths.
-
 ## [peirates](https://github.com/inguardians/peirates)
 
 Similarly to BOtB, peirates is an offensive tool running from inside a pod. It doesn't have a full view of the cluster and does not attempt to find cluster-wide attack paths.
