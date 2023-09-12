@@ -116,6 +116,13 @@ func (e *PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.
 							}},
 							bson.M{"$or": bson.A{
 								bson.M{"resources": "pods"},
+								bson.M{"resources": "cronjobs"},
+								bson.M{"resources": "deamonsets"},
+								bson.M{"resources": "deployments"},
+								bson.M{"resources": "jobs"},
+								bson.M{"resources": "replicasets"},
+								bson.M{"resources": "replicationcontrollers"},
+								bson.M{"resources": "statefulsets"},
 								bson.M{"resources": "*"},
 							}},
 							bson.M{"$or": bson.A{
