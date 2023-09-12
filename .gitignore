@@ -34,8 +34,12 @@ dist/
 cmd/kubehound
 deployments/kubehound/data
 deployments/kubehound/data/*
+
 # System test json files
 test/**/*.json
+
+# Collected json files
+scripts/collectors/**/*.json
 
 # kind config
 test/setup/.kube
