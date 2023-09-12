@@ -22,6 +22,7 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
     - [Environment variable:](#environment-variable)
     - [Setup](#setup)
     - [CI Testing](#ci-testing)
+- [Acknowledgements](#acknowledgements)
 
 ![Example Path](./docs/images/example-graph.png)
 
@@ -255,3 +256,14 @@ Note: if you are running on Linux but you dont want to run `sudo` for `kind` and
 #### CI Testing
 
 System tests will be run in CI via the [system-test](./.github/workflows/system-test.yml) github action 
+
+
+## Acknowledgements
+
+KubeHound was created by the Adversary Simulation Engineering (ASE) team at Datadog:
+
++ Jeremy Fox [@0xff6a](https://www.twitter.com/0xff6a)
++ Julien Terriac []()
++ Edouard Schweisguth [@edznux](https://www.twitter.com/edznux)
+
+We would like to acknowledge the [BloodHound](https://github.com/BloodHoundAD/BloodHound) team for pioneering the use of graph theory in offensive security and inspiring us to create this project. 
