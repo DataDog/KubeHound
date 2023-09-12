@@ -263,7 +263,11 @@ System tests will be run in CI via the [system-test](./.github/workflows/system-
 KubeHound was created by the Adversary Simulation Engineering (ASE) team at Datadog:
 
 + Jeremy Fox [@0xff6a](https://www.twitter.com/0xff6a)
-+ Julien Terriac []()
++ Julien Terriac
 + Edouard Schweisguth [@edznux](https://www.twitter.com/edznux)
 
-We would like to acknowledge the [BloodHound](https://github.com/BloodHoundAD/BloodHound) team for pioneering the use of graph theory in offensive security and inspiring us to create this project. 
+With additional support from:
+
++ Christophe Tafani-Dereeper[@christophetd](https://twitter.com/christophetd)
+
+We would also like to acknowledge the [BloodHound](https://github.com/BloodHoundAD/BloodHound) team for pioneering the use of graph theory in offensive security and inspiring us to create this project. 

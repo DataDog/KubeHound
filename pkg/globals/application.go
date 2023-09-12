@@ -6,7 +6,6 @@ const (
 )
 
 func ProdEnv() bool {
-	// TODO
 	return false
 }
 

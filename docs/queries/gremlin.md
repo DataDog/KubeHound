@@ -32,8 +32,8 @@ g.V().hasLabel("Endpoint").has("exposure", 3).groupCount().by("serviceEndpoint")
 
 ## Basic attack paths
 
-``` java title="TODO-RELEVANT All paths between a volume and an identity"
-g.V().hasLabel("Volume").repeat(out().simplePath()).until(hasLabel("Identity")).path()
+``` java title="All paths between an endpoint and a node"
+g.V().hasLabel("Endpoint").repeat(out().simplePath()).until(hasLabel("Node")).path()
 ```
 
 ``` java title="All paths (up to 5 hops) between a container and a node"
@@ -43,8 +43,6 @@ g.V().hasLabel("Container").repeat(out().simplePath()).until(hasLabel("Node").or
 ``` java title="All attack paths (up to 6 hops) from any compomised identity (e.g. service account) to a critical asset"
 g.V().hasLabel("Identity").repeat(out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().limit(5)
 ```
-
-TODO more?
 
 ## Attack paths from compromised assets 
 
@@ -65,8 +63,6 @@ g.V().hasLabel("Identity").has("name", "compromised-sa").repeat(out().simplePath
 ```
 
 ### Endpoints
-
-TODO: how do we define an endpoint
 
 ``` java title="Attack paths (up to 6 hops) from any endpoint to a critical asset:"
 g.V().hasLabel("Endpoint").repeat(out().simplePath()).until(has("critical", true).or().loops().is(6)).has("critical", true).path().limit(5)
@@ -169,5 +165,5 @@ g.V().hasLabel("Container").limit(5).outE()
 
 Additional tips:
 - For queries to be displayed in the UI, try to limit the output to 1000 elements or less
-- Enable [large cluster optimizations](TODO) if queries are returning too slowly
+- Enable `large cluster optimizations` via configuration file if queries are returning too slowly
 - Try to filter the initial element of queries by namespace/service/app to avoid generating too many results, for instance `g.V().hasLabel("Container").has("namespace", "your-namespace")`
