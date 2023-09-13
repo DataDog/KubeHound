@@ -53,7 +53,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     public static final int PATH_HOPS_DEFAULT = 10;
 
     /**
-     * From a {@code Vertex} traverse immediate edges to display the next set of possible attacks and targets
+     * From a {@code Vertex} traverse immediate edges to display the next set of possible attacks and targets.
      *
      */
     public default GraphTraversal<S, Path> attacks() {
@@ -61,7 +61,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     }
 
     /**
-     * From a {@code Vertex} filter on whether incoming vertices are critical assets
+     * From a {@code Vertex} filter on whether incoming vertices are critical assets.
      */
     @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
     public default GraphTraversal<S, E> critical() {
@@ -124,7 +124,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     }
 
     /**
-     * From a {@code Vertex} filter on whether incoming vertices have at least one path to a critical asset
+     * From a {@code Vertex} filter on whether incoming vertices have at least one path to a critical asset.
      */
     @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
     public default GraphTraversal<S, E> hasCriticalPath() {
@@ -150,10 +150,19 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
             .min();
     }
 
+    /**
+     * From a {@code Vertex} returns a group count (by label) of paths to a critical asset.
+     *
+     */
     public default <K> GraphTraversal<S, Map<K, Long>> criticalPathsFreq() {
         return criticalPathsFreq(PATH_HOPS_DEFAULT);   
     }
 
+    /**
+     * From a {@code Vertex} returns a group count (by label) of paths to a critical asset.
+     *
+     * @param maxHops the maximum number of hops in an attack path
+     */
     public default <K> GraphTraversal<S, Map<K, Long>> criticalPathsFreq(int maxHops) {
         if (maxHops < PATH_HOPS_MIN) throw new IllegalArgumentException(String.format("maxHops must be >= %d", PATH_HOPS_MIN));
         if (maxHops > PATH_HOPS_MAX) throw new IllegalArgumentException(String.format("maxHops must be <= %d", PATH_HOPS_MAX));

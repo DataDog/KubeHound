@@ -408,3 +408,34 @@ kh.services().minHopsToCritical()
 // Shortest hops from a compromised engineer credential to a critical asset
 kh.group("engineering").minHopsToCritical()
 ```
+
+### CriticalPathsFreq Step
+
+From a Vertex returns a group count (by label) of paths to a critical asset.
+
+```java
+<K> GraphTraversal<S, Map<K, Long>> criticalPathsFreq()
+<K> GraphTraversal<S, Map<K, Long>> criticalPathsFreq(int maxHops)
+```
+
+Example usage:
+
+```groovy
+// Most common critical paths from services
+kh.services().criticalPathsFreq()
+
+// Most common critical paths from a compromised engineer credential of up to 4 hops
+kh.group("engineering").criticalPathsFreq(4)
+```
+
+Sample output:
+
+```json
+{
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 6,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, VOLUME_DISCOVER, Volume, TOKEN_STEAL, Identity, PERMISSION_DISCOVER, PermissionSet]" : 6,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_NSENTER, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 1,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_MODULE_LOAD, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 1,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_PRIV_MOUNT, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 1
+}
+```

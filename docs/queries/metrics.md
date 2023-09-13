@@ -29,9 +29,26 @@ kh.services().count()
 
 ## What type of control would cut off the largest number of attack paths to a critical asset in our clusters?
 
-In this example an infrastructure team is prioritising new security mitigations for 
+In this example an infrastructure team is prioritising new security mitigations for a cluster. Based on a shortest path analysis using `minHopsToCritical` they are looking to prioritise attack paths of 4 hops. What are the most common paths here? Are there any common patterns that emerge? This can be surfaced via the `criticalPathsFreq` DSL method:
 
-TODO make this a DSL method!!!
+```groovy
+kh.services().criticalPathsFreq(4)
+```
+
+Running against the cluster generates the following attack path grouping:
+
+```json
+{
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 6,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, VOLUME_DISCOVER, Volume, TOKEN_STEAL, Identity, PERMISSION_DISCOVER, PermissionSet]" : 6,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_NSENTER, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 1,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_MODULE_LOAD, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 1,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_PRIV_MOUNT, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 1
+}
+```
+
+From this analysis it appears that the top attack paths are coming from containers with external services running with service accounts with `critical` permissions which look like strong candidates for immediate remediation!
+
 
 ## What percentage level of attack path reduction could be achieved by the introduction of a control?
 
