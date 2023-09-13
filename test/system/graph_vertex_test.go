@@ -248,7 +248,7 @@ func (suite *VertexTestSuite) TestVertexPod() {
 	suite.Equal(expectedPods, resultsMap)
 }
 
-func (suite *VertexTestSuite) TestVertexPerrmissionSet() {
+func (suite *VertexTestSuite) TestVertexPermissionSet() {
 	results, err := suite.g.V().
 		HasLabel(vertex.PermissionSetLabel).
 		Has("namespace", "default").
@@ -296,7 +296,7 @@ func (suite *VertexTestSuite) TestVertexCritical() {
 func (suite *VertexTestSuite) TestVertexVolume() {
 	results, err := suite.g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
 	suite.NoError(err)
-	suite.Equal(51, len(results))
+	suite.Equal(52, len(results))
 
 	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("sourcePath", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
 	suite.NoError(err)
