@@ -26,7 +26,7 @@ roleRef:
   name: read-logs
 subjects:
   - kind: ServiceAccount
-    name: varrlog-sa
+    name: varlog-sa
     namespace: default
 ---
 apiVersion: v1
