@@ -26,6 +26,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
+import static org.apache.tinkerpop.gremlin.process.traversal.Scope.local;
 
 /**
  * This KubeHound DSL is meant to be used with the Kubernetes attack graph created by the KubeHound application.
@@ -74,7 +75,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
                 .inV()
                 .simplePath()
             ).until(
-                __.critical()
+                __.has("critical", true)
                 .or()
                 .loops()
                 .is(maxHops)
@@ -121,5 +122,24 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
     public default GraphTraversal<S, E> hasCriticalPath() {
         return where(__.criticalPaths().limit(1)); 
+    }
+
+    /**
+     * From a {@code Vertex} returns the hop count of the shortest path to a critical asset.
+     *
+     */
+    public default <E2 extends Comparable> GraphTraversal<S, E2> minHopsToCritical() {
+        return repeat((
+                (KubeHoundTraversalDsl) __.out())
+                .simplePath()
+            ).until(
+                __.has("critical", true)
+                .or()
+                .loops()
+                .is(PATH_HOPS_DEFAULT)
+            ).has("critical", true)
+            .path()
+            .count(local)
+            .min();
     }
 }

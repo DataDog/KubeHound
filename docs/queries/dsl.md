@@ -390,3 +390,21 @@ Example usage:
 // All services with an attack path to a critical asset
 kh.services().hasCriticalPath()
 ```
+
+### MinHopsToCritical Step
+
+From a Vertex returns the hop count of the shortest path to a critical asset.
+
+```java
+ <E2 extends Comparable> GraphTraversal<S, E2> minHopsToCritical()
+```
+
+Example usage:
+
+```groovy
+// Shortest hops from a service to a critical asset
+kh.services().minHopsToCritical()
+
+// Shortest hops from a compromised engineer credential to a critical asset
+kh.group("engineering").minHopsToCritical()
+```
