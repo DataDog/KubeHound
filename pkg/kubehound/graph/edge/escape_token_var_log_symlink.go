@@ -2,6 +2,7 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -11,7 +12,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
@@ -23,9 +23,9 @@ type EscapeTokenVarLogSymlink struct {
 }
 
 // this is the same as containerEscapeGroup but with the container tag set to container_id
-type containerFieldEscapeGroup struct {
-	Node      primitive.ObjectID `bson:"node_id" json:"node"`
-	Container primitive.ObjectID `bson:"container_id" json:"container"`
+type podToNodeEscapeGroup struct {
+	Node primitive.ObjectID `bson:"node_id" json:"node"`
+	Pod  primitive.ObjectID `bson:"pod_id" json:"pod"`
 }
 
 func (e *EscapeTokenVarLogSymlink) Label() string {
@@ -36,34 +36,161 @@ func (e *EscapeTokenVarLogSymlink) Name() string {
 	return "ContainerEscapeVarLogSymlink"
 }
 
+func podToNodeProcessor(ctx context.Context, oic *converter.ObjectIDConverter, edgeLabel string, entry any) (any, error) {
+	typed, ok := entry.(*podToNodeEscapeGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	return adapter.GremlinEdgeProcessor(ctx, oic, edgeLabel, typed.Node, typed.Pod)
+}
+
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
 func (e *EscapeTokenVarLogSymlink) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
+	return podToNodeProcessor(ctx, oic, e.Label(), entry)
 }
 
 func (e *EscapeTokenVarLogSymlink) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)
 
 	// Container.volumeMounts[*].hostPath.path contains /var/log
 	// Container.volumeMounts[*].hostPath.readOnly is false
 	// Container.securityContext.runAsUser is 0
-	filter := bson.M{
-		"$and": bson.A{
-			bson.M{"source": "/var/log"},
-			bson.M{"readonly": false},
+	pipeline := bson.A{
+		bson.D{
+			{Key: "$match",
+				Value: bson.D{
+					{Key: "$and",
+						Value: bson.A{
+							bson.D{
+								{Key: "$or",
+									Value: bson.A{
+										bson.D{{Key: "source", Value: "/var/log"}},
+										bson.D{{Key: "source", Value: "/var"}},
+										bson.D{{Key: "source", Value: "/"}},
+									},
+								},
+							},
+							bson.D{{Key: "readonly", Value: false}},
+						},
+					},
+				},
+			},
+		},
+		bson.D{
+			{Key: "$lookup",
+				Value: bson.D{
+					{Key: "from", Value: "containers"},
+					{Key: "localField", Value: "container_id"},
+					{Key: "foreignField", Value: "_id"},
+					{Key: "as", Value: "containers"},
+				},
+			},
+		},
+		bson.D{
+			{Key: "$unwind",
+				Value: bson.D{
+					{Key: "path", Value: "$containers"},
+					{Key: "preserveNullAndEmptyArrays", Value: false},
+				},
+			},
+		},
+		bson.D{
+			{Key: "$lookup",
+				Value: bson.D{
+					{Key: "from", Value: "identities"},
+					{Key: "localField", Value: "containers.inherited.service_account"},
+					{Key: "foreignField", Value: "name"},
+					{Key: "as", Value: "service_account"},
+				},
+			},
+		},
+		bson.D{
+			{Key: "$lookup",
+				Value: bson.D{
+					{Key: "from", Value: "rolebindings"},
+					{Key: "localField", Value: "service_account.name"},
+					{Key: "foreignField", Value: "subjects.subject.name"},
+					{Key: "as", Value: "rolebindings"},
+				},
+			},
+		},
+		bson.D{
+			{Key: "$unwind",
+				Value: bson.D{
+					{Key: "path", Value: "$rolebindings"},
+					{Key: "preserveNullAndEmptyArrays", Value: false},
+				},
+			},
+		},
+		bson.D{
+			{Key: "$lookup",
+				Value: bson.D{
+					{Key: "from", Value: "permissionsets"},
+					{Key: "localField", Value: "rolebindings.role_id"},
+					{Key: "foreignField", Value: "role_id"},
+					{Key: "as", Value: "perms"},
+				},
+			},
+		},
+		bson.D{
+			{Key: "$match",
+				Value: bson.D{
+					{Key: "$and",
+						Value: bson.A{
+							bson.D{
+								{Key: "perms.rules.verbs",
+									Value: bson.D{
+										{Key: "$in",
+											Value: bson.A{
+												"get",
+											},
+										},
+									},
+								},
+							},
+							bson.D{
+								{Key: "perms.rules.resources",
+									Value: bson.D{
+										{Key: "$in",
+											Value: bson.A{
+												"pods/log",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		bson.D{
+			{Key: "$project",
+				Value: bson.D{
+					{Key: "node_id", Value: 1},
+					{Key: "pod_id", Value: 1},
+				},
+			},
 		},
 	}
 
-	// We just need a 1:1 mapping of the node and container to create this edge
-	projection := bson.M{"container_id": 1, "node_id": 1}
-
-	cur, err := containers.Find(context.Background(), filter, options.Find().SetProjection(projection))
+	cur, err := volumes.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return err
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[containerEscapeGroup](ctx, cur, callback, complete)
+	// We just need a 1:1 mapping of the node and container to create this edge
+	// projection := bson.M{"container_id": 1, "node_id": 1}
+
+	// cur, err := containers.Find(context.Background(), filter, options.Find().SetProjection(projection))
+	// if err != nil {
+	// 	return err
+	// }
+	// defer cur.Close(ctx)
+
+	return adapter.MongoCursorHandler[podToNodeEscapeGroup](ctx, cur, callback, complete)
 }
