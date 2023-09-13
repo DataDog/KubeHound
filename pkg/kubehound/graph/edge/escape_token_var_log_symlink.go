@@ -183,14 +183,5 @@ func (e *EscapeTokenVarLogSymlink) Stream(ctx context.Context, store storedb.Pro
 	}
 	defer cur.Close(ctx)
 
-	// We just need a 1:1 mapping of the node and container to create this edge
-	// projection := bson.M{"container_id": 1, "node_id": 1}
-
-	// cur, err := containers.Find(context.Background(), filter, options.Find().SetProjection(projection))
-	// if err != nil {
-	// 	return err
-	// }
-	// defer cur.Close(ctx)
-
 	return adapter.MongoCursorHandler[podToNodeEscapeGroup](ctx, cur, callback, complete)
 }
