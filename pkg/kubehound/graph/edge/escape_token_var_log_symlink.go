@@ -23,9 +23,9 @@ type EscapeTokenVarLogSymlink struct {
 }
 
 // this is the same as containerEscapeGroup but with the container tag set to container_id
-type podToNodeEscapeGroup struct {
-	Node primitive.ObjectID `bson:"node_id" json:"node"`
-	Pod  primitive.ObjectID `bson:"pod_id" json:"pod"`
+type containerIDToNodeIDEscapeGroup struct {
+	Node      primitive.ObjectID `bson:"node_id" json:"node"`
+	Container primitive.ObjectID `bson:"container_id" json:"container"`
 }
 
 func (e *EscapeTokenVarLogSymlink) Label() string {
@@ -37,12 +37,12 @@ func (e *EscapeTokenVarLogSymlink) Name() string {
 }
 
 func podToNodeProcessor(ctx context.Context, oic *converter.ObjectIDConverter, edgeLabel string, entry any) (any, error) {
-	typed, ok := entry.(*podToNodeEscapeGroup)
+	typed, ok := entry.(*containerIDToNodeIDEscapeGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, edgeLabel, typed.Node, typed.Pod)
+	return adapter.GremlinEdgeProcessor(ctx, oic, edgeLabel, typed.Node, typed.Container)
 }
 
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
@@ -171,7 +171,7 @@ func (e *EscapeTokenVarLogSymlink) Stream(ctx context.Context, store storedb.Pro
 			{Key: "$project",
 				Value: bson.D{
 					{Key: "node_id", Value: 1},
-					{Key: "pod_id", Value: 1},
+					{Key: "container_id", Value: 1},
 				},
 			},
 		},
@@ -183,5 +183,5 @@ func (e *EscapeTokenVarLogSymlink) Stream(ctx context.Context, store storedb.Pro
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[podToNodeEscapeGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[containerIDToNodeIDEscapeGroup](ctx, cur, callback, complete)
 }
