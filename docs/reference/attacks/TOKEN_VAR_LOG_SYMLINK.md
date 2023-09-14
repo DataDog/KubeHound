@@ -67,8 +67,6 @@ ln -s / /host/var/log/root_link
 
 Call the kubelet API to read the “logs” and extract pod service account tokens:
 
-TODO Christophe: I was unable to call the kubelet on EKS
-
 ```bash
 $ KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 $ NODEIP=$(ip route | awk '/^default/{print $3}')

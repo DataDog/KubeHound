@@ -5,7 +5,7 @@ title: POD_ATTACH
 <!--
 id: POD_ATTACH
 name: "Attach to running pod"
-mitreAttackTechnique: N/A - N/ATODO
+mitreAttackTechnique: N/A
 mitreAttackTactic: TA0008 - Lateral Movement
 -->
 

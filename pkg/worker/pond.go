@@ -20,7 +20,6 @@ type PondWorkerPool struct {
 // newPond creates a new PondWorkerPool instance.
 // This function should not be called directly, but invoked via the factory method.
 func newPond(size int, capacity int) WorkerPool {
-	// TODO override defaults from configuration
 	return &PondWorkerPool{
 		pool: pond.New(size, capacity, pond.Strategy(pond.Eager())),
 	}
