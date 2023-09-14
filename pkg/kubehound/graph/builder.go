@@ -139,6 +139,15 @@ func (b *Builder) Run(ctx context.Context) error {
 		return err
 	}
 
+	// Dependent edges must be built last, sequentially
+	l.Info("Starting dependent edge construction")
+	for label, e := range b.edges.Dependent() {
+		err := b.buildEdge(ctx, label, e, oic, l)
+		if err != nil {
+			return fmt.Errorf("building dependent edge %s: %w", label, err)
+		}
+	}
+
 	l.Info("Completed edge construction")
 	return nil
 }

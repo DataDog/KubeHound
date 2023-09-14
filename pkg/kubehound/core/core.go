@@ -62,6 +62,9 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 
 	log.I.Info("Loading graph edge definitions")
 	edges := edge.Registered()
+	if err := edges.Verify(); err != nil {
+		return fmt.Errorf("edge registry verification: %w", err)
+	}
 
 	log.I.Info("Loading graph builder")
 	builder, err := graph.NewBuilder(cfg, storedb, graphdb, cache, edges)
