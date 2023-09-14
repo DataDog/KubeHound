@@ -26,11 +26,10 @@ Represents the exposure level of endpoints in the KubeHound graph
 ```java
 // Defines the exposure of an endpoint within the KubeHound model
 public enum EndpointExposure {
-    None,      
+  None,      
 	ClusterIP,                      // Container port exposed to cluster
 	NodeIP,                         // Kubernetes endpoint exposed outside the cluster
 	External,                       // Kubernetes endpoint exposed outside the cluster
-	Public,                         // External DNS API endpoint
 }
 ```
 
