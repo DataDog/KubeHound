@@ -15,7 +15,7 @@ import (
 var __ = gremlin.T__
 var P = gremlin.P
 
-// Edge interface defines objects used to construct edges within our graph database through processing data from the intermediate store.
+// Builder interface defines objects used to construct edges within our graph database through processing data from the intermediate store.
 
 //go:generate mockery --name Builder --output mocks --case underscore --filename edge.go --with-expecter
 type Builder interface {
@@ -42,4 +42,13 @@ type Builder interface {
 	// the edge's Processor function. Invoking the complete callback signals the end of the stream.
 	Stream(ctx context.Context, store storedb.Provider, cache cache.CacheReader,
 		process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error
+}
+
+// DependentBuilder interface defines objects used to construct edges with dependencies on other edges in the graph.
+// Dependent edges are built last and their dependencies cannot be dependent edges themselves.
+type DependentBuilder interface {
+	Builder
+
+	// Dependencies returns the edge labels of all dependencies.
+	Dependencies() []string
 }
