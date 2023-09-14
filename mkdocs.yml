@@ -1,4 +1,5 @@
 site_name: KubeHound
+site_url: https://kubehound.io
 repo_url: https://github.com/DataDog/KubeHound
 repo_name: datadog/KubeHound
 plugins:
