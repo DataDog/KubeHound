@@ -32,3 +32,6 @@ An abstract representation of a Kubernetes component that form the vertices of o
 
 All edges in the KubeHound graph should represent a net improvement in an attacker’s position or a lateral movement opportunity. Thus, if any two vertices in the graph are connected we know immediately that an attacker can move between them. As such ***attack*** and ***edge*** are used interchangeably throughout the project.
 
+**Critical Asset**
+
+An entity in KubeHound whose compromise would result in cluster admin (or equivalent) level access.
