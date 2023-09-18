@@ -20,6 +20,7 @@ type Registry struct {
 	mutating  map[string]Builder
 	simple    map[string]Builder
 	dependent map[string]DependentBuilder
+	labels    map[string]Builder
 }
 
 // newRegistry creates a new registry instance. This should not be called directly.
@@ -28,6 +29,7 @@ func newRegistry() *Registry {
 		mutating:  make(map[string]Builder),
 		simple:    make(map[string]Builder),
 		dependent: make(map[string]DependentBuilder),
+		labels:    make(map[string]Builder),
 	}
 
 	return r
@@ -67,10 +69,7 @@ func (r *Registry) Verify() error {
 	// Ensure all dependent edges have dependencies registered in mutating or default collections
 	for name, builder := range r.dependent {
 		for _, d := range builder.Dependencies() {
-			_, depSimple := r.simple[d]
-			_, depMutating := r.mutating[d]
-
-			if !depSimple && !depMutating {
+			if _, depRegistered := r.labels[d]; !depRegistered {
 				return fmt.Errorf("unregistered dependency (%s) for dependent edge %s", d, name)
 			}
 		}
@@ -110,4 +109,7 @@ func Register(edge Builder, flags RegistrationFlag) {
 
 		registry.simple[edge.Name()] = edge
 	}
+
+	// Store in labels map regardless of type for dependency management
+	registry.labels[edge.Label()] = edge
 }
