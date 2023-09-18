@@ -21,7 +21,7 @@ hide:
 | [IDENTITY_ASSUME](./IDENTITY_ASSUME.md) | Act as identity | Valid Accounts | Privilege escalation | 
 | [IDENTITY_IMPERSONATE](./IDENTITY_IMPERSONATE.md) | Impersonate user/group | Valid Accounts | Privilege escalation | 
 | [PERMISSION_DISCOVER](./PERMISSION_DISCOVER.md) | Enumerate permissions | Permission Groups Discovery | Discovery | 
-| [POD_ATTACH](./POD_ATTACH.md) | Attach to running pod | N/ATODO | Lateral Movement | 
+| [POD_ATTACH](./POD_ATTACH.md) | Attach to running pod | N/A | Lateral Movement | 
 | [POD_CREATE](./POD_CREATE.md) | Create privileged pod | Scheduled Task/Job: Container Orchestration Job | Privilege escalation | 
 | [POD_EXEC](./POD_EXEC.md) | Exec into running pod | N/A | Lateral Movement | 
 | [POD_PATCH](./POD_PATCH.md) | Patch running pod | N/A | Lateral Movement | 

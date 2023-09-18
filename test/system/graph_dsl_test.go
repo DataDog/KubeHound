@@ -244,6 +244,31 @@ func (suite *DslTestSuite) TestTraversal_hasCriticalPath() {
 	suite.ElementsMatch(attacks, []string{"modload-pod"})
 }
 
+func (suite *DslTestSuite) TestTraversal_minHopsToCritical() {
+	raw, err := suite.client.Submit("kh.services().minHopsToCritical()")
+	suite.NoError(err)
+
+	res, ok, err := raw.One()
+	suite.NoError(err)
+	suite.True(ok)
+
+	serviceHops, err := res.GetInt()
+	suite.NoError(err)
+	suite.Equal(serviceHops, 4)
+
+	// Container should have 1 less hop
+	raw, err = suite.client.Submit("kh.containers().minHopsToCritical()")
+	suite.NoError(err)
+
+	res, ok, err = raw.One()
+	suite.NoError(err)
+	suite.True(ok)
+
+	containerHops, err := res.GetInt()
+	suite.NoError(err)
+	suite.Equal(containerHops, serviceHops-1)
+}
+
 func (suite *DslTestSuite) TestTraversal_criticalPathsFilter() {
 	// There are critical paths from this container
 	attacks := suite.testScriptPath("kh.containers('modload-pod').criticalPaths().by(label).by(label).dedup()")

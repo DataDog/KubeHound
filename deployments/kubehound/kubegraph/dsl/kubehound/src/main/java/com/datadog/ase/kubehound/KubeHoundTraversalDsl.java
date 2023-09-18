@@ -18,14 +18,22 @@
  */
 package com.datadog.ase.kubehound;
 
+import java.util.Map;
+
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.GremlinDsl.AnonymousMethod;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.Order;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.Path;
+
+import static org.apache.tinkerpop.gremlin.process.traversal.Scope.local;
+import static org.apache.tinkerpop.gremlin.structure.Column.values;
+
 
 /**
  * This KubeHound DSL is meant to be used with the Kubernetes attack graph created by the KubeHound application.
@@ -45,7 +53,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     public static final int PATH_HOPS_DEFAULT = 10;
 
     /**
-     * From a {@code Vertex} traverse immediate edges to display the next set of possible attacks and targets
+     * From a {@code Vertex} traverse immediate edges to display the next set of possible attacks and targets.
      *
      */
     public default GraphTraversal<S, Path> attacks() {
@@ -53,7 +61,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     }
 
     /**
-     * From a {@code Vertex} filter on whether incoming vertices are critical assets
+     * From a {@code Vertex} filter on whether incoming vertices are critical assets.
      */
     @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
     public default GraphTraversal<S, E> critical() {
@@ -74,7 +82,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
                 .inV()
                 .simplePath()
             ).until(
-                __.critical()
+                __.has("critical", true)
                 .or()
                 .loops()
                 .is(maxHops)
@@ -116,10 +124,64 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     }
 
     /**
-     * From a {@code Vertex} filter on whether incoming vertices have at least one path to a critical asset
+     * From a {@code Vertex} filter on whether incoming vertices have at least one path to a critical asset.
      */
     @GremlinDsl.AnonymousMethod(returnTypeParameters = {"A", "A"}, methodTypeParameters = {"A"})
     public default GraphTraversal<S, E> hasCriticalPath() {
         return where(__.criticalPaths().limit(1)); 
+    }
+
+    /**
+     * From a {@code Vertex} returns the hop count of the shortest path to a critical asset.
+     *
+     */
+    public default <E2 extends Comparable> GraphTraversal<S, E2> minHopsToCritical() {
+        return repeat((
+                (KubeHoundTraversalDsl) __.out())
+                .simplePath()
+            ).until(
+                __.has("critical", true)
+                .or()
+                .loops()
+                .is(PATH_HOPS_DEFAULT)
+            ).has("critical", true)
+            .path()
+            .count(local)
+            .min();
+    }
+
+    /**
+     * From a {@code Vertex} returns a group count (by label) of paths to a critical asset.
+     *
+     */
+    public default <K> GraphTraversal<S, Map<K, Long>> criticalPathsFreq() {
+        return criticalPathsFreq(PATH_HOPS_DEFAULT);   
+    }
+
+    /**
+     * From a {@code Vertex} returns a group count (by label) of paths to a critical asset.
+     *
+     * @param maxHops the maximum number of hops in an attack path
+     */
+    public default <K> GraphTraversal<S, Map<K, Long>> criticalPathsFreq(int maxHops) {
+        if (maxHops < PATH_HOPS_MIN) throw new IllegalArgumentException(String.format("maxHops must be >= %d", PATH_HOPS_MIN));
+        if (maxHops > PATH_HOPS_MAX) throw new IllegalArgumentException(String.format("maxHops must be <= %d", PATH_HOPS_MAX));
+
+        return repeat(
+                (KubeHoundTraversalDsl) __.outE()
+                .inV()
+                .simplePath()
+            ).emit()
+            .until(
+                __.has("critical", true)
+                .or()
+                .loops()
+                .is(maxHops)
+            ).has("critical", true)
+            .path()
+            .by(T.label)
+            .groupCount()
+            .order(local)
+            .by(__.select(values), Order.desc);
     }
 }

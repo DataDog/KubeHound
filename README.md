@@ -22,6 +22,7 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
     - [Environment variable:](#environment-variable)
     - [Setup](#setup)
     - [CI Testing](#ci-testing)
+- [Acknowledgements](#acknowledgements)
 
 ![Example Path](./docs/images/example-graph.png)
 
@@ -173,7 +174,6 @@ To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop
 + Download and install the application from https://gdotv.com/
 + Create a connection to the local janusgraph instance by following the steps here https://docs.gdotv.com/connection-management/ and using `hostname=localhost`
 + Navigate to the query editor and enter a sample query e.g `g.V().count()`. See detailed instructions here: https://docs.gdotv.com/query-editor/#run-your-query
-+ See the provided [cheatsheet](./pkg/kubehound/graph/CHEATSHEET.md) for examples of useful queries for various use cases.
 
 ## Development
 
@@ -255,3 +255,18 @@ Note: if you are running on Linux but you dont want to run `sudo` for `kind` and
 #### CI Testing
 
 System tests will be run in CI via the [system-test](./.github/workflows/system-test.yml) github action 
+
+
+## Acknowledgements
+
+KubeHound was created by the Adversary Simulation Engineering (ASE) team at Datadog:
+
++ Jeremy Fox [@0xff6a](https://www.twitter.com/0xff6a)
++ Julien Terriac
++ Edouard Schweisguth [@edznux](https://www.twitter.com/edznux)
+
+With additional support from:
+
++ Christophe Tafani-Dereeper[@christophetd](https://twitter.com/christophetd)
+
+We would also like to acknowledge the [BloodHound](https://github.com/BloodHoundAD/BloodHound) team for pioneering the use of graph theory in offensive security and inspiring us to create this project. 
