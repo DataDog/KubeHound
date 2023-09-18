@@ -72,5 +72,18 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[sharedPsNamespaceGroup](ctx, cur, callback, complete)
+	for cur.Next(ctx) {
+		var entry sharedPsNamespaceGroup
+		err := cur.Decode(&entry)
+		if err != nil {
+			return err
+		}
+
+		err = callback(ctx, &entry)
+		if err != nil {
+			return err
+		}
+	}
+
+	return complete(ctx)
 }
