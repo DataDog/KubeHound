@@ -10,12 +10,13 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func init() {
-	Register(&EscapeTokenVarLogSymlink{}, RegisterDefault)
+	Register(&EscapeTokenVarLogSymlink{}, RegisterGraphDependency)
 }
 
 type EscapeTokenVarLogSymlink struct {
@@ -30,6 +31,11 @@ type containerIDToNodeIDEscapeGroup struct {
 
 func (e *EscapeTokenVarLogSymlink) Label() string {
 	return "CE_VAR_LOG_SYMLINK"
+}
+
+// List of needed edges to run the traversal query
+func (e *EscapeTokenVarLogSymlink) Dependencies() []string {
+	return []string{"PERMISSION_DISCOVER", "IDENTITY_ASSUME", "VOLUME_DISCOVER"}
 }
 
 func (e *EscapeTokenVarLogSymlink) Name() string {
@@ -48,6 +54,20 @@ func podToNodeProcessor(ctx context.Context, oic *converter.ObjectIDConverter, e
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
 func (e *EscapeTokenVarLogSymlink) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	return podToNodeProcessor(ctx, oic, e.Label(), entry)
+}
+
+func (e *EscapeTokenVarLogSymlink) Traversal() types.EdgeTraversal {
+	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
+		g := source.GetGraphTraversal()
+		g.V().HasLabel("PermissionSet").
+			InE("PERMISSION_DISCOVER").OutV().
+			InE("IDENTITY_ASSUME").OutV().
+			HasLabel("Container").As("c").OutE("VOLUME_DISCOVER").
+			Has("sourcePath", P.Within("/", "/var", "/var/log")).
+			AddE().
+			From("c").To(inserts)
+		return g
+	}
 }
 
 func (e *EscapeTokenVarLogSymlink) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
