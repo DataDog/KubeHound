@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-09-04 12:22
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-09-19 16:41
 //
 // Generate it with "go generate ./..."
 //
@@ -149,9 +149,19 @@ var expectedPods = map[string]graph.Pod{
 		ShareProcessNamespace: false,
 		Critical:              false,
 	},
-	"sharedps-pod": {
+	"sharedps-pod1": {
 		StoreID:               "",
-		Name:                  "sharedps-pod",
+		Name:                  "sharedps-pod1",
+		IsNamespaced:          true,
+		Namespace:             "default",
+		Compromised:           shared.CompromiseNone,
+		ServiceAccount:        "default",
+		ShareProcessNamespace: true,
+		Critical:              false,
+	},
+	"sharedps-pod2": {
+		StoreID:               "",
+		Name:                  "sharedps-pod2",
 		IsNamespaced:          true,
 		Namespace:             "default",
 		Compromised:           shared.CompromiseNone,
@@ -516,9 +526,9 @@ var expectedContainers = map[string]graph.Container{
 		// Node:         "",
 		Compromised: 0,
 	},
-	"sharedps-pod": {
+	"sharedps-pod-a": {
 		StoreID:      "",
-		Name:         "sharedps-pod",
+		Name:         "sharedps-pod-a",
 		Image:        "ubuntu",
 		Command:      []string{},
 		Args:         []string{},
@@ -530,7 +540,43 @@ var expectedContainers = map[string]graph.Container{
 		HostNetwork:  false,
 		RunAsUser:    0,
 		Ports:        []string{},
-		Pod:          "sharedps-pod",
+		Pod:          "sharedps-pod2",
+		// Node:         "",
+		Compromised: 0,
+	},
+	"sharedps-pod-b": {
+		StoreID:      "",
+		Name:         "sharedps-pod-b",
+		Image:        "ubuntu",
+		Command:      []string{},
+		Args:         []string{},
+		Capabilities: []string{},
+		Privileged:   false,
+		PrivEsc:      false,
+		HostPID:      false,
+		HostIPC:      false,
+		HostNetwork:  false,
+		RunAsUser:    0,
+		Ports:        []string{},
+		Pod:          "sharedps-pod2",
+		// Node:         "",
+		Compromised: 0,
+	},
+	"sharedps-pod-c": {
+		StoreID:      "",
+		Name:         "sharedps-pod-c",
+		Image:        "ubuntu",
+		Command:      []string{},
+		Args:         []string{},
+		Capabilities: []string{},
+		Privileged:   false,
+		PrivEsc:      false,
+		HostPID:      false,
+		HostIPC:      false,
+		HostNetwork:  false,
+		RunAsUser:    0,
+		Ports:        []string{},
+		Pod:          "sharedps-pod1",
 		// Node:         "",
 		Compromised: 0,
 	},
