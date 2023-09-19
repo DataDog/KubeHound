@@ -341,7 +341,7 @@ func (suite *VertexTestSuite) TestVertexIdentity() {
 	suite.Equal(len(results), 1)
 }
 
-func (suite *EdgeTestSuite) TestEdge_SHARED_PS_NAMESPACE() {
+func (suite *EdgeTestSuite) TestEdge_SHARE_PS_NAMESPACE() {
 	results, err := suite.g.V().
 		HasLabel("Container").
 		OutE().HasLabel("SHARE_PS_NAMESPACE").

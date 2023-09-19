@@ -1,4 +1,4 @@
-# SHARED_PS_NAMESPACE edge
+# SHARE_PS_NAMESPACE edge
 # There's 2 pods here so we can also test we don't mix both pods shared NS together.
 apiVersion: v1
 kind: Pod
