@@ -9,15 +9,15 @@ metadata:
 spec:
   shareProcessNamespace: true
   containers:
-    - name: sharedps-pod-a
+    - name: sharedps-pod1-a
       image: ubuntu
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
-    - name: sharedps-pod-b
+    - name: sharedps-pod1-b
       image: ubuntu
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
-    - name: sharedps-pod-c
+    - name: sharedps-pod1-c
       image: ubuntu
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
@@ -31,11 +31,11 @@ metadata:
 spec:
   shareProcessNamespace: true
   containers:
-    - name: sharedps-pod-a
+    - name: sharedps-pod2-a
       image: ubuntu
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
-    - name: sharedps-pod-b
+    - name: sharedps-pod2-b
       image: ubuntu
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
