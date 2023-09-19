@@ -23,8 +23,11 @@ type SharePSNamespace struct {
 }
 
 type sharedPsNamespaceGroup struct {
-	ContainerA primitive.ObjectID `bson:"_idA" json:"containerA"`
-	ContainerB primitive.ObjectID `bson:"_idB" json:"containerB"`
+	Containers []primitive.ObjectID `bson:"_id" json:"container_ids"`
+}
+type sharedPsNamespaceGroupPair struct {
+	ContainerA primitive.ObjectID `bson:"container_a_id" json:"container_a"`
+	ContainerB primitive.ObjectID `bson:"container_b_id" json:"container_b"`
 }
 
 func (e *SharePSNamespace) Label() string {
@@ -37,7 +40,7 @@ func (e *SharePSNamespace) Name() string {
 
 // Processor delegates the processing tasks to to the generic containerEscapeProcessor.
 func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	typed, ok := entry.(*sharedPsNamespaceGroup)
+	typed, ok := entry.(*sharedPsNamespaceGroupPair)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
@@ -49,29 +52,45 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 	// Open an aggregation cursor
 	coll := adapter.MongoDB(store).Collection(collections.PodName)
-	cur, err := coll.Aggregate(ctx, bson.A{
-		bson.D{{Key: "$match", Value: bson.D{
-			{Key: "k8.spec.shareprocessnamespace", Value: true},
-		}}},
+	pipeline := bson.A{
+		bson.D{{"$match", bson.D{{"k8.spec.shareprocessnamespace", true}}}},
 		bson.D{
-			{Key: "$lookup",
-				Value: bson.D{
-					{Key: "from", Value: "containers"},
-					{Key: "localField", Value: "_id"},
-					{Key: "foreignField", Value: "pod_id"},
-					{Key: "as", Value: "containers_with_shared_ns"},
+			{"$lookup",
+				bson.D{
+					{"from", "containers"},
+					{"localField", "_id"},
+					{"foreignField", "pod_id"},
+					{"as", "containers_with_shared_ns"},
 				},
 			},
 		},
-		bson.D{{Key: "$project", Value: bson.D{{Key: "containers_with_shared_ns", Value: bson.D{{Key: "_id", Value: 1}}}}}},
-	})
-	// TODO: need to split the array into group of pairs of container (A and B).
+		bson.D{
+			{"$project",
+				bson.D{
+					{"_id", 1},
+					{"containers_with_shared_ns", bson.D{{"_id", 1}}},
+				},
+			},
+		},
+		bson.D{
+			{"$project",
+				bson.D{
+					{"_id", 0},
+					{"pod_id", "$_id"},
+					{"container_ids", "$containers_with_shared_ns._id"},
+				},
+			},
+		},
+	}
+	cur, err := coll.Aggregate(ctx, pipeline)
+	// TODO: need to split the array into group of pairs of container
 
 	if err != nil {
 		return err
 	}
 	defer cur.Close(ctx)
 
+	pairs := []sharedPsNamespaceGroupPair{}
 	for cur.Next(ctx) {
 		var entry sharedPsNamespaceGroup
 		err := cur.Decode(&entry)
@@ -79,7 +98,23 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 			return err
 		}
 
-		err = callback(ctx, &entry)
+		for _, containerSrc := range entry.Containers {
+			for _, containerDst := range entry.Containers {
+				// No need to create a link with itself
+				if containerSrc == containerDst {
+					continue
+				}
+				pairs = append(pairs,
+					sharedPsNamespaceGroupPair{
+						ContainerA: containerSrc,
+						ContainerB: containerDst,
+					},
+				)
+			}
+		}
+	}
+	for _, pair := range pairs {
+		err = callback(ctx, &pair)
 		if err != nil {
 			return err
 		}
