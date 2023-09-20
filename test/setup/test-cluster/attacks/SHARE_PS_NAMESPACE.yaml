@@ -1,0 +1,41 @@
+# SHARE_PS_NAMESPACE edge
+# There's 2 pods here so we can also test we don't mix both pods shared NS together.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sharedps-pod1
+  labels:
+    app: kubehound-edge-test
+spec:
+  shareProcessNamespace: true
+  containers:
+    - name: sharedps-pod1-a
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+    - name: sharedps-pod1-b
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+    - name: sharedps-pod1-c
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sharedps-pod2
+  labels:
+    app: kubehound-edge-test
+spec:
+  shareProcessNamespace: true
+  containers:
+    - name: sharedps-pod2-a
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+    - name: sharedps-pod2-b
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
