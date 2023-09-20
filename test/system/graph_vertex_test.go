@@ -355,8 +355,17 @@ func (suite *EdgeTestSuite) TestEdge_SHARE_PS_NAMESPACE() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"sharedps-pod-a",
-		"sharedps-pod-b",
+		// Pod1 a 3 containers (A,B,C) = 6 links
+		"path[map[name:[sharedps-pod1-a]], map[], map[name:[sharedps-pod1-b]",
+		"path[map[name:[sharedps-pod1-a]], map[], map[name:[sharedps-pod1-c]",
+		"path[map[name:[sharedps-pod1-b]], map[], map[name:[sharedps-pod1-a]",
+		"path[map[name:[sharedps-pod1-b]], map[], map[name:[sharedps-pod1-c]",
+		"path[map[name:[sharedps-pod1-c]], map[], map[name:[sharedps-pod1-b]",
+		"path[map[name:[sharedps-pod1-c]], map[], map[name:[sharedps-pod1-a]",
+
+		// Pod1 a 2 containers (A,B) = 2 links
+		"path[map[name:[sharedps-pod2-a]], map[], map[name:[sharedps-pod2-b]",
+		"path[map[name:[sharedps-pod2-b]], map[], map[name:[sharedps-pod2-a]",
 	}
 	suite.Subset(paths, expected)
 }

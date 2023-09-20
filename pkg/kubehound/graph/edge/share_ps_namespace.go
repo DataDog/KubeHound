@@ -23,7 +23,7 @@ type SharePSNamespace struct {
 }
 
 type sharedPsNamespaceGroup struct {
-	Containers []primitive.ObjectID `bson:"_id" json:"container_ids"`
+	Containers []primitive.ObjectID `bson:"container_ids" json:"container_ids"`
 }
 type sharedPsNamespaceGroupPair struct {
 	ContainerA primitive.ObjectID `bson:"container_a_id" json:"container_a"`
@@ -50,7 +50,7 @@ func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectI
 
 func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-	// Open an aggregation cursor
+
 	coll := adapter.MongoDB(store).Collection(collections.PodName)
 	pipeline := bson.A{
 		bson.D{{"$match", bson.D{{"k8.spec.shareprocessnamespace", true}}}},
@@ -76,7 +76,6 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 			{"$project",
 				bson.D{
 					{"_id", 0},
-					{"pod_id", "$_id"},
 					{"container_ids", "$containers_with_shared_ns._id"},
 				},
 			},
@@ -113,6 +112,7 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 			}
 		}
 	}
+
 	for _, pair := range pairs {
 		err = callback(ctx, &pair)
 		if err != nil {
