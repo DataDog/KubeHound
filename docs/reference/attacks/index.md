@@ -26,7 +26,7 @@ hide:
 | [POD_EXEC](./POD_EXEC.md) | Exec into running pod | N/A | Lateral Movement | 
 | [POD_PATCH](./POD_PATCH.md) | Patch running pod | N/A | Lateral Movement | 
 | [ROLE_BIND](./ROLE_BIND.md) | Create role binding | Valid Accounts | Privilege Escalation | 
-| [SHARED_PS_NAMESPACE](./SHARED_PS_NAMESPACE.md) | Access container in shared process namespace | N/A | Lateral Movement | 
+| [SHARE_PS_NAMESPACE](./SHARE_PS_NAMESPACE.md) | Access container in shared process namespace | N/A | Lateral Movement | 
 | [TOKEN_BRUTEFORCE](./TOKEN_BRUTEFORCE.md) | Brute-force secret name of service account token | Steal Application Access Token | Credential Access | 
 | [TOKEN_LIST](./TOKEN_LIST.md) | Access service account token secrets | Steal Application Access Token | Credential Access | 
 | [TOKEN_STEAL](./TOKEN_STEAL.md) | Steal service account token from volume | Unsecured Credentials | Credential Access | 
