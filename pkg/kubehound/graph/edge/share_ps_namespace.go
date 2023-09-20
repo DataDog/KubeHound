@@ -82,7 +82,6 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 		},
 	}
 	cur, err := coll.Aggregate(ctx, pipeline)
-	// TODO: need to split the array into group of pairs of container
 
 	if err != nil {
 		return err
