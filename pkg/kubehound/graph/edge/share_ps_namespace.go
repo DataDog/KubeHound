@@ -88,7 +88,6 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 	}
 	defer cur.Close(ctx)
 
-	pairs := []sharedPsNamespaceGroupPair{}
 	for cur.Next(ctx) {
 		var entry sharedPsNamespaceGroup
 		err := cur.Decode(&entry)
@@ -102,20 +101,14 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 				if containerSrc == containerDst {
 					continue
 				}
-				pairs = append(pairs,
-					sharedPsNamespaceGroupPair{
-						ContainerA: containerSrc,
-						ContainerB: containerDst,
-					},
-				)
+				err = callback(ctx, sharedPsNamespaceGroupPair{
+					ContainerA: containerSrc,
+					ContainerB: containerDst,
+				})
+				if err != nil {
+					return err
+				}
 			}
-		}
-	}
-
-	for _, pair := range pairs {
-		err = callback(ctx, &pair)
-		if err != nil {
-			return err
 		}
 	}
 
