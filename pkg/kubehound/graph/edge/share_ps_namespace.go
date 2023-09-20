@@ -101,7 +101,7 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 				if containerSrc == containerDst {
 					continue
 				}
-				err = callback(ctx, sharedPsNamespaceGroupPair{
+				err = callback(ctx, &sharedPsNamespaceGroupPair{
 					ContainerA: containerSrc,
 					ContainerB: containerDst,
 				})
