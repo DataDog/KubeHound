@@ -1,8 +1,21 @@
 # KubeHound  <!-- omit in toc -->
-
+<p align="left">
+  <img src="./docs/logo.png" alt="KubeHound" width="200" />
+</p>
 A Kubernetes attack graph tool allowing automated calculation of attack paths between assets in a cluster
 
-- [Quick Links](#quick-links)
+## Quick Links <!-- omit in toc -->
+
++ For an overview of the application architecture see the [design canvas](./docs/application/Architecture.excalidraw)
++ To see the attacks covered see the [edge definitions](./docs/edges/)
++ To contribute a new attack to the project follow the [contribution guidelines](./CONTRIBUTING.md)
+
+## Sample Attack Path  <!-- omit in toc -->
+
+![Example Path](./docs/images/example-graph.png)
+
+## Contents  <!-- omit in toc -->
+
 - [Requirements](#requirements)
   - [Application](#application)
   - [Test (Development only)](#test-development-only)
@@ -23,14 +36,6 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
     - [Setup](#setup)
     - [CI Testing](#ci-testing)
 - [Acknowledgements](#acknowledgements)
-
-![Example Path](./docs/images/example-graph.png)
-
-## Quick Links
-
-+ For an overview of the application architecture see the [design canvas](./docs/application/Architecture.excalidraw)
-+ To see the attacks covered see the [edge definitions](./docs/edges/)
-+ To contribute a new attack to the project follow the [contribution guidelines](./CONTRIBUTING.md)
 
 ## Requirements
 
