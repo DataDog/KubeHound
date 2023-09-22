@@ -16,7 +16,7 @@ fi
 
 # Set the environment variables for the compose
 DOCKER_COMPOSE_PROFILE="--profile infra"
-DOCKER_HOSTNAME=$(hostname)
+export DOCKER_HOSTNAME=$(hostname)
 
 # Resolve the correct docker command for this environment (Linux requires sudo)
 UNAME_S=$(uname -s)

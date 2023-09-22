@@ -1,6 +1,7 @@
 # KubeHound  <!-- omit in toc -->
-<p align="left">
-  <img src="./docs/logo.png" alt="KubeHound" width="200" />
+
+<p align="center">
+  <img src="./docs/logo.png" alt="KubeHound" width="300" />
 </p>
 A Kubernetes attack graph tool allowing automated calculation of attack paths between assets in a cluster
 
