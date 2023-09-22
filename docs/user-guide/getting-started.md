@@ -9,12 +9,6 @@ To get started with KubeHound, you'll need the following pre-requirements on you
 
 ## Running KubeHound
 
-??? info "tl;dr"
-
-    ```bash
-    make kubehound && bin/kubehound
-    ```
-
 KubeHound ships with a sensible default configuration as well as a pre-built binary, designed to get new users up and running quickly. 
 
 First, download KubeHound:
