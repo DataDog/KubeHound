@@ -25,7 +25,7 @@ A container running with `privileged: true` disables almost all the container is
 
 Execution within a privileged container process.
 
-See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/CE_PRIV_MOUNT.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/CE_PRIV_MOUNT.yaml).
 
 ## Checks
 

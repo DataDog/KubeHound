@@ -25,7 +25,7 @@ Pods represent one or more containers with shared storage and network resources.
 
 Access to a container within a pod running other containers with shared process namespaces
 
-See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/SHARE_PS_NAMESPACE.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/SHARE_PS_NAMESPACE.yaml).
 
 ## Checks
 

@@ -25,7 +25,7 @@ When both `hostPID: true` and `privileged: true` are set, the pod can see all of
 
 Execution within a container process created with `--privileged` AND the `--pid=host` enabled.
 
-See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/CE_NSENTER.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/CE_NSENTER.yaml).
 
 ## Checks
 
