@@ -4,7 +4,6 @@
 
 To get started with KubeHound, you'll need the following pre-requirements on your system:
 
-- [Golang](https://go.dev/doc/install) >= 1.20 (`go version`)
 - [Docker](https://docs.docker.com/engine/install/) >= 19.03 (`docker version`)
 - [Docker Compose](https://docs.docker.com/compose/compose-file/compose-versioning/) >= v2.0 (`docker compose version`)
 
@@ -16,13 +15,24 @@ To get started with KubeHound, you'll need the following pre-requirements on you
     make kubehound && bin/kubehound
     ```
 
-KubeHound ships with a sensible default configuration designed to get new users up and running quickly. First, prepare the application by running:
+KubeHound ships with a sensible default configuration as well as a pre-built binary, designed to get new users up and running quickly. 
+
+First, download KubeHound:
 
 ```bash
-make kubehound
+wget https://github.com/DataDog/KubeHound/releases/latest/download/KubeHound_$(uname -o)_$(uname -m).tar.gz -O kubehound.tar.gz
+mkdir kubehound
+tar -xf kubehound.tar.gz -C kubehound --strip-components=1
+cd kubehound
 ```
 
-This will start [backend services](../architecture.md) via docker compose (wiping any existing data), and compile the kubehound binary from source
+Then, prepare the application by running:
+
+```bash
+./kubehound.sh backend-up
+```
+
+This will start [backend services](../architecture.md) via docker compose (wiping any existing data), and compile the kubehound binary from source.
 
 Next, make sure your current kubectl context points at the target cluster:
 
@@ -39,7 +49,7 @@ kubectl config set-context <name>
 Finally, run KubeHound with the default [configuration](https://github.com/DataDog/KubeHound/blob/main/configs/etc/kubehound.yaml):
 
 ```
-bin/kubehound
+./kubehound.sh run
 ```
 
 Sample output:
@@ -75,11 +85,11 @@ INFO[0039] Attack graph generation complete in 39.108174109s  component=kubehoun
 At this point, the KubeHound data has been ingested in KubeHound's [graph database](../architecture.md). 
 You can use any client that supports accessing JanusGraph - we recommend using [gdotv](https://gdotv.com/):
 
-- [Download and install] gdotv from the [official website](https://gdotv.com/)
-- [Create a connection] to the local KubeHound JanusGraph instance
-  1. Click on the `New database connection` button
-  2. Enter `localhost` as an hostname, and click on the `Test connection` button
-  3. Once the connection is successful, click `Submit` - you're good to go!
+- Download and install gdotv from the [official website](https://gdotv.com/)
+- Create a connection to the local KubeHound JanusGraph instance
+    1. Click on the `New database connection` button
+    2. Enter `localhost` as an hostname, and click on the `Test connection` button
+    3. Once the connection is successful, click `Submit` - you're good to go!
 
 ## Visualize and query the KubeHound data
 
@@ -89,7 +99,7 @@ You can explore it interactively in your graph client. Then, refer to KubeHound'
 
 ## Generating sample data
 
-If you don't have a cluster at your disposal, install [kind](https://kind.sigs.k8s.io/#installation-and-usage) and run the following command:
+If you don't have a cluster at your disposal: clone the KubeHound repository, install [kind](https://kind.sigs.k8s.io/#installation-and-usage) and run the following command:
 
 ```bash
 make sample-graph

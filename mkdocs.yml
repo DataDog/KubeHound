@@ -89,6 +89,6 @@ nav:
       - queries/index.md
       - queries/dsl.md
       - queries/metrics.md
-      - queries/gremlin.md
+      - "Sample queries": queries/gremlin.md
 
 copyright: Copyright 2023-Present Datadog, Inc.

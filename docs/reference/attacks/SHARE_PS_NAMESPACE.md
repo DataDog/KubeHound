@@ -4,7 +4,6 @@ title: SHARE_PS_NAMESPACE
 
 <!--
 id: SHARE_PS_NAMESPACE
-TODO: phrase as an attack
 name: "Access container in shared process namespace"
 mitreAttackTechnique: N/A - N/A
 mitreAttackTactic: TA0008 - Lateral Movement
