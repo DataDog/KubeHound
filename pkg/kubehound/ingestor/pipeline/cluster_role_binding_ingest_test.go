@@ -21,6 +21,8 @@ import (
 )
 
 func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
+	t.Parallel()
+
 	crbi := &ClusterRoleBindingIngest{}
 
 	ctx := context.Background()
@@ -72,10 +74,11 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	// Store setup -  identities
 	isw := storedb.NewAsyncWriter(t)
 	identities := collections.Identity{}
-	storeId := store.ObjectID()
+	storeID := store.ObjectID()
 	isw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Identity")).
 		RunAndReturn(func(ctx context.Context, i any) error {
-			i.(*store.Identity).Id = storeId
+			i.(*store.Identity).Id = storeID
+
 			return nil
 		}).Once()
 	isw.EXPECT().Flush(ctx).Return(nil)
@@ -85,10 +88,11 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 	// Store setup -  permissionsets
 	pssw := storedb.NewAsyncWriter(t)
 	psbs := collections.PermissionSet{}
-	psStoreId := store.ObjectID()
+	psStoreID := store.ObjectID()
 	pssw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.PermissionSet")).
 		RunAndReturn(func(ctx context.Context, i any) error {
-			i.(*store.PermissionSet).Id = psStoreId
+			i.(*store.PermissionSet).Id = psStoreID
+
 			return nil
 		}).Once()
 	pssw.EXPECT().Flush(ctx).Return(nil)
@@ -101,7 +105,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 		"isNamespaced": false,
 		"name":         "app-monitors-cluster",
 		"namespace":    "",
-		"storeID":      storeId.Hex(),
+		"storeID":      storeID.Hex(),
 		"type":         "ServiceAccount",
 		"team":         "test-team",
 		"app":          "test-app",
@@ -121,7 +125,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 		"namespace":    "",
 		"role":         "test-reader",
 		"roleBinding":  "app-monitors-read",
-		"storeID":      psStoreId.Hex(),
+		"storeID":      psStoreID.Hex(),
 		"team":         "test-team",
 		"app":          "test-app",
 		"service":      "test-service",

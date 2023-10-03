@@ -20,8 +20,9 @@ import (
 )
 
 func TestPodIngest_Pipeline(t *testing.T) {
-	pi := &PodIngest{}
+	t.Parallel()
 
+	pi := &PodIngest{}
 	ctx := context.Background()
 	fakePod, err := loadTestObject[types.PodType]("testdata/pod.json")
 	assert.NoError(t, err)

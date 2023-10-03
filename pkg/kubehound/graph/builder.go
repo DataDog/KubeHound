@@ -60,7 +60,8 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 		return err
 	}
 
-	tags := append(telemetry.BaseTags, telemetry.TagTypeJanusGraph)
+	tags := telemetry.BaseTags
+	tags = append(tags, telemetry.TagTypeJanusGraph)
 	w, err := b.graphdb.EdgeWriter(ctx, e, graphdb.WithTags(tags))
 	if err != nil {
 		return err

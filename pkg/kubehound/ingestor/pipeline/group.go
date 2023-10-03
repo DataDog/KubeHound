@@ -28,11 +28,12 @@ func (g *Group) Run(outer context.Context, deps *Dependencies) error {
 	for _, ingest := range g.Ingests {
 		i := ingest
 
-		// Don't spin off a goroutine until we initalize successfully
+		// Don't spin off a goroutine until we initialize successfully
 		err := i.Initialize(ctx, deps)
 		if err != nil {
 			l.Errorf("%s initialization: %v", i.Name(), err)
 			cancelGroup(err)
+
 			break
 		}
 
@@ -59,5 +60,6 @@ func (g *Group) Run(outer context.Context, deps *Dependencies) error {
 	}
 
 	l.Infof("Completed %s ingest", g.Name)
+
 	return nil
 }

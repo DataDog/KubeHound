@@ -1,3 +1,4 @@
+//nolint:all
 package system
 
 import (
@@ -70,6 +71,7 @@ func (suite *EdgeTestSuite) _testContainerEscape(edgeLabel string, nodes map[str
 	for _, r := range results {
 		if nodes[r.GetString()] {
 			matched = true
+
 			break
 		}
 	}
@@ -89,6 +91,7 @@ func (suite *EdgeTestSuite) _testContainerEscape(edgeLabel string, nodes map[str
 	for _, r := range results {
 		if containers[r.GetString()] {
 			matched = true
+
 			break
 		}
 	}

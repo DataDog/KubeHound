@@ -20,7 +20,7 @@ func fakeCacheBuilder(ctx context.Context, cacheSize int) (*MemCacheProvider, ma
 
 	fakeCacheWriter, _ := fakeProvider.BulkWriter(ctx)
 	for key, val := range fakeCache {
-		fakeCacheWriter.Queue(ctx, key, val)
+		_ = fakeCacheWriter.Queue(ctx, key, val)
 	}
 
 	return fakeProvider, fakeCache

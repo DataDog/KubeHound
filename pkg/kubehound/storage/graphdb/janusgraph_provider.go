@@ -94,7 +94,7 @@ func (jgp *JanusGraphProvider) HealthCheck(ctx context.Context) (bool, error) {
 
 	value, err := one.GetInt()
 	if err != nil {
-		return false, fmt.Errorf("get int value from healthcheck: %v", err)
+		return false, fmt.Errorf("get int value from healthcheck: %w", err)
 	}
 
 	if value != 1 {

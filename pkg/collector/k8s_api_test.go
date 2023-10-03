@@ -140,6 +140,7 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 
 	// 0 pod found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.PodIngestor) {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		m := mocks.NewPodIngestor(t)
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
@@ -148,6 +149,7 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 
 	// Listing pods from all namespaces
 	test2 := func(t *testing.T) (*fake.Clientset, *mocks.PodIngestor) {
+		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
 				fakePod("namespace1", "iamge1"),
@@ -221,6 +223,7 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 
 	// 0 roles
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.RoleIngestor) {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		m := mocks.NewRoleIngestor(t)
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
@@ -229,6 +232,7 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 
 	// Listing all the roles from all namespaces
 	test2 := func(t *testing.T) (*fake.Clientset, *mocks.RoleIngestor) {
+		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
 				fakeRole("namespace1", "name1"),
@@ -307,6 +311,7 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 
 	// 0 role bindings found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.RoleBindingIngestor) {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		m := mocks.NewRoleBindingIngestor(t)
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
@@ -315,6 +320,7 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 
 	// Listing all the roles bindings from all namespaces
 	test2 := func(t *testing.T) (*fake.Clientset, *mocks.RoleBindingIngestor) {
+		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
 				fakeRoleBinding("namespace1", "name1"),

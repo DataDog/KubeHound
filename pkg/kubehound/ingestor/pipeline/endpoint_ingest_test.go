@@ -19,6 +19,8 @@ import (
 )
 
 func TestEndpointSlice_Pipeline(t *testing.T) {
+	t.Parallel()
+
 	ei := &EndpointIngest{}
 
 	ctx := context.Background()
@@ -49,10 +51,11 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
 	endpoints := collections.Endpoint{}
-	storeId := store.ObjectID()
+	storeID := store.ObjectID()
 	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Endpoint")).
 		RunAndReturn(func(ctx context.Context, i any) error {
-			i.(*store.Endpoint).Id = storeId
+			i.(*store.Endpoint).Id = storeID
+
 			return nil
 		}).Times(2)
 
@@ -76,7 +79,7 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 		"service":         "cassandra",
 		"serviceDns":      "cassandra-temporal-dev.cassandra-temporal-dev",
 		"serviceEndpoint": "cassandra-temporal-dev",
-		"storeID":         storeId.Hex(),
+		"storeID":         storeID.Hex(),
 		"team":            "workflow-engine",
 	}
 	vtx2 := map[string]interface{}{
@@ -94,7 +97,7 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 		"service":         "cassandra",
 		"serviceDns":      "cassandra-temporal-dev.cassandra-temporal-dev",
 		"serviceEndpoint": "cassandra-temporal-dev",
-		"storeID":         storeId.Hex(),
+		"storeID":         storeID.Hex(),
 		"team":            "workflow-engine",
 	}
 

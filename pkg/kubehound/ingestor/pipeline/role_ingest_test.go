@@ -17,8 +17,9 @@ import (
 )
 
 func TestRoleIngest_Pipeline(t *testing.T) {
-	ri := &RoleIngest{}
+	t.Parallel()
 
+	ri := &RoleIngest{}
 	ctx := context.Background()
 	fakeRole, err := loadTestObject[types.RoleType]("testdata/role.json")
 	assert.NoError(t, err)
@@ -48,10 +49,10 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
 	roles := collections.Role{}
-	storeId := store.ObjectID()
+	storeID := store.ObjectID()
 	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).
 		RunAndReturn(func(ctx context.Context, i any) error {
-			i.(*store.Role).Id = storeId
+			i.(*store.Role).Id = storeID
 			return nil
 		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)

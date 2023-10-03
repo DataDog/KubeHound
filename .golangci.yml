@@ -33,14 +33,14 @@ linters:
     # - gci
     - ginkgolinter
     - gocheckcompilerdirectives
-    - gochecknoglobals
+    # - gochecknoglobals
     - gocognit
     - goconst
     - gocritic
     - gocyclo
     # - goerr113 # Would probably be best. But lets ignore for now
     - gofmt
-    - gofumpt
+    # - gofumpt
     - goheader
     - goimports
     - gomnd
@@ -54,7 +54,7 @@ linters:
     - importas
     - ineffassign
     - interfacebloat
-    - ireturn
+    # - ireturn
     - loggercheck
     - maintidx
     - makezero
@@ -74,14 +74,14 @@ linters:
     - predeclared
     - promlinter
     - reassign
-    - revive
+    # - revive
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
     - stylecheck
     - tenv
     - testableexamples
-    - testpackage
+    # - testpackage
     - thelper
     - tparallel
     - typecheck

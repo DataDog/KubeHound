@@ -11,6 +11,8 @@ import (
 )
 
 func TestFileCollector_Constructor(t *testing.T) {
+	t.Parallel()
+
 	cfg, err := config.NewConfig("testdata/kubehound-test.yaml")
 	assert.NoError(t, err)
 
@@ -21,6 +23,8 @@ func TestFileCollector_Constructor(t *testing.T) {
 }
 
 func TestFileCollector_HealthCheck(t *testing.T) {
+	t.Parallel()
+
 	c := &FileCollector{
 		cfg: &config.FileCollectorConfig{
 			Directory: "does-not-exist/",
@@ -53,6 +57,8 @@ func TestFileCollector_HealthCheck(t *testing.T) {
 }
 
 func NewTestFileCollector(t *testing.T) *FileCollector {
+	t.Helper()
+
 	cfg, err := config.NewConfig("testdata/kubehound-test.yaml")
 	assert.NoError(t, err)
 
@@ -63,6 +69,8 @@ func NewTestFileCollector(t *testing.T) *FileCollector {
 }
 
 func TestFileCollector_StreamNodes(t *testing.T) {
+	t.Parallel()
+
 	c := NewTestFileCollector(t)
 	ctx := context.Background()
 	i := mocks.NewNodeIngestor(t)
@@ -75,6 +83,8 @@ func TestFileCollector_StreamNodes(t *testing.T) {
 }
 
 func TestFileCollector_StreamPods(t *testing.T) {
+	t.Parallel()
+
 	c := NewTestFileCollector(t)
 	ctx := context.Background()
 	i := mocks.NewPodIngestor(t)
@@ -87,6 +97,8 @@ func TestFileCollector_StreamPods(t *testing.T) {
 }
 
 func TestFileCollector_StreamRoles(t *testing.T) {
+	t.Parallel()
+
 	c := NewTestFileCollector(t)
 	ctx := context.Background()
 	i := mocks.NewRoleIngestor(t)
@@ -99,6 +111,8 @@ func TestFileCollector_StreamRoles(t *testing.T) {
 }
 
 func TestFileCollector_StreamRoleBindings(t *testing.T) {
+	t.Parallel()
+
 	c := NewTestFileCollector(t)
 	ctx := context.Background()
 	i := mocks.NewRoleBindingIngestor(t)
@@ -111,6 +125,8 @@ func TestFileCollector_StreamRoleBindings(t *testing.T) {
 }
 
 func TestFileCollector_StreamClusterRoles(t *testing.T) {
+	t.Parallel()
+
 	c := NewTestFileCollector(t)
 	ctx := context.Background()
 	i := mocks.NewClusterRoleIngestor(t)
@@ -123,6 +139,8 @@ func TestFileCollector_StreamClusterRoles(t *testing.T) {
 }
 
 func TestFileCollector_StreamClusterRoleBindings(t *testing.T) {
+	t.Parallel()
+
 	c := NewTestFileCollector(t)
 	ctx := context.Background()
 	i := mocks.NewClusterRoleBindingIngestor(t)
@@ -135,6 +153,8 @@ func TestFileCollector_StreamClusterRoleBindings(t *testing.T) {
 }
 
 func TestFileCollector_StreamEndpoints(t *testing.T) {
+	t.Parallel()
+
 	c := NewTestFileCollector(t)
 	ctx := context.Background()
 	i := mocks.NewEndpointIngestor(t)

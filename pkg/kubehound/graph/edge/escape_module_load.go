@@ -29,7 +29,7 @@ func (e *EscapeModuleLoad) Name() string {
 	return "ContainerEscapeModuleLoad"
 }
 
-// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
+// Processor delegates the processing tasks to the generic containerEscapeProcessor.
 func (e *EscapeModuleLoad) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }

@@ -56,5 +56,5 @@ func (e *Endpoint) SafePortName() string {
 		return DefaultPortName
 	}
 
-	return string(*e.Port.Name)
+	return *e.Port.Name
 }

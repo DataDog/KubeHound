@@ -40,12 +40,14 @@ func checkK8sAPICollectorConfig(collectorType string) error {
 	if collectorType != config.CollectorTypeK8sAPI {
 		return fmt.Errorf("invalid collector type in config: %s", collectorType)
 	}
+
 	return nil
 }
 
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	baseTags := append(telemetry.BaseTags, telemetry.TagCollectorTypeK8sApi)
+	tags := telemetry.BaseTags
+	tags = append(tags, telemetry.TagCollectorTypeK8sApi)
 	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
 
 	err := checkK8sAPICollectorConfig(cfg.Collector.Type)
@@ -68,7 +70,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		clientset: clientset,
 		log:       l,
 		rl:        ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
-		tags:      baseTags,
+		tags:      tags,
 	}, nil
 }
 
@@ -92,7 +94,7 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (c *k8sAPICollector) Close(ctx context.Context) error {
+func (c *k8sAPICollector) Close(_ context.Context) error {
 	return nil
 }
 
@@ -130,6 +132,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s pods for namespace %s: %w", namespace, err)
 		}
+
 		return entries, err
 	}))
 
@@ -143,6 +146,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 		if err != nil {
 			return fmt.Errorf("processing K8s pod %s for namespace %s: %w", item.Name, namespace, err)
 		}
+
 		return nil
 	})
 }
@@ -157,6 +161,7 @@ func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) 
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
 
@@ -174,6 +179,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s roles for namespace %s: %w", namespace, err)
 		}
+
 		return entries, err
 	}))
 
@@ -187,6 +193,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 		if err != nil {
 			return fmt.Errorf("processing K8s roles %s for namespace %s: %w", item.Name, namespace, err)
 		}
+
 		return nil
 	})
 }
@@ -201,6 +208,7 @@ func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
 
@@ -218,6 +226,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s rolebinding for namespace %s: %w", namespace, err)
 		}
+
 		return entries, err
 	}))
 
@@ -231,6 +240,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 		if err != nil {
 			return fmt.Errorf("processing K8s rolebinding %s for namespace %s: %w", item.Name, namespace, err)
 		}
+
 		return nil
 	})
 }
@@ -245,6 +255,7 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
 
@@ -262,6 +273,7 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s endpoint slices for namespace %s: %w", namespace, err)
 		}
+
 		return entries, err
 	}))
 
@@ -275,6 +287,7 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 		if err != nil {
 			return fmt.Errorf("processing K8s endpoint slice %s for namespace %s: %w", item.Name, namespace, err)
 		}
+
 		return nil
 	})
 }
@@ -305,6 +318,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s nodes: %w", err)
 		}
+
 		return entries, err
 	}))
 
@@ -318,11 +332,13 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 		if err != nil {
 			return fmt.Errorf("processing K8s node %s: %w", item.Name, err)
 		}
+
 		return nil
 	})
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
 
@@ -338,6 +354,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s cluster roles: %w", err)
 		}
+
 		return entries, err
 	}))
 
@@ -351,11 +368,13 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 		if err != nil {
 			return fmt.Errorf("processing K8s cluster role %s: %w", item.Name, err)
 		}
+
 		return nil
 	})
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
 
@@ -371,6 +390,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s cluster roles: %w", err)
 		}
+
 		return entries, err
 	}))
 
@@ -384,10 +404,12 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 		if err != nil {
 			return fmt.Errorf("processing K8s cluster role binding %s: %w", item.Name, err)
 		}
+
 		return nil
 	})
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }

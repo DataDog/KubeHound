@@ -77,6 +77,7 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 		switch e := err.(type) {
 		case *cache.OverwriteError:
 			log.Trace(ctx).Debugf("identity cache entry %#v already exists, skipping inserts", ck)
+
 			return nil
 		default:
 			return e
@@ -95,11 +96,7 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	}
 
 	// Aysnc write to graph
-	if err := i.r.writeVertex(ctx, i.vertexIdentity, insert); err != nil {
-		return err
-	}
-
-	return nil
+	return i.r.writeVertex(ctx, i.vertexIdentity, insert)
 }
 
 // createPermissionSet creates a permission set from an input store role binding.
@@ -125,11 +122,7 @@ func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb *store.R
 	}
 
 	// // Aysnc write to graph
-	if err := i.r.writeVertex(ctx, i.vertexPermissionSet, insert); err != nil {
-		return err
-	}
-
-	return nil
+	return i.r.writeVertex(ctx, i.vertexPermissionSet, insert)
 }
 
 // streamCallback is invoked by the collector for each role binding collected.
@@ -145,6 +138,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	if err != nil {
 		if err == converter.ErrDanglingRoleBinding {
 			log.Trace(ctx).Warnf("Role binding dropped (%s::%s): %s", rb.Namespace, rb.Name, err.Error())
+
 			return nil
 		}
 

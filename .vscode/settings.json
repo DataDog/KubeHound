@@ -1,0 +1,7 @@
+{
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": [
+      "-c",
+      "/Users/jeremy.fox/go/src/github.com/DataDog/KubeHound/.golangci.yml"
+    ]
+}

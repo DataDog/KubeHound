@@ -29,7 +29,7 @@ func (e *EscapePrivMount) Name() string {
 	return "ContainerEscapePrivilegedMount"
 }
 
-// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
+// Processor delegates the processing tasks to the generic containerEscapeProcessor.
 func (e *EscapePrivMount) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }

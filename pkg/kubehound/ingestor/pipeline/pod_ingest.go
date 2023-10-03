@@ -45,7 +45,7 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 
 	//
 	// Pods will create other objects such as volumes (from the pod volume mount list) and containers
-	// from the (container/init container lists). As such we need to intialize a list of the writers we need.
+	// from the (container/init container lists). As such we need to initialize a list of the writers we need.
 	//
 
 	i.v = []vertex.Builder{
@@ -80,9 +80,7 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 }
 
 // processEndpoints will handle the ingestion pipeline for a endpoints belonging to a processed K8s pod input.
-func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.ContainerPort,
-	pod *store.Pod, container *store.Container) error {
-
+func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.ContainerPort, pod *store.Pod, container *store.Container) error {
 	// Normalize endpoint to temporary store object format
 	tmp, err := i.r.storeConvert.EndpointPrivate(ctx, port, pod, container)
 	if err != nil {
@@ -187,9 +185,7 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 }
 
 // processVolumeMount will handle the ingestion pipeline for a volume belonging to a processed K8s pod input.
-func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.VolumeMountType,
-	pod *store.Pod, container *store.Container) error {
-
+func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.VolumeMountType, pod *store.Pod, container *store.Container) error {
 	// TODO can we skip known good e.g agent here to cuyt down the volume??
 	if ok, err := preflight.CheckVolume(volumeMount); !ok {
 		return err
@@ -214,11 +210,7 @@ func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.Vo
 	}
 
 	// Aysnc write to graph
-	if err := i.r.writeVertex(ctx, i.v[volumeIndex], insert); err != nil {
-		return err
-	}
-
-	return nil
+	return i.r.writeVertex(ctx, i.v[volumeIndex], insert)
 }
 
 // streamCallback is invoked by the collector for each pod collected.
@@ -233,6 +225,7 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	sp, err := i.r.storeConvert.Pod(ctx, pod)
 	if err != nil {
 		log.Trace(ctx).Warnf("process pod %s error (continuing): %v", pod.Name, err)
+
 		return nil
 	}
 

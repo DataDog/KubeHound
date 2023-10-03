@@ -65,11 +65,11 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 			HostNetwork:    parent.K8.Spec.HostNetwork,
 			ServiceAccount: parent.K8.Spec.ServiceAccountName,
 		},
-		K8:        corev1.Container(*input),
+		K8:        *input,
 		Ownership: store.ExtractOwnership(parent.K8.Labels),
 	}
 
-	// Certain fields are set by the PodSecurityContext and overriden by the container's SecurityContext.
+	// Certain fields are set by the PodSecurityContext and overridden by the container's SecurityContext.
 	// Currently we only consider the RunAsUser field.
 	if input.SecurityContext != nil && input.SecurityContext.RunAsUser != nil {
 		output.Inherited.RunAsUser = *input.SecurityContext.RunAsUser
@@ -88,7 +88,7 @@ func (c *StoreConverter) Node(ctx context.Context, input types.NodeType) (*store
 
 	output := &store.Node{
 		Id:        store.ObjectID(),
-		K8:        corev1.Node(*input),
+		K8:        *input,
 		Ownership: store.ExtractOwnership(input.ObjectMeta.Labels),
 	}
 
@@ -126,7 +126,7 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 	output := &store.Pod{
 		Id:        store.ObjectID(),
 		NodeId:    nid,
-		K8:        corev1.Pod(*input),
+		K8:        *input,
 		Ownership: store.ExtractOwnership(input.ObjectMeta.Labels),
 	}
 
@@ -158,6 +158,7 @@ func (c *StoreConverter) handleProjectedToken(ctx context.Context, input types.V
 	for _, proj := range volume.Projected.Sources {
 		if proj.ServiceAccountToken != nil {
 			sourcePath = libkube.ServiceAccountTokenPath(string(pod.K8.ObjectMeta.UID), input.Name)
+
 			break
 		}
 	}
@@ -416,6 +417,7 @@ func (c *StoreConverter) PermissionSet(ctx context.Context, roleBinding *store.R
 	if !isEffective {
 		log.Trace(ctx).Debugf("The rolebinding/subjects are ALL not in the same namespace: rb::%s/rb.sbj::%#v",
 			roleBinding.Namespace, roleBinding.Subjects)
+
 		return nil, ErrRoleBindProperties
 	}
 

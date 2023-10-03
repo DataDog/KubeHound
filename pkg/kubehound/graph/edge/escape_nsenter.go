@@ -29,7 +29,7 @@ func (e *EscapeNsenter) Name() string {
 	return "ContainerEscapeNsenter"
 }
 
-// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
+// Processor delegates the processing tasks to the generic containerEscapeProcessor.
 func (e *EscapeNsenter) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }

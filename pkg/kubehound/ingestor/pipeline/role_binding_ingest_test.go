@@ -21,8 +21,9 @@ import (
 )
 
 func TestRoleBindingIngest_Pipeline(t *testing.T) {
-	ri := &RoleBindingIngest{}
+	t.Parallel()
 
+	ri := &RoleBindingIngest{}
 	ctx := context.Background()
 	fakeRb, err := loadTestObject[types.RoleBindingType]("testdata/rolebinding.json")
 	assert.NoError(t, err)
@@ -76,10 +77,10 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	// Store setup -  permissionsets
 	pssw := storedb.NewAsyncWriter(t)
 	psbs := collections.PermissionSet{}
-	psStoreId := store.ObjectID()
+	psStoreID := store.ObjectID()
 	pssw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.PermissionSet")).
 		RunAndReturn(func(ctx context.Context, i any) error {
-			i.(*store.PermissionSet).Id = psStoreId
+			i.(*store.PermissionSet).Id = psStoreID
 			return nil
 		}).Once()
 	pssw.EXPECT().Flush(ctx).Return(nil)
@@ -87,10 +88,10 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	sdb.EXPECT().BulkWriter(ctx, psbs, mock.Anything).Return(pssw, nil)
 
 	identities := collections.Identity{}
-	storeId := store.ObjectID()
+	storeID := store.ObjectID()
 	isw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Identity")).
 		RunAndReturn(func(ctx context.Context, i any) error {
-			i.(*store.Identity).Id = storeId
+			i.(*store.Identity).Id = storeID
 			return nil
 		}).Once()
 	isw.EXPECT().Flush(ctx).Return(nil)
@@ -104,7 +105,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 		"critical":     false,
 		"name":         "app-monitors",
 		"namespace":    "test-app",
-		"storeID":      storeId.Hex(),
+		"storeID":      storeID.Hex(),
 		"type":         "ServiceAccount",
 		"team":         "test-team",
 		"app":          "test-app",
@@ -124,7 +125,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 		"role":         "test-reader",
 		"roleBinding":  "app-monitors-read",
 		"namespace":    "test-app",
-		"storeID":      psStoreId.Hex(),
+		"storeID":      psStoreID.Hex(),
 		"team":         "test-team",
 		"app":          "test-app",
 		"service":      "test-service",

@@ -62,6 +62,7 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 			if err != nil {
 				if err == converter.ErrEndpointTarget {
 					log.Trace(ctx).Warnf("Endpoint dropped: %s: %s", err.Error(), addr.TargetRef)
+
 					return nil
 				}
 
@@ -91,7 +92,6 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 				return err
 			}
 		}
-
 	}
 
 	return nil
