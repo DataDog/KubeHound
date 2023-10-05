@@ -59,13 +59,23 @@ func (e *EscapeTokenVarLogSymlink) Processor(ctx context.Context, oic *converter
 func (e *EscapeTokenVarLogSymlink) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal()
-		g.V().HasLabel("PermissionSet").
-			InE("PERMISSION_DISCOVER").OutV().
-			InE("IDENTITY_ASSUME").OutV().
-			HasLabel("Container").As("c").OutE("VOLUME_DISCOVER").
-			Has("sourcePath", P.Within("/", "/var", "/var/log")).
-			AddE(e.Label()).
-			From("c").To(inserts)
+		// g.V().HasLabel("PermissionSet").
+		// 	InE("PERMISSION_DISCOVER").OutV().
+		// 	InE("IDENTITY_ASSUME").OutV().
+		// 	HasLabel("Container").As("c").OutE("VOLUME_DISCOVER").
+		// 	Has("sourcePath", P.Within("/", "/var", "/var/log")).
+		// 	AddE(e.Label()).
+		// 	From("c").To(inserts)
+
+		g.V().HasLabel("PermissionSet").InE("PERMISSION_DISCOVER").OutV().InE("IDENTITY_ASSUME").
+			OutV().
+			HasLabel("Container").As("c").
+			OutE("VOLUME_DISCOVER").
+			InV().
+			InE("VOLUME_ACCESS").
+			OutV().
+			HasLabel("Node").As("n").
+			AddE("TOKEN_VAR_LOG_SYMLINK").From("c").To("n")
 		return g
 	}
 }

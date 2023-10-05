@@ -99,6 +99,9 @@ mgmt.addConnection(privMount, container, node);
 sysPtrace = mgmt.makeEdgeLabel('CE_SYS_PTRACE').multiplicity(MANY2ONE).make();
 mgmt.addConnection(sysPtrace, container, node);
 
+varLogSymLink = mgmt.makeEdgeLabel('CE_VAR_LOG_SYMLINK').multiplicity(MANY2ONE).make();
+mgmt.addConnection(varLogSymLink, container, node);
+
 endpointExploit = mgmt.makeEdgeLabel('ENDPOINT_EXPLOIT').multiplicity(MULTI).make();
 mgmt.addConnection(endpointExploit, endpoint, container);
 
