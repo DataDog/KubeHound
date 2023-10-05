@@ -1,8 +1,22 @@
 # KubeHound  <!-- omit in toc -->
 
+<p align="center">
+  <img src="./docs/logo.png" alt="KubeHound" width="300" />
+</p>
 A Kubernetes attack graph tool allowing automated calculation of attack paths between assets in a cluster
 
-- [Quick Links](#quick-links)
+## Quick Links <!-- omit in toc -->
+
++ For an overview of the application architecture see the [design canvas](./docs/application/Architecture.excalidraw)
++ To see the attacks covered see the [edge definitions](./docs/edges/)
++ To contribute a new attack to the project follow the [contribution guidelines](./CONTRIBUTING.md)
+
+## Sample Attack Path  <!-- omit in toc -->
+
+![Example Path](./docs/images/example-graph.png)
+
+## Contents  <!-- omit in toc -->
+
 - [Requirements](#requirements)
   - [Application](#application)
   - [Test (Development only)](#test-development-only)
@@ -23,14 +37,6 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
     - [Setup](#setup)
     - [CI Testing](#ci-testing)
 - [Acknowledgements](#acknowledgements)
-
-![Example Path](./docs/images/example-graph.png)
-
-## Quick Links
-
-+ For an overview of the application architecture see the [design canvas](./docs/application/Architecture.excalidraw)
-+ To see the attacks covered see the [edge definitions](./docs/edges/)
-+ To contribute a new attack to the project follow the [contribution guidelines](./CONTRIBUTING.md)
 
 ## Requirements
 
@@ -57,7 +63,6 @@ Release binaries are available for Linux / Windows / Mac OS via the [releases](h
 
 *NOTE*:
 + If downloading the releases via a browser you must run e.g `xattr -d com.apple.quarantine KubeHound_Darwin_arm64.tar.gz` before running to prevent [MacOS blocking execution](https://support.apple.com/en-gb/guide/mac-help/mchleab3a043/mac)
-+ You must have [setup GHCR access](https://codefresh.io/docs/docs/integrations/docker-registries/github-container-registry/)
 
 Next choose a target Kubernetes cluster, either:
 

@@ -7,7 +7,7 @@ DOCKER_COMPOSE_PROFILE := --profile infra
 DEV_ENV_FILE_PATH := test/setup/.config
 DEFAULT_KUBEHOUND_ENV := dev
 SYSTEM_TEST_CMD := system-test system-test-clean
-
+DOCKER_CMD := docker
 # get the latest commit hash in the short form
 COMMIT := $(shell git rev-parse --short HEAD)
 DATE := $(shell git log -1 --format=%cd --date=format:"%Y%m%d")
@@ -50,19 +50,28 @@ else
 	DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.testing.yaml
 endif
 
-UNAME_S := $(shell uname -s)
-ifndef DOCKER_CMD
-	ifeq ($(UNAME_S),Linux)
-# https://docs.github.com/en/actions/learn-github-actions/variables
-		ifneq (${CI},true)
-			DOCKER_CMD := sudo docker
-		else
-			DOCKER_CMD := docker
-		endif
-	else
-		DOCKER_CMD := docker
-	endif
+# This block should handle the difference docker edge case (not installed, not allowed to run as the user...)
+# check if we can run the docker command from the current user
+# if not we try again with sudo, and if that also fail we assume the docker setup is broken and cannot work
+# so we abort
+docker-check:
+# exit early without error if custom docker cmd is provided
+ifeq ("docker", ${DOCKER_CMD})
+	@echo "Using provided docker cmd: ${DOCKER_CMD}"
 	DOCKER_CMD := ${DOCKER_CMD}
+else
+# exit early if docker is not found. No point in continuing
+ifeq (, $(shell command -v docker))
+    $(error "Docker not found")
+endif
+
+ifneq (, $(findstring Server Version,$(shell docker info)))
+    DOCKER_CMD := docker
+else ifneq (, $(findstring Server Version,$(shell sudo docker info)))
+    DOCKER_CMD := sudo docker
+else
+    $(error "We don't have the permission to run docker. Are you root or in the docker group?")
+endif
 endif
 
 RACE_FLAG_SYSTEM_TEST := "-race"
@@ -70,10 +79,10 @@ ifeq (${CI},true)
 	RACE_FLAG_SYSTEM_TEST := ""
 endif
 
-DOCKER_HOSTNAME := $(shell hostname)
-ifneq (${CI},true)
-	DOCKER_CMD := DOCKER_HOSTNAME=$(DOCKER_HOSTNAME) $(DOCKER_CMD)
-endif
+# DOCKER_HOSTNAME := $(shell hostname)
+# ifneq (${CI},true)
+# 	DOCKER_CMD := DOCKER_HOSTNAME=$(DOCKER_HOSTNAME) $(DOCKER_CMD)
+# endif
 
 all: build
 
@@ -89,11 +98,11 @@ build: ## Build the application
 kubehound: | backend-up build ## Prepare kubehound (deploy backend, build go binary)
 
 .PHONY: backend-down
-backend-down: ## Tear down the kubehound stack
+backend-down: | docker-check ## Tear down the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 
 .PHONY: backend-up
-backend-up: ## Spawn the kubehound stack
+backend-up: | docker-check ## Spawn the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d 
 
 .PHONY: backend-reset
@@ -154,7 +163,9 @@ help: ## Show this help
 thirdparty-licenses: ## Generate the list of 3rd party dependencies and write to LICENSE-3rdparty.csv
 	go get github.com/google/go-licenses
 	go install github.com/google/go-licenses
-	$(GOPATH)/bin/go-licenses csv github.com/DataDog/KubeHound/cmd/kubehound | sort > $(ROOT_DIR)/LICENSE-3rdparty.csv
+	$(GOPATH)/bin/go-licenses csv github.com/DataDog/KubeHound/cmd/kubehound | sort > $(ROOT_DIR)/LICENSE-3rdparty.csv.raw
+	python scripts/enrich-third-party-licences.py $(ROOT_DIR)/LICENSE-3rdparty.csv.raw > $(ROOT_DIR)/LICENSE-3rdparty.csv
+	rm -f LICENSE-3rdparty.csv.raw
 
 .PHONY: local-wiki
 local-wiki: ## Generate and serve the mkdocs wiki on localhost

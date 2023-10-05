@@ -260,7 +260,8 @@ func (suite *EdgeTestSuite) TestEdge_POD_PATCH() {
 		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[tokenget-pod]",
 		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[nsenter-pod]",
 		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[varlog-pod]",
-		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[sharedps-pod]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[sharedps-pod1]",
+		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[sharedps-pod2]",
 		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[umh-core-pod]",
 		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[pod-patch-pod]",
 		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[pod-exec-pod]",
@@ -318,7 +319,8 @@ func (suite *EdgeTestSuite) TestEdge_POD_EXEC() {
 		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[tokenget-pod]",
 		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[nsenter-pod]",
 		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[varlog-pod]",
-		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[sharedps-pod]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[sharedps-pod1]",
+		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[sharedps-pod2]",
 		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[umh-core-pod]",
 		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[pod-patch-pod]",
 		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[pod-exec-pod]",
@@ -636,6 +638,35 @@ func (suite *EdgeTestSuite) TestEdge_ENDPOINT_EXPLOIT_External() {
 	}
 
 	suite.Subset(paths, expected)
+}
+
+func (suite *EdgeTestSuite) TestEdge_SHARE_PS_NAMESPACE() {
+	results, err := suite.g.V().
+		HasLabel("Container").
+		OutE().HasLabel("SHARE_PS_NAMESPACE").
+		InV().HasLabel("Container").
+		Path().
+		By(__.ValueMap("name")).
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	paths := suite.pathsToStringArray(results)
+	expected := []string{
+		// Pod1 a 3 containers (A,B,C) = 6 links
+		"path[map[name:[sharedps-pod1-a]], map[], map[name:[sharedps-pod1-b]",
+		"path[map[name:[sharedps-pod1-a]], map[], map[name:[sharedps-pod1-c]",
+		"path[map[name:[sharedps-pod1-b]], map[], map[name:[sharedps-pod1-a]",
+		"path[map[name:[sharedps-pod1-b]], map[], map[name:[sharedps-pod1-c]",
+		"path[map[name:[sharedps-pod1-c]], map[], map[name:[sharedps-pod1-b]",
+		"path[map[name:[sharedps-pod1-c]], map[], map[name:[sharedps-pod1-a]",
+
+		// Pod1 a 2 containers (A,B) = 2 links
+		"path[map[name:[sharedps-pod2-a]], map[], map[name:[sharedps-pod2-b]",
+		"path[map[name:[sharedps-pod2-b]], map[], map[name:[sharedps-pod2-a]",
+	}
+	suite.ElementsMatch(paths, expected)
 }
 
 func (suite *EdgeTestSuite) Test_NoEdgeCase() {

@@ -25,7 +25,7 @@ Container isolation mechanisms are restricted to user-space execution. If an att
 
 Execution within a container process with the `CAP_SYS_MODULE` capability enabled.
 
-See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setuptest-cluster/attacks/CE_MODULE_LOAD.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/CE_MODULE_LOAD.yaml).
 
 ## Checks
 
