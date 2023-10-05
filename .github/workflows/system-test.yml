@@ -9,7 +9,7 @@ on:
 jobs:
   system-test:
     runs-on:
-      group: Large Runner Shared Public 
+      group: Large Runner Shared Public
       labels: ubuntu-8-core-latest
     environment: devenv
     steps:
@@ -28,6 +28,7 @@ jobs:
             storage.googleapis.com:443
             uploads.github.com:443
             sum.golang.org:443
+            gcr.io:443
 
       - uses: datadog/agent-github-action@8240b406d73cb84cd5085a3919a78f59c258da3a
         with:
