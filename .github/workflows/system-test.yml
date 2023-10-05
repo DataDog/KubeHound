@@ -13,24 +13,6 @@ jobs:
       labels: ubuntu-8-core-latest
     environment: devenv
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
-        with:
-          egress-policy: block
-          allowed-endpoints: >
-            api.github.com:443
-            github.com:443
-            goreleaser.com:443
-            golang.org:443
-            go.dev:443
-            objects.githubusercontent.com:443
-            proxy.golang.org:443
-            storage.googleapis.com:443
-            uploads.github.com:443
-            sum.golang.org:443
-            gcr.io:443
-            *.docker.io:443
-
       - uses: datadog/agent-github-action@8240b406d73cb84cd5085a3919a78f59c258da3a
         with:
           api_key: ${{ secrets.DD_API_KEY }}
