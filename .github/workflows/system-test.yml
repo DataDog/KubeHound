@@ -28,6 +28,8 @@ jobs:
             storage.googleapis.com:443
             uploads.github.com:443
             sum.golang.org:443
+            *.docker.io:443
+            *.datadoghq.com:443
 
       - uses: datadog/agent-github-action@8240b406d73cb84cd5085a3919a78f59c258da3a
         with:
