@@ -683,7 +683,7 @@ func (suite *EdgeTestSuite) Test_NoEdgeCase() {
 
 func (suite *EdgeTestSuite) Test_CE_VAR_LOG_SYMLINK() {
 	containers := map[string]bool{
-		"varlog-pod": true,
+		"varlog-container": true,
 	}
 
 	suite._testContainerEscape("CE_VAR_LOG_SYMLINK", DefaultContainerEscapeNodes, containers)

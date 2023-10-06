@@ -110,6 +110,7 @@ func (suite *DslTestSuite) TestTraversalSource_escapes() {
 		"path[modload-pod, CE_MODULE_LOAD, Node]",
 		"path[kube-proxy, CE_MODULE_LOAD, Node]",
 		"path[kube-proxy, CE_PRIV_MOUNT, Node]",
+		"path[varlog-container, CE_VAR_LOG_SYMLINK, Node]",
 	}
 
 	suite.ElementsMatch(escapes, expected)
