@@ -35,6 +35,7 @@ jobs:
             *.datadoghq.com:443
 
       - uses: datadog/agent-github-action@8240b406d73cb84cd5085a3919a78f59c258da3a
+        continue-on-error: true  # external contributors will not have access to the secret, but everything else should still work
         with:
           api_key: ${{ secrets.DD_API_KEY }}
           extra_env: DD_TRACE_DEBUG=1,DD_LOGS_ENABLED=true,DD_APM_ENABLED=true
