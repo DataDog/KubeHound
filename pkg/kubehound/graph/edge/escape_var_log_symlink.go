@@ -24,7 +24,7 @@ type EscapeVarLogSymlink struct {
 	BaseContainerEscape
 }
 
-// this is the same as containerEscapeGroup but with the container tag set to container_id
+// The mongodb query returns a list of permissionSet
 type permissionSetIDEscapeGroup struct {
 	PermissionSetID primitive.ObjectID `bson:"_id" json:"permission_set"`
 }
@@ -35,29 +35,25 @@ func (e *EscapeVarLogSymlink) Label() string {
 
 // List of needed edges to run the traversal query
 func (e *EscapeVarLogSymlink) Dependencies() []string {
-	return []string{"PERMISSION_DISCOVER", "IDENTITY_ASSUME", "VOLUME_DISCOVER"}
+	return []string{"PERMISSION_DISCOVER", "IDENTITY_ASSUME", "VOLUME_DISCOVER", "VOLUME_ACCESS"}
 }
 
 func (e *EscapeVarLogSymlink) Name() string {
 	return "ContainerEscapeVarLogSymlink"
 }
 
-func permissionSetProcessor(ctx context.Context, oic *converter.ObjectIDConverter, edgeLabel string, entry any) (any, error) {
+// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
+func (e *EscapeVarLogSymlink) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*permissionSetIDEscapeGroup)
 	if !ok {
 		return nil, fmt.Errorf("Invalid type passed to processor: %T", entry)
 	}
 
-	permissionSetID, err := oic.GraphID(ctx, typed.PermissionSetID.Hex())
+	permissionSetVertexID, err := oic.GraphID(ctx, typed.PermissionSetID.Hex())
 	if err != nil {
-		return nil, fmt.Errorf("%s edge IN id convert: %w", edgeLabel, err)
+		return nil, fmt.Errorf("%s edge IN id convert: %w", e.Label(), err)
 	}
-	return permissionSetID, nil
-}
-
-// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
-func (e *EscapeVarLogSymlink) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	return permissionSetProcessor(ctx, oic, e.Label(), entry)
+	return permissionSetVertexID, nil
 }
 
 func (e *EscapeVarLogSymlink) Traversal() types.EdgeTraversal {
@@ -69,7 +65,7 @@ func (e *EscapeVarLogSymlink) Traversal() types.EdgeTraversal {
 			InE("PERMISSION_DISCOVER").OutV().
 			// get container vertices
 			InE("IDENTITY_ASSUME").OutV().
-			// save container vertices as "c" so we can link to it to the node via TOKEN_VAR_LOG_SYMLINK
+			// save container vertices as "c" so we can link to it to the node via CE_VAR_LOG_SYMLINK
 			HasLabel("Container").As("c").
 			// Get all the volumes
 			OutE("VOLUME_DISCOVER").InV().
@@ -95,6 +91,10 @@ func (e *EscapeVarLogSymlink) Stream(ctx context.Context, store storedb.Provider
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{
+							bson.M{"$or": bson.A{
+								bson.M{"apigroups": ""},
+								bson.M{"apigroups": "*"},
+							}},
 							bson.M{"$or": bson.A{
 								bson.M{"resources": "pods/log"},
 								bson.M{"resources": "pods/*"},
