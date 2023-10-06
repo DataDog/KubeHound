@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"errors"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -60,7 +61,7 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 			// Normalize endpoint to store object format
 			o, err := i.r.storeConvert.Endpoint(ctx, addr, port, eps)
 			if err != nil {
-				if err == converter.ErrEndpointTarget {
+				if errors.Is(err, converter.ErrEndpointTarget) {
 					log.Trace(ctx).Warnf("Endpoint dropped: %s: %s", err.Error(), addr.TargetRef)
 
 					return nil

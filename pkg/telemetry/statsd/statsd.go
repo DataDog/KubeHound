@@ -27,12 +27,15 @@ func Setup(statsdURL string) error {
 	// In case we don't have a statsd url set, we just want to continue, but log that we aren't going to submit metrics.
 	if statsdURL == "" {
 		log.I.Warn("No metrics collector has been setup. All metrics submission are going to be NOOP.")
+
 		return nil
 	}
+
 	statsdClient, err = statsd.New(statsdURL)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -41,6 +44,7 @@ func Count(name string, value int64, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.Count(name, value, tags, rate)
 }
 
@@ -49,6 +53,7 @@ func Gauge(name string, value float64, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.Gauge(name, value, tags, rate)
 }
 
@@ -57,6 +62,7 @@ func Incr(name string, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.Incr(name, tags, rate)
 }
 
@@ -65,6 +71,7 @@ func Decr(name string, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.Decr(name, tags, rate)
 }
 
@@ -73,6 +80,7 @@ func Histogram(name string, value float64, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.Histogram(name, value, tags, rate)
 }
 
@@ -81,6 +89,7 @@ func Event(event *statsd.Event) error {
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.Event(event)
 }
 
@@ -89,6 +98,7 @@ func SimpleEvent(title string, text string) error {
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.SimpleEvent(title, text)
 }
 
@@ -97,6 +107,7 @@ func Set(name string, value string, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.Set(name, value, tags, rate)
 }
 
@@ -105,6 +116,7 @@ func Timing(name string, value time.Duration, tags []string, rate float64) error
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.Timing(name, value, tags, rate)
 }
 
@@ -113,6 +125,7 @@ func TimingDist(name string, dt time.Duration, tags []string, rate float64) erro
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.Distribution(name, dt.Seconds()*1000, tags, rate)
 }
 
@@ -121,6 +134,7 @@ func TimeInMilliseconds(name string, value float64, tags []string, rate float64)
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.TimeInMilliseconds(name, value, tags, rate)
 }
 
@@ -129,6 +143,7 @@ func Distribution(name string, value float64, tags []string, rate float64) error
 	if statsdClient == nil {
 		return nil
 	}
+
 	return statsdClient.Distribution(name, value, tags, rate)
 }
 

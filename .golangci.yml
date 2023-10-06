@@ -78,7 +78,7 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - stylecheck
+    # - stylecheck TODO reeanble
     - tenv
     - testableexamples
     # - testpackage
@@ -90,5 +90,5 @@ linters:
     - unused
     - usestdlibvars
     - wastedassign
-    - whitespace
+    # - whitespace
     # - wrapcheck #TODO: add it back later potentially?

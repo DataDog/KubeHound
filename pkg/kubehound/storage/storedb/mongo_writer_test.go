@@ -1,3 +1,4 @@
+//nolint:containedctx
 package storedb
 
 import (
@@ -35,6 +36,7 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 	// "integration test checks"
 	if err != nil {
 		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
+
 		return
 	}
 
@@ -108,11 +110,12 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 }
 
 func TestMongoAsyncWriter_Flush(t *testing.T) {
+	t.Parallel()
+
 	// FIXME: we should probably setup a mongodb test server in CI for the system tests
 	if config.IsCI() {
 		t.Skip("Skip mongo tests in CI")
 	}
-	t.Parallel()
 	fakeElem := FakeElement{
 		FieldA: 123,
 		FieldB: "lol",
@@ -208,6 +211,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 			// "integration test checks"
 			if err != nil {
 				t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
+
 				return
 			}
 			defer mongoProvider.Close(ctx)
@@ -223,6 +227,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 			err = maw.Flush(tt.argsFlush.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MongoAsyncWriter.Flush() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 

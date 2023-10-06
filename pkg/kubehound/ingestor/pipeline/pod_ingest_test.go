@@ -68,6 +68,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	psw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Pod")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Pod).Id = pid
+
 			return nil
 		}).Once()
 	psw.EXPECT().Flush(ctx).Return(nil)
@@ -80,6 +81,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	csw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Container")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Container).Id = cid
+
 			return nil
 		}).Once()
 	csw.EXPECT().Flush(ctx).Return(nil)
@@ -92,6 +94,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	vsw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Volume")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Volume).Id = vid
+
 			return nil
 		}).Once()
 
@@ -105,6 +108,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	esw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Endpoint")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Endpoint).Id = eid
+
 			return nil
 		}).Once()
 

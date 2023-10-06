@@ -48,7 +48,7 @@ func (e *EscapeNsenter) Stream(ctx context.Context, store storedb.Provider, _ ca
 	// We just need a 1:1 mapping of the node and container to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}
 
-	cur, err := containers.Find(context.Background(), filter, options.Find().SetProjection(projection))
+	cur, err := containers.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}

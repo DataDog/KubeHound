@@ -45,12 +45,14 @@ type KubehoundLogger struct {
 // traceID retrieves the trace ID from the provided span.
 func traceID(span tracer.Span) string {
 	traceID := span.Context().TraceID()
+
 	return strconv.FormatUint(traceID, 10)
 }
 
 // traceID retrieves the span ID from the provided span.
 func spanID(span tracer.Span) string {
 	spanID := span.Context().SpanID()
+
 	return strconv.FormatUint(spanID, 10)
 }
 

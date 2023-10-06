@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"errors"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -74,14 +75,14 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	ck := cachekey.Identity(sid.Name, sid.Namespace)
 	err = i.r.writeCache(ctx, ck, sid.Id.Hex())
 	if err != nil {
-		switch e := err.(type) {
-		case *cache.OverwriteError:
+		var errOverwrite *cache.OverwriteError
+		if errors.As(err, &errOverwrite) {
 			log.Trace(ctx).Debugf("identity cache entry %#v already exists, skipping inserts", ck)
 
 			return nil
-		default:
-			return e
 		}
+
+		return err
 	}
 
 	// Async write identity to store
@@ -136,7 +137,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	// Normalize K8s role binding to store object format
 	o, err := i.r.storeConvert.RoleBinding(ctx, rb)
 	if err != nil {
-		if err == converter.ErrDanglingRoleBinding {
+		if errors.Is(err, converter.ErrDanglingRoleBinding) {
 			log.Trace(ctx).Warnf("Role binding dropped (%s::%s): %s", rb.Namespace, rb.Name, err.Error())
 
 			return nil
@@ -162,9 +163,12 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 
 	// Create permission from Rolebinding entry
 	err = i.createPermissionSet(ctx, o)
-	switch err {
-	case nil:
-	case converter.ErrRoleCacheMiss, converter.ErrRoleBindProperties:
+	switch {
+	case err == nil:
+		// NOP
+	case errors.Is(err, converter.ErrRoleCacheMiss):
+		fallthrough
+	case errors.Is(err, converter.ErrRoleBindProperties):
 		log.Trace(ctx).Warnf("Permission set dropped (%s::%s): %v", rb.Namespace, rb.Name, err)
 	default:
 		return err

@@ -98,11 +98,11 @@ func (c *StoreConverter) Node(ctx context.Context, input types.NodeType) (*store
 
 	// Retrieve the associated identity store ID from the cache
 	uid, err := libkube.NodeIdentity(ctx, c.cache, input.Name)
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		// We have a matching node identity object in the store
 		output.UserId = uid
-	case libkube.ErrMissingNodeUser:
+	case errors.Is(err, libkube.ErrMissingNodeUser):
 		// This is completely fine. Most nodes will run under a default account with no permissions which we ignore.
 	default:
 		return nil, err
@@ -143,10 +143,10 @@ func (c *StoreConverter) handleProjectedToken(ctx context.Context, input types.V
 
 	// Retrieve the associated identity store ID from the cache
 	said, err := c.cache.Get(ctx, cachekey.Identity(pod.K8.Spec.ServiceAccountName, pod.K8.Namespace)).ObjectID()
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		// We have a matching identity object in the store, continue to create a volume
-	case cache.ErrNoEntry:
+	case errors.Is(err, cache.ErrNoEntry):
 		// This is completely fine. Most pods will run under a default account with no permissions which we ignore.
 		return primitive.NilObjectID, "", ErrProjectedDefaultToken
 	default:
@@ -250,10 +250,10 @@ func (c *StoreConverter) ClusterRole(_ context.Context, input types.ClusterRoleT
 func (c *StoreConverter) convertSubject(ctx context.Context, subj rbacv1.Subject) (store.BindSubject, error) {
 	// Check if identity already exists and use that ID, otherwise generate a new one
 	sid, err := c.cache.Get(ctx, cachekey.Identity(subj.Name, subj.Namespace)).ObjectID()
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		// Entry already exists, use the cached id value
-	case cache.ErrNoEntry:
+	case errors.Is(err, cache.ErrNoEntry):
 		// Entry does not exist, create a new id value
 		sid = store.ObjectID()
 	default:
@@ -400,6 +400,7 @@ func (c *StoreConverter) PermissionSet(ctx context.Context, roleBinding *store.R
 	if roleBinding.Namespace != role.Namespace && role.Namespace != EmptyNamespace {
 		log.Trace(ctx).Debugf("The role namespace (%s) does not match the rolebinding namespace (%s)",
 			role.Namespace, roleBinding.Namespace)
+
 		return nil, ErrRoleBindProperties
 	}
 
@@ -466,6 +467,7 @@ func (c *StoreConverter) PermissionSetCluster(ctx context.Context, clusterRoleBi
 	if role.IsNamespaced {
 		log.Trace(ctx).Debugf("The clusterrolebinding bind a role and not a clusterrole, skipping the permissionset: r::%s/cr::%s",
 			role.Namespace, clusterRoleBinding.Namespace)
+
 		return nil, ErrRoleBindProperties
 	}
 

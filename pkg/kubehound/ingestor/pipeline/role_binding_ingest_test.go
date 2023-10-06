@@ -81,6 +81,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	pssw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.PermissionSet")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.PermissionSet).Id = psStoreID
+
 			return nil
 		}).Once()
 	pssw.EXPECT().Flush(ctx).Return(nil)

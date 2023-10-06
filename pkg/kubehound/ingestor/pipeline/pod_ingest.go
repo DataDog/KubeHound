@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"errors"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -91,10 +92,10 @@ func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.Container
 	// further. However if it does NOT we write the details of the container port as a private endpoint entry.
 	ck := cachekey.Endpoint(tmp.Namespace, tmp.PodName, tmp.SafeProtocol(), tmp.SafePort())
 	_, err = i.r.readCache(ctx, ck).Bool()
-	switch err {
-	case cache.ErrNoEntry:
+	switch {
+	case errors.Is(err, cache.ErrNoEntry):
 		// No associated endpoint slice, create the endpoint from container parameters
-	case nil:
+	case err == nil:
 		// Validate our assumptions - the below not be possible in our data model and will result in missing edges
 		if port.HostPort != 0 && port.ContainerPort != port.HostPort {
 			log.Trace(ctx).Warnf("assumption failure: host port set on container with associated endpoint slice (%s)", ck.Key())
@@ -195,6 +196,7 @@ func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.Vo
 	sv, err := i.r.storeConvert.Volume(ctx, volumeMount, pod, container)
 	if err != nil {
 		log.Trace(ctx).Debugf("process volume type: %v (continuing)", err)
+
 		return nil
 	}
 

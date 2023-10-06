@@ -1,3 +1,4 @@
+//nolint:containedctx
 package storedb
 
 import (
@@ -22,6 +23,7 @@ func TestMongoProvider_BulkWriter(t *testing.T) {
 	// "integration test checks"
 	if err != nil {
 		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
+
 		return
 	}
 
@@ -68,8 +70,10 @@ func TestMongoProvider_BulkWriter(t *testing.T) {
 			writer, err := mp.BulkWriter(tt.args.ctx, tt.args.collection, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MongoProvider.BulkWriter() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if writer == nil {
 				t.Errorf("writer returned by BulkWriter is nil")
 			}

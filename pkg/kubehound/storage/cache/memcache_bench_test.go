@@ -64,7 +64,7 @@ func BenchmarkRead(b *testing.B) {
 		n := int(math.Pow(2, k))
 		fakeProvider, fakeCache := fakeCacheBuilder(ctx, b.N*n)
 		b.Run(fmt.Sprintf("%d", n), func(b *testing.B) {
-			for key, _ := range fakeCache {
+			for key := range fakeCache {
 				fakeProvider.Get(ctx, key)
 			}
 		})

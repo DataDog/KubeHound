@@ -23,7 +23,7 @@ var (
 var (
 	lookupOnce sync.Once
 	lookupNid  primitive.ObjectID
-	lookupErr  error
+	errLookup  error
 )
 
 // NodeUser will return the full name of the dedicated node user.
@@ -40,17 +40,17 @@ func DefaultNodeIdentity(ctx context.Context, c cache.CacheReader) (primitive.Ob
 		ck := cachekey.Identity(DefaultNodeGroup, DefaultNodeNamespace)
 
 		lookupNid, err = c.Get(ctx, ck).ObjectID()
-		switch err {
-		case nil:
+		switch {
+		case err == nil:
 			// NOP
-		case cache.ErrNoEntry:
-			lookupErr = ErrMissingNodeUser
+		case errors.Is(err, cache.ErrNoEntry):
+			errLookup = ErrMissingNodeUser
 		default:
-			lookupErr = err
+			errLookup = err
 		}
 	})
 
-	return lookupNid, lookupErr
+	return lookupNid, errLookup
 }
 
 // NodeIdentity will either return the store id of the dedicated node user or store id of the default system:nodes group if a dedicated user is not present.
@@ -59,11 +59,11 @@ func NodeIdentity(ctx context.Context, c cache.CacheReader, nodeName string) (pr
 	// Lookup whether the node has a dedicated user
 	ck := cachekey.Identity(NodeUser(nodeName), DefaultNodeNamespace)
 	nid, err := c.Get(ctx, ck).ObjectID()
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		// We have a dedicated user, return its id
 		return nid, nil
-	case cache.ErrNoEntry:
+	case errors.Is(err, cache.ErrNoEntry):
 		// Return the default user id
 		return DefaultNodeIdentity(ctx, c)
 	}
