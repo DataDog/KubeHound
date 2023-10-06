@@ -41,8 +41,10 @@ jobs:
             pkg-containers.githubusercontent.com:443
             production.cloudflare.docker.com:443
             proxy.golang.org:443
-            registry-1.docker.io:443
             storage.googleapis.com:443
+            *.docker.io:443
+            *.docker.com:443
+            gcr.io:443
 
       - name: Checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
