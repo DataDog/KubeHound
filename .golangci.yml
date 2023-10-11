@@ -1,8 +1,6 @@
 run:
   # Default: 1m
   timeout: 5m
-  # For now, don't block the test, only comment on the findings!
-  issues-exit-code: 0
 
 linters:
   disable-all: true
