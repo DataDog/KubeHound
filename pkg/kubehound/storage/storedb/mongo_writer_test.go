@@ -25,7 +25,6 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 		t.Skip("Skip mongo tests in CI")
 	}
 
-	t.Parallel()
 	fakeElem := FakeElement{
 		FieldA: 123,
 		FieldB: "lol",

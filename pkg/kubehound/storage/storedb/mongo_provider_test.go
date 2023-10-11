@@ -17,7 +17,7 @@ func TestMongoProvider_BulkWriter(t *testing.T) {
 	if config.IsCI() {
 		t.Skip("Skip mongo tests in CI")
 	}
-	t.Parallel()
+
 	ctx := context.Background()
 	provider, err := NewMongoProvider(ctx, MongoLocalDatabaseURL, 1*time.Second)
 	// TODO: add another check (env var maybe?)

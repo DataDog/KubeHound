@@ -1,3 +1,4 @@
+//nolint:forcetypeassert
 package collector
 
 import (

@@ -141,7 +141,11 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorPodsCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*corev1.Pod)
+		item, ok := obj.(*corev1.Pod)
+		if !ok {
+			return fmt.Errorf("pod stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestPod(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s pod %s for namespace %s: %w", item.Name, namespace, err)
@@ -188,7 +192,11 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorRolesCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*rbacv1.Role)
+		item, ok := obj.(*rbacv1.Role)
+		if !ok {
+			return fmt.Errorf("role stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestRole(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s roles %s for namespace %s: %w", item.Name, namespace, err)
@@ -235,7 +243,11 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorRoleBindingsCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*rbacv1.RoleBinding)
+		item, ok := obj.(*rbacv1.RoleBinding)
+		if !ok {
+			return fmt.Errorf("role binding stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestRoleBinding(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s rolebinding %s for namespace %s: %w", item.Name, namespace, err)
@@ -282,7 +294,11 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorEndpointCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*discoveryv1.EndpointSlice)
+		item, ok := obj.(*discoveryv1.EndpointSlice)
+		if !ok {
+			return fmt.Errorf("endpoint stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestEndpoint(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s endpoint slice %s for namespace %s: %w", item.Name, namespace, err)
@@ -327,7 +343,11 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorNodesCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*corev1.Node)
+		item, ok := obj.(*corev1.Node)
+		if !ok {
+			return fmt.Errorf("node stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestNode(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s node %s: %w", item.Name, err)
@@ -363,7 +383,11 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorClusterRolesCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*rbacv1.ClusterRole)
+		item, ok := obj.(*rbacv1.ClusterRole)
+		if !ok {
+			return fmt.Errorf("cluster role stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestClusterRole(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s cluster role %s: %w", item.Name, err)
@@ -399,8 +423,12 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorClusterRoleBindingsCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*rbacv1.ClusterRoleBinding)
-		err := ingestor.IngestClusterRoleBinding(ctx, obj.(*rbacv1.ClusterRoleBinding))
+		item, ok := obj.(*rbacv1.ClusterRoleBinding)
+		if !ok {
+			return fmt.Errorf("cluster role binding stream type conversion error: %T", obj)
+		}
+
+		err := ingestor.IngestClusterRoleBinding(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s cluster role binding %s: %w", item.Name, err)
 		}
