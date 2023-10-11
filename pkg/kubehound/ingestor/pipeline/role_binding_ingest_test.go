@@ -93,6 +93,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	isw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Identity")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Identity).Id = storeID
+
 			return nil
 		}).Once()
 	isw.EXPECT().Flush(ctx).Return(nil)

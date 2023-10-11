@@ -1,4 +1,4 @@
-//nolint:containedctx
+//nolint:containedctx,unused
 package storedb
 
 import (
@@ -12,6 +12,7 @@ import (
 )
 
 func TestMongoProvider_BulkWriter(t *testing.T) {
+	t.Parallel()
 	// FIXME: we should probably setup a mongodb test server in CI for the system tests
 	if config.IsCI() {
 		t.Skip("Skip mongo tests in CI")

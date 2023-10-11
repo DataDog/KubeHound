@@ -128,6 +128,7 @@ func (b *Builder) Run(ctx context.Context) error {
 			err := b.buildEdge(workCtx, label, e, oic, l)
 			if err != nil {
 				l.Errorf("building simple edge %s: %v", label, err)
+
 				return err
 			}
 
@@ -150,5 +151,6 @@ func (b *Builder) Run(ctx context.Context) error {
 	}
 
 	l.Info("Completed edge construction")
+
 	return nil
 }

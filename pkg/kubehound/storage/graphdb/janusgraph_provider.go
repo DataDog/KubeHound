@@ -99,6 +99,7 @@ func (jgp *JanusGraphProvider) HealthCheck(ctx context.Context) (bool, error) {
 
 	if value != 1 {
 		log.Trace(ctx).Errorf("healthcheck returned wrong value, got: %d wanted: %s", value, wantValue)
+
 		return false, nil
 	}
 
@@ -125,5 +126,6 @@ func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Builder, o
 // Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.
 func (jgp *JanusGraphProvider) Close(ctx context.Context) error {
 	jgp.drc.Close()
+
 	return nil
 }

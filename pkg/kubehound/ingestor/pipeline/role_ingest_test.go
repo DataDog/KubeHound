@@ -53,6 +53,7 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Role).Id = storeID
+
 			return nil
 		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)

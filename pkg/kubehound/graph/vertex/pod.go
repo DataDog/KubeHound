@@ -30,6 +30,7 @@ func (v *Pod) Processor(ctx context.Context, entry any) (any, error) {
 func (v *Pod) Traversal() types.VertexTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
+			//nolint:asasalint
 			Inject(inserts).
 			Unfold().As("pods").
 			AddV(v.Label()).As("podVtx").

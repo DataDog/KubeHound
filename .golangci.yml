@@ -15,7 +15,7 @@ linters:
     - bodyclose
     - containedctx
     - contextcheck
-    - cyclop
+    # - cyclop
     - decorder
     - dogsled
     - dupword

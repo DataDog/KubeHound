@@ -1,4 +1,4 @@
-//nolint:containedctx
+//nolint:containedctx,contextcheck
 package storedb
 
 import (
@@ -18,6 +18,8 @@ type FakeElement struct {
 }
 
 func TestMongoAsyncWriter_Queue(t *testing.T) {
+	t.Parallel()
+
 	// FIXME: we should probably setup a mongodb test server in CI for the system tests
 	if config.IsCI() {
 		t.Skip("Skip mongo tests in CI")

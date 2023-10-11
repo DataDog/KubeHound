@@ -73,6 +73,7 @@ func GremlinEdgeProcessor(ctx context.Context, oic *converter.ObjectIDConverter,
 func DefaultEdgeTraversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
+			//nolint:asasalint
 			Inject(inserts).
 			Unfold().As("em").
 			MergeE(__.Select("em")).

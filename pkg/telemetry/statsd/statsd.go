@@ -126,7 +126,9 @@ func TimingDist(name string, dt time.Duration, tags []string, rate float64) erro
 		return nil
 	}
 
-	return statsdClient.Distribution(name, dt.Seconds()*1000, tags, rate)
+	const secToMillis = 1000
+
+	return statsdClient.Distribution(name, dt.Seconds()*secToMillis, tags, rate)
 }
 
 // TimeInMilliseconds sends timing information in milliseconds.

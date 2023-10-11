@@ -72,6 +72,7 @@ func (e *PodExec) Traversal() types.EdgeTraversal {
 		if e.cfg.LargeClusterOptimizations {
 			// In large clusters this can explode the number of edges and we can safely assume this is a critical issue
 			g.
+				//nolint:asasalint
 				Inject(inserts).
 				Unfold().
 				As("rpe").

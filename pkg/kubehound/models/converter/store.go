@@ -191,18 +191,19 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeMountType
 
 	// Expect a small size array so iterating through this is quicker than building up a map for lookup
 	for _, volume := range pod.K8.Spec.Volumes {
-		if volume.Name == input.Name {
+		v := volume
+		if v.Name == input.Name {
 			found = true
 
 			// Only a subset of volumes are currently supported
 			switch {
-			case volume.HostPath != nil:
+			case v.HostPath != nil:
 				output.Type = shared.VolumeTypeHost
-				output.SourcePath = volume.HostPath.Path
-			case volume.Projected != nil:
-				said, source, err := c.handleProjectedToken(ctx, input, &volume, pod)
+				output.SourcePath = v.HostPath.Path
+			case v.Projected != nil:
+				said, source, err := c.handleProjectedToken(ctx, input, &v, pod)
 				if err != nil {
-					return nil, fmt.Errorf("projected token volume (%s) processing: %w", volume.Name, err)
+					return nil, fmt.Errorf("projected token volume (%s) processing: %w", v.Name, err)
 				}
 
 				output.Type = shared.VolumeTypeProjected
@@ -212,7 +213,7 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeMountType
 				return nil, ErrUnsupportedVolume
 			}
 
-			output.K8 = volume
+			output.K8 = v
 		}
 	}
 
