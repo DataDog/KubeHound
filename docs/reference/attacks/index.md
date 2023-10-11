@@ -30,6 +30,6 @@ hide:
 | [TOKEN_BRUTEFORCE](./TOKEN_BRUTEFORCE.md) | Brute-force secret name of service account token | Steal Application Access Token | Credential Access | 
 | [TOKEN_LIST](./TOKEN_LIST.md) | Access service account token secrets | Steal Application Access Token | Credential Access | 
 | [TOKEN_STEAL](./TOKEN_STEAL.md) | Steal service account token from volume | Unsecured Credentials | Credential Access | 
-| [CE_VAR_LOG_SYMLINK](./CE_VAR_LOG_SYMLINK.md) | Steal service account token from volume | Unsecured Credentials | Credential Access | 
+| [CE_VAR_LOG_SYMLINK](./CE_VAR_LOG_SYMLINK.md) |  Read file from sensitive host mount | Escape to host | Privilege escalation |
 | [VOLUME_ACCESS](./VOLUME_ACCESS.md) | Access host volume | Container and Resource Discovery | Discovery | 
 | [VOLUME_DISCOVER](./VOLUME_DISCOVER.md) | Enumerate mounted volumes | Container and Resource Discovery | Discovery | 

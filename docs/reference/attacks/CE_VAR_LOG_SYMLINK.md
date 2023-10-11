@@ -19,7 +19,7 @@ Arbitrary file reads on the host from a node via an exposed `/var/log` mount.
 
 ## Details
 
-A pod running as root and with a mount point to the node’s `/var/log` directory can expose the entire contents of its host filesystem to any user who has access to its logs, enabling an attacker to arbitrary file reads on the host node. See [Kubernetes Pod Escape Using Log Mounts](https://blog.aquasec.com/kubernetes-security-pod-escape-log-mounts) for a more detailed explanation of the technique.
+A pod running as root and with a mount point to the node’s `/var/log` directory can expose the entire contents of its host filesystem to any user who has access to its logs, enabling an attacker to read arbitrary files on the host node. See [Kubernetes Pod Escape Using Log Mounts](https://blog.aquasec.com/kubernetes-security-pod-escape-log-mounts) for a more detailed explanation of the technique.
 
 ## Prerequisites
 

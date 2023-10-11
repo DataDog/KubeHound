@@ -42,7 +42,6 @@ func (e *EscapeVarLogSymlink) Name() string {
 	return "ContainerEscapeVarLogSymlink"
 }
 
-// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
 func (e *EscapeVarLogSymlink) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*permissionSetIDEscapeGroup)
 	if !ok {
@@ -53,6 +52,7 @@ func (e *EscapeVarLogSymlink) Processor(ctx context.Context, oic *converter.Obje
 	if err != nil {
 		return nil, fmt.Errorf("%s edge IN id convert: %w", e.Label(), err)
 	}
+
 	return permissionSetVertexID, nil
 }
 
