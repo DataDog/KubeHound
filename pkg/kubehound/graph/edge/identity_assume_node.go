@@ -57,7 +57,7 @@ func (e *IdentityAssumeNode) Stream(ctx context.Context, store storedb.Provider,
 	// If the default node group has no permissions, we do not set a user id
 	filter := bson.M{"user_id": bson.M{"$ne": primitive.NilObjectID}}
 
-	cur, err := nodes.Find(context.Background(), filter, options.Find().SetProjection(projection))
+	cur, err := nodes.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}

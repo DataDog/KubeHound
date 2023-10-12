@@ -13,6 +13,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -62,6 +63,7 @@ func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
 func WithCacheReader() IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		rOpts.cacheReader = deps.Cache
+
 		return nil
 	}
 }
@@ -70,6 +72,7 @@ func WithCacheReader() IngestResourceOption {
 func WithConverterCache() IngestResourceOption {
 	return func(_ context.Context, rOpts *resourceOptions, deps *Dependencies) error {
 		rOpts.storeConvert = converter.NewStoreWithCache(deps.Cache)
+
 		return nil
 	}
 }
@@ -78,7 +81,8 @@ func WithConverterCache() IngestResourceOption {
 // To access the writer use the storeWriter(c collections.Collection) function.
 func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		tags := append(telemetry.BaseTags, telemetry.TagTypeMongodb)
+		tags := telemetry.BaseTags
+		tags = append(tags, telemetry.TagTypeMongodb)
 
 		w, err := deps.StoreDB.BulkWriter(ctx, c, storedb.WithTags(tags))
 		if err != nil {
@@ -116,6 +120,7 @@ func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 		})
 
 		rOpts.flush = append(rOpts.flush, w.Flush)
+
 		return nil
 	}
 }
@@ -172,7 +177,10 @@ func CreateResources(ctx context.Context, deps *Dependencies, opts ...IngestReso
 	// Do a cleanup of whatever has been registered in the case of a partial success
 	defer func() {
 		if err != nil {
-			i.cleanupAll(ctx)
+			err := i.cleanupAll(ctx)
+			if err != nil {
+				log.Trace(ctx).Errorf("Ingestor cleanup failure: %v", err)
+			}
 		}
 	}()
 

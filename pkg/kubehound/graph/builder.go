@@ -60,7 +60,8 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 		return err
 	}
 
-	tags := append(telemetry.BaseTags, telemetry.TagTypeJanusGraph)
+	tags := telemetry.BaseTags
+	tags = append(tags, telemetry.TagTypeJanusGraph)
 	w, err := b.graphdb.EdgeWriter(ctx, e, graphdb.WithTags(tags))
 	if err != nil {
 		return err
@@ -127,6 +128,7 @@ func (b *Builder) Run(ctx context.Context) error {
 			err := b.buildEdge(workCtx, label, e, oic, l)
 			if err != nil {
 				l.Errorf("building simple edge %s: %v", label, err)
+
 				return err
 			}
 
@@ -149,5 +151,6 @@ func (b *Builder) Run(ctx context.Context) error {
 	}
 
 	l.Info("Completed edge construction")
+
 	return nil
 }

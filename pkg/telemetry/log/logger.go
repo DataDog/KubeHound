@@ -31,8 +31,8 @@ var globalConfig = LoggerConfig{
 	DD: true,
 }
 
-// Global logger instance for use through the app
-var I *KubehoundLogger = Base()
+// I Global logger instance for use through the app
+var I = Base()
 
 // Require our logger to append job or API related fields for easier filtering and parsing
 // of logs within custom dashboards. Sticking to the "structured" log types also enables
@@ -45,12 +45,14 @@ type KubehoundLogger struct {
 // traceID retrieves the trace ID from the provided span.
 func traceID(span tracer.Span) string {
 	traceID := span.Context().TraceID()
+
 	return strconv.FormatUint(traceID, 10)
 }
 
 // traceID retrieves the span ID from the provided span.
 func spanID(span tracer.Span) string {
 	spanID := span.Context().SpanID()
+
 	return strconv.FormatUint(spanID, 10)
 }
 
@@ -64,7 +66,7 @@ func Base() *KubehoundLogger {
 	return &KubehoundLogger{logger}
 }
 
-// SetDD enables/disbaled Datadog integration in the logger.
+// SetDD enables/disabled Datadog integration in the logger.
 func SetDD(enabled bool) {
 	globalConfig.Mu.Lock()
 	defer globalConfig.Mu.Unlock()

@@ -8,44 +8,47 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/tracer"
 )
 
-type TelemetryState struct {
+type State struct {
 	Enabled bool
 }
 
 // Initialize all telemetry required
 // return client to enable clean shutdown
-func Initialize(cfg *config.KubehoundConfig) (*TelemetryState, error) {
+func Initialize(cfg *config.KubehoundConfig) (*State, error) {
 	if !cfg.Telemetry.Enabled {
-		return &TelemetryState{}, nil
+		return &State{}, nil
 	}
 
-	// profiling
+	// Profiling
 	profiler.Initialize(cfg)
-	//Tracing
+
+	// Tracing
 	tracer.Initialize(cfg)
+
 	// Metrics
 	err := statsd.Setup(cfg.Telemetry.Statsd.URL)
 	if err != nil {
-		return &TelemetryState{
+		return &State{
 			Enabled: true,
 		}, err
 	}
 
-	return &TelemetryState{
+	return &State{
 		Enabled: true,
 	}, nil
 }
 
-func Shutdown(ts *TelemetryState) {
+func Shutdown(ts *State) {
 	if !ts.Enabled {
 		return
 	}
 
-	//Profiling
+	// Profiling
 	profiler.Shutdown()
 
-	//Tracing
+	// Tracing
 	tracer.Shutdown()
+
 	// Metrics
 	err := statsd.Flush()
 	if err != nil {

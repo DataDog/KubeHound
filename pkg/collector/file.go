@@ -58,7 +58,8 @@ type FileCollector struct {
 
 // NewFileCollector creates a new instance of the file collector from the provided application config.
 func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	baseTags := append(telemetry.BaseTags, telemetry.TagCollectorTypeFile)
+	tags := telemetry.BaseTags
+	tags = append(tags, telemetry.TagCollectorTypeFile)
 	if cfg.Collector.Type != config.CollectorTypeFile {
 		return nil, fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
 	}
@@ -73,7 +74,7 @@ func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (Collect
 	return &FileCollector{
 		cfg:  cfg.Collector.File,
 		log:  l,
-		tags: baseTags,
+		tags: tags,
 	}, nil
 }
 
@@ -81,7 +82,7 @@ func (c *FileCollector) Name() string {
 	return FileCollectorName
 }
 
-func (c *FileCollector) HealthCheck(ctx context.Context) (bool, error) {
+func (c *FileCollector) HealthCheck(_ context.Context) (bool, error) {
 	file, err := os.Stat(c.cfg.Directory)
 	if err != nil {
 		return false, fmt.Errorf("file collector base path: %w", err)
@@ -94,7 +95,7 @@ func (c *FileCollector) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (c *FileCollector) Close(ctx context.Context) error {
+func (c *FileCollector) Close(_ context.Context) error {
 	// NOP for this implementation
 	return nil
 }
@@ -108,8 +109,8 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 
 	for _, item := range list.Items {
 		_ = statsd.Incr(telemetry.MetricCollectorPodsCount, c.tags, 1)
-		i := types.PodType(&item)
-		err = ingestor.IngestPod(ctx, i)
+		i := item
+		err = ingestor.IngestPod(ctx, &i)
 		if err != nil {
 			return fmt.Errorf("processing K8s pod %s: %w", i.Name, err)
 		}
@@ -151,8 +152,8 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 
 	for _, item := range list.Items {
 		_ = statsd.Incr(telemetry.MetricCollectorRolesCount, c.tags, 1)
-		i := types.RoleType(&item)
-		err = ingestor.IngestRole(ctx, i)
+		i := item
+		err = ingestor.IngestRole(ctx, &i)
 		if err != nil {
 			return fmt.Errorf("processing K8s role %s: %w", i.Name, err)
 		}
@@ -194,8 +195,8 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 
 	for _, item := range list.Items {
 		_ = statsd.Incr(telemetry.MetricCollectorRoleBindingsCount, c.tags, 1)
-		i := types.RoleBindingType(&item)
-		err = ingestor.IngestRoleBinding(ctx, i)
+		i := item
+		err = ingestor.IngestRoleBinding(ctx, &i)
 		if err != nil {
 			return fmt.Errorf("processing K8s role binding %s: %w", i.Name, err)
 		}
@@ -237,8 +238,8 @@ func (c *FileCollector) streamEndpointsNamespace(ctx context.Context, fp string,
 
 	for _, item := range list.Items {
 		_ = statsd.Incr(telemetry.MetricCollectorEndpointCount, c.tags, 1)
-		i := types.EndpointType(&item)
-		err = ingestor.IngestEndpoint(ctx, i)
+		i := item
+		err = ingestor.IngestEndpoint(ctx, &i)
 		if err != nil {
 			return fmt.Errorf("processing K8s endpoint slice %s: %w", i.Name, err)
 		}
@@ -286,8 +287,8 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 
 	for _, item := range list.Items {
 		_ = statsd.Incr(telemetry.MetricCollectorNodesCount, c.tags, 1)
-		i := types.NodeType(&item)
-		err = ingestor.IngestNode(ctx, i)
+		i := item
+		err = ingestor.IngestNode(ctx, &i)
 		if err != nil {
 			return fmt.Errorf("processing K8s node %s::%s: %w", i.Namespace, i.Name, err)
 		}
@@ -311,8 +312,8 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 
 	for _, item := range list.Items {
 		_ = statsd.Incr(telemetry.MetricCollectorClusterRolesCount, c.tags, 1)
-		i := types.ClusterRoleType(&item)
-		err = ingestor.IngestClusterRole(ctx, i)
+		i := item
+		err = ingestor.IngestClusterRole(ctx, &i)
 		if err != nil {
 			return fmt.Errorf("processing k8s cluster role %s: %w", i.Name, err)
 		}
@@ -336,8 +337,8 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 
 	for _, item := range list.Items {
 		_ = statsd.Incr(telemetry.MetricCollectorClusterRoleBindingsCount, c.tags, 1)
-		i := types.ClusterRoleBindingType(&item)
-		err = ingestor.IngestClusterRoleBinding(ctx, i)
+		i := item
+		err = ingestor.IngestClusterRoleBinding(ctx, &i)
 		if err != nil {
 			return fmt.Errorf("processing K8s cluster role binding %s: %w", i.Name, err)
 		}
@@ -355,7 +356,7 @@ func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl
 	var inputList Tl
 	bytes, err := os.ReadFile(inputPath)
 	if err != nil {
-		return inputList, fmt.Errorf("read file %s: %v", inputPath, err)
+		return inputList, fmt.Errorf("read file %s: %w", inputPath, err)
 	}
 
 	if len(bytes) == 0 {

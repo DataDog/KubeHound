@@ -10,6 +10,8 @@ import (
 )
 
 func TestCacheResult_ObjectID(t *testing.T) {
+	t.Parallel()
+
 	objectId := primitive.NewObjectID()
 	type fields struct {
 		Value any
@@ -68,7 +70,9 @@ func TestCacheResult_ObjectID(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := &CacheResult{
 				Value: tt.fields.Value,
 				Err:   tt.fields.Err,
@@ -76,8 +80,10 @@ func TestCacheResult_ObjectID(t *testing.T) {
 			got, err := r.ObjectID()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CacheResult.ObjectID() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("CacheResult.ObjectID() = %v, want %v", got, tt.want)
 			}
@@ -86,6 +92,8 @@ func TestCacheResult_ObjectID(t *testing.T) {
 }
 
 func TestCacheResult_Int64(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Value any
 		Err   error
@@ -134,7 +142,9 @@ func TestCacheResult_Int64(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := &CacheResult{
 				Value: tt.fields.Value,
 				Err:   tt.fields.Err,
@@ -142,6 +152,7 @@ func TestCacheResult_Int64(t *testing.T) {
 			got, err := r.Int64()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CacheResult.Int64() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if got != tt.want {
@@ -152,6 +163,8 @@ func TestCacheResult_Int64(t *testing.T) {
 }
 
 func TestCacheResult_Text(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Value any
 		Err   error
@@ -200,7 +213,9 @@ func TestCacheResult_Text(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := &CacheResult{
 				Value: tt.fields.Value,
 				Err:   tt.fields.Err,
@@ -208,6 +223,7 @@ func TestCacheResult_Text(t *testing.T) {
 			got, err := r.Text()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CacheResult.Text() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if got != tt.want {
@@ -218,6 +234,8 @@ func TestCacheResult_Text(t *testing.T) {
 }
 
 func TestCacheResult_Bool(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Value any
 		Err   error
@@ -266,7 +284,10 @@ func TestCacheResult_Bool(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &CacheResult{
 				Value: tt.fields.Value,
 				Err:   tt.fields.Err,
@@ -274,6 +295,7 @@ func TestCacheResult_Bool(t *testing.T) {
 			got, err := r.Bool()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CacheResult.Bool() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if got != tt.want {
@@ -284,6 +306,8 @@ func TestCacheResult_Bool(t *testing.T) {
 }
 
 func TestCacheResult_Role(t *testing.T) {
+	t.Parallel()
+
 	testOwnershipInfo := store.OwnershipInfo{
 		Application: "test-app",
 		Team:        "test-team",
@@ -346,7 +370,9 @@ func TestCacheResult_Role(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := &CacheResult{
 				Value: tt.fields.Value,
 				Err:   tt.fields.Err,
@@ -354,6 +380,7 @@ func TestCacheResult_Role(t *testing.T) {
 			got, err := r.Role()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CacheResult.Role() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
