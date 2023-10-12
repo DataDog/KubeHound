@@ -79,10 +79,10 @@ ifeq (${CI},true)
 	RACE_FLAG_SYSTEM_TEST := ""
 endif
 
-# DOCKER_HOSTNAME := $(shell hostname)
-# ifneq (${CI},true)
-# 	DOCKER_CMD := DOCKER_HOSTNAME=$(DOCKER_HOSTNAME) $(DOCKER_CMD)
-# endif
+DOCKER_HOSTNAME := $(shell hostname)
+ifneq (${CI},true)
+	DOCKER_CMD := DOCKER_HOSTNAME=$(DOCKER_HOSTNAME) $(DOCKER_CMD)
+endif
 
 all: build
 
