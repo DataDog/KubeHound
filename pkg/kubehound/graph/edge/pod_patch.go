@@ -72,7 +72,7 @@ func (e *PodPatch) Traversal() types.EdgeTraversal {
 		if e.cfg.LargeClusterOptimizations {
 			// In large clusters this can explode the number of edges and we can safely assume this is a critical issue
 			g.
-				//nolint:asasalint
+				//nolint:asasalint // required due to constraints in the gremlin API
 				Inject(inserts).
 				Unfold().
 				As("rpp").
