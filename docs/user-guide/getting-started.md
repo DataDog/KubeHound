@@ -14,7 +14,7 @@ KubeHound ships with a sensible default configuration as well as a pre-built bin
 First, download KubeHound:
 
 ```bash
-wget https://github.com/DataDog/KubeHound/releases/latest/download/KubeHound_$(uname -o)_$(uname -m).tar.gz -O kubehound.tar.gz
+wget https://github.com/DataDog/KubeHound/releases/latest/download/KubeHound_$(uname -o | sed 's/GNU\///g')_$(uname -m).tar.gz -O kubehound.tar.gz
 mkdir kubehound
 tar -xf kubehound.tar.gz -C kubehound --strip-components=1
 cd kubehound
