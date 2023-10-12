@@ -12,6 +12,7 @@ type BaseEdge struct {
 
 func (e *BaseEdge) Initialize(cfg *config.EdgeBuilderConfig) error {
 	e.cfg = cfg
+
 	return nil
 }
 

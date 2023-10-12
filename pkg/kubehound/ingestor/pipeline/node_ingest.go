@@ -73,11 +73,7 @@ func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error 
 	}
 
 	// Aysnc write to graph
-	if err := i.r.writeVertex(ctx, i.vertex, insert); err != nil {
-		return err
-	}
-
-	return nil
+	return i.r.writeVertex(ctx, i.vertex, insert)
 }
 
 // completeCallback is invoked by the collector when all nodes have been streamed.

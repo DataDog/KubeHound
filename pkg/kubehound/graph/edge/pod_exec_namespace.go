@@ -113,7 +113,7 @@ func (e *PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _
 		},
 	}
 
-	cur, err := permissionSets.Aggregate(context.Background(), pipeline)
+	cur, err := permissionSets.Aggregate(ctx, pipeline)
 	if err != nil {
 		return err
 	}

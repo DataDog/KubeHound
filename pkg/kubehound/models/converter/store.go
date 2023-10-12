@@ -65,11 +65,11 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 			HostNetwork:    parent.K8.Spec.HostNetwork,
 			ServiceAccount: parent.K8.Spec.ServiceAccountName,
 		},
-		K8:        corev1.Container(*input),
+		K8:        *input,
 		Ownership: store.ExtractOwnership(parent.K8.Labels),
 	}
 
-	// Certain fields are set by the PodSecurityContext and overriden by the container's SecurityContext.
+	// Certain fields are set by the PodSecurityContext and overridden by the container's SecurityContext.
 	// Currently we only consider the RunAsUser field.
 	if input.SecurityContext != nil && input.SecurityContext.RunAsUser != nil {
 		output.Inherited.RunAsUser = *input.SecurityContext.RunAsUser
@@ -88,7 +88,7 @@ func (c *StoreConverter) Node(ctx context.Context, input types.NodeType) (*store
 
 	output := &store.Node{
 		Id:        store.ObjectID(),
-		K8:        corev1.Node(*input),
+		K8:        *input,
 		Ownership: store.ExtractOwnership(input.ObjectMeta.Labels),
 	}
 
@@ -98,11 +98,11 @@ func (c *StoreConverter) Node(ctx context.Context, input types.NodeType) (*store
 
 	// Retrieve the associated identity store ID from the cache
 	uid, err := libkube.NodeIdentity(ctx, c.cache, input.Name)
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		// We have a matching node identity object in the store
 		output.UserId = uid
-	case libkube.ErrMissingNodeUser:
+	case errors.Is(err, libkube.ErrMissingNodeUser):
 		// This is completely fine. Most nodes will run under a default account with no permissions which we ignore.
 	default:
 		return nil, err
@@ -126,7 +126,7 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 	output := &store.Pod{
 		Id:        store.ObjectID(),
 		NodeId:    nid,
-		K8:        corev1.Pod(*input),
+		K8:        *input,
 		Ownership: store.ExtractOwnership(input.ObjectMeta.Labels),
 	}
 
@@ -143,10 +143,10 @@ func (c *StoreConverter) handleProjectedToken(ctx context.Context, input types.V
 
 	// Retrieve the associated identity store ID from the cache
 	said, err := c.cache.Get(ctx, cachekey.Identity(pod.K8.Spec.ServiceAccountName, pod.K8.Namespace)).ObjectID()
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		// We have a matching identity object in the store, continue to create a volume
-	case cache.ErrNoEntry:
+	case errors.Is(err, cache.ErrNoEntry):
 		// This is completely fine. Most pods will run under a default account with no permissions which we ignore.
 		return primitive.NilObjectID, "", ErrProjectedDefaultToken
 	default:
@@ -158,6 +158,7 @@ func (c *StoreConverter) handleProjectedToken(ctx context.Context, input types.V
 	for _, proj := range volume.Projected.Sources {
 		if proj.ServiceAccountToken != nil {
 			sourcePath = libkube.ServiceAccountTokenPath(string(pod.K8.ObjectMeta.UID), input.Name)
+
 			break
 		}
 	}
@@ -190,18 +191,19 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeMountType
 
 	// Expect a small size array so iterating through this is quicker than building up a map for lookup
 	for _, volume := range pod.K8.Spec.Volumes {
-		if volume.Name == input.Name {
+		v := volume
+		if v.Name == input.Name {
 			found = true
 
 			// Only a subset of volumes are currently supported
 			switch {
-			case volume.HostPath != nil:
+			case v.HostPath != nil:
 				output.Type = shared.VolumeTypeHost
-				output.SourcePath = volume.HostPath.Path
-			case volume.Projected != nil:
-				said, source, err := c.handleProjectedToken(ctx, input, &volume, pod)
+				output.SourcePath = v.HostPath.Path
+			case v.Projected != nil:
+				said, source, err := c.handleProjectedToken(ctx, input, &v, pod)
 				if err != nil {
-					return nil, fmt.Errorf("projected token volume (%s) processing: %w", volume.Name, err)
+					return nil, fmt.Errorf("projected token volume (%s) processing: %w", v.Name, err)
 				}
 
 				output.Type = shared.VolumeTypeProjected
@@ -211,7 +213,7 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeMountType
 				return nil, ErrUnsupportedVolume
 			}
 
-			output.K8 = volume
+			output.K8 = v
 		}
 	}
 
@@ -249,10 +251,10 @@ func (c *StoreConverter) ClusterRole(_ context.Context, input types.ClusterRoleT
 func (c *StoreConverter) convertSubject(ctx context.Context, subj rbacv1.Subject) (store.BindSubject, error) {
 	// Check if identity already exists and use that ID, otherwise generate a new one
 	sid, err := c.cache.Get(ctx, cachekey.Identity(subj.Name, subj.Namespace)).ObjectID()
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		// Entry already exists, use the cached id value
-	case cache.ErrNoEntry:
+	case errors.Is(err, cache.ErrNoEntry):
 		// Entry does not exist, create a new id value
 		sid = store.ObjectID()
 	default:
@@ -399,6 +401,7 @@ func (c *StoreConverter) PermissionSet(ctx context.Context, roleBinding *store.R
 	if roleBinding.Namespace != role.Namespace && role.Namespace != EmptyNamespace {
 		log.Trace(ctx).Debugf("The role namespace (%s) does not match the rolebinding namespace (%s)",
 			role.Namespace, roleBinding.Namespace)
+
 		return nil, ErrRoleBindProperties
 	}
 
@@ -416,6 +419,7 @@ func (c *StoreConverter) PermissionSet(ctx context.Context, roleBinding *store.R
 	if !isEffective {
 		log.Trace(ctx).Debugf("The rolebinding/subjects are ALL not in the same namespace: rb::%s/rb.sbj::%#v",
 			roleBinding.Namespace, roleBinding.Subjects)
+
 		return nil, ErrRoleBindProperties
 	}
 
@@ -464,6 +468,7 @@ func (c *StoreConverter) PermissionSetCluster(ctx context.Context, clusterRoleBi
 	if role.IsNamespaced {
 		log.Trace(ctx).Debugf("The clusterrolebinding bind a role and not a clusterrole, skipping the permissionset: r::%s/cr::%s",
 			role.Namespace, clusterRoleBinding.Namespace)
+
 		return nil, ErrRoleBindProperties
 	}
 

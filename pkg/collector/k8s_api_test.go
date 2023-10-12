@@ -1,3 +1,4 @@
+//nolint:containedctx
 package collector
 
 import (
@@ -105,6 +106,7 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 			err = checkK8sAPICollectorConfig(cfg.Collector.Type)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewK8sAPICollectorConfig() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 
@@ -140,14 +142,17 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 
 	// 0 pod found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.PodIngestor) {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		m := mocks.NewPodIngestor(t)
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clientset, m
 	}
 
 	// Listing pods from all namespaces
 	test2 := func(t *testing.T) (*fake.Clientset, *mocks.PodIngestor) {
+		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
 				fakePod("namespace1", "iamge1"),
@@ -157,6 +162,7 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 		m := mocks.NewPodIngestor(t)
 		m.EXPECT().IngestPod(mock.Anything, mock.AnythingOfType("types.PodType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clienset, m
 	}
 
@@ -221,14 +227,17 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 
 	// 0 roles
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.RoleIngestor) {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		m := mocks.NewRoleIngestor(t)
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clientset, m
 	}
 
 	// Listing all the roles from all namespaces
 	test2 := func(t *testing.T) (*fake.Clientset, *mocks.RoleIngestor) {
+		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
 				fakeRole("namespace1", "name1"),
@@ -238,6 +247,7 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 		m := mocks.NewRoleIngestor(t)
 		m.EXPECT().IngestRole(mock.Anything, mock.AnythingOfType("types.RoleType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clienset, m
 	}
 
@@ -307,14 +317,17 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 
 	// 0 role bindings found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.RoleBindingIngestor) {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		m := mocks.NewRoleBindingIngestor(t)
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clientset, m
 	}
 
 	// Listing all the roles bindings from all namespaces
 	test2 := func(t *testing.T) (*fake.Clientset, *mocks.RoleBindingIngestor) {
+		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
 				fakeRoleBinding("namespace1", "name1"),
@@ -324,6 +337,7 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 		m := mocks.NewRoleBindingIngestor(t)
 		m.EXPECT().IngestRoleBinding(mock.Anything, mock.AnythingOfType("types.RoleBindingType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clienset, m
 	}
 
@@ -383,14 +397,17 @@ func Test_k8sAPICollector_StreamNodes(t *testing.T) {
 
 	// 0 nodes found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.NodeIngestor) {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		m := mocks.NewNodeIngestor(t)
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clientset, m
 	}
 
 	// Listing all the nodes in the cluster
 	test2 := func(t *testing.T) (*fake.Clientset, *mocks.NodeIngestor) {
+		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
 				fakeNode("name1", "uid1"),
@@ -400,6 +417,7 @@ func Test_k8sAPICollector_StreamNodes(t *testing.T) {
 		m := mocks.NewNodeIngestor(t)
 		m.EXPECT().IngestNode(mock.Anything, mock.AnythingOfType("types.NodeType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clienset, m
 	}
 
@@ -463,14 +481,17 @@ func Test_k8sAPICollector_StreamClusterRoles(t *testing.T) {
 
 	// 0 cluster roles found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.ClusterRoleIngestor) {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		m := mocks.NewClusterRoleIngestor(t)
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clientset, m
 	}
 
 	// Listing all the cluster roles
 	test2 := func(t *testing.T) (*fake.Clientset, *mocks.ClusterRoleIngestor) {
+		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
 				fakeClusterRole("name1"),
@@ -480,6 +501,7 @@ func Test_k8sAPICollector_StreamClusterRoles(t *testing.T) {
 		m := mocks.NewClusterRoleIngestor(t)
 		m.EXPECT().IngestClusterRole(mock.Anything, mock.AnythingOfType("types.ClusterRoleType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clienset, m
 	}
 
@@ -547,14 +569,17 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 
 	// 0 cluster role bindings found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.ClusterRoleBindingIngestor) {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		m := mocks.NewClusterRoleBindingIngestor(t)
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clientset, m
 	}
 
 	// Listing all the cluster roles bindings
 	test2 := func(t *testing.T) (*fake.Clientset, *mocks.ClusterRoleBindingIngestor) {
+		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
 				fakeClusterRoleBinding("name1"),
@@ -564,6 +589,7 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 		m := mocks.NewClusterRoleBindingIngestor(t)
 		m.EXPECT().IngestClusterRoleBinding(mock.Anything, mock.AnythingOfType("types.ClusterRoleBindingType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clienset, m
 	}
 
@@ -621,14 +647,17 @@ func Test_k8sAPICollector_StreamEndpoints(t *testing.T) {
 
 	// 0 endpoints found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.EndpointIngestor) {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		m := mocks.NewEndpointIngestor(t)
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clientset, m
 	}
 
 	// Listing all the endpoints bindings from all namespaces
 	test2 := func(t *testing.T) (*fake.Clientset, *mocks.EndpointIngestor) {
+		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
 				fakeEndpoint("namespace1", "name1"),
@@ -638,6 +667,7 @@ func Test_k8sAPICollector_StreamEndpoints(t *testing.T) {
 		m := mocks.NewEndpointIngestor(t)
 		m.EXPECT().IngestEndpoint(mock.Anything, mock.AnythingOfType("types.EndpointType")).Return(nil).Twice()
 		m.EXPECT().Complete(mock.Anything).Return(nil).Once()
+
 		return clienset, m
 	}
 

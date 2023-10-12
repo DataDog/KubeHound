@@ -38,14 +38,15 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, 
 	}
 
 	m.data[keyId] = value
+
 	return nil
 }
 
-func (m *MemCacheAsyncWriter) Flush(ctx context.Context) error {
+func (m *MemCacheAsyncWriter) Flush(_ context.Context) error {
 	return nil
 }
 
-func (m *MemCacheAsyncWriter) Close(ctx context.Context) error {
+func (m *MemCacheAsyncWriter) Close(_ context.Context) error {
 	// Underlying data map is owned by the proviuder object
 	return nil
 }

@@ -59,7 +59,7 @@ func (e *TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.C
 	// We just need a 1:1 mapping of the volume and projected service account to create this edge
 	projection := bson.M{"_id": 1, "projected_id": 1}
 
-	cur, err := volumes.Find(context.Background(), filter, options.Find().SetProjection(projection))
+	cur, err := volumes.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}

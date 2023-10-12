@@ -30,6 +30,7 @@ func (v *Endpoint) Processor(ctx context.Context, entry any) (any, error) {
 func (v *Endpoint) Traversal() types.VertexTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal().
+			//nolint:asasalint // required due to constraints in the gremlin API
 			Inject(inserts).
 			Unfold().As("endpoints").
 			AddV(v.Label()).As("epVtx").

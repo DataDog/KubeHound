@@ -71,7 +71,6 @@ func TestIngestResources_Initializer(t *testing.T) {
 	assert.Equal(t, 0, len(oi.flush))
 
 	// Test cache writer mechanics
-	oi = &IngestResources{}
 	cw := cache.NewAsyncWriter(t)
 	cw.EXPECT().Flush(ctx).Return(nil)
 	cw.EXPECT().Close(ctx).Return(nil)
@@ -85,7 +84,6 @@ func TestIngestResources_Initializer(t *testing.T) {
 	assert.NoError(t, oi.cleanupAll(ctx))
 
 	// Test store writer mechanics
-	oi = &IngestResources{}
 	sw := storedb.NewAsyncWriter(t)
 	sw.EXPECT().Flush(ctx).Return(nil)
 	sw.EXPECT().Close(ctx).Return(nil)
@@ -100,7 +98,6 @@ func TestIngestResources_Initializer(t *testing.T) {
 	assert.NoError(t, oi.cleanupAll(ctx))
 
 	// Test graph writer mechanics
-	oi = &IngestResources{}
 	gw := graphdb.NewAsyncVertexWriter(t)
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
@@ -119,8 +116,6 @@ func TestIngestResources_FlushErrors(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	oi := &IngestResources{}
-
 	client := collector.NewCollectorClient(t)
 	c := cache.NewCacheProvider(t)
 	gdb := graphdb.NewProvider(t)
@@ -153,8 +148,6 @@ func TestIngestResources_CloseErrors(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	oi := &IngestResources{}
-
 	client := collector.NewCollectorClient(t)
 	c := cache.NewCacheProvider(t)
 	gdb := graphdb.NewProvider(t)
@@ -192,8 +185,6 @@ func TestIngestResources_CloseIdempotent(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	oi := &IngestResources{}
-
 	client := collector.NewCollectorClient(t)
 	c := cache.NewCacheProvider(t)
 	gdb := graphdb.NewProvider(t)

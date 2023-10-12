@@ -72,7 +72,7 @@ func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Prov
 			},
 		},
 	}
-	cur, err := containers.Aggregate(context.Background(), pipeline)
+	cur, err := containers.Aggregate(ctx, pipeline)
 	if err != nil {
 		return err
 	}

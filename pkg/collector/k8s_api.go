@@ -40,12 +40,14 @@ func checkK8sAPICollectorConfig(collectorType string) error {
 	if collectorType != config.CollectorTypeK8sAPI {
 		return fmt.Errorf("invalid collector type in config: %s", collectorType)
 	}
+
 	return nil
 }
 
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	baseTags := append(telemetry.BaseTags, telemetry.TagCollectorTypeK8sApi)
+	tags := telemetry.BaseTags
+	tags = append(tags, telemetry.TagCollectorTypeK8sApi)
 	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
 
 	err := checkK8sAPICollectorConfig(cfg.Collector.Type)
@@ -68,7 +70,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		clientset: clientset,
 		log:       l,
 		rl:        ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
-		tags:      baseTags,
+		tags:      tags,
 	}, nil
 }
 
@@ -92,7 +94,7 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (c *k8sAPICollector) Close(ctx context.Context) error {
+func (c *k8sAPICollector) Close(_ context.Context) error {
 	return nil
 }
 
@@ -130,6 +132,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s pods for namespace %s: %w", namespace, err)
 		}
+
 		return entries, err
 	}))
 
@@ -138,11 +141,16 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorPodsCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*corev1.Pod)
+		item, ok := obj.(*corev1.Pod)
+		if !ok {
+			return fmt.Errorf("pod stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestPod(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s pod %s for namespace %s: %w", item.Name, namespace, err)
 		}
+
 		return nil
 	})
 }
@@ -157,6 +165,7 @@ func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) 
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
 
@@ -174,6 +183,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s roles for namespace %s: %w", namespace, err)
 		}
+
 		return entries, err
 	}))
 
@@ -182,11 +192,16 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorRolesCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*rbacv1.Role)
+		item, ok := obj.(*rbacv1.Role)
+		if !ok {
+			return fmt.Errorf("role stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestRole(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s roles %s for namespace %s: %w", item.Name, namespace, err)
 		}
+
 		return nil
 	})
 }
@@ -201,6 +216,7 @@ func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
 
@@ -218,6 +234,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s rolebinding for namespace %s: %w", namespace, err)
 		}
+
 		return entries, err
 	}))
 
@@ -226,11 +243,16 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorRoleBindingsCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*rbacv1.RoleBinding)
+		item, ok := obj.(*rbacv1.RoleBinding)
+		if !ok {
+			return fmt.Errorf("role binding stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestRoleBinding(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s rolebinding %s for namespace %s: %w", item.Name, namespace, err)
 		}
+
 		return nil
 	})
 }
@@ -245,6 +267,7 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
 
@@ -262,6 +285,7 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s endpoint slices for namespace %s: %w", namespace, err)
 		}
+
 		return entries, err
 	}))
 
@@ -270,11 +294,16 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorEndpointCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*discoveryv1.EndpointSlice)
+		item, ok := obj.(*discoveryv1.EndpointSlice)
+		if !ok {
+			return fmt.Errorf("endpoint stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestEndpoint(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s endpoint slice %s for namespace %s: %w", item.Name, namespace, err)
 		}
+
 		return nil
 	})
 }
@@ -305,6 +334,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s nodes: %w", err)
 		}
+
 		return entries, err
 	}))
 
@@ -313,16 +343,22 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorNodesCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*corev1.Node)
+		item, ok := obj.(*corev1.Node)
+		if !ok {
+			return fmt.Errorf("node stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestNode(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s node %s: %w", item.Name, err)
 		}
+
 		return nil
 	})
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
 
@@ -338,6 +374,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s cluster roles: %w", err)
 		}
+
 		return entries, err
 	}))
 
@@ -346,16 +383,22 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorClusterRolesCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*rbacv1.ClusterRole)
+		item, ok := obj.(*rbacv1.ClusterRole)
+		if !ok {
+			return fmt.Errorf("cluster role stream type conversion error: %T", obj)
+		}
+
 		err := ingestor.IngestClusterRole(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s cluster role %s: %w", item.Name, err)
 		}
+
 		return nil
 	})
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
 
@@ -371,6 +414,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 		if err != nil {
 			return nil, fmt.Errorf("getting K8s cluster roles: %w", err)
 		}
+
 		return entries, err
 	}))
 
@@ -379,15 +423,21 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(telemetry.MetricCollectorClusterRoleBindingsCount, c.tags, 1)
 		c.rl.Take()
-		item := obj.(*rbacv1.ClusterRoleBinding)
-		err := ingestor.IngestClusterRoleBinding(ctx, obj.(*rbacv1.ClusterRoleBinding))
+		item, ok := obj.(*rbacv1.ClusterRoleBinding)
+		if !ok {
+			return fmt.Errorf("cluster role binding stream type conversion error: %T", obj)
+		}
+
+		err := ingestor.IngestClusterRoleBinding(ctx, item)
 		if err != nil {
 			return fmt.Errorf("processing K8s cluster role binding %s: %w", item.Name, err)
 		}
+
 		return nil
 	})
 	if err != nil {
 		return err
 	}
+
 	return ingestor.Complete(ctx)
 }
