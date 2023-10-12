@@ -30,6 +30,7 @@ func (v *Container) Processor(ctx context.Context, entry any) (any, error) {
 func (v *Container) Traversal() types.VertexTraversal {
 	return func(source *gremlingo.GraphTraversalSource, inserts []any) *gremlingo.GraphTraversal {
 		g := source.GetGraphTraversal().
+			//nolint:asasalint // required due to constraints in the gremlin API
 			Inject(inserts).
 			Unfold().As("containers").
 			AddV(v.Label()).As("containerVtx").

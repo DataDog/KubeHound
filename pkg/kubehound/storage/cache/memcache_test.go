@@ -1,3 +1,4 @@
+//nolint:containedctx
 package cache
 
 import (
@@ -20,7 +21,7 @@ func fakeCacheBuilder(ctx context.Context, cacheSize int) (*MemCacheProvider, ma
 
 	fakeCacheWriter, _ := fakeProvider.BulkWriter(ctx)
 	for key, val := range fakeCache {
-		fakeCacheWriter.Queue(ctx, key, val)
+		_ = fakeCacheWriter.Queue(ctx, key, val)
 	}
 
 	return fakeProvider, fakeCache
@@ -62,6 +63,7 @@ func TestMemCacheProvider_Get(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			m := &MemCacheProvider{
 				data: tt.fields.data,
 				mu:   tt.fields.mu,
@@ -71,6 +73,7 @@ func TestMemCacheProvider_Get(t *testing.T) {
 				got, err := m.Get(tt.args.ctx, key).Text()
 				if (err != nil) != tt.wantErr {
 					t.Errorf("MemCacheProvider.Get() error = %v, wantErr %v", err, tt.wantErr)
+
 					return
 				}
 				if got != val {
@@ -151,6 +154,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			m := &MemCacheAsyncWriter{
 				data: tt.fields.MemCacheProvider.data,
 				mu:   tt.fields.MemCacheProvider.mu,
@@ -165,6 +169,7 @@ func TestMemCacheAsyncWriter_Queue(t *testing.T) {
 				got, err := tt.fields.MemCacheProvider.Get(tt.args.ctx, key).Text()
 				if err != nil {
 					t.Errorf("MemCacheProvider.Get() error = %v", err)
+
 					return
 				}
 				if got != val {

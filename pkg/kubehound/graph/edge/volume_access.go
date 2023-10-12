@@ -53,7 +53,7 @@ func (e *VolumeAccess) Stream(ctx context.Context, store storedb.Provider, _ cac
 	// We just need a 1:1 mapping of the node and volume to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}
 
-	cur, err := volumes.Find(context.Background(), bson.M{}, options.Find().SetProjection(projection))
+	cur, err := volumes.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}

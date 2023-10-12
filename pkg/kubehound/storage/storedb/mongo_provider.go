@@ -77,6 +77,7 @@ func (mp *MongoProvider) HealthCheck(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 
@@ -86,5 +87,6 @@ func (mp *MongoProvider) Close(ctx context.Context) error {
 
 func (mp *MongoProvider) BulkWriter(ctx context.Context, collection collections.Collection, opts ...WriterOption) (AsyncWriter, error) {
 	writer := NewMongoAsyncWriter(ctx, mp, collection, opts...)
+
 	return writer, nil
 }

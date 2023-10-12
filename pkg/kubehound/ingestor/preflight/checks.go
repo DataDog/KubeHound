@@ -7,7 +7,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
-// Volumes will not be ingested - use with caution!
+// SkipVolumes represent a list of Volumes that will not be ingested - use with caution!
 var SkipVolumes = map[string]bool{
 	"/var/run/datadog-agent": true,
 }
@@ -31,6 +31,7 @@ func CheckPod(pod types.PodType) (bool, error) {
 	if pod.Status.Phase != "Running" {
 		log.I.Debugf("pod %s::%s not running (status=%s), skipping ingest!",
 			pod.Namespace, pod.Name, pod.Status.Phase)
+
 		return false, nil
 	}
 
@@ -104,6 +105,7 @@ func CheckEndpoint(ep types.EndpointType) (bool, error) {
 	if len(ep.Ports) == 0 {
 		log.I.Debugf("endpoint slice %s::%s not associated with any target, skipping ingest!",
 			ep.Namespace, ep.Name)
+
 		return false, nil
 	}
 

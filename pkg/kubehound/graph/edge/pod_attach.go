@@ -53,7 +53,7 @@ func (e *PodAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.
 	// We just need a 1:1 mapping of the node and pod to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}
 
-	cur, err := pods.Find(context.Background(), bson.M{}, options.Find().SetProjection(projection))
+	cur, err := pods.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}

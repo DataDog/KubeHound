@@ -132,6 +132,7 @@ func (i PipelineIngestor) Run(outer context.Context) error {
 	}
 
 	l.Info("Completed pipeline ingest")
+
 	return nil
 }
 

@@ -52,3 +52,6 @@ scripts/collectors/
 
 # java
 deployments/kubehound/kubegraph/dsl/kubehound/target
+
+# personal settings
+.vscode/settings.json
