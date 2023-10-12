@@ -77,6 +77,7 @@ func (e *EscapeVarLogSymlink) Traversal() types.EdgeTraversal {
 			HasLabel("Node").As("n").
 			AddE("CE_VAR_LOG_SYMLINK").From("c").To("n").
 			Barrier().Limit(0)
+
 		return g
 	}
 }
