@@ -58,11 +58,7 @@ func (i *RoleIngest) IngestRole(ctx context.Context, role types.RoleType) error 
 	}
 
 	// Async write to cache
-	if err := i.r.writeCache(ctx, cachekey.Role(o.Name, o.Namespace), *o); err != nil {
-		return err
-	}
-
-	return nil
+	return i.r.writeCache(ctx, cachekey.Role(o.Name, o.Namespace), *o)
 }
 
 // completeCallback is invoked by the collector when all roles have been streamed.

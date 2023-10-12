@@ -38,7 +38,7 @@ func (e *SharePSNamespace) Name() string {
 	return "SharePSNamespace"
 }
 
-// Processor delegates the processing tasks to to the generic containerEscapeProcessor.
+// Processor delegates the processing tasks to the generic containerEscapeProcessor.
 func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*sharedPsNamespaceGroupPair)
 	if !ok {
@@ -52,32 +52,30 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	coll := adapter.MongoDB(store).Collection(collections.PodName)
-	pipeline := bson.A{
-		bson.D{{"$match", bson.D{{"k8.spec.shareprocessnamespace", true}}}},
-		bson.D{
-			{"$lookup",
-				bson.D{
-					{"from", "containers"},
-					{"localField", "_id"},
-					{"foreignField", "pod_id"},
-					{"as", "containers_with_shared_ns"},
-				},
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"k8.spec.shareprocessnamespace": true,
 			},
 		},
-		bson.D{
-			{"$project",
-				bson.D{
-					{"_id", 1},
-					{"containers_with_shared_ns", bson.D{{"_id", 1}}},
-				},
+		{
+			"$lookup": bson.M{
+				"as":           "containers_with_shared_ns",
+				"from":         "containers",
+				"localField":   "_id",
+				"foreignField": "pod_id",
 			},
 		},
-		bson.D{
-			{"$project",
-				bson.D{
-					{"_id", 0},
-					{"container_ids", "$containers_with_shared_ns._id"},
-				},
+		{
+			"$project": bson.M{
+				"_id":                       1,
+				"containers_with_shared_ns": bson.M{"_id": 1},
+			},
+		},
+		{
+			"$project": bson.M{
+				"_id":           0,
+				"container_ids": "$containers_with_shared_ns._id",
 			},
 		},
 	}

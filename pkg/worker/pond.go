@@ -28,6 +28,7 @@ func newPond(size int, capacity int) WorkerPool {
 func (wp *PondWorkerPool) Start(parent context.Context) (context.Context, error) {
 	group, ctx := wp.pool.GroupContext(parent)
 	wp.group = group
+
 	return ctx, nil
 }
 

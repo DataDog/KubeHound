@@ -35,7 +35,7 @@ func BenchmarkWrite(b *testing.B) {
 			for i := 0; i < b.N*n; i++ {
 
 				containerKey := cachekey.Container(fmt.Sprintf("%ftestPod%d", k, i), fmt.Sprintf("%ftestContainer%d", k, i), "test")
-				fakeCacheWriter.Queue(ctx, containerKey, fmt.Sprintf("%ftestContainerID%d", k, i))
+				_ = fakeCacheWriter.Queue(ctx, containerKey, fmt.Sprintf("%ftestContainerID%d", k, i))
 			}
 			fakeProvider.Close(ctx)
 		})
@@ -64,7 +64,7 @@ func BenchmarkRead(b *testing.B) {
 		n := int(math.Pow(2, k))
 		fakeProvider, fakeCache := fakeCacheBuilder(ctx, b.N*n)
 		b.Run(fmt.Sprintf("%d", n), func(b *testing.B) {
-			for key, _ := range fakeCache {
+			for key := range fakeCache {
 				fakeProvider.Get(ctx, key)
 			}
 		})

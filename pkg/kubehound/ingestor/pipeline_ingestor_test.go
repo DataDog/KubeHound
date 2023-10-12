@@ -49,6 +49,8 @@ func TestPipelineIngestor_HealthCheck(t *testing.T) {
 }
 
 func createMockData(t *testing.T) (map[string]*mocks.ObjectIngest, *PipelineIngestor) {
+	t.Helper()
+
 	ingests := make(map[string]*mocks.ObjectIngest)
 	ingests["nodes"] = mocks.NewObjectIngest(t)
 	ingests["pods"] = mocks.NewObjectIngest(t)

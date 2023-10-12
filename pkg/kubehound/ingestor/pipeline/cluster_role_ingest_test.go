@@ -1,3 +1,4 @@
+//nolint:forcetypeassert
 package pipeline
 
 import (
@@ -18,6 +19,8 @@ import (
 )
 
 func TestClusterRoleIngest_Pipeline(t *testing.T) {
+	t.Parallel()
+
 	cri := &ClusterRoleIngest{}
 
 	ctx := context.Background()
@@ -48,10 +51,11 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
 	roles := collections.Role{}
-	storeId := store.ObjectID()
+	storeID := store.ObjectID()
 	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).
 		RunAndReturn(func(ctx context.Context, i any) error {
-			i.(*store.Role).Id = storeId
+			i.(*store.Role).Id = storeID
+
 			return nil
 		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)

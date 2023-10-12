@@ -50,6 +50,7 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 	}
 
 	log.I.Info("Completed data ingest and normalization")
+
 	return nil
 }
 
@@ -83,6 +84,7 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 	}
 
 	log.I.Info("Completed graph construction")
+
 	return nil
 }
 
@@ -181,5 +183,6 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	}
 
 	log.I.Infof("Attack graph generation complete in %s", time.Since(start))
+
 	return nil
 }
