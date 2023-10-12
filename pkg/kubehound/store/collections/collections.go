@@ -16,6 +16,20 @@ const (
 	EndpointName      = "endpoints"
 )
 
+type IndexType int
+
+const (
+	SingleIndex IndexType = iota
+	TextIndex
+)
+
+type IndexSpec struct {
+	Field string
+	Type  IndexType
+}
+
+type IndexSpecRegistry map[string][]IndexSpec
+
 // Collection provides a common abstraction of a SQL database table or a NoSQL object
 // collection to work with the storedb provider interface.
 type Collection interface {
@@ -24,4 +38,8 @@ type Collection interface {
 
 	// BatchSize returns the batch size of bulk inserts (and threshold for triggering a flush).
 	BatchSize() int
+
+	Indices() []IndexSpec
 }
+
+// TODO registry

@@ -12,3 +12,6 @@ func (c Endpoint) Name() string {
 func (c Endpoint) BatchSize() int {
 	return DefaultBatchSize
 }
+
+// TODO indices!
+// TODO) register

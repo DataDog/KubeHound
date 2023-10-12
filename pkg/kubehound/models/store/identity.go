@@ -13,5 +13,5 @@ type Identity struct {
 	Ownership    OwnershipInfo      `bson:"ownership"`
 }
 
-// TODO index
+// TODO index rergister
 // name, is_namespaced, namespace, type

@@ -22,6 +22,13 @@ type MongoProvider struct {
 	tags   []string
 }
 
+func buildIndices(db *mongo.Database, indices collections.IndexSpecRegistry) error {
+	mongo.IndexModel
+	db.Collection("").Indexes().CreateMany()
+
+	return nil
+}
+
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
 	opts := options.Client()
 	opts.Monitor = mongotrace.NewMonitor()
@@ -40,6 +47,8 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	}
 
 	db := client.Database(MongoDatabaseName)
+
+	// TODO indices creation!
 
 	return &MongoProvider{
 		client: client,

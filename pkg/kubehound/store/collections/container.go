@@ -12,3 +12,24 @@ func (c Container) Name() string {
 func (c Container) BatchSize() int {
 	return DefaultBatchSize
 }
+
+func (c Container) Indices() []IndexSpec {
+	return []IndexSpec{
+		{
+			Field: "pod_id",
+			Type:  SingleIndex,
+		},
+		{
+			Field: "node_id",
+			Type:  SingleIndex,
+		},
+		{
+			Field: "inherited.namespace",
+			Type:  SingleIndex,
+		},
+		{
+			Field: "inherited.serviceaccount",
+			Type:  SingleIndex,
+		},
+	}
+}
