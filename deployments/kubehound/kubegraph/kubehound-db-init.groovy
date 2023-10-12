@@ -81,9 +81,6 @@ mgmt.addConnection(tokenBruteforce, permissionSet, identity);
 tokenList = mgmt.makeEdgeLabel('TOKEN_LIST').multiplicity(MULTI).make();
 mgmt.addConnection(tokenList, permissionSet, identity);
 
-tokenVarLog = mgmt.makeEdgeLabel('TOKEN_VAR_LOG_SYMLINK').multiplicity(ONE2MANY).make();
-mgmt.addConnection(tokenVarLog, container, volume);
-
 nsenter = mgmt.makeEdgeLabel('CE_NSENTER').multiplicity(MANY2ONE).make();
 mgmt.addConnection(nsenter, container, node);
 
@@ -98,6 +95,9 @@ mgmt.addConnection(privMount, container, node);
 
 sysPtrace = mgmt.makeEdgeLabel('CE_SYS_PTRACE').multiplicity(MANY2ONE).make();
 mgmt.addConnection(sysPtrace, container, node);
+
+varLogSymLink = mgmt.makeEdgeLabel('CE_VAR_LOG_SYMLINK').multiplicity(MULTI).make();
+mgmt.addConnection(varLogSymLink, container, node);
 
 endpointExploit = mgmt.makeEdgeLabel('ENDPOINT_EXPLOIT').multiplicity(MULTI).make();
 mgmt.addConnection(endpointExploit, endpoint, container);

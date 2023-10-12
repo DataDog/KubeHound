@@ -1,25 +1,25 @@
 ---
-title: TOKEN_VAR_LOG_SYMLINK
+title: CE_VAR_LOG_SYMLINK
 ---
 
 <!--
-id: TOKEN_VAR_LOG_SYMLINK
-name: "Steal service account token from volume"
+id: CE_VAR_LOG_SYMLINK
+name: "Arbitrary file reads on the host"
 mitreAttackTechnique: T1552 - Unsecured Credentials
 mitreAttackTactic: TA0006 - Credential Access
 -->
 
-# TOKEN_VAR_LOG_SYMLINK
+# CE_VAR_LOG_SYMLINK
 
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
 | [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
 
-Steal all K8s API tokens from a node via an exposed `/var/log` mount.
+Arbitrary file reads on the host from a node via an exposed `/var/log` mount.
 
 ## Details
 
-A pod running as root and with a mount point to the node’s `/var/log` directory can expose the entire contents of its host filesystem to any user who has access to its logs, enabling an attacker to steal all K8s API tokens present on the K8s node. See [Kubernetes Pod Escape Using Log Mounts](https://blog.aquasec.com/kubernetes-security-pod-escape-log-mounts) for a more detailed explanation of the technique.
+A pod running as root and with a mount point to the node’s `/var/log` directory can expose the entire contents of its host filesystem to any user who has access to its logs, enabling an attacker to read arbitrary files on the host node. See [Kubernetes Pod Escape Using Log Mounts](https://blog.aquasec.com/kubernetes-security-pod-escape-log-mounts) for a more detailed explanation of the technique.
 
 ## Prerequisites
 
@@ -115,7 +115,7 @@ Avoid running containers as the `root` user. Enforce running as an unprivileged 
 
 ## Calculation
 
-+ [TokenVarLogSymlink](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/token_var_log_symlink.go)
++ [EscapeVarLogSymlink](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/escape_var_log_symlink.go)
 
 ## References:
 

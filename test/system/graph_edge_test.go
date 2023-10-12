@@ -364,7 +364,7 @@ func (suite *EdgeTestSuite) TestEdge_PERMISSION_DISCOVER() {
 		"path[map[name:[tokenlist-sa]], map[], map[name:[list-secrets::pod-list-secrets]",
 		"path[map[name:[pod-exec-sa]], map[], map[name:[exec-pods::pod-exec-pods]",
 		"path[map[name:[impersonate-sa]], map[], map[name:[impersonate::pod-impersonate]",
-		"path[map[name:[varrlog-sa]], map[], map[name:[read-logs::pod-read-logs]",
+		"path[map[name:[varlog-sa]], map[], map[name:[read-logs::pod-read-logs]",
 	}
 
 	suite.Subset(paths, expected)
@@ -682,6 +682,14 @@ func (suite *EdgeTestSuite) Test_NoEdgeCase() {
 
 	suite.NoError(err)
 	suite.Equal(len(results), 0)
+}
+
+func (suite *EdgeTestSuite) Test_CE_VAR_LOG_SYMLINK() {
+	containers := map[string]bool{
+		"varlog-container": true,
+	}
+
+	suite._testContainerEscape("CE_VAR_LOG_SYMLINK", DefaultContainerEscapeNodes, containers)
 }
 
 func TestEdgeTestSuite(t *testing.T) {

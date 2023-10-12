@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-09-19 16:48
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-10-06 15:45
 //
 // Generate it with "go generate ./..."
 //
@@ -688,9 +688,9 @@ var expectedContainers = map[string]graph.Container{
 		// Node:         "",
 		Compromised: 0,
 	},
-	"varlog-pod": {
+	"varlog-container": {
 		StoreID:      "",
-		Name:         "varlog-pod",
+		Name:         "varlog-container",
 		Image:        "ubuntu",
 		Command:      []string{},
 		Args:         []string{},

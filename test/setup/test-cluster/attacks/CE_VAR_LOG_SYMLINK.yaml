@@ -1,4 +1,4 @@
-# TOKEN_VAR_LOG_SYMLINK edge
+# CE_VAR_LOG_SYMLINK edge
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -26,7 +26,7 @@ roleRef:
   name: read-logs
 subjects:
   - kind: ServiceAccount
-    name: varrlog-sa
+    name: varlog-sa
     namespace: default
 ---
 apiVersion: v1
@@ -38,7 +38,7 @@ metadata:
     app: kubehound-edge-test
 spec:
   containers:
-    - name: varlog-pod
+    - name: varlog-container
       image: ubuntu
       volumeMounts:
       - mountPath: /host/var/log

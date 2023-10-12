@@ -111,6 +111,7 @@ func (suite *DslTestSuite) TestTraversalSource_escapes() {
 		"path[modload-pod, CE_MODULE_LOAD, Node]",
 		"path[kube-proxy, CE_MODULE_LOAD, Node]",
 		"path[kube-proxy, CE_PRIV_MOUNT, Node]",
+		"path[varlog-container, CE_VAR_LOG_SYMLINK, Node]",
 	}
 
 	suite.ElementsMatch(escapes, expected)
@@ -167,7 +168,7 @@ func (suite *DslTestSuite) TestTraversalSource_hostMounts() {
 func (suite *DslTestSuite) TestTraversalSource_identities() {
 	ids := suite.testScriptArray("kh.identities().has('namespace', 'default').values('name')")
 	expected := []string{
-		"varrlog-sa", "rolebind-sa", "tokenget-sa", "pod-create-sa",
+		"varlog-sa", "rolebind-sa", "tokenget-sa", "pod-create-sa",
 		"impersonate-sa", "pod-exec-sa", "tokenlist-sa", "pod-patch-sa",
 	}
 
@@ -177,7 +178,7 @@ func (suite *DslTestSuite) TestTraversalSource_identities() {
 func (suite *DslTestSuite) TestTraversalSource_sas() {
 	ids := suite.testScriptArray("kh.sas().has('namespace', 'default').values('name')")
 	expected := []string{
-		"varrlog-sa", "rolebind-sa", "tokenget-sa", "pod-create-sa",
+		"varlog-sa", "rolebind-sa", "tokenget-sa", "pod-create-sa",
 		"impersonate-sa", "pod-exec-sa", "tokenlist-sa", "pod-patch-sa",
 	}
 
