@@ -19,3 +19,6 @@ type Volume struct {
 	Ownership   OwnershipInfo      `bson:"ownership"`
 	K8          corev1.Volume      `bson:"k8"`
 }
+
+// TODO index
+// pod_id, node_id, container_id, projected_id, name, type, source_path, mount_path, readonly

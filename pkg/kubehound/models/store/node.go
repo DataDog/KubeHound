@@ -12,3 +12,6 @@ type Node struct {
 	K8           corev1.Node        `bson:"k8"`
 	Ownership    OwnershipInfo      `bson:"ownership"`
 }
+
+// TODO index
+// user_id,

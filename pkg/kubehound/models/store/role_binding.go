@@ -20,3 +20,7 @@ type RoleBinding struct {
 	Ownership    OwnershipInfo      `bson:"ownership"`
 	K8           rbacv1.RoleRef     `bson:"k8"`
 }
+
+// TODO index
+// name, role_id, is_namespaced, namespace,
+// subject?

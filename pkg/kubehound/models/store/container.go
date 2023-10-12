@@ -28,3 +28,6 @@ type Container struct {
 	K8        corev1.Container   `bson:"k8"`
 	Ownership OwnershipInfo      `bson:"ownership"`
 }
+
+// TODO index
+// pod_id, node_id, inherited.namespace, inherited.serviceaccount

@@ -12,3 +12,6 @@ type Pod struct {
 	K8           corev1.Pod         `bson:"k8"`
 	Ownership    OwnershipInfo      `bson:"ownership"`
 }
+
+// TODO index
+//  node_id, is_namespaced, k8.namespace

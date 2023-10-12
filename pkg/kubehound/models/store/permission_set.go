@@ -17,3 +17,6 @@ type PermissionSet struct {
 	Rules           []rbacv1.PolicyRule `bson:"rules"`
 	Ownership       OwnershipInfo       `bson:"ownership"`
 }
+
+// TODO index
+// role_id, role_name, role_binding_id,role_binding_name, name, is_namespaced, namespace,

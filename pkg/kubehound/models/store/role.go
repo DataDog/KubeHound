@@ -13,3 +13,6 @@ type Role struct {
 	Rules        []rbacv1.PolicyRule `bson:"rules"`
 	Ownership    OwnershipInfo       `bson:"ownership"`
 }
+
+// TODO index
+// name, is_namespaced
