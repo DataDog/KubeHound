@@ -10,6 +10,7 @@ type BaseVertex struct {
 
 func (v *BaseVertex) Initialize(cfg *config.VertexBuilderConfig) error {
 	v.cfg = cfg
+
 	return nil
 }
 

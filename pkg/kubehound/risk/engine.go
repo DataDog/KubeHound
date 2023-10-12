@@ -1,3 +1,4 @@
+//nolint:unparam,gocritic
 package risk
 
 import (

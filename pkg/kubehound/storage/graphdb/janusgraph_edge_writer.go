@@ -76,6 +76,7 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 				}
 			case <-ctx.Done():
 				log.Trace(ctx).Info("Closed background janusgraph worker on context cancel")
+
 				return
 			}
 		}
@@ -114,6 +115,7 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 
 func (jgv *JanusGraphEdgeWriter) Close(ctx context.Context) error {
 	close(jgv.consumerChan)
+
 	return nil
 }
 
@@ -137,6 +139,7 @@ func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 		if err != nil {
 			log.Trace(ctx).Errorf("batch write %s: %+v", jgv.builder, err)
 			jgv.writingInFlight.Wait()
+
 			return err
 		}
 
@@ -148,6 +151,7 @@ func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 
 	log.Trace(ctx).Debugf("Edge writer %d %s queued", jgv.qcounter, jgv.builder)
 	log.Trace(ctx).Infof("Edge writer %d %s written", jgv.wcounter, jgv.builder)
+
 	return nil
 }
 

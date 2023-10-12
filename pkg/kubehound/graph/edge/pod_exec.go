@@ -72,6 +72,7 @@ func (e *PodExec) Traversal() types.EdgeTraversal {
 		if e.cfg.LargeClusterOptimizations {
 			// In large clusters this can explode the number of edges and we can safely assume this is a critical issue
 			g.
+				//nolint:asasalint // required due to constraints in the gremlin API
 				Inject(inserts).
 				Unfold().
 				As("rpe").
@@ -137,7 +138,7 @@ func (e *PodExec) Stream(ctx context.Context, store storedb.Provider, _ cache.Ca
 		},
 	}
 
-	cur, err := permissionSets.Aggregate(context.Background(), pipeline)
+	cur, err := permissionSets.Aggregate(ctx, pipeline)
 	if err != nil {
 		return err
 	}

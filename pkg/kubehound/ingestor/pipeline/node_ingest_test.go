@@ -1,3 +1,4 @@
+//nolint:forcetypeassert
 package pipeline
 
 import (
@@ -20,6 +21,7 @@ import (
 )
 
 func TestNodeIngest_Pipeline(t *testing.T) {
+	t.Parallel()
 	ni := &NodeIngest{}
 
 	ctx := context.Background()
@@ -58,10 +60,11 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
 	nodes := collections.Node{}
-	storeId := store.ObjectID()
+	storeID := store.ObjectID()
 	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Node")).
 		RunAndReturn(func(ctx context.Context, i any) error {
-			i.(*store.Node).Id = storeId
+			i.(*store.Node).Id = storeID
+
 			return nil
 		}).Once()
 	sw.EXPECT().Flush(ctx).Return(nil)
@@ -75,7 +78,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 		"isNamespaced": false,
 		"name":         "node-1",
 		"namespace":    "",
-		"storeID":      storeId.Hex(),
+		"storeID":      storeID.Hex(),
 		"app":          "",
 		"service":      "",
 		"team":         "test-team",

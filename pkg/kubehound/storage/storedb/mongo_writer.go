@@ -47,6 +47,7 @@ func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection coll
 	}
 	maw.consumerChan = make(chan []mongo.WriteModel, consumerChanSize)
 	maw.startBackgroundWriter(ctx)
+
 	return &maw
 }
 
@@ -67,6 +68,7 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 				}
 			case <-ctx.Done():
 				log.Trace(ctx).Debug("Closed background mongodb worker")
+
 				return
 			}
 		}
@@ -88,6 +90,7 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 	if err != nil {
 		return fmt.Errorf("could not write in bulk to mongo: %w", err)
 	}
+
 	return nil
 }
 
@@ -102,6 +105,7 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 		// cleanup the ops array after we have copied it to the channel
 		maw.ops = nil
 	}
+
 	return nil
 }
 
@@ -125,16 +129,19 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 		// we cannot defer it because the go routine may last longer than the current function
 		// the defer is going to be executed at the return time, whetever or not the inner go routine is processing data
 		maw.writingInFlight.Wait()
+
 		return nil
 	}
 
 	err := maw.batchWrite(ctx, maw.ops)
 	if err != nil {
 		maw.writingInFlight.Wait()
+
 		return err
 	}
 
 	maw.ops = nil
+
 	return nil
 }
 
@@ -145,5 +152,6 @@ func (maw *MongoAsyncWriter) Close(ctx context.Context) error {
 	}
 
 	maw.ops = nil
+
 	return nil
 }

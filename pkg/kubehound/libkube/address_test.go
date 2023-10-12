@@ -8,6 +8,8 @@ import (
 )
 
 func TestAddressType(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		address string
 	}
@@ -43,12 +45,17 @@ func TestAddressType(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := AddressType(tt.args.address)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddressType() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("AddressType() = %v, want %v", got, tt.want)
 			}

@@ -61,7 +61,7 @@ var CriticalRoleMap = map[string]bool{
 	"system:node-problem-detector":                                         true,
 	"system:node-proxier":                                                  true,
 	"system:persistent-volume-provisioner":                                 true,
-	"system:public-info-viewer ":                                           true,
+	"system:public-info-viewer":                                            true,
 	"system:service-account-issuer-discovery":                              true,
 	"system:volume-scheduler":                                              true,
 	"view":                                                                 true,
