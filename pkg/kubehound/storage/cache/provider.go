@@ -56,5 +56,6 @@ func Factory(ctx context.Context, cfg *config.KubehoundConfig) (CacheProvider, e
 	if err != nil {
 		return nil, err
 	}
+
 	return provider, nil
 }

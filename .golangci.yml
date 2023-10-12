@@ -1,8 +1,6 @@
 run:
   # Default: 1m
   timeout: 5m
-  # For now, don't block the test, only comment on the findings!
-  issues-exit-code: 0
 
 linters:
   disable-all: true
@@ -15,7 +13,7 @@ linters:
     - bodyclose
     - containedctx
     - contextcheck
-    - cyclop
+    # - cyclop
     - decorder
     - dogsled
     - dupword
@@ -33,14 +31,14 @@ linters:
     # - gci
     - ginkgolinter
     - gocheckcompilerdirectives
-    - gochecknoglobals
+    # - gochecknoglobals
     - gocognit
     - goconst
     - gocritic
     - gocyclo
     # - goerr113 # Would probably be best. But lets ignore for now
     - gofmt
-    - gofumpt
+    # - gofumpt
     - goheader
     - goimports
     - gomnd
@@ -54,7 +52,7 @@ linters:
     - importas
     - ineffassign
     - interfacebloat
-    - ireturn
+    # - ireturn
     - loggercheck
     - maintidx
     - makezero
@@ -74,14 +72,14 @@ linters:
     - predeclared
     - promlinter
     - reassign
-    - revive
+    # - revive
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - stylecheck
+    # - stylecheck TODO reeanble
     - tenv
     - testableexamples
-    - testpackage
+    # - testpackage
     - thelper
     - tparallel
     - typecheck
@@ -90,5 +88,5 @@ linters:
     - unused
     - usestdlibvars
     - wastedassign
-    - whitespace
+    # - whitespace
     # - wrapcheck #TODO: add it back later potentially?

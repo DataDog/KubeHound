@@ -1,3 +1,4 @@
+//nolint:containedctx,unused
 package storedb
 
 import (
@@ -11,17 +12,19 @@ import (
 )
 
 func TestMongoProvider_BulkWriter(t *testing.T) {
+	t.Parallel()
 	// FIXME: we should probably setup a mongodb test server in CI for the system tests
 	if config.IsCI() {
 		t.Skip("Skip mongo tests in CI")
 	}
-	t.Parallel()
+
 	ctx := context.Background()
 	provider, err := NewMongoProvider(ctx, MongoLocalDatabaseURL, 1*time.Second)
 	// TODO: add another check (env var maybe?)
 	// "integration test checks"
 	if err != nil {
 		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
+
 		return
 	}
 
@@ -68,8 +71,10 @@ func TestMongoProvider_BulkWriter(t *testing.T) {
 			writer, err := mp.BulkWriter(tt.args.ctx, tt.args.collection, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MongoProvider.BulkWriter() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
+
 			if writer == nil {
 				t.Errorf("writer returned by BulkWriter is nil")
 			}

@@ -85,6 +85,7 @@ func (jgv *JanusGraphVertexWriter) startBackgroundWriter(ctx context.Context) {
 				}
 			case <-ctx.Done():
 				log.Trace(ctx).Info("Closed background janusgraph worker on context cancel")
+
 				return
 			}
 		}
@@ -98,8 +99,12 @@ func (jgv *JanusGraphVertexWriter) cacheIds(ctx context.Context, idMap []*gremli
 			return fmt.Errorf("parsing vertex insert result map: %#v", r)
 		}
 
-		storeID := idMap["storeID"].(string)
-		vertexId := idMap["id"].(int64)
+		storeID, sOk := idMap["storeID"].(string)
+		vertexId, vOk := idMap["id"].(int64)
+
+		if !sOk || !vOk {
+			return errors.New("vertex id type conversion")
+		}
 
 		err := jgv.cache.Queue(ctx, cachekey.ObjectID(storeID), vertexId)
 		if err != nil {
@@ -174,6 +179,7 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 		if err != nil {
 			log.Trace(ctx).Errorf("batch write %s: %+v", jgv.builder, err)
 			jgv.writingInFlight.Wait()
+
 			return err
 		}
 
@@ -190,6 +196,7 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 
 	log.Trace(ctx).Debugf("Batch writer %d %s queued", jgv.qcounter, jgv.builder)
 	log.Trace(ctx).Infof("Batch writer %d %s written", jgv.wcounter, jgv.builder)
+
 	return nil
 }
 

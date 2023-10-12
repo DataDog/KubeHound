@@ -29,5 +29,6 @@ func (s *Sequence) Run(ctx context.Context, deps *Dependencies) error {
 	}
 
 	l.Infof("Completed ingest sequence %s", s.Name)
+
 	return nil
 }

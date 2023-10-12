@@ -123,7 +123,7 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 		},
 	}
 
-	cur, err := permissionSets.Aggregate(context.Background(), pipeline)
+	cur, err := permissionSets.Aggregate(ctx, pipeline)
 	if err != nil {
 		return err
 	}

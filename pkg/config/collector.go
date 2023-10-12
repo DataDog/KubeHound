@@ -22,7 +22,7 @@ type CollectorConfig struct {
 type K8SAPICollectorConfig struct {
 	PageSize           int64 `mapstructure:"page_size"`             // Number of entry being retrieving by each call on the API (same for all Kubernetes entry types)
 	PageBufferSize     int32 `mapstructure:"page_buffer_size"`      // Number of pages to buffer
-	RateLimitPerSecond int   `mapstructure:"rate_limit_per_second"` // Rate limiting per second accross all calls (same for all kubernetes entry types) against the Kubernetes API
+	RateLimitPerSecond int   `mapstructure:"rate_limit_per_second"` // Rate limiting per second across all calls (same for all kubernetes entry types) against the Kubernetes API
 }
 
 // FileCollectorConfig configures the file collector.
