@@ -64,14 +64,14 @@ builder:
   # Vertex builder configuration
   vertex:
     # Batch size for vertex inserts
-    batch_size: 1000
+    batch_size: 500
 
   # Edge builder configuration
   edge:
     worker_pool_size: 5
 
     # Batch size for edge inserts
-    batch_size: 500
+    batch_size: 1000
     
     # Cluster impact batch size for edge inserts
     batch_size_cluster_impact: 10

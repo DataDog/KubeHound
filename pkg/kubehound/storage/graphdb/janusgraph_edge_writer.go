@@ -91,26 +91,27 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 	defer span.Finish()
 	defer jgv.writingInFlight.Done()
 
-	tx := jgv.traversalSource.Tx()
-	gtx, err := tx.Begin()
-	if err != nil {
-		return fmt.Errorf("%s edge insert transaction create: %w", jgv.builder, err)
-	}
-	defer tx.Close()
+	// tx := jgv.traversalSource.Tx()
+	// gtx, err := tx.Begin()
+	// if err != nil {
+	// 	return fmt.Errorf("%s edge insert transaction create: %w", jgv.builder, err)
+	// }
+	// defer tx.Close()
 
 	datalen := len(data)
 	_ = statsd.Gauge(telemetry.MetricGraphdbBatchWrite, float64(datalen), jgv.tags, 1)
 	log.Trace(ctx).Debugf("Batch write JanusGraphEdgeWriter with %d elements", datalen)
 	atomic.AddInt32(&jgv.wcounter, int32(datalen))
 
-	op := jgv.gremlin(gtx, data)
+	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()
-	err = <-promise
+	err := <-promise
 	if err != nil {
 		return fmt.Errorf("%s edge insert: %w", jgv.builder, err)
 	}
 
-	return tx.Commit()
+	// return tx.Commit()
+	return nil
 }
 
 func (jgv *JanusGraphEdgeWriter) Close(ctx context.Context) error {
