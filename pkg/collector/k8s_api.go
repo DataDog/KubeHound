@@ -44,6 +44,14 @@ func checkK8sAPICollectorConfig(collectorType string) error {
 	return nil
 }
 
+func tunedListOptions() metav1.ListOptions {
+	// Optimized for speed. See: https://blog.palark.com/kubernetes-api-list-case-troubleshooting/
+	return metav1.ListOptions{
+		ResourceVersion:      "0",
+		ResourceVersionMatch: metav1.ResourceVersionMatchNotOlderThan,
+	}
+}
+
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
 	tags := telemetry.BaseTags
@@ -125,8 +133,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 		return err
 	}
 
-	opts := metav1.ListOptions{}
-
+	opts := tunedListOptions()
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.CoreV1().Pods(namespace).List(ctx, opts)
 		if err != nil {
@@ -176,8 +183,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 		return err
 	}
 
-	opts := metav1.ListOptions{}
-
+	opts := tunedListOptions()
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.RbacV1().Roles(namespace).List(ctx, opts)
 		if err != nil {
@@ -227,8 +233,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 		return err
 	}
 
-	opts := metav1.ListOptions{}
-
+	opts := tunedListOptions()
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.RbacV1().RoleBindings(namespace).List(ctx, opts)
 		if err != nil {
@@ -278,8 +283,7 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 		return err
 	}
 
-	opts := metav1.ListOptions{}
-
+	opts := tunedListOptions()
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.DiscoveryV1().EndpointSlices(namespace).List(ctx, opts)
 		if err != nil {
@@ -327,8 +331,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceNodes)
 	defer span.Finish()
 
-	opts := metav1.ListOptions{}
-
+	opts := tunedListOptions()
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.CoreV1().Nodes().List(ctx, opts)
 		if err != nil {
@@ -367,8 +370,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceClusterRoles)
 	defer span.Finish()
 
-	opts := metav1.ListOptions{}
-
+	opts := tunedListOptions()
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.RbacV1().ClusterRoles().List(ctx, opts)
 		if err != nil {
@@ -407,8 +409,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceClusterRolebindings)
 	defer span.Finish()
 
-	opts := metav1.ListOptions{}
-
+	opts := tunedListOptions()
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 		entries, err := c.clientset.RbacV1().ClusterRoleBindings().List(ctx, opts)
 		if err != nil {

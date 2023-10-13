@@ -11,7 +11,7 @@ collector:
   # Live collector configuration
   live:
     # Rate limit of requests/second to the Kubernetes API
-    rate_limit_per_second: 75
+    rate_limit_per_second: 150
 
     # Number of pages to buffer
     page_buffer_size: 50
