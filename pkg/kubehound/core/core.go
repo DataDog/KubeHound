@@ -21,6 +21,8 @@ import (
 
 func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.CacheProvider,
 	storedb storedb.Provider, graphdb graphdb.Provider) error {
+
+	start := time.Now()
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationIngestData, tracer.Measured())
 	defer span.Finish()
 
@@ -49,7 +51,7 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 		return fmt.Errorf("ingest: %w", err)
 	}
 
-	log.I.Info("Completed data ingest and normalization")
+	log.I.Infof("Completed data ingest and normalization in %s", time.Since(start))
 
 	return nil
 }
@@ -58,6 +60,8 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 // All I/O operations are performed asynchronously.
 func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
 	graphdb graphdb.Provider, cache cache.CacheReader) error {
+
+	start := time.Now()
 	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationBuildGraph, tracer.Measured())
 	defer span.Finish()
 
@@ -83,7 +87,7 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 		return fmt.Errorf("graph builder edge calculation: %w", err)
 	}
 
-	log.I.Info("Completed graph construction")
+	log.I.Infof("Completed graph construction in %s", time.Since(start))
 
 	return nil
 }
@@ -180,7 +184,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 		return fmt.Errorf("building attack graph: %w", err)
 	}
 
-	log.I.Infof("Attack graph generation complete in %s", time.Since(start))
+	log.I.Infof("KubeHound run complete in %s", time.Since(start))
 
 	return nil
 }

@@ -125,7 +125,7 @@ func buildIndices(ctx context.Context, db *mongo.Database) error {
 			Options: options.Index().SetName("byType"),
 		},
 		{
-			Keys:    bson.M{"source": "text"},
+			Keys:    bson.M{"source": 1},
 			Options: options.Index().SetName("bySource"),
 		},
 		{
