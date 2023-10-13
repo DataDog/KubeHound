@@ -48,7 +48,180 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	}, nil
 }
 
-func (mp *MongoProvider) Clear(ctx context.Context) error {
+func buildIndices(ctx context.Context, db *mongo.Database) error {
+	// Containers
+	containers := db.Collection(collections.ContainerName)
+	indices := []mongo.IndexModel{
+		{
+			Keys:    bson.M{"pod_id": 1},
+			Options: options.Index().SetName("byPod"),
+		},
+		{
+			Keys:    bson.M{"node_id": 1},
+			Options: options.Index().SetName("byNode"),
+		},
+		{
+			Keys:    bson.M{"inherited.pod_name": 1},
+			Options: options.Index().SetName("byPodName"),
+		},
+		{
+			Keys:    bson.M{"inherited.service_account": 1},
+			Options: options.Index().SetName("bySA"),
+		},
+		{
+			Keys:    bson.M{"inherited.namespace": 1},
+			Options: options.Index().SetName("byNamespace"),
+		},
+	}
+
+	_, err := containers.Indexes().CreateMany(ctx, indices)
+	if err != nil {
+		return err
+	}
+
+	// Pods
+	pods := db.Collection(collections.PodName)
+	indices = []mongo.IndexModel{
+		{
+			Keys:    bson.M{"node_id": 1},
+			Options: options.Index().SetName("byNode"),
+		},
+		{
+			Keys:    bson.M{"is_namespaced": 1},
+			Options: options.Index().SetName("byNamespaceSet"),
+		},
+		{
+			Keys:    bson.M{"k8.objectmeta.namespace": 1},
+			Options: options.Index().SetName("byNamespace"),
+		},
+	}
+
+	_, err = pods.Indexes().CreateMany(ctx, indices)
+	if err != nil {
+		return err
+	}
+
+	// Volumes
+	volumes := db.Collection(collections.VolumeName)
+	indices = []mongo.IndexModel{
+		{
+			Keys:    bson.M{"pod_id": 1},
+			Options: options.Index().SetName("byPod"),
+		},
+		{
+			Keys:    bson.M{"node_id": 1},
+			Options: options.Index().SetName("byNode"),
+		},
+		{
+			Keys:    bson.M{"container_id": 1},
+			Options: options.Index().SetName("byContainer"),
+		},
+		{
+			Keys:    bson.M{"projected_id": 1},
+			Options: options.Index().SetName("byProjected"),
+		},
+		{
+			Keys:    bson.M{"type": 1},
+			Options: options.Index().SetName("byType"),
+		},
+		{
+			Keys:    bson.M{"source": "text"},
+			Options: options.Index().SetName("bySource"),
+		},
+		{
+			Keys:    bson.M{"readonly": 1},
+			Options: options.Index().SetName("byReadOnly"),
+		},
+		// Mixed index to support the EXPLOIT_HOST_TRAVERSE edge
+		{
+			Keys: bson.D{
+				{"node_id", 1},
+				{"projected_id", 1},
+				{"type", 1},
+			},
+			Options: options.Index().SetName("byTraversalFields"),
+		},
+	}
+
+	_, err = volumes.Indexes().CreateMany(ctx, indices)
+	if err != nil {
+		return err
+	}
+
+	// PermissionSets
+	permissions := db.Collection(collections.PermissionSetName)
+	indices = []mongo.IndexModel{
+		{
+			Keys:    bson.M{"role_id": 1},
+			Options: options.Index().SetName("byRoleId"),
+		},
+		{
+			Keys:    bson.M{"role_name": 1},
+			Options: options.Index().SetName("byRole"),
+		},
+		{
+			Keys:    bson.M{"role_binding_id": 1},
+			Options: options.Index().SetName("byRoleBindingId"),
+		},
+		{
+			Keys:    bson.M{"role_binding_name": 1},
+			Options: options.Index().SetName("byRoleBinding"),
+		},
+		{
+			Keys:    bson.M{"is_namespaced": 1},
+			Options: options.Index().SetName("byNamespaceSet"),
+		},
+		{
+			Keys:    bson.M{"namespace": 1},
+			Options: options.Index().SetName("byNamespace"),
+		},
+
+		// TODO rules!!
+	}
+
+	_, err = permissions.Indexes().CreateMany(ctx, indices)
+	if err != nil {
+		return err
+	}
+
+	// Endpoints
+	endpoints := db.Collection(collections.EndpointName)
+	indices = []mongo.IndexModel{
+		{
+			Keys:    bson.M{"container_id": 1},
+			Options: options.Index().SetName("byContainer"),
+		},
+		{
+			Keys:    bson.M{"pod_name": 1},
+			Options: options.Index().SetName("byPodName"),
+		},
+		{
+			Keys:    bson.M{"pod_namespace": 1},
+			Options: options.Index().SetName("byPodNamespace"),
+		},
+		{
+			Keys:    bson.M{"has_slice": 1},
+			Options: options.Index().SetName("bySliceSet"),
+		},
+		{
+			Keys:    bson.M{"port": 1},
+			Options: options.Index().SetName("byPort"),
+		},
+		{
+			Keys:    bson.M{"exposure": 1},
+			Options: options.Index().SetName("byExposure"),
+		},
+	}
+
+	_, err = endpoints.Indexes().CreateMany(ctx, indices)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (mp *MongoProvider) Prepare(ctx context.Context) error {
 	collections, err := mp.db.ListCollectionNames(ctx, bson.M{})
 	if err != nil {
 		return fmt.Errorf("listing mongo DB collections: %w", err)
@@ -59,6 +232,10 @@ func (mp *MongoProvider) Clear(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("deleting mongo DB collection %s: %w", collectionName, err)
 		}
+	}
+
+	if err := buildIndices(ctx, mp.db); err != nil {
+		return err
 	}
 
 	return nil
