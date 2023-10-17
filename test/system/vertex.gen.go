@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-10-06 15:45
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-10-17 09:54
 //
 // Generate it with "go generate ./..."
 //
@@ -136,6 +136,16 @@ var expectedPods = map[string]graph.Pod{
 		Namespace:             "default",
 		Compromised:           shared.CompromiseNone,
 		ServiceAccount:        "default",
+		ShareProcessNamespace: false,
+		Critical:              false,
+	},
+	"rolebind-namespace-pod": {
+		StoreID:               "",
+		Name:                  "rolebind-namespace-pod",
+		IsNamespaced:          true,
+		Namespace:             "default",
+		Compromised:           shared.CompromiseNone,
+		ServiceAccount:        "rolebind-namespace-sa",
 		ShareProcessNamespace: false,
 		Critical:              false,
 	},
@@ -505,6 +515,24 @@ var expectedContainers = map[string]graph.Container{
 		RunAsUser:    0,
 		Ports:        []string{},
 		Pod:          "priv-pod",
+		// Node:         "",
+		Compromised: 0,
+	},
+	"rolebind-namespace-pod": {
+		StoreID:      "",
+		Name:         "rolebind-namespace-pod",
+		Image:        "ubuntu",
+		Command:      []string{},
+		Args:         []string{},
+		Capabilities: []string{},
+		Privileged:   false,
+		PrivEsc:      false,
+		HostPID:      false,
+		HostIPC:      false,
+		HostNetwork:  false,
+		RunAsUser:    0,
+		Ports:        []string{},
+		Pod:          "rolebind-namespace-pod",
 		// Node:         "",
 		Compromised: 0,
 	},

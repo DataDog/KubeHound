@@ -168,7 +168,7 @@ func (suite *DslTestSuite) TestTraversalSource_hostMounts() {
 func (suite *DslTestSuite) TestTraversalSource_identities() {
 	ids := suite.testScriptArray("kh.identities().has('namespace', 'default').values('name')")
 	expected := []string{
-		"varlog-sa", "rolebind-sa", "tokenget-sa", "pod-create-sa",
+		"varlog-sa", "rolebind-sa", "rolebind-namespace-sa", "tokenget-sa", "pod-create-sa",
 		"impersonate-sa", "pod-exec-sa", "tokenlist-sa", "pod-patch-sa",
 	}
 
@@ -178,7 +178,7 @@ func (suite *DslTestSuite) TestTraversalSource_identities() {
 func (suite *DslTestSuite) TestTraversalSource_sas() {
 	ids := suite.testScriptArray("kh.sas().has('namespace', 'default').values('name')")
 	expected := []string{
-		"varlog-sa", "rolebind-sa", "tokenget-sa", "pod-create-sa",
+		"varlog-sa", "rolebind-sa", "rolebind-namespace-sa", "tokenget-sa", "pod-create-sa",
 		"impersonate-sa", "pod-exec-sa", "tokenlist-sa", "pod-patch-sa",
 	}
 
@@ -207,7 +207,7 @@ func (suite *DslTestSuite) TestTraversalSource_groups() {
 func (suite *DslTestSuite) TestTraversalSource_permissions() {
 	ps := suite.testScriptArray("kh.permissions().has('namespace', 'default').values('name')")
 	expected := []string{
-		"create-pods::pod-create-pods", "impersonate::pod-impersonate", "rolebind::pod-bind-role",
+		"create-pods::pod-create-pods", "impersonate::pod-impersonate", "rolebind::pod-bind-role", "rolebind::pod-bind-role-namespace",
 		"read-secrets::pod-get-secrets", "list-secrets::pod-list-secrets", "exec-pods::pod-exec-pods",
 		"patch-pods::pod-patch-pods", "read-logs::pod-read-logs",
 	}

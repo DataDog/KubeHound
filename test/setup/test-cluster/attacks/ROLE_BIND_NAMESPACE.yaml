@@ -1,27 +1,27 @@
-# ROLE_BIND edge
+# ROLE_BIND_NAMESPACE edge
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: rolebind-sa
+  name: rolebind-namespace-sa
   namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: rolebind
+  name: rolebind-namespace
 rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
-    resources: ["clusterrolebindings"]
+    resources: ["rolebindings"]
     verbs: ["create"]
   - apiGroups: ["rbac.authorization.k8s.io"]
-    resources: ["clusterroles"]
+    resources: ["roles"]
     verbs: ["bind"]
     resourceNames: ["*"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: pod-bind-role
+  name: pod-bind-role-namespace
   namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -29,19 +29,19 @@ roleRef:
   name: rolebind
 subjects:
   - kind: ServiceAccount
-    name: rolebind-sa
+    name: rolebind-namespace-sa
     namespace: default
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: rolebind-pod
+  name: rolebind-namespace-pod
   labels:
     app: kubehound-edge-test
 spec:
-  serviceAccountName: rolebind-sa
+  serviceAccountName: rolebind-namespace-sa
   containers:
-    - name: rolebind-pod
+    - name: rolebind-namespace-pod
       image: ubuntu
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
