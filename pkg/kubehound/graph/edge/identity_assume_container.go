@@ -47,32 +47,55 @@ func (e *IdentityAssumeContainer) Processor(ctx context.Context, oic *converter.
 func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	// containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	// pipeline := bson.A{
+	// 	bson.M{
+	// 		"$lookup": bson.M{
+	// 			"from":         collections.IdentityName,
+	// 			"localField":   "inherited.service_account",
+	// 			"foreignField": "name",
+	// 			"as":           "identity",
+	// 		},
+	// 	},
+	// 	bson.M{
+	// 		"$match": bson.M{
+	// 			"identity": bson.M{
+	// 				"$ne": bson.A{},
+	// 			},
+	// 		},
+	// 	},
+	// 	bson.M{
+	// 		"$project": bson.M{
+	// 			"container_id": "$_id",
+	// 			"identity_id":  bson.M{"$arrayElemAt": []interface{}{"$identity._id", 0}},
+	// 			"_id":          0,
+	// 		},
+	// 	},
+	// }
+	// cur, err := containers.Aggregate(ctx, pipeline)
+	// TODO also need to match namespace
+	identities := adapter.MongoDB(store).Collection(collections.IdentityName)
 	pipeline := bson.A{
 		bson.M{
 			"$lookup": bson.M{
-				"from":         collections.IdentityName,
-				"localField":   "inherited.service_account",
-				"foreignField": "name",
-				"as":           "identity",
+				"from":         collections.ContainerName,
+				"localField":   "name",
+				"foreignField": "inherited.service_account",
+				"as":           "idc",
 			},
 		},
 		bson.M{
-			"$match": bson.M{
-				"identity": bson.M{
-					"$ne": bson.A{},
-				},
-			},
+			"$unwind": "$idc",
 		},
 		bson.M{
 			"$project": bson.M{
-				"container_id": "$_id",
-				"identity_id":  bson.M{"$arrayElemAt": []interface{}{"$identity._id", 0}},
+				"container_id": "$idc._id",
+				"identity_id":  "$_id",
 				"_id":          0,
 			},
 		},
 	}
-	cur, err := containers.Aggregate(ctx, pipeline)
+	cur, err := identities.Aggregate(ctx, pipeline)
 	if err != nil {
 		return err
 	}

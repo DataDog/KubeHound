@@ -65,12 +65,32 @@ func buildIndices(ctx context.Context, db *mongo.Database) error {
 			Options: options.Index().SetName("byPodName"),
 		},
 		{
+			Keys:    bson.M{"k8.securitycontext.privileged": 1},
+			Options: options.Index().SetName("byPrivileged"),
+		},
+		{
+			Keys:    bson.M{"k8.securitycontext.capabilities.add": 1},
+			Options: options.Index().SetName("ByCapabilities"),
+		},
+		{
+			Keys:    bson.M{"inherited.host_pid": 1},
+			Options: options.Index().SetName("byHostPid"),
+		},
+		{
 			Keys:    bson.M{"inherited.service_account": 1},
 			Options: options.Index().SetName("bySA"),
 		},
 		{
 			Keys:    bson.M{"inherited.namespace": 1},
 			Options: options.Index().SetName("byNamespace"),
+		},
+		{
+			Keys: bson.D{
+				{"inherited.namespace", 1},
+				{"inherited.pod_name", 1},
+				{"k8.ports", 1},
+			},
+			Options: options.Index().SetName("bySharedNode"),
 		},
 	}
 
@@ -139,7 +159,16 @@ func buildIndices(ctx context.Context, db *mongo.Database) error {
 				{"projected_id", 1},
 				{"type", 1},
 			},
-			Options: options.Index().SetName("byTraversalFields"),
+			Options: options.Index().SetName("bySharedNode"),
+		},
+		// Mixed index to support the EXPLOIT_HOST_* edge
+		{
+			Keys: bson.D{
+				{"source", 1},
+				{"readonly", 1},
+				{"type", 1},
+			},
+			Options: options.Index().SetName("byMountProperties"),
 		},
 	}
 
@@ -151,22 +180,22 @@ func buildIndices(ctx context.Context, db *mongo.Database) error {
 	// PermissionSets
 	permissions := db.Collection(collections.PermissionSetName)
 	indices = []mongo.IndexModel{
-		{
-			Keys:    bson.M{"role_id": 1},
-			Options: options.Index().SetName("byRoleId"),
-		},
-		{
-			Keys:    bson.M{"role_name": 1},
-			Options: options.Index().SetName("byRole"),
-		},
-		{
-			Keys:    bson.M{"role_binding_id": 1},
-			Options: options.Index().SetName("byRoleBindingId"),
-		},
-		{
-			Keys:    bson.M{"role_binding_name": 1},
-			Options: options.Index().SetName("byRoleBinding"),
-		},
+		// {
+		// 	Keys:    bson.M{"role_id": 1},
+		// 	Options: options.Index().SetName("byRoleId"),
+		// },
+		// {
+		// 	Keys:    bson.M{"role_name": 1},
+		// 	Options: options.Index().SetName("byRole"),
+		// },
+		// {
+		// 	Keys:    bson.M{"role_binding_id": 1},
+		// 	Options: options.Index().SetName("byRoleBindingId"),
+		// },
+		// {
+		// 	Keys:    bson.M{"role_binding_name": 1},
+		// 	Options: options.Index().SetName("byRoleBinding"),
+		// },
 		{
 			Keys:    bson.M{"is_namespaced": 1},
 			Options: options.Index().SetName("byNamespaceSet"),
@@ -175,8 +204,31 @@ func buildIndices(ctx context.Context, db *mongo.Database) error {
 			Keys:    bson.M{"namespace": 1},
 			Options: options.Index().SetName("byNamespace"),
 		},
-
-		// TODO rules!!
+		{
+			Keys:    bson.M{"rules.apigroups": 1},
+			Options: options.Index().SetName("byApiGroup"),
+		},
+		{
+			Keys:    bson.M{"rules.resources": 1},
+			Options: options.Index().SetName("byResources"),
+		},
+		{
+			Keys:    bson.M{"rules.verbs": 1},
+			Options: options.Index().SetName("byVerbs"),
+		},
+		{
+			Keys:    bson.M{"rules.resourcenames": 1},
+			Options: options.Index().SetName("byResourceNames"),
+		},
+		// {
+		// 	Keys: bson.D{
+		// 		{"rules.apigroups", 1},
+		// 		{"rules.resources", 1},
+		// 		{"rules.verbs", 1},
+		// 		{"rules.resourcenames", 1},
+		// 	},
+		// 	Options: options.Index().SetName("bySinglePermission"),
+		// },
 	}
 
 	_, err = permissions.Indexes().CreateMany(ctx, indices)
@@ -187,33 +239,73 @@ func buildIndices(ctx context.Context, db *mongo.Database) error {
 	// Endpoints
 	endpoints := db.Collection(collections.EndpointName)
 	indices = []mongo.IndexModel{
-		{
-			Keys:    bson.M{"container_id": 1},
-			Options: options.Index().SetName("byContainer"),
-		},
-		{
-			Keys:    bson.M{"pod_name": 1},
-			Options: options.Index().SetName("byPodName"),
-		},
-		{
-			Keys:    bson.M{"pod_namespace": 1},
-			Options: options.Index().SetName("byPodNamespace"),
-		},
+		// {
+		// 	Keys:    bson.M{"container_id": 1},
+		// 	Options: options.Index().SetName("byContainer"),
+		// },
+		// {
+		// 	Keys:    bson.M{"pod_name": 1},
+		// 	Options: options.Index().SetName("byPodName"),
+		// },
+		// {
+		// 	Keys:    bson.M{"pod_namespace": 1},
+		// 	Options: options.Index().SetName("byPodNamespace"),
+		// },
 		{
 			Keys:    bson.M{"has_slice": 1},
 			Options: options.Index().SetName("bySliceSet"),
 		},
-		{
-			Keys:    bson.M{"port": 1},
-			Options: options.Index().SetName("byPort"),
-		},
-		{
-			Keys:    bson.M{"exposure": 1},
-			Options: options.Index().SetName("byExposure"),
-		},
+		// {
+		// 	Keys:    bson.M{"port": 1},
+		// 	Options: options.Index().SetName("byPort"),
+		// },
+		// {
+		// 	Keys:    bson.M{"exposure": 1},
+		// 	Options: options.Index().SetName("byExposure"),
+		// },
 	}
 
 	_, err = endpoints.Indexes().CreateMany(ctx, indices)
+	if err != nil {
+		return err
+	}
+
+	// Identities
+	identities := db.Collection(collections.IdentityName)
+	indices = []mongo.IndexModel{
+		{
+			Keys:    bson.M{"namespace": 1},
+			Options: options.Index().SetName("byNamespace"),
+		},
+		{
+			Keys:    bson.M{"is_namespaced": 1},
+			Options: options.Index().SetName("byNamespaceSet"),
+		},
+		{
+			Keys:    bson.M{"type": 1},
+			Options: options.Index().SetName("byType"),
+		},
+		{
+			Keys:    bson.M{"name": 1},
+			Options: options.Index().SetName("byName"),
+		},
+	}
+
+	_, err = identities.Indexes().CreateMany(ctx, indices)
+	if err != nil {
+		return err
+	}
+
+	// Nodes
+	nodes := db.Collection(collections.NodeName)
+	indices = []mongo.IndexModel{
+		{
+			Keys:    bson.M{"user_id": 1},
+			Options: options.Index().SetName("ByUserId"),
+		},
+	}
+
+	_, err = nodes.Indexes().CreateMany(ctx, indices)
 	if err != nil {
 		return err
 	}
