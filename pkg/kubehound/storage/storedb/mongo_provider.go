@@ -289,6 +289,14 @@ func buildIndices(ctx context.Context, db *mongo.Database) error {
 			Keys:    bson.M{"name": 1},
 			Options: options.Index().SetName("byName"),
 		},
+		{
+			Keys: bson.D{
+				{"name", 1},
+				{"namespace", 1},
+				{"type", 1},
+			},
+			Options: options.Index().SetName("byLookupFields"),
+		},
 	}
 
 	_, err = identities.Indexes().CreateMany(ctx, indices)
