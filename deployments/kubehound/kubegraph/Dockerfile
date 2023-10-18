@@ -31,11 +31,13 @@ COPY --chown=janusgraph:janusgraph kubehound-dsl-init.groovy ${JANUS_HOME}/scrip
 # Set JVM configuration
 ENV JAVA_OPTIONS_FILE ${JANUS_HOME}/conf/jvm.options
 
+# Use an in-memory backend for speed
+ENV JANUS_PROPS_TEMPLATE=inmemory
+
 # Optimize for writes
 ENV janusgraph.ids.block-size=1000000000
 ENV janusgraph.ids.renew-percentage 0.3
-ENV janusgprah.cache.db-cache=false
-
+ENV storage.batch-loading=true
 
 # Enforce strict schema constraints as per https://docs.janusgraph.org/configs/configuration-reference/#schema
 ENV janusgraph.schema.constraints=true
@@ -59,9 +61,6 @@ ENV gremlinserver.metrics.csvReporter.enabled=false
 ENV gremlinserver.gremlinPool=0 
 # threadPoolWorker should be 2x VCPU (TODO: can we set dynamically?)
 ENV gremlinserver.threadPoolWorker=16
-
-# TEST TETS
-ENV storage.batch-loading=true
 
 # Custom SCRIPT plugin for DSL support
 ENV gremlinserver.scriptEngines.gremlin-groovy.plugins[org.apache.tinkerpop.gremlin.jsr223.ImportGremlinPlugin].classImports[+]=com.datadog.ase.kubehound.KubeHoundTraversalSource
