@@ -6,9 +6,9 @@ As always.. it depends :) The bulk of the work comes in building up the attack g
 
 | Cluster Size (Pods) | Duration |
 | --------------------|----------|
-| 1,000 | 2 mins |
-| 10,000 | 15 mins |
-| 30,000 | 25 mins |
+| 1,000 | <1 min |
+| 10,000 | 3 mins |
+| 30,000 | 7 mins |
 
 **What happens when you run KubeHound multiple times?**
 
