@@ -68,6 +68,8 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		return nil, fmt.Errorf("building kubernetes config: %w", err)
 	}
 
+	kubeConfig.UserAgent = "KubeHound-Collector"
+
 	clientset, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
 		return nil, fmt.Errorf("getting kubernetes config: %w", err)
