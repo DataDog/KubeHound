@@ -23,7 +23,6 @@ func init() {
 	Register(&RoleBindNamespace{}, RegisterDefault)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2889355675/ROLE+BIND
 type RoleBindNamespace struct {
 	BaseEdge
 }

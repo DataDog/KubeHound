@@ -25,7 +25,6 @@ func init() {
 	Register(&ClusterRoleBind{}, RegisterDefault)
 }
 
-// @@DOCLINK: https://datadoghq.atlassian.net/wiki/spaces/ASE/pages/2889355675/ROLE+BIND
 type ClusterRoleBind struct {
 	BaseEdge
 }
@@ -48,12 +47,12 @@ func (e *ClusterRoleBind) Processor(ctx context.Context, oic *converter.ObjectID
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	rid, err := oic.GraphID(ctx, typed.PermissionSet.Hex())
+	psid, err := oic.GraphID(ctx, typed.PermissionSet.Hex())
 	if err != nil {
-		return nil, fmt.Errorf("%s edge role id convert: %w", e.Label(), err)
+		return nil, fmt.Errorf("%s edge PermissionSet id convert: %w", e.Label(), err)
 	}
 
-	return rid, nil
+	return psid, nil
 }
 
 func (e *ClusterRoleBind) Traversal() types.EdgeTraversal {
