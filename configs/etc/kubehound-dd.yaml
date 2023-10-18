@@ -43,7 +43,7 @@ janusgraph:
 # Datadog telemetry configuration
 telemetry:
   # Whether to enable Datadog telemetry (default false)
-  enable: true
+  enabled: true
 
   # Default tags to add to all telemetry (free form key-value map)
   tags:

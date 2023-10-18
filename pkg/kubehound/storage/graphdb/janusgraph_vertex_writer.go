@@ -123,13 +123,6 @@ func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []any) e
 	defer span.Finish()
 	defer jgv.writingInFlight.Done()
 
-	// tx := jgv.traversalSource.Tx()
-	// gtx, err := tx.Begin()
-	// if err != nil {
-	// 	return fmt.Errorf("%s vertex insert transaction create: %w", jgv.builder, err)
-	// }
-	// defer tx.Close()
-
 	datalen := len(data)
 	_ = statsd.Gauge(telemetry.MetricGraphdbBatchWrite, float64(datalen), jgv.tags, 1)
 	log.Trace(ctx).Debugf("Batch write JanusGraphVertexWriter with %d elements", datalen)
@@ -150,7 +143,6 @@ func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []any) e
 		return err
 	}
 
-	// return tx.Commit()
 	return nil
 }
 

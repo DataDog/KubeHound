@@ -9,8 +9,6 @@ services:
 
   kubegraph:
     build: ./kubegraph/
-    # environment:
-    #   JANUS_PROPS_TEMPLATE: inmemory
     ports:
       - "127.0.0.1:8182:8182"
       - "127.0.0.1:8099:8099"

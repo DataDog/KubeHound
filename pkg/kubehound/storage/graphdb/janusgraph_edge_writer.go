@@ -91,13 +91,6 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 	defer span.Finish()
 	defer jgv.writingInFlight.Done()
 
-	// tx := jgv.traversalSource.Tx()
-	// gtx, err := tx.Begin()
-	// if err != nil {
-	// 	return fmt.Errorf("%s edge insert transaction create: %w", jgv.builder, err)
-	// }
-	// defer tx.Close()
-
 	datalen := len(data)
 	_ = statsd.Gauge(telemetry.MetricGraphdbBatchWrite, float64(datalen), jgv.tags, 1)
 	log.Trace(ctx).Debugf("Batch write JanusGraphEdgeWriter with %d elements", datalen)
@@ -110,7 +103,6 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 		return fmt.Errorf("%s edge insert: %w", jgv.builder, err)
 	}
 
-	// return tx.Commit()
 	return nil
 }
 
