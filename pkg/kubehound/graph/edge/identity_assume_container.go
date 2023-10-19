@@ -7,6 +7,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -51,27 +52,48 @@ func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Prov
 	pipeline := bson.A{
 		bson.M{
 			"$lookup": bson.M{
-				"from":         collections.IdentityName,
-				"localField":   "inherited.service_account",
-				"foreignField": "name",
-				"as":           "identity",
-			},
-		},
-		bson.M{
-			"$match": bson.M{
-				"identity": bson.M{
-					"$ne": bson.A{},
+				"as":   "idc",
+				"from": collections.IdentityName,
+				"let": bson.M{
+					"idName":      "$inherited.service_account",
+					"idNamespace": "$inherited.namespace",
+				},
+				"pipeline": []bson.M{
+					{
+						"$match": bson.M{"$and": bson.A{
+							bson.M{"$expr": bson.M{
+								"$eq": bson.A{
+									"$name", "$$idName",
+								},
+							}},
+							bson.M{"$expr": bson.M{
+								"$eq": bson.A{
+									"$namespace", "$$idNamespace",
+								},
+							}},
+							bson.M{"type": shared.IdentityTypeSA},
+						}},
+					},
+					{
+						"$project": bson.M{
+							"_id": 1,
+						},
+					},
 				},
 			},
 		},
 		bson.M{
+			"$unwind": "$idc",
+		},
+		bson.M{
 			"$project": bson.M{
 				"container_id": "$_id",
-				"identity_id":  bson.M{"$arrayElemAt": []interface{}{"$identity._id", 0}},
+				"identity_id":  "$idc._id",
 				"_id":          0,
 			},
 		},
 	}
+
 	cur, err := containers.Aggregate(ctx, pipeline)
 	if err != nil {
 		return err

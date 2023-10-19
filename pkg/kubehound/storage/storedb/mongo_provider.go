@@ -48,7 +48,7 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	}, nil
 }
 
-func (mp *MongoProvider) Clear(ctx context.Context) error {
+func (mp *MongoProvider) Prepare(ctx context.Context) error {
 	collections, err := mp.db.ListCollectionNames(ctx, bson.M{})
 	if err != nil {
 		return fmt.Errorf("listing mongo DB collections: %w", err)
@@ -59,6 +59,15 @@ func (mp *MongoProvider) Clear(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("deleting mongo DB collection %s: %w", collectionName, err)
 		}
+	}
+
+	ib, err := NewIndexBuilder(mp.db)
+	if err != nil {
+		return fmt.Errorf("mongo DB index builder create: %w", err)
+	}
+
+	if err := ib.BuildAll(ctx); err != nil {
+		return fmt.Errorf("mongo DB index builder run: %w", err)
 	}
 
 	return nil

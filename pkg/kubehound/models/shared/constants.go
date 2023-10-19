@@ -11,6 +11,12 @@ const (
 	TokenTypeOIDC     = "OIDC"
 )
 
+const (
+	IdentityTypeSA    = "ServiceAccount"
+	IdentityTypeUser  = "User"
+	IdentityTypeGroup = "Group"
+)
+
 type CompromiseType int
 
 const (
