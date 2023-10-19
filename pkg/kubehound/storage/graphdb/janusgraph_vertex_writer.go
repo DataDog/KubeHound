@@ -59,7 +59,7 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlin.DriverRemo
 		batchSize:       v.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []any, v.BatchSize()*channelSizeBatchFactor),
-		tags:            options.Tags,
+		tags:            append(options.Tags),
 		cache:           cw,
 	}
 
