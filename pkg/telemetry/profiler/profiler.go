@@ -25,6 +25,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 		),
 		profiler.WithPeriod(cfg.Telemetry.Profiler.Period),
 		profiler.CPUDuration(cfg.Telemetry.Profiler.CPUDuration),
+		profiler.WithLogStartup(false),
 	)
 	if err != nil {
 		log.I.Errorf("start profiler: %v", err)

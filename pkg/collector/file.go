@@ -15,6 +15,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
@@ -58,8 +59,8 @@ type FileCollector struct {
 
 // NewFileCollector creates a new instance of the file collector from the provided application config.
 func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	tags := telemetry.BaseTags
-	tags = append(tags, telemetry.TagCollectorTypeFile)
+	tags := tag.BaseTags
+	tags = append(tags, tag.Collector(FileCollectorName))
 	if cfg.Collector.Type != config.CollectorTypeFile {
 		return nil, fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
 	}
@@ -120,7 +121,7 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 }
 
 func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanCollectorStream, tracer.Measured())
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourcePods)
 	defer span.Finish()
 
@@ -163,7 +164,7 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 }
 
 func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanCollectorStream, tracer.Measured())
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceRoles)
 	defer span.Finish()
 
@@ -206,7 +207,7 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 }
 
 func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanCollectorStream, tracer.Measured())
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceRolebindings)
 	defer span.Finish()
 
@@ -249,7 +250,7 @@ func (c *FileCollector) streamEndpointsNamespace(ctx context.Context, fp string,
 }
 
 func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanCollectorStream, tracer.Measured())
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceEndpoints)
 	defer span.Finish()
 
@@ -273,7 +274,7 @@ func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIn
 }
 
 func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanCollectorStream, tracer.Measured())
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceNodes)
 	defer span.Finish()
 
@@ -298,7 +299,7 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 }
 
 func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanCollectorStream, tracer.Measured())
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceClusterRoles)
 	defer span.Finish()
 
@@ -323,7 +324,7 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 }
 
 func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanCollectorStream, tracer.Measured())
 	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceClusterRolebindings)
 	defer span.Finish()
 
@@ -350,7 +351,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 // readList loads a list of K8s API objects into memory from a JSON file on disk.
 // NOTE: This implementation reads the entire array of objects from the file into memory at once.
 func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl, error) {
-	span, _ := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationReadFile, tracer.Measured())
+	span, _ := tracer.StartSpanFromContext(ctx, telemetry.SpanCollectorReadFile, tracer.Measured())
 	defer span.Finish()
 
 	var inputList Tl

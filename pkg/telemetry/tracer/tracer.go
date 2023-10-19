@@ -16,6 +16,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 		tracer.WithService(globals.DDServiceName),
 		tracer.WithServiceVersion(config.BuildVersion),
 		tracer.WithAgentAddr(cfg.Telemetry.Tracer.URL),
+		tracer.WithLogStartup(false),
 	}
 
 	// Optional tags from configuration

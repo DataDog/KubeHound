@@ -77,7 +77,7 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 
 // batchWrite blocks until the write is complete
 func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteModel) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanMongodbOperationBatchWrite, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanMongoDBBatchWrite, tracer.Measured())
 	defer span.Finish()
 
 	maw.writingInFlight.Add(1)
@@ -112,7 +112,7 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 // Flush triggers writes of any remaining items in the queue.
 // This is blocking
 func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanMongodbOperationFlush, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanMongoDBFlush, tracer.Measured())
 	defer span.Finish()
 
 	if maw.mongodb.client == nil {

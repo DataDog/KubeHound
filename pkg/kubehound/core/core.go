@@ -15,6 +15,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/google/uuid"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -23,7 +25,7 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, cache cache.Ca
 	storedb storedb.Provider, graphdb graphdb.Provider) error {
 
 	start := time.Now()
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationIngestData, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, span.IngestData, tracer.Measured())
 	defer span.Finish()
 
 	log.I.Info("Loading Kubernetes data collector client")
@@ -62,7 +64,7 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 	graphdb graphdb.Provider, cache cache.CacheReader) error {
 
 	start := time.Now()
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationBuildGraph, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildGraph, tracer.Measured())
 	defer span.Finish()
 
 	log.I.Info("Loading graph edge definitions")
@@ -94,7 +96,7 @@ func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 
 // Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context, opts ...LaunchOption) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationLaunch, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, span.Launch, tracer.Measured())
 	defer span.Finish()
 
 	// We define a unique run id this so we can measure run by run in addition of version per version.
@@ -103,12 +105,11 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	span.SetBaggageItem("run_id", runUUID)
 
 	// We update the base tags to include that run id, so we have it available for metrics
-	tagRunUUID := fmt.Sprintf("%s:%s", telemetry.TagKeyRunId, runUUID)
-	telemetry.BaseTags = append(telemetry.BaseTags, tagRunUUID)
+	tag.BaseTags = append(tag.BaseTags, tag.RunId(runUUID))
 
 	// Set the run ID as a global log tag
 	log.AddGlobalTags(map[string]string{
-		telemetry.TagKeyRunId: runUUID,
+		tag.RunIdTag: runUUID,
 	})
 
 	// Start the run

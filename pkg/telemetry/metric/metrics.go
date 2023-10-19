@@ -1,4 +1,4 @@
-package telemetry
+package metric
 
 import (
 	"fmt"
@@ -14,19 +14,19 @@ func metricFQN(name string) string {
 
 // Collector metrics
 var (
-	CollectorCountMetric = metricFQN("collector.count")
+	CollectorCount = metricFQN("collector.count")
 )
 
 // Pipeline storage metrics
 
 const (
-	MetricCollectorNodesCount               = "kubehound.collector.nodes.count"
-	MetricCollectorEndpointCount            = "kubehound.collector.endpoints.count"
-	MetricCollectorPodsCount                = "kubehound.collector.pods.count"
-	MetricCollectorRolesCount               = "kubehound.collector.roles.count"
-	MetricCollectorRoleBindingsCount        = "kubehound.collector.rolebindings.count"
-	MetricCollectorClusterRolesCount        = "kubehound.collector.clusterroles.count"
-	MetricCollectorClusterRoleBindingsCount = "kubehound.collector.clusterrolebindings.count"
+	// MetricCollectorNodesCount               = "kubehound.collector.nodes.count"
+	// MetricCollectorEndpointCount            = "kubehound.collector.endpoints.count"
+	// MetricCollectorPodsCount                = "kubehound.collector.pods.count"
+	// MetricCollectorRolesCount               = "kubehound.collector.roles.count"
+	// MetricCollectorRoleBindingsCount        = "kubehound.collector.rolebindings.count"
+	// MetricCollectorClusterRolesCount        = "kubehound.collector.clusterroles.count"
+	// MetricCollectorClusterRoleBindingsCount = "kubehound.collector.clusterrolebindings.count"
 
 	MetricStoredbBackgroundWriterCall = "kubehound.storage.storedb.background"
 	MetricStoredbBatchWrite           = "kubehound.storage.storedb.batchwrite.size"

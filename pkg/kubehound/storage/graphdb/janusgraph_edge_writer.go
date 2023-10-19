@@ -11,7 +11,9 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -90,9 +92,9 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 // batchWrite will write a batch of entries into the graph DB and block until the write completes.
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
 func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite,
+	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphBatchWrite,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
-	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
+	span.SetTag(tag.LabelTag, jgv.builder)
 	defer span.Finish()
 	defer jgv.writingInFlight.Done()
 
@@ -120,7 +122,7 @@ func (jgv *JanusGraphEdgeWriter) Close(ctx context.Context) error {
 // Flush triggers writes of any remaining items in the queue.
 // This is blocking
 func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationFlush,
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphFlush,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
 	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
 	defer span.Finish()
