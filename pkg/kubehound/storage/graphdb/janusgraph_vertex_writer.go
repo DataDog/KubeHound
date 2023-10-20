@@ -11,9 +11,11 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -59,7 +61,7 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlin.DriverRemo
 		batchSize:       v.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []any, v.BatchSize()*channelSizeBatchFactor),
-		tags:            append(options.Tags),
+		tags:            append(options.Tags, tag.Label(v.Label()), tag.Builder(v.Label())),
 		cache:           cw,
 	}
 
@@ -78,11 +80,14 @@ func (jgv *JanusGraphVertexWriter) startBackgroundWriter(ctx context.Context) {
 				if data == nil {
 					return
 				}
-				_ = statsd.Count(telemetry.MetricGraphdbBackgroundWriterCall, 1, jgv.tags, 1)
+
+				_ = statsd.Count(metric.BackgroundWriterCall, 1, jgv.tags, 1)
 				err := jgv.batchWrite(ctx, data)
 				if err != nil {
 					log.Trace(ctx).Errorf("Write data in background batch writer: %v", err)
 				}
+
+				_ = statsd.Decr(metric.QueueSize, jgv.tags, 1)
 			case <-ctx.Done():
 				log.Trace(ctx).Info("Closed background janusgraph worker on context cancel")
 
@@ -118,14 +123,14 @@ func (jgv *JanusGraphVertexWriter) cacheIds(ctx context.Context, idMap []*gremli
 // batchWrite will write a batch of entries into the graph DB and block until the write completes.
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
 func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []any) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphBatchWrite,
+	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphBatchWrite,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
-	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
+	span.SetTag(tag.LabelTag, jgv.builder)
 	defer span.Finish()
 	defer jgv.writingInFlight.Done()
 
 	datalen := len(data)
-	_ = statsd.Gauge(telemetry.MetricGraphdbBatchWrite, float64(datalen), jgv.tags, 1)
+	_ = statsd.Count(metric.VertexWrite, int64(datalen), jgv.tags, 1)
 	log.Trace(ctx).Debugf("Batch write JanusGraphVertexWriter with %d elements", datalen)
 	atomic.AddInt32(&jgv.wcounter, int32(datalen))
 
@@ -156,9 +161,9 @@ func (jgv *JanusGraphVertexWriter) Close(ctx context.Context) error {
 // Flush triggers writes of any remaining items in the queue.
 // This is blocking
 func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphFlush,
+	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphFlush,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
-	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
+	span.SetTag(tag.LabelTag, jgv.builder)
 	defer span.Finish()
 
 	jgv.mu.Lock()
@@ -169,6 +174,8 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 	}
 
 	if len(jgv.inserts) != 0 {
+		_ = statsd.Incr(metric.FlushWriterCall, jgv.tags, 1)
+
 		jgv.writingInFlight.Add(1)
 		err := jgv.batchWrite(ctx, jgv.inserts)
 		if err != nil {
@@ -202,14 +209,13 @@ func (jgv *JanusGraphVertexWriter) Queue(ctx context.Context, v any) error {
 	atomic.AddInt32(&jgv.qcounter, 1)
 	jgv.inserts = append(jgv.inserts, v)
 
-	_ = statsd.Gauge(telemetry.MetricGraphdbQueueSize, float64(len(jgv.inserts)), jgv.tags, 1)
-
 	if len(jgv.inserts) > jgv.batchSize {
 		copied := make([]any, len(jgv.inserts))
 		copy(copied, jgv.inserts)
 
 		jgv.writingInFlight.Add(1)
 		jgv.consumerChan <- copied
+		_ = statsd.Incr(metric.QueueSize, jgv.tags, 1)
 
 		// cleanup the ops array after we have copied it to the channel
 		jgv.inserts = nil

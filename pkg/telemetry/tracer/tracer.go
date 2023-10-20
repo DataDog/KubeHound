@@ -24,6 +24,8 @@ func Initialize(cfg *config.KubehoundConfig) {
 		opts = append(opts, tracer.WithGlobalTag(tk, tv))
 	}
 
+	TODO add run id to the spans
+
 	tracer.Start(opts...)
 }
 

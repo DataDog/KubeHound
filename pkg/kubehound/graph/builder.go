@@ -15,7 +15,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
-	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/DataDog/KubeHound/pkg/worker"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -55,15 +54,17 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 
 // buildEdge inserts a class of edges into the graph database.
 func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, oic *converter.ObjectIDConverter, l *log.KubehoundLogger) error {
+	// TODO add type in the span
+	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildEdge, tracer.Measured(), tracer.ResourceName(e.Label()))
+	defer span.Finish()
+
 	l.Infof("Building edge %s", label)
 
 	if err := e.Initialize(&b.cfg.Builder.Edge); err != nil {
 		return err
 	}
 
-	tags := tag.BaseTags
-	tags = append(tags, tag.Storage(tag.StorageJanusGraph))
-	w, err := b.graphdb.EdgeWriter(ctx, e, graphdb.WithTags(tags))
+	w, err := b.graphdb.EdgeWriter(ctx, e)
 	if err != nil {
 		return err
 	}
@@ -87,9 +88,6 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 }
 
 func (b *Builder) buildMutating(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildEdgeMutating, tracer.Measured())
-	defer span.Finish()
-
 	for label, e := range b.edges.Mutating() {
 		err := b.buildEdge(ctx, label, e, oic, l)
 		if err != nil {
@@ -101,9 +99,6 @@ func (b *Builder) buildMutating(ctx context.Context, l *log.KubehoundLogger, oic
 }
 
 func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildEdgeSimple, tracer.Measured())
-	defer span.Finish()
-
 	l.Info("Creating edge builder worker pool")
 	wp, err := worker.PoolFactory(b.cfg.Builder.Edge.WorkerPoolSize, b.cfg.Builder.Edge.WorkerPoolCapacity)
 	if err != nil {
@@ -140,9 +135,6 @@ func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *
 }
 
 func (b *Builder) buildDependent(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildEdgeDependent, tracer.Measured())
-	defer span.Finish()
-
 	for label, e := range b.edges.Dependent() {
 		err := b.buildEdge(ctx, label, e, oic, l)
 		if err != nil {

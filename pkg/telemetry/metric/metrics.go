@@ -18,26 +18,19 @@ var (
 )
 
 // Pipeline storage metrics
+var (
+	ObjectWrite          = metricFQN("storage.batchwrite.object")
+	VertexWrite          = metricFQN("storage.batchwrite.vertex")
+	EdgeWrite            = metricFQN("storage.batchwrite.edge")
+	QueueSize            = metricFQN("storage.queue.size")
+	BackgroundWriterCall = metricFQN("storage.writer.background")
+	FlushWriterCall      = metricFQN("storage.writer.flush")
+)
 
-const (
-	// MetricCollectorNodesCount               = "kubehound.collector.nodes.count"
-	// MetricCollectorEndpointCount            = "kubehound.collector.endpoints.count"
-	// MetricCollectorPodsCount                = "kubehound.collector.pods.count"
-	// MetricCollectorRolesCount               = "kubehound.collector.roles.count"
-	// MetricCollectorRoleBindingsCount        = "kubehound.collector.rolebindings.count"
-	// MetricCollectorClusterRolesCount        = "kubehound.collector.clusterroles.count"
-	// MetricCollectorClusterRoleBindingsCount = "kubehound.collector.clusterrolebindings.count"
-
-	MetricStoredbBackgroundWriterCall = "kubehound.storage.storedb.background"
-	MetricStoredbBatchWrite           = "kubehound.storage.storedb.batchwrite.size"
-	MetricStoredbQueueSize            = "kubehound.storage.storedb.queue.size"
-
-	MetricGraphdbBackgroundWriterCall = "kubehound.storage.graphdb.background"
-	MetricGraphdbBatchWrite           = "kubehound.storage.graphdb.batchwrite.size"
-	MetricGraphdbQueueSize            = "kubehound.storage.graphdb.queue.size"
-
-	MetricCacheMiss           = "kubehound.cache.miss"
-	MetricCacheHit            = "kubehound.cache.hit"
-	MetricCacheWrite          = "kubehound.cache.write"
-	MetricCacheDuplicateEntry = "kubehound.cache.duplicate"
+// Cache metrics
+var (
+	CacheMiss      = metricFQN("cache.miss")
+	CacheHit       = metricFQN("cache.hit")
+	CacheWrite     = metricFQN("cache.write")
+	CacheDuplicate = metricFQN("cache.duplicate")
 )

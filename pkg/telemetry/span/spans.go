@@ -27,7 +27,5 @@ const (
 
 // Graph builder spans
 const (
-	BuildEdgeMutating  = "kubehound.graph.builder.mutating"
-	BuildEdgeSimple    = "kubehound.graph.builder.simple"
-	BuildEdgeDependent = "kubehound.graph.builder.dependent"
+	BuildEdge = "kubehound.graph.builder.edge"
 )

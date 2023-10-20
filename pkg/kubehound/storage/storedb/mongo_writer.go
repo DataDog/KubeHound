@@ -6,9 +6,11 @@ import (
 	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -39,10 +41,11 @@ func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection coll
 	}
 
 	maw := MongoAsyncWriter{
-		mongodb:         mp,
-		collection:      mp.db.Collection(collection.Name()),
-		batchSize:       collection.BatchSize(),
-		tags:            wOpts.Tags,
+		mongodb:    mp,
+		collection: mp.db.Collection(collection.Name()),
+		batchSize:  collection.BatchSize(),
+		tags:       append(wOpts.Tags, tag.Collection(collection.Name())),
+
 		writingInFlight: &sync.WaitGroup{},
 	}
 	maw.consumerChan = make(chan []mongo.WriteModel, consumerChanSize)
@@ -61,11 +64,14 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 				if data == nil {
 					return
 				}
-				_ = statsd.Count(telemetry.MetricStoredbBackgroundWriterCall, 1, maw.tags, 1)
+
+				_ = statsd.Count(metric.BackgroundWriterCall, 1, maw.tags, 1)
 				err := maw.batchWrite(ctx, data)
 				if err != nil {
 					log.Trace(ctx).Errorf("write data in background batch writer: %v", err)
 				}
+
+				_ = statsd.Decr(metric.QueueSize, maw.tags, 1)
 			case <-ctx.Done():
 				log.Trace(ctx).Debug("Closed background mongodb worker")
 
@@ -77,13 +83,14 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 
 // batchWrite blocks until the write is complete
 func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteModel) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanMongoDBBatchWrite, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, span.MongoDBBatchWrite, tracer.Measured())
+	span.SetTag(tag.CollectionTag, maw.collection.Name())
 	defer span.Finish()
 
 	maw.writingInFlight.Add(1)
 	defer maw.writingInFlight.Done()
 
-	_ = statsd.Gauge(telemetry.MetricStoredbBatchWrite, float64(len(ops)), maw.mongodb.tags, 1)
+	_ = statsd.Count(metric.ObjectWrite, int64(len(ops)), maw.tags, 1)
 
 	bulkWriteOpts := options.BulkWrite().SetOrdered(false)
 	_, err := maw.collection.BulkWrite(ctx, ops, bulkWriteOpts)
@@ -98,10 +105,10 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 	maw.ops = append(maw.ops, mongo.NewInsertOneModel().SetDocument(model))
 
-	_ = statsd.Gauge(telemetry.MetricStoredbQueueSize, float64(len(maw.ops)), maw.mongodb.tags, 1)
-
 	if len(maw.ops) > maw.batchSize {
 		maw.consumerChan <- maw.ops
+		_ = statsd.Incr(metric.QueueSize, maw.tags, 1)
+
 		// cleanup the ops array after we have copied it to the channel
 		maw.ops = nil
 	}
@@ -112,7 +119,8 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 // Flush triggers writes of any remaining items in the queue.
 // This is blocking
 func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanMongoDBFlush, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, span.MongoDBFlush, tracer.Measured())
+	span.SetTag(tag.CollectionTag, maw.collection.Name())
 	defer span.Finish()
 
 	if maw.mongodb.client == nil {

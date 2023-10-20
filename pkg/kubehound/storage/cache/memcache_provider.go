@@ -6,9 +6,10 @@ import (
 	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 )
 
 type MemCacheProvider struct {
@@ -33,7 +34,7 @@ func computeKey(cacheKey cachekey.CacheKey) string {
 }
 
 func (mp *MemCacheProvider) Name() string {
-	return "MemCacheProvider"
+	return "memcache"
 }
 
 func (m *MemCacheProvider) Close(ctx context.Context) error {
@@ -53,10 +54,10 @@ func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) *Cach
 	var err error
 	data, ok := m.data[computeKey(key)]
 	if !ok {
-		_ = statsd.Incr(telemetry.MetricCacheMiss, []string{}, 1)
+		_ = statsd.Incr(metric.CacheMiss, append(tag.BaseTags, tag.CacheKey(key.Shard())), 1)
 		log.Trace(ctx).Debugf("entry not found in cache: %s", computeKey(key))
 	} else {
-		_ = statsd.Incr(telemetry.MetricCacheHit, []string{}, 1)
+		_ = statsd.Incr(metric.CacheHit, append(tag.BaseTags, tag.CacheKey(key.Shard())), 1)
 	}
 
 	return &CacheResult{
