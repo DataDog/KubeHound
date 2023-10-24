@@ -65,8 +65,8 @@ var (
 package system
 
 import (
-    "github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-    "github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 )
 
 `)
@@ -74,7 +74,7 @@ import (
 
 func usage() {
 	fmt.Println(`Usage:
-    ./generator <k8s_yaml_folder> <destination_file>`)
+	./generator <k8s_yaml_folder> <destination_file>`)
 }
 
 func main() {
@@ -400,18 +400,18 @@ func AddVolumeToList(volume *corev1.VolumeMount, storePod *store.Pod) error {
 
 func GeneratePermissionSetTemplate() ([]byte, error) {
 	tmpl := `var expectedPermissionSets = map[string]graph.PermissionSet{
-        {{- range $val := .}}
-        "{{.Name}}": {
-            StoreID:      "",
-            Name:         "{{.Name}}",
-            IsNamespaced: {{.IsNamespaced}},
-            Namespace:    "{{.Namespace}}",
-            Role:         "{{.Role}}",
-            Rules:        []string{ {{range $i, $rule := .Rules}}{{if $i}},{{end}}"{{$rule}}"{{end}} },
-            RoleBinding:  "{{.RoleBinding}}",
-            Critical:     false,
-        },{{ end }}
-    }
+		{{- range $val := .}}
+		"{{.Name}}": {
+			StoreID:      "",
+			Name:         "{{.Name}}",
+			IsNamespaced: {{.IsNamespaced}},
+			Namespace:    "{{.Namespace}}",
+			Role:         "{{.Role}}",
+			Rules:        []string{ {{range $i, $rule := .Rules}}{{if $i}},{{end}}"{{$rule}}"{{end}} },
+			RoleBinding:  "{{.RoleBinding}}",
+			Critical:     false,
+		},{{ end }}
+	}
 `
 	t := template.Must(template.New("tmpl").Parse(tmpl))
 	outbuf := bytes.NewBuffer([]byte{})
@@ -424,16 +424,16 @@ func GeneratePermissionSetTemplate() ([]byte, error) {
 
 func GenerateIdentityTemplate() ([]byte, error) {
 	tmpl := `var expectedIdentities = map[string]graph.Identity{
-        {{- range $val := .}}
-        "{{.Name}}": {
-            StoreID:      "",
-            Name:         "{{.Name}}",
-            IsNamespaced: {{.IsNamespaced}},
-            Namespace:    "{{.Namespace}}",
-            Type:         "{{.Type}}",
-            Critical:     false,
-        },{{ end }}
-    }
+		{{- range $val := .}}
+		"{{.Name}}": {
+			StoreID:      "",
+			Name:         "{{.Name}}",
+			IsNamespaced: {{.IsNamespaced}},
+			Namespace:    "{{.Namespace}}",
+			Type:         "{{.Type}}",
+			Critical:     false,
+		},{{ end }}
+	}
 `
 
 	t := template.Must(template.New("tmpl").Parse(tmpl))
@@ -445,16 +445,16 @@ func GenerateIdentityTemplate() ([]byte, error) {
 
 func GenerateNodeTemplate() ([]byte, error) {
 	tmpl := `var expectedNodes = map[string]graph.Node{
-        {{- range $val := .}}
-        "{{.Name}}": {
-            StoreID:      "",
-            Name:         "{{.Name}}",
-            IsNamespaced: {{.IsNamespaced}},
-            Namespace:    "{{.Namespace}}",
-            Compromised:  shared.CompromiseNone,
-            Critical:     false,
-        },{{ end }}
-    }
+		{{- range $val := .}}
+		"{{.Name}}": {
+			StoreID:      "",
+			Name:         "{{.Name}}",
+			IsNamespaced: {{.IsNamespaced}},
+			Namespace:    "{{.Namespace}}",
+			Compromised:  shared.CompromiseNone,
+			Critical:     false,
+		},{{ end }}
+	}
 `
 
 	t := template.Must(template.New("tmpl").Parse(tmpl))
@@ -466,18 +466,18 @@ func GenerateNodeTemplate() ([]byte, error) {
 
 func GeneratePodTemplate() ([]byte, error) {
 	tmpl := `var expectedPods = map[string]graph.Pod{
-        {{- range $val := .}}
-        "{{.Name}}": {
-            StoreID:                 "",
-            Name:                    "{{.Name}}",
-            IsNamespaced:            {{.IsNamespaced}},
-            Namespace:               "{{.Namespace}}",
-            Compromised:             shared.CompromiseNone,
-            ServiceAccount:          "{{.ServiceAccount}}",
-            ShareProcessNamespace:   {{.ShareProcessNamespace}},
-            Critical:                false,
-        },{{ end }}
-    }
+		{{- range $val := .}}
+		"{{.Name}}": {
+			StoreID:                 "",
+			Name:                    "{{.Name}}",
+			IsNamespaced:            {{.IsNamespaced}},
+			Namespace:               "{{.Namespace}}",
+			Compromised:             shared.CompromiseNone,
+			ServiceAccount:          "{{.ServiceAccount}}",
+			ShareProcessNamespace:   {{.ShareProcessNamespace}},
+			Critical:                false,
+		},{{ end }}
+	}
 `
 
 	t := template.Must(template.New("tmpl").Parse(tmpl))
@@ -490,27 +490,27 @@ func GeneratePodTemplate() ([]byte, error) {
 
 func GenerateContainerTemplate() ([]byte, error) {
 	tmpl := `var expectedContainers = map[string]graph.Container{
-        {{- range $val := .}}
-        "{{.Name}}": {
-            StoreID:      "",
-            Name:         "{{.Name}}",
-            Image:        "{{.Image}}",
-            Command:      []string{},
-            Args:         []string{},
-            Capabilities: []string{},
-            Privileged:   {{.Privileged}},
-            PrivEsc:      {{.PrivEsc}},
-            HostPID:      {{.HostPID}},
-            HostIPC:      {{.HostIPC}},
-            HostNetwork:  {{.HostNetwork}},
-            RunAsUser:    {{.RunAsUser}},
-            Namespace:    "{{.Namespace}}",
-            Ports:        []string{},
-            Pod:          "{{.Pod}}",
-            // Node:         "{{.Node}}",
-            Compromised:  0,
-        },{{ end }}
-    }
+		{{- range $val := .}}
+		"{{.Name}}": {
+			StoreID:      "",
+			Name:         "{{.Name}}",
+			Image:        "{{.Image}}",
+			Command:      []string{},
+			Args:         []string{},
+			Capabilities: []string{},
+			Privileged:   {{.Privileged}},
+			PrivEsc:      {{.PrivEsc}},
+			HostPID:      {{.HostPID}},
+			HostIPC:      {{.HostIPC}},
+			HostNetwork:  {{.HostNetwork}},
+			RunAsUser:    {{.RunAsUser}},
+			Namespace:    "{{.Namespace}}",
+			Ports:        []string{},
+			Pod:          "{{.Pod}}",
+			// Node:         "{{.Node}}",
+			Compromised:  0,
+		},{{ end }}
+	}
 `
 
 	t := template.Must(template.New("tmpl").Parse(tmpl))
@@ -522,17 +522,17 @@ func GenerateContainerTemplate() ([]byte, error) {
 
 func GenerateVolumeTemplate() ([]byte, error) {
 	tmpl := `var expectedVolumes = map[string]graph.Volume{
-        {{- range $val := .}}
-        "{{.Name}}": {
-            StoreID:    "",
-            Name:       "{{.Name}}",
-            Type:       "{{.Type}}",
-            SourcePath: "{{.SourcePath}}",
-            MountPath:  "{{.MountPath}}",
-            Readonly:   {{.Readonly}},
-            Namespace:  "{{.Namespace}}",
-        },{{ end }}
-    }
+		{{- range $val := .}}
+		"{{.Name}}": {
+			StoreID:    "",
+			Name:       "{{.Name}}",
+			Type:       "{{.Type}}",
+			SourcePath: "{{.SourcePath}}",
+			MountPath:  "{{.MountPath}}",
+			Readonly:   {{.Readonly}},
+			Namespace:  "{{.Namespace}}",
+		},{{ end }}
+	}
 `
 
 	t := template.Must(template.New("tmpl").Parse(tmpl))
