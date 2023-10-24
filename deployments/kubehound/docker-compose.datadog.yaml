@@ -6,7 +6,7 @@ services:
     profiles: ["infra"]
     container_name: ${COMPOSE_PROJECT_NAME}-datadog-agent
     ports:
-      - "127.0.0.1:8225:8125"
+      - "127.0.0.1:8225:8125/UDP"
       - "127.0.0.1:8226:8126"
     environment:
       - DD_API_KEY=${DD_API_KEY:?error}
@@ -17,6 +17,7 @@ services:
       - DD_LOGS_ENABLED=true
       - DD_PROCESS_AGENT_ENABLED=true
       - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
       - DD_CONTAINER_LABELS_AS_TAGS={"com.docker.compose.service":"+app"}
       - DD_CONTAINER_INCLUDE=name:kubehound-*
       # https://github.com/DataDog/datadog-agent/issues/6599

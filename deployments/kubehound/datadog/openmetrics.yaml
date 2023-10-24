@@ -2,7 +2,7 @@ init_config:
     service: kubehound
 
 instances:
-  - prometheus_url: http://janusgraph:8099/metrics
+  - prometheus_url: http://kubegraph:8099/metrics
     namespace: "kubehound.janusgraph"
     type_overrides: 
       metrics_org_apache_tinkerpop_gremlin_server_GremlinServer_gremlin_groovy_sessionless_class_cache_miss_rate_Number: "gauge"
@@ -19,7 +19,6 @@ instances:
       java_lang_ClassLoading_TotalLoadedClassCount: "gauge"
       java_lang_CodeHeap_non_nmethods_Usage_used: "gauge"
       java_lang_G1_Survivor_Space_CollectionUsage_init: "gauge"
-      metrics_org_apache_tinkerpop_gremlin_server_GremlinServer_gremlin_groovy_sessionless_class_cache_miss_rate_Number: "gauge"
       java_lang_G1_Survivor_Space_CollectionUsageThreshold: "gauge"
       metrics_org_apache_tinkerpop_gremlin_server_GremlinServer_gremlin_groovy_sessionless_class_cache_load_failure_rate_Number: "gauge"
       java_lang_Compressed_Class_Space_UsageThresholdSupported: "gauge"
