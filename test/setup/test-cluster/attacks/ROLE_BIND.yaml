@@ -8,7 +8,8 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: rolebind
+  name: rolebind-lmt
+  namespace: default
 rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["clusterrolebindings"]
@@ -26,7 +27,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: rolebind
+  name: rolebind-lmt
 subjects:
   - kind: ServiceAccount
     name: rolebind-sa

@@ -3,6 +3,8 @@ package main
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"go/format"
 	"io/ioutil"
@@ -15,9 +17,11 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -32,16 +36,16 @@ type Cluster struct {
 }
 
 const (
-	defaultNamespace      = "default"
-	defaultServiceAccount = "default"
+	defaultNamespace = "default"
 )
 
 var (
-	Containers = make(map[string]graph.Container)
-	Pods       = make(map[string]graph.Pod)
-	Nodes      = make(map[string]graph.Node)
-	Roles      = make(map[string]graph.PermissionSet)
-	Volumes    = make(map[string]graph.Volume)
+	Containers     = make(map[string]graph.Container)
+	Pods           = make(map[string]graph.Pod)
+	Nodes          = make(map[string]graph.Node)
+	PermissionSets = make(map[string]graph.PermissionSet)
+	Identities     = make(map[string]graph.Identity)
+	Volumes        = make(map[string]graph.Volume)
 )
 
 var (
@@ -81,6 +85,22 @@ func main() {
 	k8sDefinitionPath := os.Args[1]
 	codegenPath := os.Args[2]
 
+	ctx := context.Background()
+	cp, err := cache.Factory(ctx, nil)
+	if err != nil {
+		fmt.Printf("cache client creation: %v", err)
+		return
+	}
+	defer cp.Close(ctx)
+
+	cacheRole, err := cp.BulkWriter(ctx, cache.WithExpectedOverwrite())
+	if err != nil {
+		fmt.Printf("cache bulk writer: %v", err)
+		return
+	}
+	cacheRoleBinding := []*rbacv1.RoleBinding{}
+	cacheClusterRoleBinding := []*rbacv1.ClusterRoleBinding{}
+
 	clusterFile, err := ioutil.ReadFile(filepath.Join(k8sDefinitionPath, "cluster.yaml"))
 	if err != nil {
 		log.Fatal(err)
@@ -96,7 +116,18 @@ func main() {
 		log.Fatal(err)
 	}
 	for _, file := range filesAttack {
-		ProcessFile(attackPath, file)
+		ProcessFile(ctx, attackPath, file, cacheRole, &cacheRoleBinding, &cacheClusterRoleBinding)
+	}
+
+	// Generate permissionsets
+	ConvertRoleBindings(ctx, cacheRoleBinding, cacheClusterRoleBinding, cp)
+	outPermSets, err := GeneratePermissionSetTemplate()
+	if err != nil {
+		fmt.Println("failed to permission sets: ", err)
+	}
+	outIdentities, err := GenerateIdentityTemplate()
+	if err != nil {
+		fmt.Println("failed to permission sets: ", err)
 	}
 
 	outPods, err := GeneratePodTemplate()
@@ -116,7 +147,7 @@ func main() {
 		fmt.Println("failed to write pods: ", err)
 	}
 	fmt.Printf("volumes: %+v\n", Volumes)
-	err = WriteTemplatesToFile(codegenPath, globalHeaders, outPods, outNodes, outVolumes, outContainers)
+	err = WriteTemplatesToFile(codegenPath, globalHeaders, outPods, outNodes, outVolumes, outContainers, outPermSets, outIdentities)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -154,13 +185,15 @@ func ProcessCluster(content []byte) error {
 	return nil
 }
 
-func ProcessFile(basePath string, file os.FileInfo) {
+func ProcessFile(ctx context.Context, basePath string, file os.FileInfo, cacheRole cache.AsyncWriter, cacheRoleBinding *[]*rbacv1.RoleBinding, cacheClusterRoleBinding *[]*rbacv1.ClusterRoleBinding) {
 	fmt.Println("Processing: " + file.Name())
 	data, err := os.ReadFile(filepath.Join(basePath, file.Name()))
 	if err != nil {
 		fmt.Printf("failed to read file: %v", err)
 		return
 	}
+
+	conv := converter.StoreConverter{}
 	for _, subfile := range bytes.Split(data, []byte("\n---\n")) {
 
 		decode := scheme.Codecs.UniversalDeserializer().Decode
@@ -173,12 +206,12 @@ func ProcessFile(basePath string, file os.FileInfo) {
 		// now use switch over the type of the object
 		// and match each type-case
 		switch o := obj.(type) {
-		case *v1.Node:
+		case *corev1.Node:
 			err = AddNodeToList(o)
 			if err != nil {
 				fmt.Println("Failed to add node to list:", err)
 			}
-		case *v1.Pod:
+		case *corev1.Pod:
 			err = AddPodToList(o)
 			if err != nil {
 				fmt.Println("Failed to add pod to list:", err)
@@ -201,17 +234,104 @@ func ProcessFile(basePath string, file os.FileInfo) {
 				}
 
 			}
-		//TODO:
-		// case *v1beta1.Role, *v1beta1.RoleBinding, *v1beta1.ClusterRole, *v1beta1.ClusterRoleBinding:
+
+		case *rbacv1.Role:
+			role, err := conv.Role(ctx, o)
+			if err != nil {
+				fmt.Println("Failed to convert role:", err)
+			}
+			cacheRole.Queue(ctx, cachekey.Role(role.Name, role.Namespace), *role)
+		case *rbacv1.ClusterRole:
+			clusterRole, err := conv.ClusterRole(ctx, o)
+			if err != nil {
+				fmt.Println("Failed to convert role:", err)
+			}
+			cacheRole.Queue(ctx, cachekey.Role(clusterRole.Name, clusterRole.Namespace), *clusterRole)
+		case *rbacv1.ClusterRoleBinding:
+			*cacheClusterRoleBinding = append(*cacheClusterRoleBinding, o)
+		case *rbacv1.RoleBinding:
+			*cacheRoleBinding = append(*cacheRoleBinding, o)
 		default:
 			fmt.Printf("(TODO) %T object has not yet been implememented: %+v", o, o)
 		}
 	}
 }
 
+func AddPermissionSetToList(ctx context.Context, roleBinding *store.RoleBinding, convStore *converter.StoreConverter, convGraph *converter.GraphConverter) error {
+	AddIdentityToList(roleBinding)
+	permissionSetStore, err := convStore.PermissionSet(ctx, roleBinding)
+	if err != nil {
+		return err
+	}
+	permissionSetGraph, err := convGraph.PermissionSet(permissionSetStore)
+	PermissionSets[permissionSetGraph.Name] = *permissionSetGraph
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ConvertRoleBindings(ctx context.Context, cacheRoleBinding []*rbacv1.RoleBinding, cacheClusterRoleBinding []*rbacv1.ClusterRoleBinding, cp cache.CacheReader) error {
+
+	convStore := converter.NewStoreWithCache(cp)
+	convGraph := &converter.GraphConverter{}
+	var errConvert error
+	for _, rb := range cacheRoleBinding {
+		roleBinding, err := convStore.RoleBinding(ctx, rb)
+		if err != nil {
+			errConvert = errors.Join(errConvert, err)
+			fmt.Println("Failed to convert role:", err)
+			continue
+		}
+		err = AddPermissionSetToList(ctx, roleBinding, convStore, convGraph)
+		if err != nil {
+			errConvert = errors.Join(errConvert, err)
+			fmt.Printf("Failed to add permission set[rb:%s]: %v\n", roleBinding.Name, err)
+			continue
+		}
+	}
+
+	for _, crb := range cacheClusterRoleBinding {
+		clusterRoleBinding, err := convStore.ClusterRoleBinding(ctx, crb)
+		if err != nil {
+			errConvert = errors.Join(errConvert, err)
+			fmt.Println("Failed to convert cluster role:", err)
+			continue
+		}
+		err = AddPermissionSetToList(ctx, clusterRoleBinding, convStore, convGraph)
+		if err != nil {
+			errConvert = errors.Join(errConvert, err)
+			fmt.Printf("Failed to add permission set[rb:%s]:  %v\n", clusterRoleBinding.Name, err)
+			continue
+		}
+	}
+
+	return errConvert
+}
+
+func AddIdentityToList(rb *store.RoleBinding) error {
+	convStore := converter.StoreConverter{}
+	convGraph := converter.GraphConverter{}
+	for _, subj := range rb.Subjects {
+		sid, err := convStore.Identity(context.Background(), &subj, rb)
+		if err != nil {
+			return err
+		}
+		// Transform store model to vertex input
+		insert, err := convGraph.Identity(sid)
+		if err != nil {
+			return err
+		}
+		Identities[insert.Name] = *insert
+	}
+	return nil
+}
+
 func AddPodToList(pod *corev1.Pod) error {
 	fmt.Printf("pod name: %s\n", pod.Name)
-	pod.Namespace = defaultNamespace
+	if pod.Namespace == "" {
+		pod.Namespace = defaultNamespace
+	}
 	storePod := store.Pod{
 		K8: *pod,
 	}
@@ -219,7 +339,7 @@ func AddPodToList(pod *corev1.Pod) error {
 	convertedPod, err := conv.Pod(&storePod)
 	// if we haven't defined the service account in the yaml file, k8s will do it for us.
 	if convertedPod.ServiceAccount == "" {
-		convertedPod.ServiceAccount = defaultServiceAccount
+		convertedPod.ServiceAccount = pod.Namespace
 	}
 	if err != nil {
 		return err
@@ -276,6 +396,51 @@ func AddVolumeToList(volume *corev1.VolumeMount, storePod *store.Pod) error {
 	Volumes[volume.Name] = *convertedVolume
 
 	return nil
+}
+
+func GeneratePermissionSetTemplate() ([]byte, error) {
+	tmpl := `var expectedPermissionSets = map[string]graph.PermissionSet{
+		{{- range $val := .}}
+		"{{.Name}}": {
+			StoreID:      	"",
+			Name:         	"{{.Name}}",
+			IsNamespaced: 	{{.IsNamespaced}},
+			Namespace:    	"{{.Namespace}}",
+			Role:			"{{.Role}}",
+			Rules: 			[]string{ {{range $i, $rule := .Rules}}{{if $i}},{{end}}"{{$rule}}"{{end}} },
+			RoleBinding:  	"{{.RoleBinding}}",
+			Critical:     	false,
+		},{{ end }}
+	}
+`
+	t := template.Must(template.New("tmpl").Parse(tmpl))
+	outbuf := bytes.NewBuffer([]byte{})
+	err := t.Execute(outbuf, PermissionSets)
+	if err != nil {
+		fmt.Print(err)
+	}
+	return outbuf.Bytes(), nil
+}
+
+func GenerateIdentityTemplate() ([]byte, error) {
+	tmpl := `var expectedIdentities = map[string]graph.Identity{
+		{{- range $val := .}}
+		"{{.Name}}": {
+			StoreID:      "",
+			Name:         "{{.Name}}",
+			IsNamespaced: {{.IsNamespaced}},
+			Namespace:    "{{.Namespace}}",
+			Type: 		  "{{.Type}}",
+			Critical:     false,
+		},{{ end }}
+	}
+`
+
+	t := template.Must(template.New("tmpl").Parse(tmpl))
+	outbuf := bytes.NewBuffer([]byte{})
+	t.Execute(outbuf, Identities)
+
+	return outbuf.Bytes(), nil
 }
 
 func GenerateNodeTemplate() ([]byte, error) {
@@ -339,6 +504,7 @@ func GenerateContainerTemplate() ([]byte, error) {
 			HostIPC:      {{.HostIPC}},
 			HostNetwork:  {{.HostNetwork}},
 			RunAsUser:    {{.RunAsUser}},
+			Namespace: 	  "{{.Namespace}}",
 			Ports:        []string{},
 			Pod:          "{{.Pod}}",
 			// Node:         "{{.Node}}",
@@ -364,6 +530,7 @@ func GenerateVolumeTemplate() ([]byte, error) {
 			SourcePath: "{{.SourcePath}}",
 			MountPath:  "{{.MountPath}}",
 			Readonly:   {{.Readonly}},
+			Namespace: "{{.Namespace}}",
 		},{{ end }}
 	}
 `

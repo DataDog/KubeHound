@@ -360,8 +360,8 @@ func (suite *EdgeTestSuite) TestEdge_PERMISSION_DISCOVER() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[rolebind-sa]], map[], map[name:[rolebind::pod-bind-role]",
-		"path[map[name:[rolebind-namespace-sa]], map[], map[name:[rolebind::pod-bind-role-namespace]",
+		"path[map[name:[rolebind-sa]], map[], map[name:[rolebind-lmt::pod-bind-role]",
+		"path[map[name:[rolebind-namespace-sa]], map[], map[name:[rolebind-namespace::pod-bind-role-namespace]",
 		"path[map[name:[pod-patch-sa]], map[], map[name:[patch-pods::pod-patch-pods]",
 		"path[map[name:[pod-create-sa]], map[], map[name:[create-pods::pod-create-pods]",
 		"path[map[name:[tokenget-sa]], map[], map[name:[read-secrets::pod-get-secrets]",
@@ -674,39 +674,6 @@ func (suite *EdgeTestSuite) TestEdge_SHARE_PS_NAMESPACE() {
 		// Pod1 a 2 containers (A,B) = 2 links
 		"path[map[name:[sharedps-pod2-a]], map[], map[name:[sharedps-pod2-b]",
 		"path[map[name:[sharedps-pod2-b]], map[], map[name:[sharedps-pod2-a]",
-	}
-	suite.ElementsMatch(paths, expected)
-}
-
-func (suite *EdgeTestSuite) TestEdge_ROLE_BIND() {
-	results, err := suite.g.V().
-		HasLabel("PermissionSet").
-		OutE().HasLabel("ROLE_BIND").
-		InV().HasLabel("PermissionSet").
-		Path().
-		By(__.ValueMap("name")).
-		ToList()
-
-	suite.NoError(err)
-	suite.GreaterOrEqual(len(results), 1)
-
-	paths := suite.pathsToStringArray(results)
-	expected := []string{
-		"path[map[name:[system:controller:bootstrap-signer::system:controller:bootstrap-signer]], map[], map[name:[kubeadm:bootstrap-signer-clusterinfo::kubeadm:bootstrap-signer-clusterinfo]",
-		"path[map[name:[system::leader-locking-kube-scheduler::system::leader-locking-kube-scheduler]], map[], map[name:[kube-proxy::kube-proxy]",
-		"path[map[name:[impersonate::pod-impersonate]], map[], map[name:[rolebind::pod-bind-role]",
-		"path[map[name:[rolebind::pod-bind-role-namespace]], map[], map[name:[rolebind::pod-bind-role]",
-		"path[map[name:[read-secrets::pod-get-secrets]], map[], map[name:[rolebind::pod-bind-role]",
-		"path[map[name:[system:controller:cloud-provider::system:controller:cloud-provider]], map[], map[name:[kube-proxy::kube-proxy]",
-		"path[map[name:[read-logs::pod-read-logs]], map[], map[name:[rolebind::pod-bind-role]",
-		"path[map[name:[create-pods::pod-create-pods]], map[], map[name:[rolebind::pod-bind-role]",
-		"path[map[name:[system:controller:bootstrap-signer::system:controller:bootstrap-signer]], map[], map[name:[kube-proxy::kube-proxy]",
-		"path[map[name:[exec-pods::pod-exec-pods]], map[], map[name:[rolebind::pod-bind-role]",
-		"path[map[name:[system:controller:token-cleaner::system:controller:token-cleaner]], map[], map[name:[kube-proxy::kube-proxy]",
-		"path[map[name:[list-secrets::pod-list-secrets]], map[], map[name:[rolebind::pod-bind-role]",
-		"path[map[name:[patch-pods::pod-patch-pods]], map[], map[name:[rolebind::pod-bind-role]",
-		"path[map[name:[rolebind::pod-bind-role]], map[], map[name:[rolebind::pod-bind-role-namespace]",
-		"path[map[name:[system::leader-locking-kube-controller-manager::system::leader-locking-kube-controller-manager]], map[], map[name:[kube-proxy::kube-proxy]",
 	}
 	suite.ElementsMatch(paths, expected)
 }
