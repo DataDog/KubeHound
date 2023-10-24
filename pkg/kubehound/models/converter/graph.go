@@ -27,7 +27,7 @@ func (c *GraphConverter) Container(input *store.Container, parent *store.Pod) (*
 		App:         input.Ownership.Application,
 		Team:        input.Ownership.Team,
 		Service:     input.Ownership.Service,
-		Namespace:   input.Inherited.Namespace,
+		Namespace:   parent.K8.Namespace,
 		Name:        input.K8.Name,
 		Image:       input.K8.Image,
 		Command:     input.K8.Command,

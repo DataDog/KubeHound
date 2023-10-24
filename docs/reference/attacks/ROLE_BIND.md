@@ -30,6 +30,27 @@ See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/s
 
 ## Checks
 
+Install kubectl (for ARM):
+
+```bash
+apt update && apt install -y curl && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl" && chmod +x kubectl
+```
+
+```bash
+root@rolebind-pod-rb-r-crb-cr-fail:/# ./kubectl auth can-i create clusterrolebindin
+Warning: resource 'clusterrolebindings' is not namespace scoped in group 'rbac.authorization.k8s.io'
+
+yes
+root@rolebind-pod-rb-r-crb-cr-fail:/# ./kubectl auth can-i bind clusterrole
+Warning: resource 'clusterroles' is not namespace scoped in group 'rbac.authorization.k8s.io'
+
+yes
+root@rolebind-pod-rb-r-crb-cr-fail:/# ./kubectl create clusterrolebinding rolebindadmin --clusterrole=cluster-admin --serviceaccount=default:rolebind-sa-rb-r-crb-cr-fail
+error: failed to create clusterrolebinding: clusterrolebindings.rbac.authorization.k8s.io is forbidden: User "system:serviceaccount:default:rolebind-sa-rb-r-crb-cr-fail" cannot create resource "clusterrolebindings" in API group "rbac.authorization.k8s.io" at the cluster scope
+root@rolebind-pod-rb-r-crb-cr-fail:/# ./kubectl create clusterrolebinding rolebindadmin --clusterrole=cluster-admin --serviceaccount=default:rolebind-sa-rb-r-crb-cr-fail -n default
+error: failed to create clusterrolebinding: clusterrolebindings.rbac.authorization.k8s.io is forbidden: User "system:serviceaccount:default:rolebind-sa-rb-r-crb-cr-fail" cannot create resource "clusterrolebindings" in API group "rbac.authorization.k8s.io" at the cluster scope
+```
+
 Simply ask kubectl:
 
 ```bash

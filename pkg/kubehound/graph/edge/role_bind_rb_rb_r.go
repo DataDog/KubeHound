@@ -15,15 +15,14 @@ import (
 )
 
 const (
-	RoleBindNamespaceLabel = "ROLE_BIND"
-	RoleBindspaceName      = "RoleBindNamespace"
+	RoleBindspaceName = "RoleBindRoleBindingbRoleBindingRole"
 )
 
 func init() {
-	Register(&RoleBindNamespace{}, RegisterDefault)
+	Register(&RoleBindRbRbR{}, RegisterDefault)
 }
 
-type RoleBindNamespace struct {
+type RoleBindRbRbR struct {
 	BaseEdge
 }
 
@@ -32,15 +31,15 @@ type roleBindNameSpaceGroup struct {
 	ToPerm   primitive.ObjectID `bson:"permset" json:"to_permission_set"`
 }
 
-func (e *RoleBindNamespace) Label() string {
-	return RoleBindNamespaceLabel
+func (e *RoleBindRbRbR) Label() string {
+	return RoleBindLabel
 }
 
-func (e *RoleBindNamespace) Name() string {
+func (e *RoleBindRbRbR) Name() string {
 	return RoleBindspaceName
 }
 
-func (e *RoleBindNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *RoleBindRbRbR) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*roleBindNameSpaceGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -49,7 +48,7 @@ func (e *RoleBindNamespace) Processor(ctx context.Context, oic *converter.Object
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.FromPerm, typed.ToPerm)
 }
 
-func (e *RoleBindNamespace) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
@@ -57,67 +56,62 @@ func (e *RoleBindNamespace) Stream(ctx context.Context, store storedb.Provider, 
 		bson.M{
 			"$match": bson.M{
 				"is_namespaced": true,
-			},
-		},
-		// Gather rolebinding details associated to the PermissionSets
-		bson.M{
-			"$lookup": bson.M{
-				"from":         "rolebindings",
-				"localField":   "role_binding_id",
-				"foreignField": "_id",
-				"as":           "result",
-			},
-		},
-		// Removing all rolebindings without subjects attached
-		bson.M{
-			"$match": bson.M{
-				"result": bson.M{
+				"rules": bson.M{
 					"$elemMatch": bson.M{
-						"subjects": bson.M{
-							"$exists": true,
-							"$ne":     bson.A{},
+						"$or": []bson.M{
+							{"apigroups": "*"},
+							{"apigroups": "rbac.authorization.k8s.io"},
 						},
 					},
 				},
-			},
-		},
-		bson.M{
-			"$unwind": bson.M{
-				"path": "$result",
-			},
-		},
-		// Unfold the subjets associated to the rolebindings
-		bson.M{
-			"$unwind": bson.M{
-				"path": "$result.subjects",
-			},
-		},
-		// Checking that the rolebindings is linked to a ServiceAccount
-		// OR the namespace match the namespace of the subject match the one from the rolebinding
-		bson.M{
-			"$match": bson.M{
-				"$expr": bson.M{
-					"$or": bson.A{
-						bson.M{
-							"$and": bson.A{
-								bson.M{
-									"$eq": bson.A{
-										"$namespace",
-										"$result.subjects.subject.namespace",
+				"$and": []bson.M{
+					{
+						"rules": bson.M{
+							"$elemMatch": bson.M{
+								"$and": []bson.M{
+									{
+										"$or": []bson.M{
+											{"verbs": "create"},
+											{"verbs": "*"},
+										},
 									},
-								},
-								bson.M{
-									"$eq": bson.A{
-										"$is_namespaced",
-										true,
+									{
+										"$or": []bson.M{
+											{"resources": "rolebindings"},
+											{"resources": "*"},
+										},
+									},
+									{
+										"$or": []bson.M{
+											{"resourcenames": nil},
+										},
 									},
 								},
 							},
 						},
-						bson.M{
-							"$eq": bson.A{
-								"$result.subjects.subject.kind",
-								"ServiceAccount",
+					},
+					{
+						"rules": bson.M{
+							"$elemMatch": bson.M{
+								"$and": []bson.M{
+									{
+										"$or": []bson.M{
+											{"verbs": "bind"},
+											{"verbs": "*"},
+										},
+									},
+									{
+										"$or": []bson.M{
+											{"resources": "roles"},
+											{"resources": "*"},
+										},
+									},
+									{
+										"$or": []bson.M{
+											{"resourcenames": nil},
+										},
+									},
+								},
 							},
 						},
 					},
