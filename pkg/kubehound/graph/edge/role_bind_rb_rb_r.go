@@ -151,7 +151,7 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 			},
 		},
 	}
-	cur, err := permissionSets.Aggregate(context.Background(), pipeline)
+	cur, err := permissionSets.Aggregate(ctx, pipeline)
 	if err != nil {
 		return err
 	}

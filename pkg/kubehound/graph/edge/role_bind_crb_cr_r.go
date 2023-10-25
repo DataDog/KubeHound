@@ -164,7 +164,7 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 			},
 		},
 		// Looking for all permissionSets link to the same namespace
-		bson.M{
+		{
 			"$lookup": bson.M{
 				"from":         "rolebindings",
 				"localField":   "role_binding_id",
@@ -172,7 +172,7 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 				"as":           "rb",
 			},
 		},
-		bson.M{
+		{
 			"$unwind": bson.M{
 				"path": "$rb",
 			},
@@ -189,7 +189,7 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 			},
 		},
 	}
-	cur, err := permissionSets.Aggregate(context.Background(), pipeline)
+	cur, err := permissionSets.Aggregate(ctx, pipeline)
 	if err != nil {
 		return err
 	}
