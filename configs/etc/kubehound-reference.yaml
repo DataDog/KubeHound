@@ -2,7 +2,9 @@
 # Reference KubeHound configuration
 #
 
+#
 # K8s collector configuration
+#
 collector:
   # Type of collector to use
   type: live-k8s-api-collector
@@ -10,6 +12,8 @@ collector:
   # Live collector configuration
   live:
     # Rate limit of requests/second to the Kubernetes API
+    # NOTE: most (>90%) of the current runtime of KubeHound is spent in the transfer of data from the remote K8s API server,
+    # and the bulk of that is spent waiting on rate limit. As such increasing this will improve performance roughly linearly.
     rate_limit_per_second: 60
 
     # # Number of entries retrieved by each call on the API (same for all Kubernetes entry types)
@@ -26,7 +30,9 @@ collector:
   #   # Directory holding the K8s json data files
   #   directory: /path/to/directory
 
+#
 # General storage configuration
+#
 storage:
   # Number of connection retries before declaring an error
   retry: 5
@@ -50,10 +56,12 @@ janusgraph:
   # Timeout on requests to the JanusGraph DB instance
   connection_timeout: 30s
 
+#
 # Datadog telemetry configuration
+#
 telemetry:
   # Whether to enable Datadog telemetry (default false)
-  enable: true
+  enabled: true
 
   # Default tags to add to all telemetry (free form key-value map)
   # tags:
@@ -69,7 +77,14 @@ telemetry:
     # URL to send tracer data to the Datadog agent
     url: "127.0.0.1:8226"
 
+#
 # Graph builder configuration
+#
+# NOTE: increasing batch sizes can have some performance improvements by reducing network latency in transferring data
+# between KubeGraph and the application. However, increasing it past a certain level can overload the backend leading 
+# to instability and eventually exceed the size limits of the websocket buffer used to transfer the data. Changing this
+# is not recommended.
+#
 builder:
   # Vertex builder configuration
   # vertex:
@@ -85,9 +100,11 @@ builder:
     large_cluster_optimizations: true
 
     # # Size of the worker pool handling parallel edge inserts
-    # worker_pool_size: 10
+    # # NOTE: this should only be changed if granting additional resources to the KubeGraph container
+    # worker_pool_size: 5
 
     # # Capacity of the worker pool handling parallel edge inserts
+    # # NOTE: this should only be changed in conjunction with the worker_pool_size
     # worker_pool_capacity: 100
 
     # # Batch size for edge inserts

@@ -95,48 +95,6 @@ func (_c *Provider_BulkWriter_Call) RunAndReturn(run func(context.Context, colle
 	return _c
 }
 
-// Clear provides a mock function with given fields: ctx
-func (_m *Provider) Clear(ctx context.Context) error {
-	ret := _m.Called(ctx)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
-		r0 = rf(ctx)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Provider_Clear_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Clear'
-type Provider_Clear_Call struct {
-	*mock.Call
-}
-
-// Clear is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Provider_Expecter) Clear(ctx interface{}) *Provider_Clear_Call {
-	return &Provider_Clear_Call{Call: _e.mock.On("Clear", ctx)}
-}
-
-func (_c *Provider_Clear_Call) Run(run func(ctx context.Context)) *Provider_Clear_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Provider_Clear_Call) Return(_a0 error) *Provider_Clear_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Provider_Clear_Call) RunAndReturn(run func(context.Context) error) *Provider_Clear_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Close provides a mock function with given fields: ctx
 func (_m *Provider) Close(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -268,6 +226,48 @@ func (_c *Provider_Name_Call) Return(_a0 string) *Provider_Name_Call {
 }
 
 func (_c *Provider_Name_Call) RunAndReturn(run func() string) *Provider_Name_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Prepare provides a mock function with given fields: ctx
+func (_m *Provider) Prepare(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Provider_Prepare_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Prepare'
+type Provider_Prepare_Call struct {
+	*mock.Call
+}
+
+// Prepare is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *Provider_Expecter) Prepare(ctx interface{}) *Provider_Prepare_Call {
+	return &Provider_Prepare_Call{Call: _e.mock.On("Prepare", ctx)}
+}
+
+func (_c *Provider_Prepare_Call) Run(run func(ctx context.Context)) *Provider_Prepare_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *Provider_Prepare_Call) Return(_a0 error) *Provider_Prepare_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Provider_Prepare_Call) RunAndReturn(run func(context.Context) error) *Provider_Prepare_Call {
 	_c.Call.Return(run)
 	return _c
 }

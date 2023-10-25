@@ -272,6 +272,6 @@ KubeHound was created by the Adversary Simulation Engineering (ASE) team at Data
 
 With additional support from:
 
-+ Christophe Tafani-Dereeper[@christophetd](https://twitter.com/christophetd)
++ Christophe Tafani-Dereeper [@christophetd](https://twitter.com/christophetd)
 
 We would also like to acknowledge the [BloodHound](https://github.com/BloodHoundAD/BloodHound) team for pioneering the use of graph theory in offensive security and inspiring us to create this project. 

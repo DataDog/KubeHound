@@ -51,7 +51,7 @@ func (jgp *JanusGraphProvider) Name() string {
 	return "JanusGraphProvider"
 }
 
-func (jgp *JanusGraphProvider) Clear(ctx context.Context) error {
+func (jgp *JanusGraphProvider) Prepare(ctx context.Context) error {
 	g := gremlin.Traversal_().WithRemote(jgp.drc)
 	tx := g.Tx()
 	defer tx.Close()

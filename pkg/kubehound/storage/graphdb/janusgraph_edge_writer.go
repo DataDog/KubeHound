@@ -16,6 +16,10 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+const (
+	TracerServicename = "kubegraph"
+)
+
 var _ AsyncEdgeWriter = (*JanusGraphEdgeWriter)(nil)
 
 type JanusGraphEdgeWriter struct {
@@ -86,31 +90,25 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 // batchWrite will write a batch of entries into the graph DB and block until the write completes.
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
 func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite,
+		tracer.Measured(), tracer.ServiceName(TracerServicename))
 	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
 	defer span.Finish()
 	defer jgv.writingInFlight.Done()
-
-	tx := jgv.traversalSource.Tx()
-	gtx, err := tx.Begin()
-	if err != nil {
-		return fmt.Errorf("%s edge insert transaction create: %w", jgv.builder, err)
-	}
-	defer tx.Close()
 
 	datalen := len(data)
 	_ = statsd.Gauge(telemetry.MetricGraphdbBatchWrite, float64(datalen), jgv.tags, 1)
 	log.Trace(ctx).Debugf("Batch write JanusGraphEdgeWriter with %d elements", datalen)
 	atomic.AddInt32(&jgv.wcounter, int32(datalen))
 
-	op := jgv.gremlin(gtx, data)
+	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()
-	err = <-promise
+	err := <-promise
 	if err != nil {
 		return fmt.Errorf("%s edge insert: %w", jgv.builder, err)
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 func (jgv *JanusGraphEdgeWriter) Close(ctx context.Context) error {
@@ -122,7 +120,8 @@ func (jgv *JanusGraphEdgeWriter) Close(ctx context.Context) error {
 // Flush triggers writes of any remaining items in the queue.
 // This is blocking
 func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationFlush, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationFlush,
+		tracer.Measured(), tracer.ServiceName(TracerServicename))
 	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
 	defer span.Finish()
 

@@ -11,7 +11,7 @@ collector:
   # Live collector configuration
   live:
     # Rate limit of requests/second to the Kubernetes API
-    rate_limit_per_second: 75
+    rate_limit_per_second: 150
 
     # Number of pages to buffer
     page_buffer_size: 50
@@ -43,7 +43,7 @@ janusgraph:
 # Datadog telemetry configuration
 telemetry:
   # Whether to enable Datadog telemetry (default false)
-  enable: true
+  enabled: true
 
   # Default tags to add to all telemetry (free form key-value map)
   tags:
@@ -68,10 +68,10 @@ builder:
 
   # Edge builder configuration
   edge:
-    worker_pool_size: 2
+    worker_pool_size: 5
 
     # Batch size for edge inserts
-    batch_size: 500
+    batch_size: 1000
     
     # Cluster impact batch size for edge inserts
     batch_size_cluster_impact: 10

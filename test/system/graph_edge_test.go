@@ -360,8 +360,8 @@ func (suite *EdgeTestSuite) TestEdge_PERMISSION_DISCOVER() {
 
 	paths := suite.pathsToStringArray(results)
 	expected := []string{
-		"path[map[name:[rolebind-sa]], map[], map[name:[rolebind::pod-bind-role]",
-		"path[map[name:[rolebind-namespace-sa]], map[], map[name:[rolebind::pod-bind-role-namespace]",
+		"path[map[name:[rolebind-sa]], map[], map[name:[rolebind-lmt::pod-bind-role]",
+		"path[map[name:[rolebind-namespace-sa]], map[], map[name:[rolebind-namespace::pod-bind-role-namespace]",
 		"path[map[name:[pod-patch-sa]], map[], map[name:[patch-pods::pod-patch-pods]",
 		"path[map[name:[pod-create-sa]], map[], map[name:[create-pods::pod-create-pods]",
 		"path[map[name:[tokenget-sa]], map[], map[name:[read-secrets::pod-get-secrets]",

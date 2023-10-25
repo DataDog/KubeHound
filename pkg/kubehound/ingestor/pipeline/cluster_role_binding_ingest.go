@@ -151,7 +151,7 @@ func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context,
 	o, err := i.r.storeConvert.ClusterRoleBinding(ctx, crb)
 	if err != nil {
 		if errors.Is(err, converter.ErrDanglingRoleBinding) {
-			log.Trace(ctx).Warnf("Cluster role binding dropped: %s: %s", err.Error(), crb.Name)
+			log.Trace(ctx).Debugf("Cluster role binding dropped: %s: %s", err.Error(), crb.Name)
 
 			return nil
 		}
@@ -182,7 +182,7 @@ func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context,
 	case errors.Is(err, converter.ErrRoleCacheMiss):
 		fallthrough
 	case errors.Is(err, converter.ErrRoleBindProperties):
-		log.Trace(ctx).Warnf("Permission set dropped (%s::%s): %v", crb.Namespace, crb.Name, err)
+		log.Trace(ctx).Debugf("Permission set dropped (%s::%s): %v", crb.Namespace, crb.Name, err)
 	default:
 		return err
 	}

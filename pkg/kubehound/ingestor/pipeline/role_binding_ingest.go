@@ -138,7 +138,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	o, err := i.r.storeConvert.RoleBinding(ctx, rb)
 	if err != nil {
 		if errors.Is(err, converter.ErrDanglingRoleBinding) {
-			log.Trace(ctx).Warnf("Role binding dropped (%s::%s): %s", rb.Namespace, rb.Name, err.Error())
+			log.Trace(ctx).Debugf("Role binding dropped (%s::%s): %s", rb.Namespace, rb.Name, err.Error())
 
 			return nil
 		}
@@ -169,7 +169,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	case errors.Is(err, converter.ErrRoleCacheMiss):
 		fallthrough
 	case errors.Is(err, converter.ErrRoleBindProperties):
-		log.Trace(ctx).Warnf("Permission set dropped (%s::%s): %v", rb.Namespace, rb.Name, err)
+		log.Trace(ctx).Debugf("Permission set dropped (%s::%s): %v", rb.Namespace, rb.Name, err)
 	default:
 		return err
 	}

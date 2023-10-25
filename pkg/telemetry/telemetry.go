@@ -16,6 +16,8 @@ type State struct {
 // return client to enable clean shutdown
 func Initialize(cfg *config.KubehoundConfig) (*State, error) {
 	if !cfg.Telemetry.Enabled {
+		log.I.Warnf("Telemetry disabled via configuration")
+
 		return &State{}, nil
 	}
 
