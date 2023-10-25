@@ -8,7 +8,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: clusterrolebind-crb-cr-crb-cr
+  name: rolebind-crb-cr-crb-cr
 rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["clusterrolebindings"]
@@ -24,7 +24,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: clusterrolebind-crb-cr-crb-cr
+  name: rolebind-crb-cr-crb-cr
 subjects:
   - kind: ServiceAccount
     name: rolebind-sa-crb-cr-crb-cr

@@ -145,9 +145,9 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 		},
 		// Projecting current PermissionSet with the associated one
 		bson.M{
-			"$group": bson.M{
-				"_id":     "$_id",
-				"permset": bson.M{"$first": "$linkpermset._id"},
+			"$project": bson.M{
+				"_id":     1,
+				"permset": "$linkpermset._id",
 			},
 		},
 	}

@@ -36,7 +36,8 @@ type Cluster struct {
 }
 
 const (
-	defaultNamespace = "default"
+	defaultNamespace      = "default"
+	defaultServiceAccount = "default"
 )
 
 var (
@@ -339,7 +340,7 @@ func AddPodToList(pod *corev1.Pod) error {
 	convertedPod, err := conv.Pod(&storePod)
 	// if we haven't defined the service account in the yaml file, k8s will do it for us.
 	if convertedPod.ServiceAccount == "" {
-		convertedPod.ServiceAccount = pod.Namespace
+		convertedPod.ServiceAccount = defaultServiceAccount
 	}
 	if err != nil {
 		return err
