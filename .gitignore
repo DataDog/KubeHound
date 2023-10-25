@@ -55,3 +55,6 @@ deployments/kubehound/kubegraph/dsl/kubehound/target
 
 # personal settings
 .vscode/settings.json
+
+# RBAC certificates
+test/setup/test-cluster/RBAC/
