@@ -1,8 +1,9 @@
 package tag
 
 const (
-	CollectorTag  = "collector"
-	ResourceTag   = "resource"
+	CollectorTag = "collector"
+	// ResourceTag   = "resource"
+	EntityTag     = "entity"
 	RunIdTag      = "run_id"
 	LabelTag      = "label"
 	CollectionTag = "collection"
@@ -19,13 +20,13 @@ const (
 )
 
 const (
-	ResourcePods                = "pods"
-	ResourceRoles               = "roles"
-	ResourceRolebindings        = "rolebindings"
-	ResourceNodes               = "nodes"
-	ResourceEndpoints           = "endpoints"
-	ResourceClusterRoles        = "clusterroles"
-	ResourceClusterRolebindings = "clusterrolebindings"
+	EntityPods                = "pods"
+	EntityRoles               = "roles"
+	EntityRolebindings        = "rolebindings"
+	EntityNodes               = "nodes"
+	EntityEndpoints           = "endpoints"
+	EntityClusterRoles        = "clusterroles"
+	EntityClusterRolebindings = "clusterrolebindings"
 )
 
 var (
@@ -48,8 +49,12 @@ func Storage(storage string) string {
 	return makeTag(StorageTag, storage)
 }
 
-func Resource(res string) string {
-	return makeTag(ResourceTag, res)
+// func Resource(res string) string {
+// 	return makeTag(ResourceTag, res)
+// }
+
+func Entity(name string) string {
+	return makeTag(EntityTag, name)
 }
 
 func Label(label string) string {

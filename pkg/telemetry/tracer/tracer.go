@@ -1,9 +1,12 @@
 package tracer
 
 import (
+	"strings"
+
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -19,12 +22,19 @@ func Initialize(cfg *config.KubehoundConfig) {
 		tracer.WithLogStartup(false),
 	}
 
+	// Add the base tags
+	for _, t := range tag.BaseTags {
+		split := strings.Split(t, ":")
+		if len(split) != 2 {
+			log.I.Fatalf("Invalid base tag in telemtry initialization: %s", t)
+		}
+		opts = append(opts, tracer.WithGlobalTag(split[0], split[1]))
+	}
+
 	// Optional tags from configuration
 	for tk, tv := range cfg.Telemetry.Tags {
 		opts = append(opts, tracer.WithGlobalTag(tk, tv))
 	}
-
-	TODO add run id to the spans
 
 	tracer.Start(opts...)
 }

@@ -107,7 +107,7 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 
 	if len(maw.ops) > maw.batchSize {
 		maw.consumerChan <- maw.ops
-		_ = statsd.Incr(metric.QueueSize, maw.tags, 1)
+		_ = statsd.Incr(metric.QueueSize, maw.tags, 1) //TODO this should be a gauge
 
 		// cleanup the ops array after we have copied it to the channel
 		maw.ops = nil

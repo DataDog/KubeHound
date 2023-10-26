@@ -15,6 +15,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/DataDog/KubeHound/pkg/worker"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -54,8 +55,8 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 
 // buildEdge inserts a class of edges into the graph database.
 func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, oic *converter.ObjectIDConverter, l *log.KubehoundLogger) error {
-	// TODO add type in the span
 	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildEdge, tracer.Measured(), tracer.ResourceName(e.Label()))
+	span.SetTag(tag.LabelTag, e.Label())
 	defer span.Finish()
 
 	l.Infof("Building edge %s", label)

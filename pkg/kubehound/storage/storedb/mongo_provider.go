@@ -11,7 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	mongotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go.mongodb.org/mongo-driver/mongo"
 )
 
 const (
@@ -30,7 +29,8 @@ type MongoProvider struct {
 
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
 	opts := options.Client()
-	opts.Monitor = mongotrace.NewMonitor()
+	//opts.Monitor = NewSizedMonitor()
+	//opts.Monitor = mongotrace.NewMonitor()
 	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", connectionTimeout))
 
 	client, err := mongo.Connect(ctx, opts)
