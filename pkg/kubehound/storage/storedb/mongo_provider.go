@@ -32,7 +32,7 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	//opts.Monitor = NewSizedMonitor()
 	//opts.Monitor = mongotrace.NewMonitor()
 	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", connectionTimeout))
-
+	opts.
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -80,6 +80,16 @@ func (mp *MongoProvider) Prepare(ctx context.Context) error {
 }
 
 func (mp *MongoProvider) Raw() any {
+	// TODO return a read optimized session! with monitor attached :)
+	// TODO create 2 clients on initialization
+	// 1 client is reader, optimize options and use monitor
+	// 1 client is writer, no monitor and optimize options!
+	opts := options.SessionOptions{
+
+	}
+	s, err := mp.client.StartSession()
+	s.Client().
+
 	return mp.client
 }
 

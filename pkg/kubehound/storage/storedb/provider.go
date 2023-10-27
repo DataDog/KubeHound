@@ -9,6 +9,14 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
+type Optimization int
+
+const (
+	BalancedOptimization Optimization = iota
+	ReadOptimization
+	WriteOptimization
+)
+
 type writerOptions struct {
 	Tags []string
 }

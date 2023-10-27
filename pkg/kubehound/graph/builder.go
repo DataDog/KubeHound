@@ -177,5 +177,7 @@ func (b *Builder) Run(ctx context.Context) error {
 
 	l.Info("Completed edge construction")
 
+	// Publish key stats
+
 	return nil
 }
