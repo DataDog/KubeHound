@@ -112,7 +112,7 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 		copy(copied, maw.ops)
 
 		maw.writingInFlight.Add(1)
-		maw.consumerChan <- maw.ops
+		maw.consumerChan <- copied
 		_ = statsd.Incr(metric.QueueSize, maw.tags, 1)
 
 		// cleanup the ops array after we have copied it to the channel
