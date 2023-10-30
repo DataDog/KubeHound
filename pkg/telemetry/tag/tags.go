@@ -1,8 +1,7 @@
 package tag
 
 const (
-	CollectorTag = "collector"
-	// ResourceTag   = "resource"
+	CollectorTag  = "collector"
 	EntityTag     = "entity"
 	RunIdTag      = "run_id"
 	LabelTag      = "label"
@@ -48,10 +47,6 @@ func Collector(collector string) string {
 func Storage(storage string) string {
 	return makeTag(StorageTag, storage)
 }
-
-// func Resource(res string) string {
-// 	return makeTag(ResourceTag, res)
-// }
 
 func Entity(name string) string {
 	return makeTag(EntityTag, name)

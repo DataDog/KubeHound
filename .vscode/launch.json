@@ -7,8 +7,8 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/kubehound",
-            "args": ["-c", "${workspaceFolder}/configs/etc/kubehound-dd.yaml"],
-            // "env": {}      
+            "args": ["-c", "${workspaceFolder}/configs/etc/kubehound.yaml"],
+            "env": {}      
         }
     ]
 }
