@@ -51,6 +51,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
     public static final int PATH_HOPS_MIN = 1;
     public static final int PATH_HOPS_MAX = 15;
     public static final int PATH_HOPS_DEFAULT = 10;
+    public static final int PATH_HOPS_MIN_DEFAULT = 6;
 
     /**
      * From a {@code Vertex} traverse immediate edges to display the next set of possible attacks and targets.
@@ -136,6 +137,19 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
      *
      */
     public default <E2 extends Comparable> GraphTraversal<S, E2> minHopsToCritical() {
+        return minHopsToCritical(PATH_HOPS_MIN_DEFAULT);
+    }
+
+    /**
+     * From a {@code Vertex} returns the hop count of the shortest path to a critical asset.
+     *   
+     * @param maxHops the maximum number of hops in an attack path to consider
+     *
+     */
+    public default <E2 extends Comparable> GraphTraversal<S, E2> minHopsToCritical(int maxHops) {
+        if (maxHops < PATH_HOPS_MIN) throw new IllegalArgumentException(String.format("maxHops must be >= %d", PATH_HOPS_MIN));
+        if (maxHops > PATH_HOPS_MAX) throw new IllegalArgumentException(String.format("maxHops must be <= %d", PATH_HOPS_MAX));
+
         return repeat((
                 (KubeHoundTraversalDsl) __.out())
                 .simplePath()
@@ -143,7 +157,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
                 __.has("critical", true)
                 .or()
                 .loops()
-                .is(PATH_HOPS_DEFAULT)
+                .is(maxHops)
             ).has("critical", true)
             .path()
             .count(local)
