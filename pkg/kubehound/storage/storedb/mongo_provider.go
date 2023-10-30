@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	mongotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go.mongodb.org/mongo-driver/mongo"
 )
 
 const (
@@ -22,9 +23,42 @@ var (
 )
 
 type MongoProvider struct {
-	client *mongo.Client
-	db     *mongo.Database
+	// client *mongo.Client
+	// db     *mongo.Database
+	reader *mongo.Client
+	writer *mongo.Client
 	tags   []string
+}
+
+func createClient(ctx context.Context, opts *options.ClientOptions, timeout time.Duration) (*mongo.Client, error) {
+	client, err := mongo.Connect(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func createReader(ctx context.Context, url string, timeout time.Duration) (*mongo.Client, error) {
+	opts := options.Client()
+	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", timeout))
+	opts.Monitor = mongotrace.NewMonitor()
+
+	return createClient(ctx, opts, timeout)
+}
+
+func createWriter(ctx context.Context, url string, timeout time.Duration) (*mongo.Client, error) {
+	opts := options.Client()
+	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", timeout))
+
+	return createClient(ctx, opts, timeout)
 }
 
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
@@ -94,6 +128,11 @@ func (mp *MongoProvider) HealthCheck(ctx context.Context) (bool, error) {
 }
 
 func (mp *MongoProvider) Close(ctx context.Context) error {
+	errors := errors.Mu
+	if mp.reader != nil {
+		err := mp.reader.Disconnect(ctx)
+	}
+	err := mp.reader.Disconnect(ctx)
 	return mp.client.Disconnect(ctx)
 }
 
