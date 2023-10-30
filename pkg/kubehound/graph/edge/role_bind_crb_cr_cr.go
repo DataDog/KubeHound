@@ -98,6 +98,7 @@ func (e *RoleBindCrbCrCr) Stream(ctx context.Context, store storedb.Provider, c 
 		// $match stage
 		{
 			"$match": bson.M{
+				// looking for CRB/CR role only
 				"is_namespaced": false,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
@@ -108,6 +109,7 @@ func (e *RoleBindCrbCrCr) Stream(ctx context.Context, store storedb.Provider, c 
 					},
 				},
 				"$and": []bson.M{
+					// looking for creation of rolebindings / clusterrolebindings
 					{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
@@ -128,13 +130,13 @@ func (e *RoleBindCrbCrCr) Stream(ctx context.Context, store storedb.Provider, c 
 									{
 										"$or": []bson.M{
 											{"resourcenames": nil},
-											{"resourcenames": "*"},
 										},
 									},
 								},
 							},
 						},
 					},
+					// Looking for binding clusterroles
 					{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
@@ -154,7 +156,6 @@ func (e *RoleBindCrbCrCr) Stream(ctx context.Context, store storedb.Provider, c 
 									{
 										"$or": []bson.M{
 											{"resourcenames": nil},
-											{"resources": "*"},
 										},
 									},
 								},

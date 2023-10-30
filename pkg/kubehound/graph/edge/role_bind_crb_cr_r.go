@@ -108,6 +108,7 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 					},
 				},
 				"$and": []bson.M{
+					// Looking for creation of rolebindings
 					{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
@@ -127,13 +128,13 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 									{
 										"$or": []bson.M{
 											{"resourcenames": nil},
-											{"resourcenames": "*"},
 										},
 									},
 								},
 							},
 						},
 					},
+					// Looking for binding roles
 					{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
@@ -153,7 +154,6 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 									{
 										"$or": []bson.M{
 											{"resourcenames": nil},
-											{"resources": "*"},
 										},
 									},
 								},

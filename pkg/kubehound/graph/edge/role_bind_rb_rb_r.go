@@ -55,6 +55,7 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 	pipeline := bson.A{
 		bson.M{
 			"$match": bson.M{
+				// looking for RB CR/R role only
 				"is_namespaced": true,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
@@ -65,6 +66,7 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 					},
 				},
 				"$and": []bson.M{
+					// Looking for creation of rolebindings
 					{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
@@ -90,6 +92,7 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 							},
 						},
 					},
+					// Looking for binding roles
 					{
 						"rules": bson.M{
 							"$elemMatch": bson.M{
