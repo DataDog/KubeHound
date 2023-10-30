@@ -120,6 +120,7 @@ func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builde
 	c cache.CacheProvider, opts ...WriterOption) (AsyncVertexWriter, error) {
 
 	opts = append(opts, WithTags(jgp.tags))
+
 	return NewJanusGraphAsyncVertexWriter(ctx, jgp.drc, v, c, opts...)
 }
 
