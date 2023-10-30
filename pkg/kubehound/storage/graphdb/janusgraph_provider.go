@@ -9,15 +9,19 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
-// TODO maybe move that into a config file?
-const channelSizeBatchFactor = 4
+const (
+	channelSizeBatchFactor = 4 // TODO maybe move that into a config file?
+	StorageProviderName    = "janusgraph"
+)
 
-var _ Provider = (*JanusGraphProvider)(nil)
+var (
+	_ Provider = (*JanusGraphProvider)(nil)
+)
 
 type JanusGraphProvider struct {
 	drc  *gremlin.DriverRemoteConnection
@@ -41,14 +45,14 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 
 	jgp := &JanusGraphProvider{
 		drc:  driver,
-		tags: append(telemetry.BaseTags, telemetry.TagTypeJanusGraph),
+		tags: append(tag.BaseTags, tag.Storage(StorageProviderName)),
 	}
 
 	return jgp, nil
 }
 
 func (jgp *JanusGraphProvider) Name() string {
-	return "JanusGraphProvider"
+	return StorageProviderName
 }
 
 func (jgp *JanusGraphProvider) Prepare(ctx context.Context) error {
@@ -115,11 +119,15 @@ func (jgp *JanusGraphProvider) Raw() any {
 func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builder,
 	c cache.CacheProvider, opts ...WriterOption) (AsyncVertexWriter, error) {
 
+	opts = append(opts, WithTags(jgp.tags))
+
 	return NewJanusGraphAsyncVertexWriter(ctx, jgp.drc, v, c, opts...)
 }
 
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
 func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error) {
+	opts = append(opts, WithTags(jgp.tags))
+
 	return NewJanusGraphAsyncEdgeWriter(ctx, jgp.drc, e, opts...)
 }
 

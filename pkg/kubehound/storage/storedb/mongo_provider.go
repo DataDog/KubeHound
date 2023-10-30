@@ -6,15 +6,20 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	mongotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go.mongodb.org/mongo-driver/mongo"
 )
 
-var _ Provider = (*MongoProvider)(nil)
+const (
+	StorageProviderName = "mongodb"
+)
+
+var (
+	_ Provider = (*MongoProvider)(nil)
+)
 
 type MongoProvider struct {
 	client *mongo.Client
@@ -24,9 +29,7 @@ type MongoProvider struct {
 
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
 	opts := options.Client()
-	opts.Monitor = mongotrace.NewMonitor()
 	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", connectionTimeout))
-
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -44,7 +47,7 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 	return &MongoProvider{
 		client: client,
 		db:     db,
-		tags:   []string{telemetry.TagTypeMongodb},
+		tags:   append(tag.BaseTags, tag.Storage(StorageProviderName)),
 	}, nil
 }
 
@@ -78,7 +81,7 @@ func (mp *MongoProvider) Raw() any {
 }
 
 func (mp *MongoProvider) Name() string {
-	return "MongoProvider"
+	return StorageProviderName
 }
 
 func (mp *MongoProvider) HealthCheck(ctx context.Context) (bool, error) {
