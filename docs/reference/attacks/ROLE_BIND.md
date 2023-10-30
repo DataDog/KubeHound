@@ -56,7 +56,7 @@ But, the PermissionSet object is created only if a role is linked by a rolebindi
 * **All the PermissionSet are created from at the ingestion time.** Currently no attacks create new assets in the graph. It means only the "existing" PermissionSet can be used in the attack path generation.
 
 So some of the usecases are not fully covered:
-| Usecase #| Coverage | Description| 
+| Usecase #| Coverage | Limitation description| 
 |------|-------|---------|
 | 1 | Full | N/A |
 | 2 | Limited | All the PermissionSet that are not namespaced are linked to a single specific namespace. Yet, this attack allow to bind a role to any namespace. Therefore, we would need to create additional PermissionSet for every namespace if we want to fully cover the attack|
@@ -64,9 +64,11 @@ So some of the usecases are not fully covered:
 | 4 | None | To cover this usecase, we need duplicate a non-namespaced PermissionSet to a namespace one. |
 
 
-### Edge case
+### Limitation of the can-i Kubernetes API
 
-If a PermissionSet is linked by a RoleBinding but allows you to `create` a `ClusterRoleBinding` and `bind` a `ClusterRole`, even if you "technically" have the right to do so (by asking the `can-i` API from Kubernetes), you will not be able to escalate the privilege.
+The PermissionSet (linked by RoleBinding/Role) **allows access to namespaced objects only**. So even if the verb allows you to `create` a `ClusterRoleBinding` and `bind` a `ClusterRole`, it will not work because those objects are not namespaced. With this PermissionSet (RB/R), the scope is only namespaced objects. 
+
+K8s API will let you create invalid configs, it is considered as "a feature of Kubernetes RBAC". For instance you can create RBAC that will give you rights to allow the educate right on dolphin objects. So Kubernetes won't warn you if you get something wrong, because it doesn’t have a list of what “right” looks like. So when asking the `can-i` API from Kubernetes, it will tell you that you can `create` a `ClusterRoleBinding` and `bind` a `ClusterRole` because it will only process a "regex check".
 
 Asking the API if I can create/bind:
 
@@ -81,7 +83,7 @@ Warning: resource 'clusterroles' is not namespace scoped in group 'rbac.authoriz
 yes
 ```
 
-Exploiting the attack fails:
+Exploiting the attack fails (as expected):
 
 ```bash
 root@rolebind-pod-rb-r-crb-cr-fail:/# ./kubectl create clusterrolebinding rolebindadmin --clusterrole=cluster-admin --serviceaccount=default:rolebind-sa-rb-r-crb-cr-fail
@@ -185,4 +187,6 @@ Creating `(Cluster)RoleBinding` is a very powerful privilege and should not be r
 + [Securing Kubernetes Clusters by Eliminating Risky Permissions](https://www.cyberark.com/resources/threat-research-blog/securing-kubernetes-clusters-by-eliminating-risky-permissions)
 + [Getting into a bind with Kubernetes](https://raesene.github.io/blog/2021/01/16/Getting-Into-A-Bind-with-Kubernetes/)
 + [Official Kubernetes Documentation: Bind verb](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#bind-verb)
++ [Official Kubernetes Documentation: RBAC rules](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 + [Mixing Kubernetes Roles, RoleBindings, ClusterRoles, and ClusterBindings](https://octopus.com/blog/k8s-rbac-roles-and-bindings)
++ [RBAC Virtual Verbs: Teaching Kubernetes to Educate Dolphins](https://blog.aquasec.com/kubernetes-verbs)
