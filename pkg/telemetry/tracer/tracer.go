@@ -24,8 +24,9 @@ func Initialize(cfg *config.KubehoundConfig) {
 
 	// Add the base tags
 	for _, t := range tag.BaseTags {
+		const tagSplitLen = 2
 		split := strings.Split(t, ":")
-		if len(split) != 2 {
+		if len(split) != tagSplitLen {
 			log.I.Fatalf("Invalid base tag in telemtry initialization: %s", t)
 		}
 		opts = append(opts, tracer.WithGlobalTag(split[0], split[1]))
