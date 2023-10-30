@@ -27,6 +27,7 @@ var _ AsyncWriter = (*MongoAsyncWriter)(nil)
 type MongoAsyncWriter struct {
 	collection      collections.Collection
 	ops             []mongo.WriteModel
+	opsLock         *sync.RWMutex
 	dbWriter        *mongo.Collection
 	batchSize       int
 	consumerChan    chan []mongo.WriteModel
@@ -46,6 +47,8 @@ func NewMongoAsyncWriter(ctx context.Context, db *mongo.Database, collection col
 		tags:            append(wOpts.Tags, tag.Collection(collection.Name())),
 		collection:      collection,
 		writingInFlight: &sync.WaitGroup{},
+		ops:             make([]mongo.WriteModel, 0),
+		opsLock:         &sync.RWMutex{},
 	}
 	maw.consumerChan = make(chan []mongo.WriteModel, consumerChanSize)
 	maw.startBackgroundWriter(ctx)
@@ -102,6 +105,9 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 
 // Queue add a model to an asynchronous write queue. Non-blocking.
 func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
+	maw.opsLock.Lock()
+	defer maw.opsLock.Unlock()
+
 	maw.ops = append(maw.ops, mongo.NewInsertOneModel().SetDocument(model))
 
 	if len(maw.ops) > maw.batchSize {
@@ -129,6 +135,9 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 	if maw.collection == nil {
 		return fmt.Errorf("mongodb collection is not initialized")
 	}
+
+	maw.opsLock.Lock()
+	defer maw.opsLock.Unlock()
 
 	if len(maw.ops) == 0 {
 		log.Trace(ctx).Debugf("Skipping flush on %s as no write operations", maw.collection.Name())

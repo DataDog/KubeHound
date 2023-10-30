@@ -23,12 +23,14 @@ var (
 	_ Provider = (*MongoProvider)(nil)
 )
 
+// A MongoDB based store provider implementation.
 type MongoProvider struct {
-	reader *mongo.Client
-	writer *mongo.Client
-	tags   []string
+	reader *mongo.Client // MongoDB client optimized for read operations
+	writer *mongo.Client // MongoDB client optimized for write operations
+	tags   []string      // Tags to be applied for telemetry
 }
 
+// createClient creates a new MongoDB client with the provided options.
 func createClient(ctx context.Context, opts *options.ClientOptions, timeout time.Duration) (*mongo.Client, error) {
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
@@ -45,26 +47,29 @@ func createClient(ctx context.Context, opts *options.ClientOptions, timeout time
 	return client, nil
 }
 
-func createReaderWriter(ctx context.Context, url string, timeout time.Duration) (reader *mongo.Client, writer *mongo.Client, err error) {
+// createReaderWriter creates a pair of MongoDB clients - one for writes and another for reads.
+func createReaderWriter(ctx context.Context, url string, timeout time.Duration) (*mongo.Client, *mongo.Client, error) {
 	baseOpts := options.Client()
 	baseOpts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", timeout))
 
-	writer, err = createClient(ctx, baseOpts, timeout)
+	writer, err := createClient(ctx, baseOpts, timeout)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	opts := baseOpts
 	opts.Monitor = mongotrace.NewMonitor()
-	reader, err = createClient(ctx, opts, timeout)
+	reader, err := createClient(ctx, opts, timeout)
 	if err != nil {
-		writer.Disconnect(ctx)
+		_ = writer.Disconnect(ctx)
+
 		return nil, nil, err
 	}
 
 	return reader, writer, nil
 }
 
+// NewMongoProvider creates a new instance of the MongoDB store provider
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
 	reader, writer, err := createReaderWriter(ctx, url, connectionTimeout)
 	if err != nil {

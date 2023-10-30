@@ -272,8 +272,8 @@ func (_c *Provider_Prepare_Call) RunAndReturn(run func(context.Context) error) *
 	return _c
 }
 
-// Raw provides a mock function with given fields:
-func (_m *Provider) Raw() interface{} {
+// Reader provides a mock function with given fields:
+func (_m *Provider) Reader() interface{} {
 	ret := _m.Called()
 
 	var r0 interface{}
@@ -288,29 +288,29 @@ func (_m *Provider) Raw() interface{} {
 	return r0
 }
 
-// Provider_Raw_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Raw'
-type Provider_Raw_Call struct {
+// Provider_Reader_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Reader'
+type Provider_Reader_Call struct {
 	*mock.Call
 }
 
-// Raw is a helper method to define mock.On call
-func (_e *Provider_Expecter) Raw() *Provider_Raw_Call {
-	return &Provider_Raw_Call{Call: _e.mock.On("Raw")}
+// Reader is a helper method to define mock.On call
+func (_e *Provider_Expecter) Reader() *Provider_Reader_Call {
+	return &Provider_Reader_Call{Call: _e.mock.On("Reader")}
 }
 
-func (_c *Provider_Raw_Call) Run(run func()) *Provider_Raw_Call {
+func (_c *Provider_Reader_Call) Run(run func()) *Provider_Reader_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *Provider_Raw_Call) Return(_a0 interface{}) *Provider_Raw_Call {
+func (_c *Provider_Reader_Call) Return(_a0 interface{}) *Provider_Reader_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *Provider_Raw_Call) RunAndReturn(run func() interface{}) *Provider_Raw_Call {
+func (_c *Provider_Reader_Call) RunAndReturn(run func() interface{}) *Provider_Reader_Call {
 	_c.Call.Return(run)
 	return _c
 }
