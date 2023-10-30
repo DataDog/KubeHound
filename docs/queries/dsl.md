@@ -395,7 +395,8 @@ kh.services().hasCriticalPath()
 From a Vertex returns the hop count of the shortest path to a critical asset.
 
 ```java
- <E2 extends Comparable> GraphTraversal<S, E2> minHopsToCritical()
+<E2 extends Comparable> GraphTraversal<S, E2> minHopsToCritical()
+<E2 extends Comparable> GraphTraversal<S, E2> minHopsToCritical(int maxHops)
 ```
 
 Example usage:
@@ -404,8 +405,8 @@ Example usage:
 // Shortest hops from a service to a critical asset
 kh.services().minHopsToCritical()
 
-// Shortest hops from a compromised engineer credential to a critical asset
-kh.group("engineering").minHopsToCritical()
+// Shortest hops from a compromised engineer credential to a critical asset (up to 6)
+kh.group("engineering").minHopsToCritical(6)
 ```
 
 ### CriticalPathsFreq Step
