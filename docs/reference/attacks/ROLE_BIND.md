@@ -25,12 +25,14 @@ A role that grants permission to create or modify `(Cluster)RoleBindings` can al
 An attacker with sufficient permission can create a `RoleBinding` with the default existing admin `ClusterRole` and bind it to a compromised user. By creating this `RoleBinding`, the compromised user becomes highly privileged, and can execute privileged operations in the cluster (reading secrets, creating pods, etc.).
 
 To exploit the attack we need to:
+
 * Be able to `create` (verb) a `clusterolebinding` or `rolebinding` (resource).
 * Be able to `bind` (verb) a `clusterrole` or a `role` (resource).
 
 ### RBAC
 
 To fully understand the attacks we need to know the basic around RBAC in kubernetes:
+
 * Roles and role bindings must exist in the same namespace.
 * Role bindings can exist in separate namespaces to service accounts.
 * Role bindings can link cluster roles, but they only grant access to the namespace of the role binding.
@@ -40,10 +42,12 @@ To fully understand the attacks we need to know the basic around RBAC in kuberne
 In KubeHound we added an abstraction called PermissionSet which is an object that link the RoleBinding and the Role directly (in one object). When creating every PermissionSet all the above rules are enforced to make sure the scope is valid.
 
 In the bind attack there is 2 levels to checks:
+
 * The PermissionSet itself (rolebinding/role) which will grant the role to designated subject 
 * The actual verbs allowed by the PermissionSet. We are looking for the verbs `create` and `bind`.
 
 To test all usecases, we created unit tests for each:
+
 * CRB_CR: regroup all the PermissionSets with **C**luster**R**ole**B**inding / **C**luster**R**ole.
 * RB_CR-SA: regroup all the PermissionSets with **R**ole**B**inding/**C**luster**R**ole for a **S**ervice **A**ccount.
 * RB_R-SA: regroup all the PermissionSets with **R**ole**B**inding/**R**ole for a **S**ervice**A**ccount.
@@ -52,10 +56,12 @@ To test all usecases, we created unit tests for each:
 ![Summarizing RBAC attacks using the bind verb](../../images/ROLE_BIND_overall_view.png)
 
 But, the PermissionSet object is created only if a role is linked by a rolebinding, this imply:
+
 * **If a role is not linked by a role binding, no PermissionSet will be created in the graph.** Therefore this role can not be used in any attack paths (there is no direct role abstraction)
 * **All the PermissionSet are created from at the ingestion time.** Currently no attacks create new assets in the graph. It means only the "existing" PermissionSet can be used in the attack path generation.
 
 So some of the usecases are not fully covered:
+
 | Usecase #| Coverage | Limitation description| 
 |------|-------|---------|
 | 1 | Full | N/A |
@@ -101,9 +107,18 @@ Users and groups have been created in the Kind Cluster. Each user have it is own
 
 ## Prerequisites
 
-Ability to interact with the K8s API with a role allowing modify or create access to `(Cluster)RoleBindings`.
+Ability to interact with the K8s API with a role allowing modify or create access to `(Cluster)RoleBindings`. Pods config for all the use cases:
 
-See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/ROLE_BIND.yaml).
+* [ROLE_BIND_CRB_CR](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/ROLE_BIND_CRB_CR.yaml): ClusterRoleBinding / ClusterRole 
+* [ROLE_BIND_RB_CR-SA](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/ROLE_BIND_RB_CR-SA.yaml): RoleBinding / ClusterRole for ServiceAccounts
+* [ROLE_BIND_RB_R-SA](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/ROLE_BIND_RB_R-SA.yaml): RoleBinding / Role for ServiceAccounts
+* [ROLE_BIND_RB_R-UG](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/ROLE_BIND_RB_R-UG.yaml): RoleBinding / Role for Users/Groups
+
+The following file regroups some assets needed to exploit/test the attacks [ROLE_BIND_ALL](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/ROLE_BIND_ALL.yaml):
+
+* `Admin` Role not bind to any account in the default namespace. This can be bind using `./kubectl create rolebinding rbr-admin --role=admin --serviceaccount=$SAS -n default` for instance.
+* Instance (in vault namespace) into reach from the role bind exploitation: `./kubectl get pods -n vault`
+
 
 ## Checks
 
@@ -178,8 +193,11 @@ Creating `(Cluster)RoleBinding` is a very powerful privilege and should not be r
 
 ## Calculation
 
-+ [RoleBind](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/role_bind.go)
-+ [RoleBindNamespace](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/role_bind_namespace.go)
++ [RoleBind - UseCase 1](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/role_bind_crb_cr_cr.go)
++ [RoleBind - UseCase 2](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/role_bind_crb_cr_r.go)
++ [RoleBind - UseCase 3](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/role_bind_rb_rb_r.go)
++ [RoleBind - UseCase 4 - not implemented yet](https://github.com/DataDog/KubeHound/tree/main/pkg/kubehound/graph/edge/role_bind_rb_rb_cr.go)
+
 
 ## References:
 
