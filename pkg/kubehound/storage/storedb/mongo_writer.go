@@ -88,8 +88,6 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 	span, ctx := tracer.StartSpanFromContext(ctx, span.MongoDBBatchWrite, tracer.Measured())
 	span.SetTag(tag.CollectionTag, maw.collection.Name())
 	defer span.Finish()
-
-	maw.writingInFlight.Add(1)
 	defer maw.writingInFlight.Done()
 
 	_ = statsd.Count(metric.ObjectWrite, int64(len(ops)), maw.tags, 1)
@@ -109,8 +107,11 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 	defer maw.opsLock.Unlock()
 
 	maw.ops = append(maw.ops, mongo.NewInsertOneModel().SetDocument(model))
-
 	if len(maw.ops) > maw.batchSize {
+		copied := make([]mongo.WriteModel, len(maw.ops))
+		copy(copied, maw.ops)
+
+		maw.writingInFlight.Add(1)
 		maw.consumerChan <- maw.ops
 		_ = statsd.Incr(metric.QueueSize, maw.tags, 1)
 
@@ -139,24 +140,20 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 	maw.opsLock.Lock()
 	defer maw.opsLock.Unlock()
 
-	if len(maw.ops) == 0 {
-		log.Trace(ctx).Debugf("Skipping flush on %s as no write operations", maw.collection.Name())
-		// we need to send something to the channel from this function whenever we don't return an error
-		// we cannot defer it because the go routine may last longer than the current function
-		// the defer is going to be executed at the return time, whetever or not the inner go routine is processing data
-		maw.writingInFlight.Wait()
+	if len(maw.ops) != 0 {
+		maw.writingInFlight.Add(1)
+		err := maw.batchWrite(ctx, maw.ops)
+		if err != nil {
+			log.Trace(ctx).Errorf("batch write %s: %+v", maw.collection.Name(), err)
+			maw.writingInFlight.Wait()
 
-		return nil
+			return err
+		}
+
+		maw.ops = nil
 	}
 
-	err := maw.batchWrite(ctx, maw.ops)
-	if err != nil {
-		maw.writingInFlight.Wait()
-
-		return err
-	}
-
-	maw.ops = nil
+	maw.writingInFlight.Wait()
 
 	return nil
 }

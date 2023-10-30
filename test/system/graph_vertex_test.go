@@ -260,18 +260,16 @@ func (suite *VertexTestSuite) TestVertexPermissionSet() {
 	suite.GreaterOrEqual(len(results), 1)
 
 	present := suite.resultsToStringArray(results)
-	expected := []string{
-		"read-secrets::pod-get-secrets",
-		"create-pods::pod-create-pods",
-		"patch-pods::pod-patch-pods",
-		"read-logs::pod-read-logs",
-		"rolebind::pod-bind-role",
-		"list-secrets::pod-list-secrets",
-		"exec-pods::pod-exec-pods",
-		"impersonate::pod-impersonate",
+	expected := []string{}
+	for _, perm := range expectedPermissionSets {
+		if perm.Namespace == "default" {
+			expected = append(expected, perm.Name)
+		}
 	}
 
-	suite.Subset(present, expected)
+	suite.ElementsMatch(present, expected)
+
+	//suite.Subset(present, expected)
 }
 
 func (suite *VertexTestSuite) TestVertexCritical() {
@@ -297,7 +295,7 @@ func (suite *VertexTestSuite) TestVertexCritical() {
 func (suite *VertexTestSuite) TestVertexVolume() {
 	results, err := suite.g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
 	suite.NoError(err)
-	suite.Equal(52, len(results))
+	suite.Equal(53, len(results))
 
 	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("sourcePath", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
 	suite.NoError(err)
