@@ -25,27 +25,26 @@ const (
 var _ AsyncWriter = (*MongoAsyncWriter)(nil)
 
 type MongoAsyncWriter struct {
-	mongodb         *MongoProvider
+	collection      collections.Collection
 	ops             []mongo.WriteModel
-	collection      *mongo.Collection
+	dbWriter        *mongo.Collection
 	batchSize       int
 	consumerChan    chan []mongo.WriteModel
 	writingInFlight *sync.WaitGroup
 	tags            []string
 }
 
-func NewMongoAsyncWriter(ctx context.Context, mp *MongoProvider, collection collections.Collection, opts ...WriterOption) *MongoAsyncWriter {
+func NewMongoAsyncWriter(ctx context.Context, db *mongo.Database, collection collections.Collection, opts ...WriterOption) *MongoAsyncWriter {
 	wOpts := &writerOptions{}
 	for _, o := range opts {
 		o(wOpts)
 	}
 
 	maw := MongoAsyncWriter{
-		mongodb:    mp,
-		collection: mp.db.Collection(collection.Name()),
-		batchSize:  collection.BatchSize(),
-		tags:       append(wOpts.Tags, tag.Collection(collection.Name())),
-
+		dbWriter:        db.Collection(collection.Name()),
+		batchSize:       collection.BatchSize(),
+		tags:            append(wOpts.Tags, tag.Collection(collection.Name())),
+		collection:      collection,
 		writingInFlight: &sync.WaitGroup{},
 	}
 	maw.consumerChan = make(chan []mongo.WriteModel, consumerChanSize)
@@ -93,7 +92,7 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 	_ = statsd.Count(metric.ObjectWrite, int64(len(ops)), maw.tags, 1)
 
 	bulkWriteOpts := options.BulkWrite().SetOrdered(false)
-	_, err := maw.collection.BulkWrite(ctx, ops, bulkWriteOpts)
+	_, err := maw.dbWriter.BulkWrite(ctx, ops, bulkWriteOpts)
 	if err != nil {
 		return fmt.Errorf("could not write in bulk to mongo: %w", err)
 	}
@@ -123,7 +122,7 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 	span.SetTag(tag.CollectionTag, maw.collection.Name())
 	defer span.Finish()
 
-	if maw.mongodb.client == nil {
+	if maw.dbWriter == nil {
 		return fmt.Errorf("mongodb client is not initialized")
 	}
 
@@ -155,7 +154,7 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 
 // Close cleans up any resources used by the AsyncWriter implementation. Writer cannot be reused after this call.
 func (maw *MongoAsyncWriter) Close(ctx context.Context) error {
-	if maw.mongodb.client == nil {
+	if maw.dbWriter == nil {
 		return nil
 	}
 

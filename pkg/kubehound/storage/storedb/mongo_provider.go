@@ -7,6 +7,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+	"github.com/hashicorp/go-multierror"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -23,8 +24,6 @@ var (
 )
 
 type MongoProvider struct {
-	// client *mongo.Client
-	// db     *mongo.Database
 	reader *mongo.Client
 	writer *mongo.Client
 	tags   []string
@@ -46,59 +45,54 @@ func createClient(ctx context.Context, opts *options.ClientOptions, timeout time
 	return client, nil
 }
 
-func createReader(ctx context.Context, url string, timeout time.Duration) (*mongo.Client, error) {
-	opts := options.Client()
-	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", timeout))
+func createReaderWriter(ctx context.Context, url string, timeout time.Duration) (reader *mongo.Client, writer *mongo.Client, err error) {
+	baseOpts := options.Client()
+	baseOpts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", timeout))
+
+	writer, err = createClient(ctx, baseOpts, timeout)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	opts := baseOpts
 	opts.Monitor = mongotrace.NewMonitor()
+	reader, err = createClient(ctx, opts, timeout)
+	if err != nil {
+		writer.Disconnect(ctx)
+		return nil, nil, err
+	}
 
-	return createClient(ctx, opts, timeout)
-}
-
-func createWriter(ctx context.Context, url string, timeout time.Duration) (*mongo.Client, error) {
-	opts := options.Client()
-	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", timeout))
-
-	return createClient(ctx, opts, timeout)
+	return reader, writer, nil
 }
 
 func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
-	opts := options.Client()
-	opts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", connectionTimeout))
-	client, err := mongo.Connect(ctx, opts)
+	reader, writer, err := createReaderWriter(ctx, url, connectionTimeout)
 	if err != nil {
 		return nil, err
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, connectionTimeout)
-	defer cancel()
-	err = client.Ping(ctx, readpref.Primary())
-	if err != nil {
-		return nil, err
-	}
-
-	db := client.Database(MongoDatabaseName)
 
 	return &MongoProvider{
-		client: client,
-		db:     db,
+		reader: reader,
+		writer: writer,
 		tags:   append(tag.BaseTags, tag.Storage(StorageProviderName)),
 	}, nil
 }
 
 func (mp *MongoProvider) Prepare(ctx context.Context) error {
-	collections, err := mp.db.ListCollectionNames(ctx, bson.M{})
+	db := mp.writer.Database(MongoDatabaseName)
+	collections, err := db.ListCollectionNames(ctx, bson.M{})
 	if err != nil {
 		return fmt.Errorf("listing mongo DB collections: %w", err)
 	}
 
 	for _, collectionName := range collections {
-		err = mp.db.Collection(collectionName).Drop(ctx)
+		err = db.Collection(collectionName).Drop(ctx)
 		if err != nil {
 			return fmt.Errorf("deleting mongo DB collection %s: %w", collectionName, err)
 		}
 	}
 
-	ib, err := NewIndexBuilder(mp.db)
+	ib, err := NewIndexBuilder(db)
 	if err != nil {
 		return fmt.Errorf("mongo DB index builder create: %w", err)
 	}
@@ -110,8 +104,8 @@ func (mp *MongoProvider) Prepare(ctx context.Context) error {
 	return nil
 }
 
-func (mp *MongoProvider) Raw() any {
-	return mp.client
+func (mp *MongoProvider) Reader() any {
+	return mp.reader.Database(MongoDatabaseName)
 }
 
 func (mp *MongoProvider) Name() string {
@@ -119,7 +113,12 @@ func (mp *MongoProvider) Name() string {
 }
 
 func (mp *MongoProvider) HealthCheck(ctx context.Context) (bool, error) {
-	err := mp.client.Ping(ctx, nil)
+	err := mp.reader.Ping(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+
+	err = mp.writer.Ping(ctx, nil)
 	if err != nil {
 		return false, err
 	}
@@ -128,16 +127,26 @@ func (mp *MongoProvider) HealthCheck(ctx context.Context) (bool, error) {
 }
 
 func (mp *MongoProvider) Close(ctx context.Context) error {
-	errors := errors.Mu
+	var res *multierror.Error
 	if mp.reader != nil {
 		err := mp.reader.Disconnect(ctx)
+		if err != nil {
+			res = multierror.Append(res, err)
+		}
 	}
-	err := mp.reader.Disconnect(ctx)
-	return mp.client.Disconnect(ctx)
+
+	if mp.writer != nil {
+		err := mp.writer.Disconnect(ctx)
+		if err != nil {
+			res = multierror.Append(res, err)
+		}
+	}
+
+	return res.ErrorOrNil()
 }
 
 func (mp *MongoProvider) BulkWriter(ctx context.Context, collection collections.Collection, opts ...WriterOption) (AsyncWriter, error) {
-	writer := NewMongoAsyncWriter(ctx, mp, collection, opts...)
+	writer := NewMongoAsyncWriter(ctx, mp.writer.Database(MongoDatabaseName), collection, opts...)
 
 	return writer, nil
 }
