@@ -1,36 +1,24 @@
 package metric
 
-import (
-	"fmt"
-)
-
-const (
-	Prefix = "kubehound"
-)
-
-func metricFQN(name string) string {
-	return fmt.Sprintf("%s.%s", Prefix, name)
-}
-
 // Collector metrics
 var (
-	CollectorCount = metricFQN("collector.count")
+	CollectorCount = "kubehound.collector.count"
 )
 
 // Pipeline storage metrics
 var (
-	ObjectWrite          = metricFQN("storage.batchwrite.object")
-	VertexWrite          = metricFQN("storage.batchwrite.vertex")
-	EdgeWrite            = metricFQN("storage.batchwrite.edge")
-	QueueSize            = metricFQN("storage.queue.size")
-	BackgroundWriterCall = metricFQN("storage.writer.background")
-	FlushWriterCall      = metricFQN("storage.writer.flush")
+	ObjectWrite          = "kubehound.storage.batchwrite.object"
+	VertexWrite          = "kubehound.storage.batchwrite.vertex"
+	EdgeWrite            = "kubehound.storage.batchwrite.edge"
+	QueueSize            = "kubehound.storage.queue.size"
+	BackgroundWriterCall = "kubehound.storage.writer.background"
+	FlushWriterCall      = "kubehound.storage.writer.flush"
 )
 
 // Cache metrics
 var (
-	CacheMiss      = metricFQN("cache.miss")
-	CacheHit       = metricFQN("cache.hit")
-	CacheWrite     = metricFQN("cache.write")
-	CacheDuplicate = metricFQN("cache.duplicate")
+	CacheMiss      = "kubehound.cache.miss"
+	CacheHit       = "kubehound.cache.hit"
+	CacheWrite     = "kubehound.cache.write"
+	CacheDuplicate = "kubehound.cache.duplicate"
 )
