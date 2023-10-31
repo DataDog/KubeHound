@@ -29,6 +29,8 @@ collector:
   # file:
   #   # Directory holding the K8s json data files
   #   directory: /path/to/directory
+  #   # Target cluster name
+  #   cluster: <cluster name>
 
 #
 # General storage configuration

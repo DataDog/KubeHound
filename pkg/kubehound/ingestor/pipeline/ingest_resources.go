@@ -101,7 +101,7 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 // To access the writer use the graphWriter(v vertex.Vertex) function.
 func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		if err := v.Initialize(&deps.Config.Builder.Vertex); err != nil {
+		if err := v.Initialize(deps.Config); err != nil {
 			return err
 		}
 

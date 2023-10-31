@@ -2,3 +2,4 @@ collector:
   type: file-collector
   file:
     directory: testdata/test-cluster/
+    cluster: test-cluster

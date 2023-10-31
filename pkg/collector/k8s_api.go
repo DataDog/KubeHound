@@ -37,6 +37,10 @@ const (
 	K8sAPICollectorName = "k8s-api-collector"
 )
 
+var (
+	CollectorUserAgent = fmt.Sprintf("KubeHound-Collector-v%s", config.BuildVersion)
+)
+
 // checkK8sAPICollectorConfig made for unit testing to avoid using NewK8sAPICollector that is bind to a kubernetes config file
 func checkK8sAPICollectorConfig(collectorType string) error {
 	if collectorType != config.CollectorTypeK8sAPI {
@@ -70,7 +74,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		return nil, fmt.Errorf("building kubernetes config: %w", err)
 	}
 
-	kubeConfig.UserAgent = "KubeHound-Collector"
+	kubeConfig.UserAgent = CollectorUserAgent
 
 	clientset, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {

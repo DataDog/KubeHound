@@ -69,6 +69,17 @@ func NewTestFileCollector(t *testing.T) *FileCollector {
 	return c.(*FileCollector)
 }
 
+func TestFileCollector_ClusterInfo(t *testing.T) {
+	t.Parallel()
+
+	c := NewTestFileCollector(t)
+	ctx := context.Background()
+
+	info, err := c.ClusterInfo(ctx)
+	assert.NoError(t, err)
+	assert.Equal(t, "test-cluster", info.Name)
+}
+
 func TestFileCollector_StreamNodes(t *testing.T) {
 	t.Parallel()
 
