@@ -138,7 +138,22 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 		suite.True(ok, "failed to convert privileged field to bool")
 
 		namespace, ok := converted["namespace"].(string)
+		suite.True(ok, "failed to convert privileged field to string")
+
+		hostPID, ok := converted["hostPid"].(bool)
 		suite.True(ok, "failed to convert privileged field to bool")
+
+		hostNetwork, ok := converted["hostNetwork"].(bool)
+		suite.True(ok, "failed to convert privileged field to bool")
+
+		privEsc, ok := converted["privesc"].(bool)
+		suite.True(ok, "failed to convert privileged field to bool")
+
+		hostIPC, ok := converted["hostIpc"].(bool)
+		suite.True(ok, "failed to convert privileged field to bool")
+
+		runAsUser, ok := converted["runAsUser"].(int64)
+		suite.True(ok, "failed to convert compromised field to CompromiseType")
 
 		// We skip these because they are built by Kind itself
 		if slices.Contains(containerToSkip, containerName) {
@@ -153,11 +168,11 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 			Args:         []string{},
 			Capabilities: []string{},
 			Privileged:   privileged,
-			PrivEsc:      false,
-			HostPID:      false,
-			HostIPC:      false,
-			HostNetwork:  false,
-			RunAsUser:    0,
+			PrivEsc:      privEsc,
+			HostPID:      hostPID,
+			HostIPC:      hostIPC,
+			HostNetwork:  hostNetwork,
+			RunAsUser:    runAsUser,
 			Ports:        []string{},
 			Pod:          podName,
 			Namespace:    namespace,
