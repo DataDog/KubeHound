@@ -368,11 +368,13 @@ func AddNodeToList(node *corev1.Node) error {
 
 func AddContainerToList(Container *corev1.Container, storePod *store.Pod) error {
 	fmt.Printf("Container name: %s\n", Container.Name)
-	storeContainer := store.Container{
-		K8: *Container,
+	convStore := converter.StoreConverter{}
+	storeContainer, err := convStore.Container(context.Background(), Container, storePod)
+	if err != nil {
+		return err
 	}
 	conv := converter.GraphConverter{}
-	convertedContainer, err := conv.Container(&storeContainer, storePod)
+	convertedContainer, err := conv.Container(storeContainer, storePod)
 	if err != nil {
 		return err
 	}
