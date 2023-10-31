@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
@@ -107,7 +108,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 
 	// Start the run
 	start := time.Now()
-	log.I.Infof("Starting KubeHound (run_id: %s)", runID.String())
+	log.I.Infof("Starting KubeHound (run_id: %s)", strings.ToLower(runID.String()))
 	log.I.Info("Initializing launch options")
 	lOpts := &launchConfig{}
 	for _, opt := range opts {
@@ -200,7 +201,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 		return fmt.Errorf("building attack graph: %w", err)
 	}
 
-	log.I.Infof("KubeHound run (id=%s) complete in %s", runID.String(), time.Since(start))
+	log.I.Infof("KubeHound run (id=%s) complete in %s", strings.ToLower(runID.String()), time.Since(start))
 
 	return nil
 }

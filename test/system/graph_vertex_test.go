@@ -340,6 +340,24 @@ func (suite *VertexTestSuite) TestVertexIdentity() {
 	suite.Equal(len(results), 1)
 }
 
+func (suite *VertexTestSuite) TestVertexClusterProperty() {
+	// All vertices should have the cluster property set
+	results, err := suite.g.V().
+		Values("cluster").
+		Dedup().
+		ToList()
+
+	suite.NoError(err)
+	suite.GreaterOrEqual(len(results), 1)
+
+	present := suite.resultsToStringArray(results)
+	expected := []string{
+		"kind-kubehound.test.local",
+	}
+
+	suite.Subset(present, expected)
+}
+
 func TestVertexTestSuite(t *testing.T) {
 	suite.Run(t, new(VertexTestSuite))
 }

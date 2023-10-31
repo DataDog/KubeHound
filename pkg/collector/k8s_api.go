@@ -10,6 +10,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+
+	"go.uber.org/ratelimit"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
@@ -18,10 +20,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/pager"
 	ctrl "sigs.k8s.io/controller-runtime"
-
-	"go.uber.org/ratelimit"
 )
 
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
@@ -111,9 +112,17 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 }
 
 func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
-	// TODO resolve cluster name
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	configOverrides := &clientcmd.ConfigOverrides{}
+	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
+
+	raw, err := kubeConfig.RawConfig()
+	if err != nil {
+		return nil, fmt.Errorf("raw config get: %w", err)
+	}
+
 	return &ClusterInfo{
-		Name: "CHANGEME",
+		Name: raw.CurrentContext,
 	}, nil
 }
 
