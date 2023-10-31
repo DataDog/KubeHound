@@ -100,15 +100,18 @@ func (e *RoleBindCrbCrCr) Stream(ctx context.Context, store storedb.Provider, c 
 			"$match": bson.M{
 				// looking for CRB/CR role only
 				"is_namespaced": false,
-				"rules": bson.M{
-					"$elemMatch": bson.M{
-						"$or": []bson.M{
-							{"apigroups": "*"},
-							{"apigroups": "rbac.authorization.k8s.io"},
+				"$and": []bson.M{
+					// Looking for RBAC objects
+					{
+						"rules": bson.M{
+							"$elemMatch": bson.M{
+								"$or": []bson.M{
+									{"apigroups": "*"},
+									{"apigroups": "rbac.authorization.k8s.io"},
+								},
+							},
 						},
 					},
-				},
-				"$and": []bson.M{
 					// looking for creation of rolebindings / clusterrolebindings
 					{
 						"rules": bson.M{
