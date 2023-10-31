@@ -180,7 +180,7 @@ To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop
 + Create a connection to the local janusgraph instance by following the steps here https://docs.gdotv.com/connection-management/ and using `hostname=localhost`
 + Navigate to the query editor and enter a sample query e.g `g.V().count()`. See detailed instructions here: https://docs.gdotv.com/query-editor/#run-your-query
 
-### Query data from other language
+### Query data from your scripts
 
 #### Python
 
