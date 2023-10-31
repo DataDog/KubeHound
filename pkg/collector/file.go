@@ -97,6 +97,11 @@ func (c *FileCollector) HealthCheck(_ context.Context) (bool, error) {
 	return true, nil
 }
 
+func (c *FileCollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
+	// TODO
+	return nil, nil
+}
+
 func (c *FileCollector) Close(_ context.Context) error {
 	// NOP for this implementation
 	return nil

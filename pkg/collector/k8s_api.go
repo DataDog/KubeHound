@@ -106,6 +106,11 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
+func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
+	// TODO
+	return nil, nil
+}
+
 func (c *k8sAPICollector) Close(_ context.Context) error {
 	return nil
 }

@@ -65,6 +65,60 @@ func (_c *CollectorClient_Close_Call) RunAndReturn(run func(context.Context) err
 	return _c
 }
 
+// ClusterInfo provides a mock function with given fields: ctx
+func (_m *CollectorClient) ClusterInfo(ctx context.Context) (*collector.ClusterInfo, error) {
+	ret := _m.Called(ctx)
+
+	var r0 *collector.ClusterInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (*collector.ClusterInfo, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) *collector.ClusterInfo); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*collector.ClusterInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CollectorClient_ClusterInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ClusterInfo'
+type CollectorClient_ClusterInfo_Call struct {
+	*mock.Call
+}
+
+// ClusterInfo is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *CollectorClient_Expecter) ClusterInfo(ctx interface{}) *CollectorClient_ClusterInfo_Call {
+	return &CollectorClient_ClusterInfo_Call{Call: _e.mock.On("ClusterInfo", ctx)}
+}
+
+func (_c *CollectorClient_ClusterInfo_Call) Run(run func(ctx context.Context)) *CollectorClient_ClusterInfo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *CollectorClient_ClusterInfo_Call) Return(_a0 *collector.ClusterInfo, _a1 error) *CollectorClient_ClusterInfo_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CollectorClient_ClusterInfo_Call) RunAndReturn(run func(context.Context) (*collector.ClusterInfo, error)) *CollectorClient_ClusterInfo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // HealthCheck provides a mock function with given fields: ctx
 func (_m *CollectorClient) HealthCheck(ctx context.Context) (bool, error) {
 	ret := _m.Called(ctx)

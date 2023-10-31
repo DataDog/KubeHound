@@ -7,6 +7,7 @@ import (
 
 	embedconfig "github.com/DataDog/KubeHound/configs"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/oklog/ulid/v2"
 	"github.com/spf13/viper"
 )
 
@@ -15,7 +16,8 @@ var (
 )
 
 const (
-	DefaultConfigType = "yaml"
+	DefaultConfigType  = "yaml"
+	DefaultClusterName = "unknown"
 )
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
@@ -26,6 +28,7 @@ type KubehoundConfig struct {
 	Storage    StorageConfig    `mapstructure:"storage"`    // Global param for all storage provider
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 	Builder    BuilderConfig    `mapstructure:"builder"`    // Graph builder  configuration
+	Dynamic    DynamicConfig    // Dynamic (i.e runtime generated) configuration
 }
 
 // MustLoadEmbedConfig loads the embedded default application configuration, treating all errors as fatal.
@@ -126,6 +129,20 @@ func NewEmbedConfig(configPath string) (*KubehoundConfig, error) {
 	return &kc, nil
 }
 
+// IsCI determines whether the application is running within a CI action
 func IsCI() bool {
 	return os.Getenv("CI") != ""
+}
+
+// ComputeDynamic sets the dynamic components of the config from the provided options.
+func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) {
+	kc.Dynamic.mu.Lock()
+	defer kc.Dynamic.mu.Unlock()
+
+	kc.Dynamic.RunID = ulid.Make()
+	kc.Dynamic.Cluster = DefaultClusterName
+
+	for _, opt := range opts {
+		opt(&kc.Dynamic)
+	}
 }
