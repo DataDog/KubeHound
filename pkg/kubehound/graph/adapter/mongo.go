@@ -11,12 +11,12 @@ import (
 
 // MongoDB is a helper function to retrieve the store database object from a mongoDB provider.
 func MongoDB(store storedb.Provider) *mongo.Database {
-	mongoClient, ok := store.Raw().(*mongo.Client)
+	db, ok := store.Reader().(*mongo.Database)
 	if !ok {
-		log.I.Fatalf("Invalid database provider type. Expected *mongo.Client, got %T", store.Raw())
+		log.I.Fatalf("Invalid database provider type. Expected *mongo.Client, got %T", store.Reader())
 	}
 
-	return mongoClient.Database(storedb.MongoDatabaseName)
+	return db
 }
 
 // MongoCursorHandler is the default stream implementation to handle the query results from a mongoDB store provider.

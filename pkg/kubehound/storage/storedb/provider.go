@@ -38,8 +38,8 @@ type Provider interface {
 	// Prepare drops all collections from the database (usually to ensure a clean start) and recreates indices.
 	Prepare(ctx context.Context) error
 
-	// Raw returns a handle to the underlying provider to allow implementation specific operations e.g db queries.
-	Raw() any
+	// Reader returns a handle to the underlying provider to allow implementation specific queries against the mongo DB
+	Reader() any
 
 	// BulkWriter creates a new AsyncWriter instance to enable asynchronous bulk inserts.
 	BulkWriter(ctx context.Context, collection collections.Collection, opts ...WriterOption) (AsyncWriter, error)

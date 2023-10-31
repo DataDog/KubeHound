@@ -9,12 +9,30 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // We need a "complex" object to store in MongoDB
 type FakeElement struct {
 	FieldA int
 	FieldB string
+}
+
+type CleanupFunc func()
+
+func makeDB(t *testing.T) (*mongo.Database, CleanupFunc) {
+	t.Helper()
+
+	mp, err := NewMongoProvider(context.Background(), MongoLocalDatabaseURL, 1*time.Second)
+	assert.NoError(t, err)
+
+	db := mp.writer.Database("testdb")
+	cleanup := func() {
+		_ = mp.writer.Disconnect(context.Background())
+	}
+
+	return db, cleanup
 }
 
 func TestMongoAsyncWriter_Queue(t *testing.T) {
@@ -31,15 +49,8 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	mongoProvider, err := NewMongoProvider(ctx, MongoLocalDatabaseURL, 1*time.Second)
-
-	// TODO: add another check (env var maybe?)
-	// "integration test checks"
-	if err != nil {
-		t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
-
-		return
-	}
+	db, cleanup := makeDB(t)
+	t.Cleanup(cleanup)
 
 	type args struct {
 		ctx   context.Context
@@ -89,7 +100,7 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			writer := NewMongoAsyncWriter(ctx, mongoProvider, collections.FakeCollection{}, WithTags([]string{tag.Storage("mongotest")}))
+			writer := NewMongoAsyncWriter(ctx, db, collections.FakeCollection{}, WithTags([]string{tag.Storage("mongotest")}))
 			// insert multiple times if needed
 			for _, args := range tt.args {
 				if err := writer.Queue(args.ctx, args.model); (err != nil) != tt.wantErr {
@@ -201,23 +212,16 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 		},
 	}
 
+	ctx := context.Background()
+	db, cleanup := makeDB(t)
+	t.Cleanup(cleanup)
+
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx := context.Background()
-			mongoProvider, err := NewMongoProvider(ctx, MongoLocalDatabaseURL, 1*time.Second)
-			// TODO: add another check (env var maybe?)
-			// "integration test checks"
-			if err != nil {
-				t.Error("FAILED TO CONNECT TO LOCAL MONGO DB DURING TESTS, SKIPPING")
-
-				return
-			}
-			defer mongoProvider.Close(ctx)
-
-			maw := NewMongoAsyncWriter(ctx, mongoProvider, collections.FakeCollection{})
+			maw := NewMongoAsyncWriter(ctx, db, collections.FakeCollection{})
 			// insert multiple times if needed
 			for _, args := range tt.argsQueue {
 				if err := maw.Queue(args.ctx, args.model); (err != nil) != tt.wantErr {
@@ -225,7 +229,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 				}
 			}
 			// blocking function
-			err = maw.Flush(tt.argsFlush.ctx)
+			err := maw.Flush(tt.argsFlush.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MongoAsyncWriter.Flush() error = %v, wantErr %v", err, tt.wantErr)
 
