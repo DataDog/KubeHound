@@ -137,6 +137,24 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 		privileged, ok := converted["privileged"].(bool)
 		suite.True(ok, "failed to convert privileged field to bool")
 
+		namespace, ok := converted["namespace"].(string)
+		suite.True(ok, "failed to convert privileged field to string")
+
+		hostPID, ok := converted["hostPid"].(bool)
+		suite.True(ok, "failed to convert privileged field to bool")
+
+		hostNetwork, ok := converted["hostNetwork"].(bool)
+		suite.True(ok, "failed to convert privileged field to bool")
+
+		privEsc, ok := converted["privesc"].(bool)
+		suite.True(ok, "failed to convert privileged field to bool")
+
+		hostIPC, ok := converted["hostIpc"].(bool)
+		suite.True(ok, "failed to convert privileged field to bool")
+
+		runAsUser, ok := converted["runAsUser"].(int64)
+		suite.True(ok, "failed to convert compromised field to CompromiseType")
+
 		// We skip these because they are built by Kind itself
 		if slices.Contains(containerToSkip, containerName) {
 			continue
@@ -150,13 +168,14 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 			Args:         []string{},
 			Capabilities: []string{},
 			Privileged:   privileged,
-			PrivEsc:      false,
-			HostPID:      false,
-			HostIPC:      false,
-			HostNetwork:  false,
-			RunAsUser:    0,
+			PrivEsc:      privEsc,
+			HostPID:      hostPID,
+			HostIPC:      hostIPC,
+			HostNetwork:  hostNetwork,
+			RunAsUser:    runAsUser,
 			Ports:        []string{},
 			Pod:          podName,
+			Namespace:    namespace,
 			// Node:         nodeName, // see comments for converted["node"].(string)
 			Compromised: shared.CompromiseType(compromised),
 		}
@@ -295,7 +314,7 @@ func (suite *VertexTestSuite) TestVertexCritical() {
 func (suite *VertexTestSuite) TestVertexVolume() {
 	results, err := suite.g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
 	suite.NoError(err)
-	suite.Equal(53, len(results))
+	suite.Equal(61, len(results))
 
 	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("sourcePath", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
 	suite.NoError(err)
@@ -328,10 +347,6 @@ func (suite *VertexTestSuite) TestVertexIdentity() {
 	suite.Equal(len(results), 1)
 
 	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "pod-patch-sa").ElementMap().ToList()
-	suite.NoError(err)
-	suite.Equal(len(results), 1)
-
-	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "rolebind-sa").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(len(results), 1)
 

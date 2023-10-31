@@ -1,0 +1,10 @@
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: <name>
+spec:
+  request: <csr-base64>
+  signerName: kubernetes.io/kube-apiserver-client
+  expirationSeconds: 8640000   # minimum - 600sec/10min
+  usages:
+  - client auth
