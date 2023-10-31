@@ -13,8 +13,9 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/DataDog/KubeHound/pkg/worker"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -54,15 +55,17 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 
 // buildEdge inserts a class of edges into the graph database.
 func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, oic *converter.ObjectIDConverter, l *log.KubehoundLogger) error {
+	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildEdge, tracer.Measured(), tracer.ResourceName(e.Label()))
+	span.SetTag(tag.LabelTag, e.Label())
+	defer span.Finish()
+
 	l.Infof("Building edge %s", label)
 
 	if err := e.Initialize(&b.cfg.Builder.Edge); err != nil {
 		return err
 	}
 
-	tags := telemetry.BaseTags
-	tags = append(tags, telemetry.TagTypeJanusGraph)
-	w, err := b.graphdb.EdgeWriter(ctx, e, graphdb.WithTags(tags))
+	w, err := b.graphdb.EdgeWriter(ctx, e)
 	if err != nil {
 		return err
 	}
@@ -85,21 +88,7 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 	return err
 }
 
-// Run constructs all the registered edges in the graph database.
-// NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
-func (b *Builder) Run(ctx context.Context) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationRun, tracer.Measured())
-	defer span.Finish()
-
-	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
-	oic := converter.NewObjectID(b.cache)
-
-	if b.cfg.Builder.Edge.LargeClusterOptimizations {
-		log.Trace(ctx).Warnf("Using large cluster optimizations in graph construction")
-	}
-
-	// Mutating edges must be built first, sequentially
-	l.Info("Starting mutating edge construction")
+func (b *Builder) buildMutating(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
 	for label, e := range b.edges.Mutating() {
 		err := b.buildEdge(ctx, label, e, oic, l)
 		if err != nil {
@@ -107,7 +96,10 @@ func (b *Builder) Run(ctx context.Context) error {
 		}
 	}
 
-	// Simple edges can be built in parallel
+	return nil
+}
+
+func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
 	l.Info("Creating edge builder worker pool")
 	wp, err := worker.PoolFactory(b.cfg.Builder.Edge.WorkerPoolSize, b.cfg.Builder.Edge.WorkerPoolCapacity)
 	if err != nil {
@@ -119,7 +111,6 @@ func (b *Builder) Run(ctx context.Context) error {
 		return fmt.Errorf("graph builder worker pool start: %w", err)
 	}
 
-	l.Info("Starting simple edge construction")
 	for label, e := range b.edges.Simple() {
 		e := e
 		label := label
@@ -141,13 +132,47 @@ func (b *Builder) Run(ctx context.Context) error {
 		return err
 	}
 
-	// Dependent edges must be built last, sequentially
-	l.Info("Starting dependent edge construction")
+	return nil
+}
+
+func (b *Builder) buildDependent(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
 	for label, e := range b.edges.Dependent() {
 		err := b.buildEdge(ctx, label, e, oic, l)
 		if err != nil {
 			return fmt.Errorf("building dependent edge %s: %w", label, err)
 		}
+	}
+
+	return nil
+}
+
+// Run constructs all the registered edges in the graph database.
+// NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
+func (b *Builder) Run(ctx context.Context) error {
+
+	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
+	oic := converter.NewObjectID(b.cache)
+
+	if b.cfg.Builder.Edge.LargeClusterOptimizations {
+		log.Trace(ctx).Warnf("Using large cluster optimizations in graph construction")
+	}
+
+	// Mutating edges must be built first, sequentially
+	l.Info("Starting mutating edge construction")
+	if err := b.buildMutating(ctx, l, oic); err != nil {
+		return err
+	}
+
+	// Simple edges can be built in parallel
+	l.Info("Starting simple edge construction")
+	if err := b.buildSimple(ctx, l, oic); err != nil {
+		return err
+	}
+
+	// Dependent edges must be built last, sequentially
+	l.Info("Starting dependent edge construction")
+	if err := b.buildDependent(ctx, l, oic); err != nil {
+		return err
 	}
 
 	l.Info("Completed edge construction")

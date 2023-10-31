@@ -9,9 +9,11 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -46,8 +48,9 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 		opt(options)
 	}
 
+	builder := fmt.Sprintf("%s::%s", e.Name(), e.Label())
 	jw := JanusGraphEdgeWriter{
-		builder:         fmt.Sprintf("%s::%s", e.Name(), e.Label()),
+		builder:         builder,
 		gremlin:         e.Traversal(),
 		drc:             drc,
 		inserts:         make([]any, 0, e.BatchSize()),
@@ -55,7 +58,7 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 		batchSize:       e.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
 		consumerChan:    make(chan []any, e.BatchSize()*channelSizeBatchFactor),
-		tags:            options.Tags,
+		tags:            append(options.Tags, tag.Label(e.Label()), tag.Builder(builder)),
 	}
 
 	jw.startBackgroundWriter(ctx)
@@ -73,11 +76,14 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 				if data == nil {
 					return
 				}
-				_ = statsd.Count(telemetry.MetricGraphdbBackgroundWriterCall, 1, jgv.tags, 1)
+
+				_ = statsd.Count(metric.BackgroundWriterCall, 1, jgv.tags, 1)
 				err := jgv.batchWrite(ctx, data)
 				if err != nil {
 					log.Trace(ctx).Errorf("write data in background batch writer: %v", err)
 				}
+
+				_ = statsd.Decr(metric.QueueSize, jgv.tags, 1)
 			case <-ctx.Done():
 				log.Trace(ctx).Info("Closed background janusgraph worker on context cancel")
 
@@ -90,14 +96,14 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 // batchWrite will write a batch of entries into the graph DB and block until the write completes.
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
 func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationBatchWrite,
+	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphBatchWrite,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
-	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
+	span.SetTag(tag.LabelTag, jgv.builder)
 	defer span.Finish()
 	defer jgv.writingInFlight.Done()
 
 	datalen := len(data)
-	_ = statsd.Gauge(telemetry.MetricGraphdbBatchWrite, float64(datalen), jgv.tags, 1)
+	_ = statsd.Count(metric.EdgeWrite, int64(datalen), jgv.tags, 1)
 	log.Trace(ctx).Debugf("Batch write JanusGraphEdgeWriter with %d elements", datalen)
 	atomic.AddInt32(&jgv.wcounter, int32(datalen))
 
@@ -120,9 +126,9 @@ func (jgv *JanusGraphEdgeWriter) Close(ctx context.Context) error {
 // Flush triggers writes of any remaining items in the queue.
 // This is blocking
 func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanJanusGraphOperationFlush,
+	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphFlush,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
-	span.SetTag(telemetry.TagKeyLabel, jgv.builder)
+	span.SetTag(tag.LabelTag, jgv.builder)
 	defer span.Finish()
 
 	jgv.mu.Lock()
@@ -133,6 +139,8 @@ func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 	}
 
 	if len(jgv.inserts) != 0 {
+		_ = statsd.Incr(metric.FlushWriterCall, jgv.tags, 1)
+
 		jgv.writingInFlight.Add(1)
 		err := jgv.batchWrite(ctx, jgv.inserts)
 		if err != nil {
@@ -161,14 +169,13 @@ func (jgv *JanusGraphEdgeWriter) Queue(ctx context.Context, v any) error {
 	atomic.AddInt32(&jgv.qcounter, 1)
 	jgv.inserts = append(jgv.inserts, v)
 
-	_ = statsd.Gauge(telemetry.MetricGraphdbQueueSize, float64(len(jgv.inserts)), jgv.tags, 1)
-
 	if len(jgv.inserts) > jgv.batchSize {
 		copied := make([]any, len(jgv.inserts))
 		copy(copied, jgv.inserts)
 
 		jgv.writingInFlight.Add(1)
 		jgv.consumerChan <- copied
+		_ = statsd.Incr(metric.QueueSize, jgv.tags, 1)
 
 		// cleanup the ops array after we have copied it to the channel
 		jgv.inserts = nil

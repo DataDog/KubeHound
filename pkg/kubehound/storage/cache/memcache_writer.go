@@ -5,9 +5,10 @@ import (
 	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 )
 
 type MemCacheAsyncWriter struct {
@@ -21,7 +22,7 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	_ = statsd.Incr(telemetry.MetricCacheWrite, []string{}, 1)
+	_ = statsd.Incr(metric.CacheWrite, append(tag.BaseTags, tag.CacheKey(key.Shard())), 1)
 	keyId := computeKey(key)
 	entry, ok := m.data[keyId]
 	if ok {
@@ -32,7 +33,7 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, 
 
 		if !m.opts.ExpectOverwrite {
 			// if overwrite is expected (e.g fast tracking of existence regardless of value), suppress metrics and logs
-			_ = statsd.Incr(telemetry.MetricCacheDuplicateEntry, []string{keyId}, 1)
+			_ = statsd.Incr(metric.CacheDuplicate, append(tag.BaseTags, tag.CacheKey(key.Shard())), 1)
 			log.Trace(ctx).Warnf("overwriting cache entry key=%s old=%#v new=%#v", keyId, entry, value)
 		}
 	}

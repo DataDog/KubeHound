@@ -12,8 +12,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -81,10 +81,7 @@ func WithConverterCache() IngestResourceOption {
 // To access the writer use the storeWriter(c collections.Collection) function.
 func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		tags := telemetry.BaseTags
-		tags = append(tags, telemetry.TagTypeMongodb)
-
-		w, err := deps.StoreDB.BulkWriter(ctx, c, storedb.WithTags(tags))
+		w, err := deps.StoreDB.BulkWriter(ctx, c, storedb.WithTags(tag.BaseTags))
 		if err != nil {
 			return err
 		}
@@ -108,8 +105,7 @@ func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 			return err
 		}
 
-		tags := []string{telemetry.TagTypeJanusGraph}
-		w, err := deps.GraphDB.VertexWriter(ctx, v, deps.Cache, graphdb.WithTags(tags))
+		w, err := deps.GraphDB.VertexWriter(ctx, v, deps.Cache, graphdb.WithTags(tag.BaseTags))
 		if err != nil {
 			return err
 		}

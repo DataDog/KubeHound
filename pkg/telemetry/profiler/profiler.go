@@ -4,6 +4,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
 
@@ -25,6 +26,8 @@ func Initialize(cfg *config.KubehoundConfig) {
 		),
 		profiler.WithPeriod(cfg.Telemetry.Profiler.Period),
 		profiler.CPUDuration(cfg.Telemetry.Profiler.CPUDuration),
+		profiler.WithLogStartup(false),
+		profiler.WithTags(tag.BaseTags...),
 	)
 	if err != nil {
 		log.I.Errorf("start profiler: %v", err)
