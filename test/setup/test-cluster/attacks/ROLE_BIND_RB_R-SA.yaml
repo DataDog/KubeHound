@@ -1,0 +1,141 @@
+# ROLE_BIND_NAMESPACE edge
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rolebind-sa-rb-r-rb-r
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rolebind-rb-r-rb-r
+  namespace: default
+rules:
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["rolebindings"]
+    verbs: ["create"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles"]
+    verbs: ["bind"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-rb-r-rb-r
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-rb-r-rb-r
+subjects:
+  - kind: ServiceAccount
+    name: rolebind-sa-rb-r-rb-r
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rolebind-pod-rb-r-rb-r
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: rolebind-sa-rb-r-rb-r
+  containers:
+    - name: rolebind-pod-rb-r-rb-r
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rolebind-sa-rb-r-crb-cr-fail
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rolebind-rb-r-crb-cr-fail
+  namespace: default
+rules:
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterrolebindings"]
+    verbs: ["create"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles"]
+    verbs: ["bind"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-rb-r-crb-cr-fail
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-rb-r-crb-cr-fail
+subjects:
+  - kind: ServiceAccount
+    name: rolebind-sa-rb-r-crb-cr-fail
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rolebind-pod-rb-r-crb-cr-fail
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: rolebind-sa-rb-r-crb-cr-fail
+  containers:
+    - name: rolebind-pod-rb-r-crb-cr-fail
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rolebind-sa-rb-r-rb-crb
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rolebind-rb-r-rb-crb
+  namespace: default
+rules:
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["rolebindings"]
+    verbs: ["create"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles"]
+    verbs: ["bind"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-rb-r-rb-crb
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-rb-r-rb-crb
+subjects:
+  - kind: ServiceAccount
+    name: rolebind-sa-rb-r-rb-crb
+    namespace: default
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rolebind-pod-rb-r-rb-crb
+  labels:
+    app: kubehound-edge-test
+spec:
+  serviceAccountName: rolebind-sa-rb-r-rb-crb
+  containers:
+    - name: rolebind-pod-rb-r-rb-crb
+      image: ubuntu
+      command: [ "/bin/sh", "-c", "--" ]
+      args: [ "while true; do sleep 30; done;" ]

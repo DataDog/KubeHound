@@ -64,8 +64,7 @@ func (suite *DslTestSuite) TestTraversalSource_containers() {
 	expected := make([]string, 0)
 
 	for k, c := range expectedContainers {
-		// Fix is in the other PR :sweat-smile:
-		if c.Namespace == "" {
+		if c.Namespace == "default" {
 			expected = append(expected, k)
 		}
 	}
