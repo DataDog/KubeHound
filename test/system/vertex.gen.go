@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-10-25 18:43
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-10-31 15:07
 //
 // Generate it with "go generate ./..."
 //
@@ -425,7 +425,7 @@ var expectedContainers = map[string]graph.Container{
 		Capabilities: []string{},
 		Privileged:   true,
 		PrivEsc:      false,
-		HostPID:      false,
+		HostPID:      true,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -522,7 +522,7 @@ var expectedContainers = map[string]graph.Container{
 		PrivEsc:      false,
 		HostPID:      false,
 		HostIPC:      false,
-		HostNetwork:  false,
+		HostNetwork:  true,
 		RunAsUser:    0,
 		Namespace:    "default",
 		Ports:        []string{},
@@ -539,7 +539,7 @@ var expectedContainers = map[string]graph.Container{
 		Capabilities: []string{},
 		Privileged:   true,
 		PrivEsc:      false,
-		HostPID:      false,
+		HostPID:      true,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -919,7 +919,7 @@ var expectedContainers = map[string]graph.Container{
 		Capabilities: []string{},
 		Privileged:   false,
 		PrivEsc:      false,
-		HostPID:      false,
+		HostPID:      true,
 		HostIPC:      false,
 		HostNetwork:  false,
 		RunAsUser:    0,
@@ -1053,7 +1053,7 @@ var expectedPermissionSets = map[string]graph.PermissionSet{
 		IsNamespaced: true,
 		Namespace:    "default",
 		Role:         "impersonate",
-		Rules:        []string{"API(*)::R(users,groups)::N()::V(impersonate)"},
+		Rules:        []string{"API()::R(users,groups,serviceaccounts)::N()::V(impersonate)"},
 		RoleBinding:  "pod-impersonate",
 		Critical:     false,
 	},
