@@ -11,4 +11,5 @@ type Identity struct {
 	Namespace    string             `bson:"namespace"`
 	Type         string             `bson:"type"`
 	Ownership    OwnershipInfo      `bson:"ownership"`
+	Runtime      RuntimeInfo        `bson:"runtime"`
 }

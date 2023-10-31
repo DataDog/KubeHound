@@ -9,6 +9,8 @@ type Node struct {
 	App          string                `json:"app" mapstructure:"app"`
 	Team         string                `json:"team" mapstructure:"team"`
 	Service      string                `json:"service" mapstructure:"service"`
+	RunID        string                `json:"runID" mapstructure:"runID"`
+	Cluster      string                `json:"cluster" mapstructure:"cluster"`
 	Name         string                `json:"name" mapstructure:"name"`
 	IsNamespaced bool                  `json:"isNamespaced" mapstructure:"isNamespaced"`
 	Namespace    string                `json:"namespace" mapstructure:"namespace"`

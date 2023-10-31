@@ -18,5 +18,6 @@ type RoleBinding struct {
 	Namespace    string             `bson:"namespace"`
 	Subjects     []BindSubject      `bson:"subjects"`
 	Ownership    OwnershipInfo      `bson:"ownership"`
+	Runtime      RuntimeInfo        `bson:"runtime"`
 	K8           rbacv1.RoleRef     `bson:"k8"`
 }

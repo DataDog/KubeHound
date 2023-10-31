@@ -71,7 +71,7 @@ func WithCacheReader() IngestResourceOption {
 // WithCacheWriter initializes a store converter with cache access for the ingest pipeline.
 func WithConverterCache() IngestResourceOption {
 	return func(_ context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		rOpts.storeConvert = converter.NewStoreWithCache(deps.Cache)
+		rOpts.storeConvert = converter.NewStoreWithCache(deps.Config, deps.Cache)
 
 		return nil
 	}
@@ -161,8 +161,8 @@ func CreateResources(ctx context.Context, deps *Dependencies, opts ...IngestReso
 	i := &IngestResources{
 		resourceOptions{
 			collect:      deps.Collector,
-			graphConvert: converter.NewGraph(),
-			storeConvert: converter.NewStore(),
+			graphConvert: converter.NewGraph(deps.Config),
+			storeConvert: converter.NewStore(deps.Config),
 			flush:        make([]FlushFunc, 0),
 			cleanup:      make([]CleanupFunc, 0),
 			graphWriters: make(map[string]graphdb.AsyncVertexWriter),

@@ -7,13 +7,11 @@ import (
 )
 
 type BaseVertex struct {
-	cfg     *config.VertexBuilderConfig
-	runtime *config.DynamicConfig
+	cfg *config.VertexBuilderConfig
 }
 
 func (v *BaseVertex) Initialize(cfg *config.KubehoundConfig) error {
 	v.cfg = &cfg.Builder.Vertex
-	v.runtime = &cfg.Dynamic
 
 	return nil
 }
@@ -30,8 +28,6 @@ func (v *BaseVertex) DefaultTraversal(label string) types.VertexTraversal {
 			Unfold().As("entities").
 			AddV(label).As("vtx").
 			Property("class", label). // labels are not indexed - use a mirror property
-			Property("cluster", v.runtime.Cluster).
-			Property("runID", v.runtime.RunID).
 			SideEffect(
 				__.Select("entities").
 					Unfold().As("kv").

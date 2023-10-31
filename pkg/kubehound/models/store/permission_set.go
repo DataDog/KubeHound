@@ -16,4 +16,5 @@ type PermissionSet struct {
 	Namespace       string              `bson:"namespace"`
 	Rules           []rbacv1.PolicyRule `bson:"rules"`
 	Ownership       OwnershipInfo       `bson:"ownership"`
+	Runtime         RuntimeInfo         `bson:"runtime"`
 }
