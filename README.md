@@ -180,6 +180,24 @@ To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop
 + Create a connection to the local janusgraph instance by following the steps here https://docs.gdotv.com/connection-management/ and using `hostname=localhost`
 + Navigate to the query editor and enter a sample query e.g `g.V().count()`. See detailed instructions here: https://docs.gdotv.com/query-editor/#run-your-query
 
+### Query data from your scripts
+
+#### Python
+
+You can query the database data in your python script by using the following snippet:
+
+```python
+#!/usr/bin/env python
+import sys
+from gremlin_python.driver.client import Client
+
+KH_QUERY = "kh.containers().count()"
+c = Client("ws://127.0.0.1:8182/gremlin", "kh")
+results = c.submit(KH_QUERY).all().result()
+```
+
+You'll need to install `gremlinpython` as a dependency via: `pip install gremlinpython`
+
 ## Development
 
 ### Build
