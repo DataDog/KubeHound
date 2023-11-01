@@ -2,13 +2,11 @@ package config
 
 import (
 	"sync"
-
-	"github.com/oklog/ulid/v2"
 )
 
 type DynamicConfig struct {
 	mu      sync.Mutex
-	RunID   ulid.ULID
+	RunID   *RunID
 	Cluster string
 }
 

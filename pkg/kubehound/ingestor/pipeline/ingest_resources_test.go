@@ -16,7 +16,6 @@ import (
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -130,7 +129,7 @@ func TestIngestResources_FlushErrors(t *testing.T) {
 		Config: &config.KubehoundConfig{
 			Dynamic: config.DynamicConfig{
 				Cluster: "test-clister",
-				RunID:   ulid.Make(),
+				RunID:   config.NewRunID(),
 			},
 		},
 	}

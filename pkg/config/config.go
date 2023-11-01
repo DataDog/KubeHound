@@ -7,7 +7,7 @@ import (
 
 	embedconfig "github.com/DataDog/KubeHound/configs"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
-	"github.com/oklog/ulid/v2"
+	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/viper"
 )
 
@@ -59,6 +59,7 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("collector.live.rate_limit_per_second", DefaultK8sAPIRateLimitPerSecond)
 
 	// Default values for storage provider
+	c.SetDefault("storage.wipe", true)
 	c.SetDefault("storage.retry", DefaultRetry)
 	c.SetDefault("storage.retry_delay", DefaultRetryDelay)
 
@@ -87,12 +88,31 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
 }
 
+func SetEnvOverrides(c *viper.Viper) {
+	var res *multierror.Error
+
+	// Enable changing file collector fields via environment variables
+	res = multierror.Append(res, c.BindEnv("collector.type", "KH_COLLECTOR"))
+	res = multierror.Append(res, c.BindEnv("collector.file.directory", "KH_COLLECTOR_DIR"))
+	res = multierror.Append(res, c.BindEnv("collector.file.cluster", "KH_COLLECTOR_TARGET"))
+
+	if res.ErrorOrNil() != nil {
+		log.I.Fatalf("config environment override: %v", res.ErrorOrNil())
+	}
+}
+
 // NewConfig creates a new config instance from the provided file using viper.
 func NewConfig(configPath string) (*KubehoundConfig, error) {
 	c := viper.New()
 	c.SetConfigType(DefaultConfigType)
 	c.SetConfigFile(configPath)
+
+	// Configure default values
 	SetDefaultValues(c)
+
+	// Configure environment variable override
+	SetEnvOverrides(c)
+
 	if err := c.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
@@ -139,7 +159,7 @@ func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) {
 	kc.Dynamic.mu.Lock()
 	defer kc.Dynamic.mu.Unlock()
 
-	kc.Dynamic.RunID = ulid.Make()
+	kc.Dynamic.RunID = NewRunID()
 	kc.Dynamic.Cluster = DefaultClusterName
 
 	for _, opt := range opts {

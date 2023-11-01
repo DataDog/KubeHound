@@ -56,6 +56,8 @@ func (jgp *JanusGraphProvider) Name() string {
 }
 
 func (jgp *JanusGraphProvider) Prepare(ctx context.Context) error {
+	// TODO do not wipe based on config value
+
 	g := gremlin.Traversal_().WithRemote(jgp.drc)
 	tx := g.Tx()
 	defer tx.Close()

@@ -18,14 +18,13 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
-	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 var testConfig = &config.KubehoundConfig{
 	Dynamic: config.DynamicConfig{
-		RunID:   ulid.Make(),
+		RunID:   config.NewRunID(),
 		Cluster: "test-cluster",
 	},
 }

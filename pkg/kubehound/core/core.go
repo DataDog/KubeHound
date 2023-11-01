@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
@@ -19,7 +18,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 
-	"github.com/oklog/ulid/v2"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -95,7 +93,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 
 	// We define a unique run id this so we can measure run by run in addition of version per version.
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
-	runID := ulid.Make()
+	runID := config.NewRunID()
 	span.SetBaggageItem("run_id", runID.String())
 
 	// We update the base tags to include that run id, so we have it available for metrics
@@ -108,7 +106,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 
 	// Start the run
 	start := time.Now()
-	log.I.Infof("Starting KubeHound (run_id: %s)", strings.ToLower(runID.String()))
+	log.I.Infof("Starting KubeHound (run_id: %s)", runID.String())
 	log.I.Info("Initializing launch options")
 	lOpts := &launchConfig{}
 	for _, opt := range opts {
@@ -201,7 +199,7 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 		return fmt.Errorf("building attack graph: %w", err)
 	}
 
-	log.I.Infof("KubeHound run (id=%s) complete in %s", strings.ToLower(runID.String()), time.Since(start))
+	log.I.Infof("KubeHound run (id=%s) complete in %s", runID.String(), time.Since(start))
 
 	return nil
 }

@@ -84,6 +84,7 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 }
 
 func (mp *MongoProvider) Prepare(ctx context.Context) error {
+	// TODO do not wipe based on config value
 	db := mp.writer.Database(MongoDatabaseName)
 	collections, err := db.ListCollectionNames(ctx, bson.M{})
 	if err != nil {

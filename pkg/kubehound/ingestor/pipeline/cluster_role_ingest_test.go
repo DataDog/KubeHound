@@ -14,7 +14,6 @@ import (
 	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -72,7 +71,7 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 				Edge: config.EdgeBuilderConfig{},
 			},
 			Dynamic: config.DynamicConfig{
-				RunID:   ulid.Make(),
+				RunID:   config.NewRunID(),
 				Cluster: "test-cluster",
 			},
 		},

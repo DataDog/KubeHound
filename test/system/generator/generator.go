@@ -20,7 +20,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
-	"github.com/oklog/ulid/v2"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -55,7 +54,7 @@ var (
 	GeneratorConfig = &config.KubehoundConfig{
 		Dynamic: config.DynamicConfig{
 			Cluster: "kind-kubehound",
-			RunID:   ulid.Make(),
+			RunID:   config.NewRunID(),
 		},
 	}
 )
