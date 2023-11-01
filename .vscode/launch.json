@@ -9,7 +9,6 @@
             "program": "${workspaceFolder}/cmd/kubehound",
             "args": ["-c", "${workspaceFolder}/configs/etc/kubehound.yaml"],
             "env": {
-                "KH.storage.retry": "6"
             }     
         }
     ]

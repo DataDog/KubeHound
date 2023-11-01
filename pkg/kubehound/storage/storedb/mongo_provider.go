@@ -26,10 +26,9 @@ var (
 
 // A MongoDB based store provider implementation.
 type MongoProvider struct {
-	reader *mongo.Client           // MongoDB client optimized for read operations
-	writer *mongo.Client           // MongoDB client optimized for write operations
-	tags   []string                // Tags to be applied for telemetry
-	cfg    *config.KubehoundConfig // Application configuration
+	reader *mongo.Client // MongoDB client optimized for read operations
+	writer *mongo.Client // MongoDB client optimized for write operations
+	tags   []string      // Tags to be applied for telemetry
 }
 
 // createClient creates a new MongoDB client with the provided options.
@@ -79,7 +78,6 @@ func NewMongoProvider(ctx context.Context, cfg *config.KubehoundConfig) (*MongoP
 	}
 
 	return &MongoProvider{
-		cfg:    cfg,
 		reader: reader,
 		writer: writer,
 		tags:   append(tag.BaseTags, tag.Storage(StorageProviderName)),
