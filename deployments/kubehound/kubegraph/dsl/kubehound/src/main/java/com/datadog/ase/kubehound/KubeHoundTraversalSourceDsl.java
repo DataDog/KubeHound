@@ -50,8 +50,11 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
         super(connection);
     }
 
-    // TODO map of cluster -> runID
-
+    /**
+     * Starts a traversal that finds all vertices from the specified cluster(s)
+     *
+     * @param names list of cluster names to filter on
+     */
     public GraphTraversal<Vertex, Vertex> cluster(String... names) {
         GraphTraversal traversal = this.clone().V();
 
@@ -62,6 +65,11 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
         return traversal;
     }
 
+    /**
+     * Starts a traversal that finds all vertices from the specified KubeHound run(s)
+     *
+     * @param ids list of run ids to filter on
+     */
     public GraphTraversal<Vertex, Vertex> run(String... ids) {
         GraphTraversal traversal = this.clone().V();
 

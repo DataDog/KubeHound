@@ -35,6 +35,44 @@ public enum EndpointExposure {
 
 ## Traversal Source Reference
 
+### Run Step
+
+Starts a traversal that finds all vertices from the specified KubeHound run(s).
+
+```java
+GraphTraversal<Vertex, Vertex> run(String... ids)
+```
+
+Example usage:
+
+```groovy
+// All vertices in the graph from a single run
+kh.run("01he5ebh73tah762qgdd5k4wqp")
+
+// All vertices in the graph from a multiple runs
+kh.run("01he5ebh73tah762qgdd5k4wqp", "01he5eagzbnhtfnwzg7xxbyfz4")
+
+// All containers in the graph from a single run
+kh.run("01he5ebh73tah762qgdd5k4wqp").containers()
+```
+### Cluster Step
+
+Starts a traversal that finds all vertices from the specified cluster(s).
+
+```java
+GraphTraversal<Vertex, Vertex> cluster(String... names)
+```
+
+Example usage:
+
+```groovy
+// All vertices in the graph from the kind-kubehound.local cluster
+kh.cluster("kind-kubehound.local")
+
+// All containers in the graph from the kind-kubehound.local cluster
+kh.cluster("kind-kubehound.local").containers()
+```
+
 ### Containers Step
 
 Starts a traversal that finds all vertices with a "Container" label and optionally allows filtering of those vertices on the "name" property.
