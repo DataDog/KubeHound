@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/hashicorp/go-multierror"
@@ -25,9 +26,10 @@ var (
 
 // A MongoDB based store provider implementation.
 type MongoProvider struct {
-	reader *mongo.Client // MongoDB client optimized for read operations
-	writer *mongo.Client // MongoDB client optimized for write operations
-	tags   []string      // Tags to be applied for telemetry
+	reader *mongo.Client           // MongoDB client optimized for read operations
+	writer *mongo.Client           // MongoDB client optimized for write operations
+	tags   []string                // Tags to be applied for telemetry
+	cfg    *config.KubehoundConfig // Application configuration
 }
 
 // createClient creates a new MongoDB client with the provided options.
@@ -70,8 +72,8 @@ func createReaderWriter(ctx context.Context, url string, timeout time.Duration) 
 }
 
 // NewMongoProvider creates a new instance of the MongoDB store provider
-func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
-	reader, writer, err := createReaderWriter(ctx, url, connectionTimeout)
+func NewMongoProvider(ctx context.Context, cfg *config.KubehoundConfig) (*MongoProvider, error) {
+	reader, writer, err := createReaderWriter(ctx, cfg.MongoDB.URL, cfg.MongoDB.ConnectionTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +86,6 @@ func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Du
 }
 
 func (mp *MongoProvider) Prepare(ctx context.Context) error {
-	// TODO do not wipe based on config value
 	db := mp.writer.Database(MongoDatabaseName)
 	collections, err := db.ListCollectionNames(ctx, bson.M{})
 	if err != nil {

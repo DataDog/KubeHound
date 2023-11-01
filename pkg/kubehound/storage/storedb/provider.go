@@ -66,5 +66,5 @@ type AsyncWriter interface {
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
 	r := storage.Retrier(NewMongoProvider, cfg.Storage.Retry, cfg.Storage.RetryDelay)
 
-	return r(ctx, cfg.MongoDB.URL, cfg.MongoDB.ConnectionTimeout)
+	return r(ctx, cfg)
 }

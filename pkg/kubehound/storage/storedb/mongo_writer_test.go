@@ -24,7 +24,13 @@ type CleanupFunc func()
 func makeDB(t *testing.T) (*mongo.Database, CleanupFunc) {
 	t.Helper()
 
-	mp, err := NewMongoProvider(context.Background(), MongoLocalDatabaseURL, 1*time.Second)
+	cfg := &config.KubehoundConfig{
+		MongoDB: config.MongoDBConfig{
+			URL:               MongoLocalDatabaseURL,
+			ConnectionTimeout: 1 * time.Second,
+		},
+	}
+	mp, err := NewMongoProvider(context.Background(), cfg)
 	assert.NoError(t, err)
 
 	db := mp.writer.Database("testdb")

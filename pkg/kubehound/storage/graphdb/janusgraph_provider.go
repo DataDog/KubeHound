@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
@@ -24,18 +24,19 @@ var (
 )
 
 type JanusGraphProvider struct {
-	drc  *gremlin.DriverRemoteConnection
-	tags []string
+	drc  *gremlin.DriverRemoteConnection // Connection to the remote gremlin server
+	tags []string                        // Tags to be applied for telemetry
+	cfg  *config.KubehoundConfig         // Application configuration
 }
 
-func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (*JanusGraphProvider, error) {
-	if dbHost == "" {
+func NewGraphDriver(ctx context.Context, cfg *config.KubehoundConfig) (*JanusGraphProvider, error) {
+	if cfg.JanusGraph.URL == "" {
 		return nil, errors.New("JanusGraph DB URL is not set")
 	}
 
-	driver, err := gremlin.NewDriverRemoteConnection(dbHost,
+	driver, err := gremlin.NewDriverRemoteConnection(cfg.JanusGraph.URL,
 		func(settings *gremlin.DriverRemoteConnectionSettings) {
-			settings.ConnectionTimeout = timeout
+			settings.ConnectionTimeout = cfg.JanusGraph.ConnectionTimeout
 			settings.LogVerbosity = gremlin.Warning
 		},
 	)
@@ -44,6 +45,7 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 	}
 
 	jgp := &JanusGraphProvider{
+		cfg:  cfg,
 		drc:  driver,
 		tags: append(tag.BaseTags, tag.Storage(StorageProviderName)),
 	}
@@ -56,7 +58,11 @@ func (jgp *JanusGraphProvider) Name() string {
 }
 
 func (jgp *JanusGraphProvider) Prepare(ctx context.Context) error {
-	// TODO do not wipe based on config value
+	if !jgp.cfg.Storage.Wipe {
+		log.Trace(ctx).Warn("Skipping graph vertex wipe")
+
+		return nil
+	}
 
 	g := gremlin.Traversal_().WithRemote(jgp.drc)
 	tx := g.Tx()
