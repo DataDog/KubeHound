@@ -79,6 +79,7 @@ func NewMongoProvider(ctx context.Context, cfg *config.KubehoundConfig) (*MongoP
 	}
 
 	return &MongoProvider{
+		cfg:    cfg,
 		reader: reader,
 		writer: writer,
 		tags:   append(tag.BaseTags, tag.Storage(StorageProviderName)),
