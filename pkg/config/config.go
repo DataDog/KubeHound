@@ -88,6 +88,7 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
 }
 
+// SetEnvOverrides enables environment variable overrides for the config.
 func SetEnvOverrides(c *viper.Viper) {
 	var res *multierror.Error
 
