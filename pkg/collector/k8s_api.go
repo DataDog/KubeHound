@@ -10,6 +10,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+
+	"go.uber.org/ratelimit"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
@@ -18,10 +20,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/pager"
 	ctrl "sigs.k8s.io/controller-runtime"
-
-	"go.uber.org/ratelimit"
 )
 
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
@@ -35,6 +36,10 @@ type k8sAPICollector struct {
 
 const (
 	K8sAPICollectorName = "k8s-api-collector"
+)
+
+var (
+	CollectorUserAgent = fmt.Sprintf("KubeHound-Collector-v%s", config.BuildVersion)
 )
 
 // checkK8sAPICollectorConfig made for unit testing to avoid using NewK8sAPICollector that is bind to a kubernetes config file
@@ -70,7 +75,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		return nil, fmt.Errorf("building kubernetes config: %w", err)
 	}
 
-	kubeConfig.UserAgent = "KubeHound-Collector"
+	kubeConfig.UserAgent = CollectorUserAgent
 
 	clientset, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
@@ -104,6 +109,21 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	configOverrides := &clientcmd.ConfigOverrides{}
+	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
+
+	raw, err := kubeConfig.RawConfig()
+	if err != nil {
+		return nil, fmt.Errorf("raw config get: %w", err)
+	}
+
+	return &ClusterInfo{
+		Name: raw.CurrentContext,
+	}, nil
 }
 
 func (c *k8sAPICollector) Close(_ context.Context) error {

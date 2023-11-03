@@ -26,6 +26,7 @@ func TestMustLoadConfig(t *testing.T) {
 				Storage: StorageConfig{
 					RetryDelay: DefaultRetryDelay,
 					Retry:      DefaultRetry,
+					Wipe:       true,
 				},
 				Collector: CollectorConfig{
 					Type: CollectorTypeFile,
@@ -82,6 +83,7 @@ func TestMustLoadConfig(t *testing.T) {
 				Storage: StorageConfig{
 					RetryDelay: DefaultRetryDelay,
 					Retry:      DefaultRetry,
+					Wipe:       true,
 				},
 				Collector: CollectorConfig{
 					Type: CollectorTypeK8sAPI,

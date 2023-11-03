@@ -88,6 +88,7 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 	return err
 }
 
+// buildMutating constructs all the mutating edges in the graph database.
 func (b *Builder) buildMutating(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
 	for label, e := range b.edges.Mutating() {
 		err := b.buildEdge(ctx, label, e, oic, l)
@@ -99,6 +100,7 @@ func (b *Builder) buildMutating(ctx context.Context, l *log.KubehoundLogger, oic
 	return nil
 }
 
+// buildSimple constructs all the simple edges in the graph database.
 func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
 	l.Info("Creating edge builder worker pool")
 	wp, err := worker.PoolFactory(b.cfg.Builder.Edge.WorkerPoolSize, b.cfg.Builder.Edge.WorkerPoolCapacity)
@@ -135,6 +137,7 @@ func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *
 	return nil
 }
 
+// buildDependent constructs all the dependent edges in the graph database.
 func (b *Builder) buildDependent(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
 	for label, e := range b.edges.Dependent() {
 		err := b.buildEdge(ctx, label, e, oic, l)

@@ -94,7 +94,17 @@ func (c *FileCollector) HealthCheck(_ context.Context) (bool, error) {
 		return false, fmt.Errorf("file collector base path is not a directory")
 	}
 
+	if c.cfg.ClusterName == "" {
+		return false, errors.New("file collector cluster name not provided")
+	}
+
 	return true, nil
+}
+
+func (c *FileCollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
+	return &ClusterInfo{
+		Name: c.cfg.ClusterName,
+	}, nil
 }
 
 func (c *FileCollector) Close(_ context.Context) error {

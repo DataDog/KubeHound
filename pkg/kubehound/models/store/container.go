@@ -27,4 +27,5 @@ type Container struct {
 	Inherited ContainerInherited `bson:"inherited"`
 	K8        corev1.Container   `bson:"k8"`
 	Ownership OwnershipInfo      `bson:"ownership"`
+	Runtime   RuntimeInfo        `bson:"runtime"`
 }

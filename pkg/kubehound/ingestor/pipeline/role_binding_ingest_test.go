@@ -31,7 +31,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 
 	fakeRole, err := loadTestObject[types.RoleType]("testdata/role.json")
 	assert.NoError(t, err)
-	oFakeRole, err := converter.NewStore().Role(ctx, fakeRole)
+	oFakeRole, err := converter.NewStore(testConfig).Role(ctx, fakeRole)
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
@@ -113,6 +113,8 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 		"team":         "test-team",
 		"app":          "test-app",
 		"service":      "test-service",
+		"cluster":      "test-cluster",
+		"runID":        testID.String(),
 	}
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
@@ -132,6 +134,8 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 		"team":         "test-team",
 		"app":          "test-app",
 		"service":      "test-service",
+		"cluster":      "test-cluster",
+		"runID":        testID.String(),
 		"rules":        []interface{}{"API()::R(pods)::N()::V(get,list)", "API()::R(configmaps)::N()::V(get)", "API(apps)::R(statefulsets)::N()::V(get,list)"},
 	}
 
@@ -149,6 +153,10 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 		Config: &config.KubehoundConfig{
 			Builder: config.BuilderConfig{
 				Edge: config.EdgeBuilderConfig{},
+			},
+			Dynamic: config.DynamicConfig{
+				RunID:   testID,
+				Cluster: "test-cluster",
 			},
 		},
 	}

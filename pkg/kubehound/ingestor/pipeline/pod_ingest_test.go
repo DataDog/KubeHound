@@ -135,6 +135,8 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"team":                  "test-team",
 		"app":                   "test-app",
 		"service":               "test-service",
+		"cluster":               "test-cluster",
+		"runID":                 testID.String(),
 	}
 
 	gdb := graphdb.NewProvider(t)
@@ -166,6 +168,8 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"team":         "test-team",
 		"app":          "test-app",
 		"service":      "test-service",
+		"cluster":      "test-cluster",
+		"runID":        testID.String(),
 	}
 
 	cgw := graphdb.NewAsyncVertexWriter(t)
@@ -187,6 +191,8 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"service":      "test-service",
 		"type":         "Projected",
 		"readonly":     true,
+		"cluster":      "test-cluster",
+		"runID":        testID.String(),
 	}
 	vgw := graphdb.NewAsyncVertexWriter(t)
 	vgw.EXPECT().Queue(ctx, vv).Return(nil).Once()
@@ -212,6 +218,8 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"serviceEndpoint": "http",
 		"storeID":         eid.Hex(),
 		"team":            "test-team",
+		"cluster":         "test-cluster",
+		"runID":           testID.String(),
 	}
 	egw := graphdb.NewAsyncVertexWriter(t)
 	egw.EXPECT().Queue(ctx, ev).Return(nil).Once()
@@ -231,6 +239,10 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		Config: &config.KubehoundConfig{
 			Builder: config.BuilderConfig{
 				Edge: config.EdgeBuilderConfig{},
+			},
+			Dynamic: config.DynamicConfig{
+				RunID:   testID,
+				Cluster: "test-cluster",
 			},
 		},
 	}

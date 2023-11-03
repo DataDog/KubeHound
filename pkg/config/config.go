@@ -7,6 +7,7 @@ import (
 
 	embedconfig "github.com/DataDog/KubeHound/configs"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/viper"
 )
 
@@ -15,7 +16,8 @@ var (
 )
 
 const (
-	DefaultConfigType = "yaml"
+	DefaultConfigType  = "yaml"
+	DefaultClusterName = "unknown"
 )
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
@@ -26,6 +28,7 @@ type KubehoundConfig struct {
 	Storage    StorageConfig    `mapstructure:"storage"`    // Global param for all storage provider
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 	Builder    BuilderConfig    `mapstructure:"builder"`    // Graph builder  configuration
+	Dynamic    DynamicConfig    // Dynamic (i.e runtime generated) configuration
 }
 
 // MustLoadEmbedConfig loads the embedded default application configuration, treating all errors as fatal.
@@ -56,6 +59,7 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("collector.live.rate_limit_per_second", DefaultK8sAPIRateLimitPerSecond)
 
 	// Default values for storage provider
+	c.SetDefault("storage.wipe", true)
 	c.SetDefault("storage.retry", DefaultRetry)
 	c.SetDefault("storage.retry_delay", DefaultRetryDelay)
 
@@ -84,12 +88,32 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
 }
 
+// SetEnvOverrides enables environment variable overrides for the config.
+func SetEnvOverrides(c *viper.Viper) {
+	var res *multierror.Error
+
+	// Enable changing file collector fields via environment variables
+	res = multierror.Append(res, c.BindEnv("collector.type", "KH_COLLECTOR"))
+	res = multierror.Append(res, c.BindEnv("collector.file.directory", "KH_COLLECTOR_DIR"))
+	res = multierror.Append(res, c.BindEnv("collector.file.cluster", "KH_COLLECTOR_TARGET"))
+
+	if res.ErrorOrNil() != nil {
+		log.I.Fatalf("config environment override: %v", res.ErrorOrNil())
+	}
+}
+
 // NewConfig creates a new config instance from the provided file using viper.
 func NewConfig(configPath string) (*KubehoundConfig, error) {
 	c := viper.New()
 	c.SetConfigType(DefaultConfigType)
 	c.SetConfigFile(configPath)
+
+	// Configure default values
 	SetDefaultValues(c)
+
+	// Configure environment variable override
+	SetEnvOverrides(c)
+
 	if err := c.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
@@ -126,6 +150,20 @@ func NewEmbedConfig(configPath string) (*KubehoundConfig, error) {
 	return &kc, nil
 }
 
+// IsCI determines whether the application is running within a CI action
 func IsCI() bool {
 	return os.Getenv("CI") != ""
+}
+
+// ComputeDynamic sets the dynamic components of the config from the provided options.
+func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) {
+	kc.Dynamic.mu.Lock()
+	defer kc.Dynamic.mu.Unlock()
+
+	kc.Dynamic.RunID = NewRunID()
+	kc.Dynamic.Cluster = DefaultClusterName
+
+	for _, opt := range opts {
+		opt(&kc.Dynamic)
+	}
 }

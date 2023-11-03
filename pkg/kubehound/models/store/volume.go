@@ -17,5 +17,6 @@ type Volume struct {
 	MountPath   string             `bson:"mount"`
 	ReadOnly    bool               `bson:"readonly"`
 	Ownership   OwnershipInfo      `bson:"ownership"`
+	Runtime     RuntimeInfo        `bson:"runtime"`
 	K8          corev1.Volume      `bson:"k8"`
 }

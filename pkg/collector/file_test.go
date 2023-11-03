@@ -48,7 +48,8 @@ func TestFileCollector_HealthCheck(t *testing.T) {
 
 	c = &FileCollector{
 		cfg: &config.FileCollectorConfig{
-			Directory: "testdata/test-cluster/",
+			Directory:   "testdata/test-cluster/",
+			ClusterName: "test-cluster",
 		},
 	}
 
@@ -67,6 +68,17 @@ func NewTestFileCollector(t *testing.T) *FileCollector {
 	assert.NoError(t, err)
 
 	return c.(*FileCollector)
+}
+
+func TestFileCollector_ClusterInfo(t *testing.T) {
+	t.Parallel()
+
+	c := NewTestFileCollector(t)
+	ctx := context.Background()
+
+	info, err := c.ClusterInfo(ctx)
+	assert.NoError(t, err)
+	assert.Equal(t, "test-cluster", info.Name)
 }
 
 func TestFileCollector_StreamNodes(t *testing.T) {

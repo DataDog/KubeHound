@@ -27,5 +27,6 @@ type K8SAPICollectorConfig struct {
 
 // FileCollectorConfig configures the file collector.
 type FileCollectorConfig struct {
-	Directory string `mapstructure:"directory"` // Base directory holding the K8s data JSON files
+	ClusterName string `mapstructure:"cluster"`   // Target cluster (must be specified in config as not present in JSON files)
+	Directory   string `mapstructure:"directory"` // Base directory holding the K8s data JSON files
 }

@@ -10,6 +10,7 @@ import (
 	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/libkube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
@@ -35,18 +36,22 @@ var (
 
 // StoreConverter enables converting between an input K8s model to its equivalent store model.
 type StoreConverter struct {
-	cache cache.CacheReader
+	cache   cache.CacheReader
+	runtime *config.DynamicConfig
 }
 
 // NewStore returns a new store converter instance.
-func NewStore() *StoreConverter {
-	return &StoreConverter{}
+func NewStore(cfg *config.KubehoundConfig) *StoreConverter {
+	return &StoreConverter{
+		runtime: &cfg.Dynamic,
+	}
 }
 
 // NewStoreWithCache returns a new store converter instance with read access to the cache.
-func NewStoreWithCache(cache cache.CacheReader) *StoreConverter {
+func NewStoreWithCache(cfg *config.KubehoundConfig, cache cache.CacheReader) *StoreConverter {
 	return &StoreConverter{
-		cache: cache,
+		cache:   cache,
+		runtime: &cfg.Dynamic,
 	}
 }
 
@@ -67,6 +72,7 @@ func (c *StoreConverter) Container(_ context.Context, input types.ContainerType,
 		},
 		K8:        *input,
 		Ownership: store.ExtractOwnership(parent.K8.Labels),
+		Runtime:   store.Runtime(c.runtime),
 	}
 
 	// Certain fields are set by the PodSecurityContext and overridden by the container's SecurityContext.
@@ -90,6 +96,7 @@ func (c *StoreConverter) Node(ctx context.Context, input types.NodeType) (*store
 		Id:        store.ObjectID(),
 		K8:        *input,
 		Ownership: store.ExtractOwnership(input.ObjectMeta.Labels),
+		Runtime:   store.Runtime(c.runtime),
 	}
 
 	if len(input.Namespace) != 0 {
@@ -128,6 +135,7 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 		NodeId:    nid,
 		K8:        *input,
 		Ownership: store.ExtractOwnership(input.ObjectMeta.Labels),
+		Runtime:   store.Runtime(c.runtime),
 	}
 
 	if len(input.Namespace) != 0 {
@@ -184,6 +192,7 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeMountType
 		MountPath:   input.MountPath,
 		ReadOnly:    input.ReadOnly,
 		Ownership:   store.ExtractOwnership(pod.K8.Labels),
+		Runtime:     store.Runtime(c.runtime),
 	}
 
 	// Resolve the volume to the underlying name
@@ -233,6 +242,7 @@ func (c *StoreConverter) Role(_ context.Context, input types.RoleType) (*store.R
 		Namespace:    input.Namespace,
 		Rules:        input.Rules,
 		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
+		Runtime:      store.Runtime(c.runtime),
 	}, nil
 }
 
@@ -245,6 +255,7 @@ func (c *StoreConverter) ClusterRole(_ context.Context, input types.ClusterRoleT
 		Namespace:    "",
 		Rules:        input.Rules,
 		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
+		Runtime:      store.Runtime(c.runtime),
 	}, nil
 }
 
@@ -294,6 +305,7 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 		Namespace:    input.Namespace,
 		Subjects:     make([]store.BindSubject, 0, len(subj)),
 		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
+		Runtime:      store.Runtime(c.runtime),
 		K8:           input.RoleRef,
 	}
 
@@ -336,6 +348,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 		Namespace:    "",
 		Subjects:     make([]store.BindSubject, 0, len(subj)),
 		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
+		Runtime:      store.Runtime(c.runtime),
 		K8:           input.RoleRef,
 	}
 
@@ -360,6 +373,7 @@ func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, p
 		Namespace: "",
 		Type:      input.Subject.Kind,
 		Ownership: parent.Ownership,
+		Runtime:   store.Runtime(c.runtime),
 	}
 
 	if len(input.Subject.Namespace) != 0 {
@@ -434,6 +448,7 @@ func (c *StoreConverter) PermissionSet(ctx context.Context, roleBinding *store.R
 		Namespace:       role.Namespace,
 		Rules:           role.Rules,
 		Ownership:       role.Ownership,
+		Runtime:         store.Runtime(c.runtime),
 	}
 
 	// RoleBindings can link ClusterRoles, but they only grant access to the namespace of the RoleBinding.
@@ -483,6 +498,7 @@ func (c *StoreConverter) PermissionSetCluster(ctx context.Context, clusterRoleBi
 		Namespace:       role.Namespace,
 		Rules:           role.Rules,
 		Ownership:       role.Ownership,
+		Runtime:         store.Runtime(c.runtime),
 	}
 
 	return output, nil
@@ -515,6 +531,7 @@ func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 		Backend:      addr,
 		Port:         port,
 		Ownership:    store.ExtractOwnership(parent.ObjectMeta.Labels),
+		Runtime:      store.Runtime(c.runtime),
 		K8:           parent.ObjectMeta,
 
 		// If created via the ingestion pipeline the endpoint corresponds to a k8s endpoint slice
@@ -572,6 +589,7 @@ func (c *StoreConverter) EndpointPrivate(_ context.Context, port *corev1.Contain
 			Port:     &port.ContainerPort,
 		},
 		Ownership: container.Ownership,
+		Runtime:   store.Runtime(c.runtime),
 	}
 
 	if len(pod.K8.Namespace) != 0 {

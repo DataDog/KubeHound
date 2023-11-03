@@ -11,4 +11,5 @@ type Pod struct {
 	IsNamespaced bool               `bson:"is_namespaced"`
 	K8           corev1.Pod         `bson:"k8"`
 	Ownership    OwnershipInfo      `bson:"ownership"`
+	Runtime      RuntimeInfo        `bson:"runtime"`
 }

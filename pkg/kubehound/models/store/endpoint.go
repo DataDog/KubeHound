@@ -29,6 +29,7 @@ type Endpoint struct {
 	Backend      discoveryv1.Endpoint        `bson:"backend"`
 	Port         discoveryv1.EndpointPort    `bson:"port"`
 	Ownership    OwnershipInfo               `bson:"ownership"`
+	Runtime      RuntimeInfo                 `bson:"runtime"`
 	Exposure     shared.EndpointExposureType `bson:"access"`
 }
 

@@ -77,5 +77,5 @@ type AsyncEdgeWriter interface {
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
 	r := storage.Retrier(NewGraphDriver, cfg.Storage.Retry, cfg.Storage.RetryDelay)
 
-	return r(ctx, cfg.JanusGraph.URL, cfg.JanusGraph.ConnectionTimeout)
+	return r(ctx, cfg)
 }

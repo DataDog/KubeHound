@@ -51,6 +51,36 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
     }
 
     /**
+     * Starts a traversal that finds all vertices from the specified cluster(s)
+     *
+     * @param names list of cluster names to filter on
+     */
+    public GraphTraversal<Vertex, Vertex> cluster(String... names) {
+        GraphTraversal traversal = this.clone().V();
+
+        if (names.length > 0) {
+            traversal = traversal.has("cluster", P.within(names));
+        } 
+
+        return traversal;
+    }
+
+    /**
+     * Starts a traversal that finds all vertices from the specified KubeHound run(s)
+     *
+     * @param ids list of run ids to filter on
+     */
+    public GraphTraversal<Vertex, Vertex> run(String... ids) {
+        GraphTraversal traversal = this.clone().V();
+
+        if (ids.length > 0) {
+            traversal = traversal.has("runID", P.within(ids));
+        } 
+
+        return traversal;
+    }
+
+    /**
      * Starts a traversal that finds all vertices with a "Container" label and optionally allows filtering of those
      * vertices on the "name" property.
      *

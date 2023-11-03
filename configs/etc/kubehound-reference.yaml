@@ -29,11 +29,17 @@ collector:
   # file:
   #   # Directory holding the K8s json data files
   #   directory: /path/to/directory
+  #
+  #   # Target cluster name
+  #   cluster: <cluster name>
 
 #
 # General storage configuration
 #
 storage:
+  # Whether or not to wipe all data on startup
+  wipe: true
+  
   # Number of connection retries before declaring an error
   retry: 5
 

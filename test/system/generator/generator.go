@@ -14,6 +14,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
@@ -47,6 +48,15 @@ var (
 	PermissionSets = make(map[string]graph.PermissionSet)
 	Identities     = make(map[string]graph.Identity)
 	Volumes        = make(map[string]graph.Volume)
+)
+
+var (
+	GeneratorConfig = &config.KubehoundConfig{
+		Dynamic: config.DynamicConfig{
+			Cluster: "kind-kubehound",
+			RunID:   config.NewRunID(),
+		},
+	}
 )
 
 var (
@@ -194,7 +204,7 @@ func ProcessFile(ctx context.Context, basePath string, file os.FileInfo, cacheRo
 		return
 	}
 
-	conv := converter.StoreConverter{}
+	conv := converter.NewStore(GeneratorConfig)
 	for _, subfile := range bytes.Split(data, []byte("\n---\n")) {
 
 		decode := scheme.Codecs.UniversalDeserializer().Decode
@@ -274,8 +284,8 @@ func AddPermissionSetToList(ctx context.Context, roleBinding *store.RoleBinding,
 
 func ConvertRoleBindings(ctx context.Context, cacheRoleBinding []*rbacv1.RoleBinding, cacheClusterRoleBinding []*rbacv1.ClusterRoleBinding, cp cache.CacheReader) error {
 
-	convStore := converter.NewStoreWithCache(cp)
-	convGraph := &converter.GraphConverter{}
+	convStore := converter.NewStoreWithCache(GeneratorConfig, cp)
+	convGraph := converter.NewGraph(GeneratorConfig)
 	var errConvert error
 	for _, rb := range cacheRoleBinding {
 		roleBinding, err := convStore.RoleBinding(ctx, rb)
@@ -311,8 +321,8 @@ func ConvertRoleBindings(ctx context.Context, cacheRoleBinding []*rbacv1.RoleBin
 }
 
 func AddIdentityToList(rb *store.RoleBinding) error {
-	convStore := converter.StoreConverter{}
-	convGraph := converter.GraphConverter{}
+	convStore := converter.NewStore(GeneratorConfig)
+	convGraph := converter.NewGraph(GeneratorConfig)
 	for _, subj := range rb.Subjects {
 		sid, err := convStore.Identity(context.Background(), &subj, rb)
 		if err != nil {
@@ -336,7 +346,7 @@ func AddPodToList(pod *corev1.Pod) error {
 	storePod := store.Pod{
 		K8: *pod,
 	}
-	conv := converter.GraphConverter{}
+	conv := converter.NewGraph(GeneratorConfig)
 	convertedPod, err := conv.Pod(&storePod)
 	// if we haven't defined the service account in the yaml file, k8s will do it for us.
 	if convertedPod.ServiceAccount == "" {
@@ -355,7 +365,7 @@ func AddNodeToList(node *corev1.Node) error {
 	storeNode := store.Node{
 		K8: *node,
 	}
-	conv := converter.GraphConverter{}
+	conv := converter.NewGraph(GeneratorConfig)
 	convertedNode, err := conv.Node(&storeNode)
 	if err != nil {
 		return err
@@ -368,12 +378,12 @@ func AddNodeToList(node *corev1.Node) error {
 
 func AddContainerToList(Container *corev1.Container, storePod *store.Pod) error {
 	fmt.Printf("Container name: %s\n", Container.Name)
-	convStore := converter.StoreConverter{}
+	convStore := converter.NewStore(GeneratorConfig)
 	storeContainer, err := convStore.Container(context.Background(), Container, storePod)
 	if err != nil {
 		return err
 	}
-	conv := converter.GraphConverter{}
+	conv := converter.NewGraph(GeneratorConfig)
 	convertedContainer, err := conv.Container(storeContainer, storePod)
 	if err != nil {
 		return err
@@ -391,7 +401,7 @@ func AddVolumeToList(volume *corev1.VolumeMount, storePod *store.Pod) error {
 		MountPath: volume.MountPath,
 		ReadOnly:  volume.ReadOnly,
 	}
-	conv := converter.GraphConverter{}
+	conv := converter.NewGraph(GeneratorConfig)
 	convertedVolume, err := conv.Volume(&storeVolume, storePod)
 	if err != nil {
 		return err

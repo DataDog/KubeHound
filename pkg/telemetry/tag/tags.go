@@ -36,7 +36,7 @@ func makeTag(tag string, value string) string {
 	return tag + ":" + value
 }
 
-func RunId(uuid string) string {
+func RunID(uuid string) string {
 	return makeTag(RunIdTag, uuid)
 }
 

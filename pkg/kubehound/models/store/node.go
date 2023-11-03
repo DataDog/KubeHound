@@ -11,4 +11,5 @@ type Node struct {
 	IsNamespaced bool               `bson:"is_namespaced"`
 	K8           corev1.Node        `bson:"k8"`
 	Ownership    OwnershipInfo      `bson:"ownership"`
+	Runtime      RuntimeInfo        `bson:"runtime"`
 }

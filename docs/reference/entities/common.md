@@ -29,3 +29,10 @@ Common properties can be set on any vertices within the graph.
 | ----------------| --------- |----------------------------------------|
 | namespace | `string` |  Kubernetes namespace to which the object (or its parent) belongs | 
 | isNamespaced | `bool` |  Whether or not the object has an associated namespace | 
+
+## Run Information
+
+| Property            | Type      | Description |
+| ----------------| --------- |----------------------------------------|
+| runID | `string` |  Unique ULID identifying a KubeHound run | 
+| cluster | `string` |  Kubernetes cluster to which the entity belongs | 

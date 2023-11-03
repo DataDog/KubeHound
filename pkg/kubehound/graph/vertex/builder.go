@@ -16,7 +16,7 @@ var P = gremlin.P
 // Builder interface defines objects used to construct vertices within our graph database through processing data from an ingestion pipeline.
 type Builder interface {
 	// Initialize intializes an edge builder from the application config
-	Initialize(cfg *config.VertexBuilderConfig) error
+	Initialize(cfg *config.KubehoundConfig) error
 
 	// Label returns the label for the vertex (convention is all camelcase i.e VertexName)
 	Label() string

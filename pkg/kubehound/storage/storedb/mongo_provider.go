@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/hashicorp/go-multierror"
@@ -70,8 +71,8 @@ func createReaderWriter(ctx context.Context, url string, timeout time.Duration) 
 }
 
 // NewMongoProvider creates a new instance of the MongoDB store provider
-func NewMongoProvider(ctx context.Context, url string, connectionTimeout time.Duration) (*MongoProvider, error) {
-	reader, writer, err := createReaderWriter(ctx, url, connectionTimeout)
+func NewMongoProvider(ctx context.Context, cfg *config.KubehoundConfig) (*MongoProvider, error) {
+	reader, writer, err := createReaderWriter(ctx, cfg.MongoDB.URL, cfg.MongoDB.ConnectionTimeout)
 	if err != nil {
 		return nil, err
 	}

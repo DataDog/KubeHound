@@ -82,6 +82,8 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 		"app":          "",
 		"service":      "",
 		"team":         "test-team",
+		"cluster":      "test-cluster",
+		"runID":        testID.String(),
 	}
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
@@ -98,6 +100,10 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 		Config: &config.KubehoundConfig{
 			Builder: config.BuilderConfig{
 				Edge: config.EdgeBuilderConfig{},
+			},
+			Dynamic: config.DynamicConfig{
+				RunID:   testID,
+				Cluster: "test-cluster",
 			},
 		},
 	}

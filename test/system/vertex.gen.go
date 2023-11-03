@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-10-31 15:07
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-11-01 10:47
 //
 // Generate it with "go generate ./..."
 //
@@ -1053,7 +1053,7 @@ var expectedPermissionSets = map[string]graph.PermissionSet{
 		IsNamespaced: true,
 		Namespace:    "default",
 		Role:         "impersonate",
-		Rules:        []string{"API()::R(users,groups,serviceaccounts)::N()::V(impersonate)"},
+		Rules:        []string{"API(*)::R(users,groups)::N()::V(impersonate)"},
 		RoleBinding:  "pod-impersonate",
 		Critical:     false,
 	},
