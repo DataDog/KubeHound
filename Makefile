@@ -40,6 +40,8 @@ ifeq (,$(filter $(SYSTEM_TEST_CMD),$(MAKECMDGOALS)))
 		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.release.yaml
 	else ifeq (${KUBEHOUND_ENV}, dev)
 		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
+	else ifeq (${KUBEHOUND_ENV}, distrib)
+		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.distrib.yaml
 	endif
 
 # No API key is being set

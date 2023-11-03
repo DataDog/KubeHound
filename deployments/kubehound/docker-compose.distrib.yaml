@@ -1,0 +1,61 @@
+version: "3.8"
+name: kubehound-distrib
+services:
+  mongodb:
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - jce-network
+  
+  kubegraph:
+    build: ./kubegraph/
+    environment:
+      JANUS_PROPS_TEMPLATE: cql-es
+      janusgraph.storage.hostname: jce-cassandra
+      janusgraph.index.search.hostname: jce-elastic
+    ports:
+      - "127.0.0.1:8182:8182"
+      - "127.0.0.1:8099:8099"
+    volumes:
+      - kubegraph_data:/var/lib/janusgraph
+      - export_data:/export
+    networks:
+      - jce-network
+    depends_on:
+      - cassandra
+      - elasticsearch
+
+  cassandra:
+    image: cassandra:latest
+    container_name: jce-cassandra
+    ports:
+      - "9042:9042"
+      - "9160:9160"
+    networks:
+      - jce-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    container_name: jce-elastic
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "http.host=0.0.0.0"
+      - "network.host=0.0.0.0"
+      - "transport.host=127.0.0.1"
+      - "cluster.name=docker-cluster"
+      - "xpack.security.enabled=false"
+      - "discovery.zen.minimum_master_nodes=1"
+    ports:
+      - "9200:9200"
+    networks:
+      - jce-network
+
+volumes:
+  mongodb_data:
+  kubegraph_data:
+  export_data:
+
+networks:
+  jce-network:
