@@ -103,6 +103,7 @@ func (b *Builder) buildMutating(ctx context.Context, l *log.KubehoundLogger, oic
 			// values to the user (permissions of the users etc...)
 			// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
 			l.Errorf("Failed to create a mutating edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+
 			return fmt.Errorf("building mutating edge %s: %w", label, err)
 		}
 	}
@@ -141,6 +142,7 @@ func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *
 				// values to the user (permissions of the users etc...)
 				// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
 				l.Errorf("Failed to create a simple edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+
 				return nil
 			}
 
@@ -171,6 +173,7 @@ func (b *Builder) buildDependent(ctx context.Context, l *log.KubehoundLogger, oi
 			// values to the user (permissions of the users etc...)
 			// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
 			l.Errorf("Failed to create a dependent edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+
 			return fmt.Errorf("building dependent edge %s: %w", label, err)
 		}
 	}
