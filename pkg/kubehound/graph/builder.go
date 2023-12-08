@@ -93,7 +93,18 @@ func (b *Builder) buildMutating(ctx context.Context, l *log.KubehoundLogger, oic
 	for label, e := range b.edges.Mutating() {
 		err := b.buildEdge(ctx, label, e, oic, l)
 		if err != nil {
-			return fmt.Errorf("building mutating edge %s: %w", label, err)
+			// In case we don't want to continue and have a partial graph built, we return an error.
+			// This then fails the WaitForComplete early and bubbles up to main.
+			if b.cfg.Builder.StopOnError {
+				return fmt.Errorf("building mutating edge %s: %w", label, err)
+			}
+			// Otherwise, by returning nil AND printing an error, we explicitly tell the user that something is going wrong.
+			// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
+			// values to the user (permissions of the users etc...)
+			// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
+			l.Errorf("Failed to create a mutating edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+
+			return nil
 		}
 	}
 
@@ -121,8 +132,18 @@ func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *
 			err := b.buildEdge(workCtx, label, e, oic, l)
 			if err != nil {
 				l.Errorf("building simple edge %s: %v", label, err)
+				// In case we don't want to continue and have a partial graph built, we return an error.
+				// This then fails the WaitForComplete early and bubbles up to main.
+				if b.cfg.Builder.StopOnError {
+					return err
+				}
+				// Otherwise, by returning nil AND printing an error, we explicitly tell the user that something is going wrong.
+				// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
+				// values to the user (permissions of the users etc...)
+				// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
+				l.Errorf("Failed to create a simple edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
 
-				return err
+				return nil
 			}
 
 			return nil
@@ -142,7 +163,18 @@ func (b *Builder) buildDependent(ctx context.Context, l *log.KubehoundLogger, oi
 	for label, e := range b.edges.Dependent() {
 		err := b.buildEdge(ctx, label, e, oic, l)
 		if err != nil {
-			return fmt.Errorf("building dependent edge %s: %w", label, err)
+			// In case we don't want to continue and have a partial graph built, we return an error.
+			// This then fails the WaitForComplete early and bubbles up to main.
+			if b.cfg.Builder.StopOnError {
+				return fmt.Errorf("building dependent edge %s: %w", label, err)
+			}
+			// Otherwise, by returning nil AND printing an error, we explicitly tell the user that something is going wrong.
+			// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
+			// values to the user (permissions of the users etc...)
+			// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
+			l.Errorf("Failed to create a dependent edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+
+			return nil
 		}
 	}
 

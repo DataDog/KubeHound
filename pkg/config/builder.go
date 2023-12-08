@@ -9,6 +9,8 @@ const (
 
 	DefaultVertexBatchSize      = 500
 	DefaultVertexBatchSizeSmall = DefaultVertexBatchSize / 5
+
+	DefaultStopOnError = false
 )
 
 // VertexBuilderConfig configures vertex builder parameters.
@@ -29,6 +31,7 @@ type EdgeBuilderConfig struct {
 }
 
 type BuilderConfig struct {
-	Vertex VertexBuilderConfig `mapstructure:"vertex"` // Vertex builder config
-	Edge   EdgeBuilderConfig   `mapstructure:"edge"`   // Edge builder config
+	Vertex      VertexBuilderConfig `mapstructure:"vertex"`        // Vertex builder config
+	Edge        EdgeBuilderConfig   `mapstructure:"edge"`          // Edge builder config
+	StopOnError bool                `mapstructure:"stop_on_error"` // Stop the building of the graph on error
 }
