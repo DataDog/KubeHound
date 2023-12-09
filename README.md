@@ -83,9 +83,10 @@ Clone this repository via git:
 git clone https://github.com/DataDog/KubeHound.git
 ```
 
-KubeHound ships with a sensible default configuration designed to get new users up and running quickly. First step is to prepare the application:
+KubeHound ships with a sensible default configuration designed to get new users up and running quickly. The first step is to prepare the application:
 
 ```bash
+cd KubeHound
 make kubehound
 ```
 
