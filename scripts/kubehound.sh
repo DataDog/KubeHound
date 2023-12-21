@@ -31,6 +31,12 @@ check_docker() {
         exit 1
     fi
 
+    if ! [ "$(docker compose version | grep '^Docker Compose version 2')" ]; then
+    # docker compose v2 isn't available at all, there's no point in continuing
+        echo "Docker Compose v2 isn't available. You should install it."
+        exit 1
+    fi
+
     DOCKER_CMD="docker"
     if ! $DOCKER_CMD info > /dev/null 2>&1; then
         echo "Docker isn't accessible with the current user. Retrying with sudo."
