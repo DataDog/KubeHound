@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package grpc;
+
+message IngestRequest {
+    string run_id = 1;
+    string clustername = 2;
+}
+
+message IngestResponse {}
+
+service API {
+    rpc Ingest (IngestRequest) returns (IngestResponse);
+}
