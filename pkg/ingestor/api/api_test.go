@@ -1,16 +1,17 @@
-package grpc
+package api
 
 import (
 	"context"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	mocksNotifier "github.com/DataDog/KubeHound/pkg/ingestor/notifier/mocks"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
-func TestGRPCIngestorAPI_Ingest(t *testing.T) {
+func TestIngestorAPI_Ingest(t *testing.T) {
 	t.Parallel()
 	type fields struct {
 		cfg *config.KubehoundConfig
@@ -25,7 +26,7 @@ func TestGRPCIngestorAPI_Ingest(t *testing.T) {
 		fields  fields
 		args    args
 		wantErr bool
-		mock    func(puller *mocks.DataPuller)
+		mock    func(puller *mocks.DataPuller, notifier *mocksNotifier.Notifier)
 	}{
 		{
 			name: "Pulling invalid bucket name",
@@ -37,7 +38,7 @@ func TestGRPCIngestorAPI_Ingest(t *testing.T) {
 				runID:       "test-run-id",
 			},
 			wantErr: true,
-			mock: func(puller *mocks.DataPuller) {
+			mock: func(puller *mocks.DataPuller, notifier *mocksNotifier.Notifier) {
 				puller.On("Pull", mock.Anything, "test-cluster", "test-run-id").Return("", blob.ErrInvalidBucketName)
 			},
 		},
@@ -51,10 +52,11 @@ func TestGRPCIngestorAPI_Ingest(t *testing.T) {
 				runID:       "test-run-id",
 			},
 			wantErr: false,
-			mock: func(puller *mocks.DataPuller) {
+			mock: func(puller *mocks.DataPuller, notifier *mocksNotifier.Notifier) {
 				puller.On("Pull", mock.Anything, "test-cluster", "test-run-id").Return("/tmp/kubehound/kh-1234/test-cluster/test-run-id", nil)
 				puller.On("Close", mock.Anything, "/tmp/kubehound/kh-1234/test-cluster/test-run-id").Return(nil)
 				puller.On("Extract", mock.Anything, "/tmp/kubehound/kh-1234/test-cluster/test-run-id").Return(nil)
+				notifier.On("Notify", mock.Anything, "test-cluster", "test-run-id").Return(nil)
 			},
 		},
 	}
@@ -63,10 +65,11 @@ func TestGRPCIngestorAPI_Ingest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			mockedPuller := mocks.NewDataPuller(t)
-			g := NewGRPCIngestorAPI(tt.fields.cfg, mockedPuller)
-			tt.mock(mockedPuller)
+			mockedNotifier := mocksNotifier.NewNotifier(t)
+			g := NewIngestorAPI(tt.fields.cfg, mockedPuller, mockedNotifier)
+			tt.mock(mockedPuller, mockedNotifier)
 			if err := g.Ingest(context.TODO(), tt.args.clusterName, tt.args.runID); (err != nil) != tt.wantErr {
-				t.Errorf("GRPCIngestorAPI.Ingest() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("IngestorAPI.Ingest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

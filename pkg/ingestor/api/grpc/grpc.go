@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/ingestor/api"
 	pb "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
-	"github.com/DataDog/KubeHound/pkg/ingestor/notifier"
-	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 
 	"google.golang.org/grpc"
@@ -24,11 +21,13 @@ type server struct {
 	pb.UnimplementedAPIServer
 	healthgrpc.UnimplementedHealthServer
 
-	// actual api wrapper
-	api *GRPCIngestorAPI
+	// api is the actual implementation of the api
+	// this is the only gRPC wrapper around it
+	// Most function should be basics type conversion and call to s.api.<function>
+	api *api.IngestorAPI
 }
 
-// Ingest is just a GRPC wrapper around the Ingest method from the service
+// Ingest is just a GRPC wrapper around the Ingest method from the API package
 func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestResponse, error) {
 	err := s.api.Ingest(ctx, in.GetClusterName(), in.GetRunId())
 	if err != nil {
@@ -38,50 +37,10 @@ func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestRe
 	return &pb.IngestResponse{}, nil
 }
 
-//go:generate protoc --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative api.proto
-type GRPCIngestorAPI struct {
-	puller   puller.DataPuller
-	notifier notifier.Notifier
-	cfg      *config.KubehoundConfig
-}
-
-var _ api.API = (*GRPCIngestorAPI)(nil)
-
-func NewGRPCIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller) GRPCIngestorAPI {
-	return GRPCIngestorAPI{
-		puller: puller,
-		cfg:    cfg,
-	}
-}
-
-func (g *GRPCIngestorAPI) Ingest(ctx context.Context, clusterName string, runID string) error {
-	archivePath, err := g.puller.Pull(ctx, clusterName, runID)
-	if err != nil {
-		return err
-	}
-	err = g.puller.Close(ctx, archivePath)
-	if err != nil {
-		return err
-	}
-	err = g.puller.Extract(ctx, archivePath)
-	if err != nil {
-		return err
-	}
-	err = g.notifier.Notify(ctx, clusterName, runID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Notify notifies the caller that the ingestion is completed
-func (g *GRPCIngestorAPI) Notify(ctx context.Context, clusterName string, runID string) error {
-	return g.notifier.Notify(ctx, clusterName, runID)
-}
-
-func (g *GRPCIngestorAPI) Listen(ctx context.Context) error {
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", g.cfg.Ingestor.API.Addr, g.cfg.Ingestor.API.Port))
+// Listen starts the GRPC server with the generic api implementation
+// It uses the config from the passed API for address and ports
+func Listen(ctx context.Context, api *api.IngestorAPI) error {
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", api.Cfg.Ingestor.API.Addr, api.Cfg.Ingestor.API.Port))
 	if err != nil {
 		return err
 	}
@@ -95,7 +54,7 @@ func (g *GRPCIngestorAPI) Listen(ctx context.Context) error {
 	reflection.Register(s)
 
 	pb.RegisterAPIServer(s, &server{
-		api: g,
+		api: api,
 	})
 	log.I.Infof("server listening at %v", lis.Addr())
 	err = s.Serve(lis)

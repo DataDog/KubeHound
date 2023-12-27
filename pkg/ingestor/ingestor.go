@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	grpcapi "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc"
+	"github.com/DataDog/KubeHound/pkg/ingestor/api"
+	"github.com/DataDog/KubeHound/pkg/ingestor/api/grpc"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 )
 
@@ -13,8 +14,9 @@ func Launch(ctx context.Context, cfg *config.KubehoundConfig) error {
 	if err != nil {
 		return err
 	}
-	ingestorApi := grpcapi.NewGRPCIngestorAPI(cfg, puller)
-	err = ingestorApi.Listen(ctx)
+	ingestorApi := api.NewIngestorAPI(cfg, puller, nil)
+
+	err = grpc.Listen(ctx, ingestorApi)
 	if err != nil {
 		return err
 	}
