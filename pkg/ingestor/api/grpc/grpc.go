@@ -57,7 +57,14 @@ func (g *GRPCIngestorAPI) Ingest(ctx context.Context, clusterName string, runID 
 	if err != nil {
 		return err
 	}
-	g.puller.Close(ctx, archivePath)
+	err = g.puller.Close(ctx, archivePath)
+	if err != nil {
+		return err
+	}
+	err = g.puller.Extract(ctx, archivePath)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

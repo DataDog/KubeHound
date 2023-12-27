@@ -71,6 +71,16 @@ func TestMustLoadConfig(t *testing.T) {
 						BatchSizeClusterImpact:    10,
 					},
 				},
+				Ingestor: IngestorConfig{
+					API: IngestorAPIConfig{
+						Addr: "127.0.0.1",
+						Port: 9000,
+					},
+					BucketName:     "",
+					TempDir:        "/tmp/kubehound",
+					ArchiveName:    "archive.tar.gz",
+					MaxArchiveSize: 1073741824,
+				},
 			},
 			wantErr: false,
 		},
@@ -123,6 +133,16 @@ func TestMustLoadConfig(t *testing.T) {
 						BatchSizeSmall:            100,
 						BatchSizeClusterImpact:    5,
 					},
+				},
+				Ingestor: IngestorConfig{
+					API: IngestorAPIConfig{
+						Addr: "127.0.0.1",
+						Port: 9000,
+					},
+					BucketName:     "",
+					TempDir:        "/tmp/kubehound",
+					ArchiveName:    "archive.tar.gz",
+					MaxArchiveSize: 1073741824,
 				},
 			},
 			wantErr: false,
