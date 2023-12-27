@@ -8,6 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/ingestor/api"
 	pb "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
+	"github.com/DataDog/KubeHound/pkg/ingestor/notifier"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 
@@ -39,8 +40,9 @@ func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestRe
 
 //go:generate protoc --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative api.proto
 type GRPCIngestorAPI struct {
-	puller puller.DataPuller
-	cfg    *config.KubehoundConfig
+	puller   puller.DataPuller
+	notifier notifier.Notifier
+	cfg      *config.KubehoundConfig
 }
 
 var _ api.API = (*GRPCIngestorAPI)(nil)
@@ -65,8 +67,17 @@ func (g *GRPCIngestorAPI) Ingest(ctx context.Context, clusterName string, runID 
 	if err != nil {
 		return err
 	}
+	err = g.notifier.Notify(ctx, clusterName, runID)
+	if err != nil {
+		return err
+	}
 
 	return nil
+}
+
+// Notify notifies the caller that the ingestion is completed
+func (g *GRPCIngestorAPI) Notify(ctx context.Context, clusterName string, runID string) error {
+	return g.notifier.Notify(ctx, clusterName, runID)
 }
 
 func (g *GRPCIngestorAPI) Listen(ctx context.Context) error {
