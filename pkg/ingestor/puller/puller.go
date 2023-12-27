@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,9 +14,10 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
-var (
-	ArchiveName = "archive.tar.gz"
-	BasePath    = "/tmp/kubehound"
+const (
+	ArchiveName    = "archive.tar.gz"
+	MaxArchiveSize = int64(1 << 30) // 1GB
+	BasePath       = "/tmp/kubehound"
 )
 
 type DataPuller interface {
@@ -33,6 +35,17 @@ func CheckSanePath(path string) error {
 	if path == "/" || path == "" || !strings.HasPrefix(path, BasePath) {
 		return fmt.Errorf("Invalid path provided: %q", path)
 	}
+
+	return nil
+}
+
+// https://security.snyk.io/research/zip-slip-vulnerability
+func sanitizeExtractPath(filePath string, destination string) error {
+	destpath := filepath.Join(destination, filePath)
+	if !strings.HasPrefix(destpath, filepath.Clean(destination)+string(os.PathSeparator)) {
+		return fmt.Errorf("%s: illegal file path", filePath)
+	}
+
 	return nil
 }
 
@@ -41,30 +54,38 @@ func ExtractTarGz(gzipFileReader io.Reader, basePath string) error {
 	if err != nil {
 		return err
 	}
-	tarReader := tar.NewReader(uncompressedStream)
+	tarReader := tar.NewReader(io.LimitReader(uncompressedStream, MaxArchiveSize))
 	for {
 		header, err := tarReader.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
 			return err
 		}
+		err = sanitizeExtractPath(basePath, header.Name)
+		if err != nil {
+			return err
+		}
+		cleanPath := filepath.Join(basePath, header.Name) //nolint:gosec // We check the path just above
+		log.I.Infof("Extracting %s", cleanPath)
 
 		switch header.Typeflag {
 		// Handle sub folder containing namespaces
 		case tar.TypeDir:
-			err := os.Mkdir(filepath.Join(basePath, header.Name), 0755)
+			err := os.Mkdir(cleanPath, os.ModePerm)
 			if err != nil {
 				return err
 			}
 		case tar.TypeReg:
-			outFile, err := os.Create(filepath.Join(basePath, header.Name))
+			outFile, err := os.Create(cleanPath)
 			if err != nil {
 				return err
 			}
 			defer outFile.Close()
-			_, err = io.Copy(outFile, tarReader)
+			// We don't really have an upper limit of archive size and adding a limited writer is not trivial without importing
+			// a third party library (like our internal secure lib)
+			_, err = io.Copy(outFile, tarReader) //nolint:gosec
 			if err != nil {
 				return err
 			}
@@ -72,5 +93,6 @@ func ExtractTarGz(gzipFileReader io.Reader, basePath string) error {
 			log.I.Info("unsupported archive item (not a folder, not a regular file): ", header.Typeflag)
 		}
 	}
+
 	return nil
 }

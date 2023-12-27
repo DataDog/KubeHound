@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/DataDog/KubeHound/pkg/ingestor"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +15,7 @@ var (
 		Short: "Kubehound Ingestor Service",
 		Long:  `instance of Kubehound that pulls data from cloud storage`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
+			return ingestor.Launch(cmd.Context())
 		},
 	}
 )

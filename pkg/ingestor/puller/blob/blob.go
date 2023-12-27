@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"gocloud.dev/blob"
 	_ "gocloud.dev/blob/s3blob"
 )
@@ -41,17 +42,25 @@ func NewBlobStoragePuller() (*BlobStore, error) {
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
 func (bs *BlobStore) Pull(ctx context.Context, clusterName string, runID string) (string, error) {
+	log.I.Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
 	key := puller.FormatArchiveKey(clusterName, runID)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
 	if err != nil {
 		return "", err
 	}
 	defer b.Close()
-
+	// MkdirTemp needs the base path to exists.
+	// We thus enforce its creation here.
+	err = os.MkdirAll(puller.BasePath, os.ModePerm)
+	if err != nil {
+		return "", err
+	}
 	dirname, err := os.MkdirTemp(puller.BasePath, "kh-*")
 	if err != nil {
 		return dirname, err
 	}
+
+	log.I.Infof("Created temporary directory %s", dirname)
 	archivePath := filepath.Join(dirname, "archive.tar.gz")
 	f, err := os.Create(archivePath)
 	if err != nil {
@@ -59,8 +68,8 @@ func (bs *BlobStore) Pull(ctx context.Context, clusterName string, runID string)
 	}
 	defer f.Close()
 
+	log.I.Infof("Downloading archive (%q) from blob store", key)
 	w := bufio.NewWriter(f)
-
 	err = b.Download(ctx, key, w, nil)
 	if err != nil {
 		return dirname, err
@@ -88,6 +97,7 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -104,5 +114,6 @@ func (bs *BlobStore) Close(ctx context.Context, archivePath string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -17,7 +17,10 @@ func Launch(ctx context.Context) error {
 		return err
 	}
 	ingestorApi := grpcapi.NewGRPCIngestorAPI(port, addr, puller)
-	ingestorApi.Listen(ctx)
+	err = ingestorApi.Listen(ctx)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -4,7 +4,7 @@ package grpc;
 
 message IngestRequest {
     string run_id = 1;
-    string clustername = 2;
+    string cluster_name = 2;
 }
 
 message IngestResponse {}
