@@ -28,6 +28,7 @@ type KubehoundConfig struct {
 	Storage    StorageConfig    `mapstructure:"storage"`    // Global param for all storage provider
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 	Builder    BuilderConfig    `mapstructure:"builder"`    // Graph builder  configuration
+	Ingestor   IngestorConfig   `mapstructure:"ingestor"`   // Ingestor configuration
 	Dynamic    DynamicConfig    // Dynamic (i.e runtime generated) configuration
 }
 
@@ -87,6 +88,13 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("builder.edge.batch_size_small", DefaultEdgeBatchSizeSmall)
 	c.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
 	c.SetDefault("builder.stop_on_error", DefaultStopOnError)
+
+	c.SetDefault("ingestor.api.port", DefaultIngestorAPIPort)
+	c.SetDefault("ingestor.api.address", DefaultIngestorAPIAddr)
+	c.SetDefault("ingestor.bucket_name", DefaultBucketName)
+	c.SetDefault("ingestor.temp_dir", DefaultTempDir)
+	c.SetDefault("ingestor.max_archive_size", DefaultMaxArchiveSize)
+	c.SetDefault("ingestor.archive_name", DefaultArchiveName)
 }
 
 // SetEnvOverrides enables environment variable overrides for the config.

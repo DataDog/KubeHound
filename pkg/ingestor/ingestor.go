@@ -8,15 +8,12 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 )
 
-func Launch(ctx context.Context) error {
-	port := config.DefaultIngestorAPIPort
-	addr := config.DefaultIngestorAPIAddr
-
-	puller, err := blob.NewBlobStoragePuller()
+func Launch(ctx context.Context, cfg *config.KubehoundConfig) error {
+	puller, err := blob.NewBlobStoragePuller(cfg)
 	if err != nil {
 		return err
 	}
-	ingestorApi := grpcapi.NewGRPCIngestorAPI(port, addr, puller)
+	ingestorApi := grpcapi.NewGRPCIngestorAPI(cfg, puller)
 	err = ingestorApi.Listen(ctx)
 	if err != nil {
 		return err

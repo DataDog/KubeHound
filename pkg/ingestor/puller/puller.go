@@ -14,25 +14,19 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
-const (
-	ArchiveName    = "archive.tar.gz"
-	MaxArchiveSize = int64(1 << 30) // 1GB
-	BasePath       = "/tmp/kubehound"
-)
-
 type DataPuller interface {
 	Pull(ctx context.Context, clusterName string, runID string) (string, error)
 	Extract(ctx context.Context, archivePath string) error
 	Close(ctx context.Context, basePath string) error
 }
 
-func FormatArchiveKey(clusterName string, runID string) string {
-	return strings.Join([]string{clusterName, runID, ArchiveName}, "/")
+func FormatArchiveKey(clusterName string, runID string, archiveName string) string {
+	return strings.Join([]string{clusterName, runID, archiveName}, "/")
 }
 
 // checkSanePath just to make sure we don't delete or overwrite somewhere where we are not supposed to
-func CheckSanePath(path string) error {
-	if path == "/" || path == "" || !strings.HasPrefix(path, BasePath) {
+func CheckSanePath(path string, baseFolder string) error {
+	if path == "/" || path == "" || !strings.HasPrefix(path, baseFolder) {
 		return fmt.Errorf("Invalid path provided: %q", path)
 	}
 
@@ -49,12 +43,12 @@ func sanitizeExtractPath(filePath string, destination string) error {
 	return nil
 }
 
-func ExtractTarGz(gzipFileReader io.Reader, basePath string) error {
+func ExtractTarGz(gzipFileReader io.Reader, basePath string, maxArchiveSize int64) error {
 	uncompressedStream, err := gzip.NewReader(gzipFileReader)
 	if err != nil {
 		return err
 	}
-	tarReader := tar.NewReader(io.LimitReader(uncompressedStream, MaxArchiveSize))
+	tarReader := tar.NewReader(io.LimitReader(uncompressedStream, maxArchiveSize))
 	for {
 		header, err := tarReader.Next()
 		if errors.Is(err, io.EOF) {

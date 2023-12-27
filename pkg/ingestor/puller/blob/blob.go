@@ -8,14 +8,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"gocloud.dev/blob"
 	_ "gocloud.dev/blob/s3blob"
-)
-
-var (
-	DefaultBucketName = "s3://test"
 )
 
 var (
@@ -24,26 +21,25 @@ var (
 
 type BlobStore struct {
 	bucketName string
+	cfg        *config.KubehoundConfig
 }
 
 var _ puller.DataPuller = (*BlobStore)(nil)
 
-func NewBlobStoragePuller() (*BlobStore, error) {
-	// TODO: change me with config
-	bucketName := DefaultBucketName
-	if bucketName == "" {
+func NewBlobStoragePuller(cfg *config.KubehoundConfig) (*BlobStore, error) {
+	if cfg.Ingestor.BucketName == "" {
 		return nil, ErrInvalidBucketName
 	}
 
 	return &BlobStore{
-		bucketName: bucketName,
+		bucketName: cfg.Ingestor.BucketName,
 	}, nil
 }
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
 func (bs *BlobStore) Pull(ctx context.Context, clusterName string, runID string) (string, error) {
 	log.I.Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
-	key := puller.FormatArchiveKey(clusterName, runID)
+	key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
 	if err != nil {
 		return "", err
@@ -51,11 +47,11 @@ func (bs *BlobStore) Pull(ctx context.Context, clusterName string, runID string)
 	defer b.Close()
 	// MkdirTemp needs the base path to exists.
 	// We thus enforce its creation here.
-	err = os.MkdirAll(puller.BasePath, os.ModePerm)
+	err = os.MkdirAll(bs.cfg.Ingestor.TempDir, os.ModePerm)
 	if err != nil {
 		return "", err
 	}
-	dirname, err := os.MkdirTemp(puller.BasePath, "kh-*")
+	dirname, err := os.MkdirTemp(bs.cfg.Ingestor.TempDir, "kh-*")
 	if err != nil {
 		return dirname, err
 	}
@@ -85,7 +81,7 @@ func (bs *BlobStore) Pull(ctx context.Context, clusterName string, runID string)
 
 func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 	basePath := filepath.Base(archivePath)
-	err := puller.CheckSanePath(archivePath)
+	err := puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
 	if err != nil {
 		return fmt.Errorf("Dangerous file path used during extraction, aborting: %w", err)
 	}
@@ -93,7 +89,7 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 	if err != nil {
 		return err
 	}
-	err = puller.ExtractTarGz(r, basePath)
+	err = puller.ExtractTarGz(r, basePath, bs.cfg.Ingestor.MaxArchiveSize)
 	if err != nil {
 		return err
 	}
@@ -105,7 +101,7 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 // required for large infrastructure
 func (bs *BlobStore) Close(ctx context.Context, archivePath string) error {
 	path := filepath.Base(archivePath)
-	err := puller.CheckSanePath(archivePath)
+	err := puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
 	if err != nil {
 		return fmt.Errorf("Dangerous file path used while closing, aborting: %w", err)
 	}

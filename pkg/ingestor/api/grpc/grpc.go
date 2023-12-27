@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/ingestor/api"
 	pb "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
@@ -38,18 +39,16 @@ func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestRe
 
 //go:generate protoc --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative api.proto
 type GRPCIngestorAPI struct {
-	port   int
-	addr   string
 	puller puller.DataPuller
+	cfg    *config.KubehoundConfig
 }
 
 var _ api.API = (*GRPCIngestorAPI)(nil)
 
-func NewGRPCIngestorAPI(port int, addr string, puller puller.DataPuller) GRPCIngestorAPI {
+func NewGRPCIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller) GRPCIngestorAPI {
 	return GRPCIngestorAPI{
-		port:   port,
-		addr:   addr,
 		puller: puller,
+		cfg:    cfg,
 	}
 }
 
@@ -64,7 +63,7 @@ func (g *GRPCIngestorAPI) Ingest(ctx context.Context, clusterName string, runID 
 }
 
 func (g *GRPCIngestorAPI) Listen(ctx context.Context) error {
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", g.addr, g.port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", g.cfg.Ingestor.API.Addr, g.cfg.Ingestor.API.Port))
 	if err != nil {
 		return err
 	}
