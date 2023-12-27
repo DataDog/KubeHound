@@ -6,6 +6,8 @@ import (
 )
 
 func Test_sanitizeExtractPath(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		filePath    string
 		destination string
@@ -27,7 +29,9 @@ func Test_sanitizeExtractPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if err := sanitizeExtractPath(tt.args.filePath, tt.args.destination); (err != nil) != tt.wantErr {
 				t.Errorf("sanitizeExtractPath() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -36,6 +40,7 @@ func Test_sanitizeExtractPath(t *testing.T) {
 }
 
 func TestCheckSanePath(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		path       string
 		baseFolder string
@@ -77,7 +82,9 @@ func TestCheckSanePath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if err := CheckSanePath(tt.args.path, tt.args.baseFolder); (err != nil) != tt.wantErr {
 				t.Errorf("CheckSanePath() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -86,6 +93,7 @@ func TestCheckSanePath(t *testing.T) {
 }
 
 func TestExtractTarGz(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		maxArchiveSize int64
 	}
@@ -114,7 +122,9 @@ func TestExtractTarGz(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			zipReader, err := os.Open("./testdata/archive.tar.gz")
 			if err != nil {
 				t.Error(err)

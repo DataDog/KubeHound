@@ -5,19 +5,17 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestGRPCIngestorAPI_Ingest(t *testing.T) {
+	t.Parallel()
 	type fields struct {
-		puller puller.DataPuller
-		cfg    *config.KubehoundConfig
+		cfg *config.KubehoundConfig
 	}
 	type args struct {
-		ctx         context.Context
 		clusterName string
 		runID       string
 	}
@@ -35,7 +33,6 @@ func TestGRPCIngestorAPI_Ingest(t *testing.T) {
 				cfg: config.MustLoadEmbedConfig(),
 			},
 			args: args{
-				ctx:         context.Background(),
 				clusterName: "test-cluster",
 				runID:       "test-run-id",
 			},
@@ -50,7 +47,6 @@ func TestGRPCIngestorAPI_Ingest(t *testing.T) {
 				cfg: config.MustLoadEmbedConfig(),
 			},
 			args: args{
-				ctx:         context.Background(),
 				clusterName: "test-cluster",
 				runID:       "test-run-id",
 			},
@@ -63,11 +59,13 @@ func TestGRPCIngestorAPI_Ingest(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockedPuller := mocks.NewDataPuller(t)
 			g := NewGRPCIngestorAPI(tt.fields.cfg, mockedPuller)
 			tt.mock(mockedPuller)
-			if err := g.Ingest(tt.args.ctx, tt.args.clusterName, tt.args.runID); (err != nil) != tt.wantErr {
+			if err := g.Ingest(context.TODO(), tt.args.clusterName, tt.args.runID); (err != nil) != tt.wantErr {
 				t.Errorf("GRPCIngestorAPI.Ingest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
