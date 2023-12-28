@@ -8,4 +8,4 @@ type Notifier interface {
 	Notify(ctx context.Context, clusterName string, runID string) error
 }
 
-//go:generate mockery --name=Notifier --output=mocks --outpkg=mocks --case=underscore
+//go:generate mockery --name=Notifier --output=mocks --outpkg=mocks --case=underscore --with-expecter

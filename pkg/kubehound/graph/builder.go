@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
@@ -32,7 +33,6 @@ type Builder struct {
 // NewBuilder returns a new builder instance from the provided application config and service dependencies.
 func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider, graph graphdb.Provider,
 	cache cache.CacheReader, edges *edge.Registry) (*Builder, error) {
-
 	n := &Builder{
 		cfg:     cfg,
 		storedb: store,
@@ -211,6 +211,42 @@ func (b *Builder) Run(ctx context.Context) error {
 	}
 
 	l.Info("Completed edge construction")
+
+	return nil
+}
+
+// buildGraph will construct the attack graph by calculating and inserting all registered edges in parallel.
+// All I/O operations are performed asynchronously.
+func BuildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
+	graphdb graphdb.Provider, cache cache.CacheReader) error {
+
+	start := time.Now()
+	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildGraph, tracer.Measured())
+	defer span.Finish()
+
+	log.I.Info("Loading graph edge definitions")
+	edges := edge.Registered()
+	if err := edges.Verify(); err != nil {
+		return fmt.Errorf("edge registry verification: %w", err)
+	}
+
+	log.I.Info("Loading graph builder")
+	builder, err := NewBuilder(cfg, storedb, graphdb, cache, edges)
+	if err != nil {
+		return fmt.Errorf("graph builder creation: %w", err)
+	}
+
+	log.I.Info("Running dependency health checks")
+	if err := builder.HealthCheck(ctx); err != nil {
+		return fmt.Errorf("graph builder dependency health check: %w", err)
+	}
+
+	log.I.Info("Constructing graph")
+	if err := builder.Run(ctx); err != nil {
+		return fmt.Errorf("graph builder edge calculation: %w", err)
+	}
+
+	log.I.Infof("Completed graph construction in %s", time.Since(start))
 
 	return nil
 }

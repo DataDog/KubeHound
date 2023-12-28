@@ -7,8 +7,11 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/ingestor/api"
+	"github.com/DataDog/KubeHound/pkg/ingestor/api/grpc"
+	"github.com/DataDog/KubeHound/pkg/ingestor/notifier/noop"
+	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
@@ -46,42 +49,6 @@ func ingestData(ctx context.Context, cfg *config.KubehoundConfig, collect collec
 	}
 
 	log.I.Infof("Completed data ingest and normalization in %s", time.Since(start))
-
-	return nil
-}
-
-// buildGraph will construct the attack graph by calculating and inserting all registered edges in parallel.
-// All I/O operations are performed asynchronously.
-func buildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
-	graphdb graphdb.Provider, cache cache.CacheReader) error {
-
-	start := time.Now()
-	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildGraph, tracer.Measured())
-	defer span.Finish()
-
-	log.I.Info("Loading graph edge definitions")
-	edges := edge.Registered()
-	if err := edges.Verify(); err != nil {
-		return fmt.Errorf("edge registry verification: %w", err)
-	}
-
-	log.I.Info("Loading graph builder")
-	builder, err := graph.NewBuilder(cfg, storedb, graphdb, cache, edges)
-	if err != nil {
-		return fmt.Errorf("graph builder creation: %w", err)
-	}
-
-	log.I.Info("Running dependency health checks")
-	if err := builder.HealthCheck(ctx); err != nil {
-		return fmt.Errorf("graph builder dependency health check: %w", err)
-	}
-
-	log.I.Info("Constructing graph")
-	if err := builder.Run(ctx); err != nil {
-		return fmt.Errorf("graph builder edge calculation: %w", err)
-	}
-
-	log.I.Infof("Completed graph construction in %s", time.Since(start))
 
 	return nil
 }
@@ -195,11 +162,102 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 
 	// Construct the graph
 	log.I.Info("Building attack graph")
-	if err := buildGraph(ctx, cfg, sp, gp, cp); err != nil {
+	if err := graph.BuildGraph(ctx, cfg, sp, gp, cp); err != nil {
 		return fmt.Errorf("building attack graph: %w", err)
 	}
 
 	log.I.Infof("KubeHound run (id=%s) complete in %s", runID.String(), time.Since(start))
+
+	return nil
+}
+
+func LaunchRemoteIngestor(ctx context.Context, opts ...LaunchOption) error {
+	span, ctx := tracer.StartSpanFromContext(ctx, span.Launch, tracer.Measured())
+	defer span.Finish()
+
+	log.I.Infof("Starting KubeHound Distributed Ingestor Service")
+	lOpts := &launchConfig{}
+	for _, opt := range opts {
+		opt(lOpts)
+	}
+
+	var cfg *config.KubehoundConfig
+	if len(lOpts.ConfigPath) != 0 {
+		log.I.Infof("Loading application configuration from file %s", lOpts.ConfigPath)
+		cfg = config.MustLoadConfig(lOpts.ConfigPath)
+	} else {
+		log.I.Infof("Loading application configuration from default embedded")
+		cfg = config.MustLoadEmbedConfig()
+	}
+
+	// Update the logger behavior from configuration
+	log.SetDD(cfg.Telemetry.Enabled)
+	log.AddGlobalTags(cfg.Telemetry.Tags)
+
+	// Setup telemetry
+	log.I.Info("Initializing application telemetry")
+	ts, err := telemetry.Initialize(cfg)
+	if err != nil {
+		log.I.Warnf("failed telemetry initialization: %v", err)
+	}
+	defer telemetry.Shutdown(ts)
+
+	// Create the cache client
+	log.I.Info("Loading cache provider")
+	cp, err := cache.Factory(ctx, cfg)
+	if err != nil {
+		return fmt.Errorf("cache client creation: %w", err)
+	}
+	defer cp.Close(ctx)
+	log.I.Infof("Loaded %s cache provider", cp.Name())
+
+	// Create the store client
+	log.I.Info("Loading store database provider")
+	sp, err := storedb.Factory(ctx, cfg)
+	if err != nil {
+		return fmt.Errorf("store database client creation: %w", err)
+	}
+	defer sp.Close(ctx)
+	log.I.Infof("Loaded %s store provider", sp.Name())
+
+	err = sp.Prepare(ctx)
+	if err != nil {
+		return fmt.Errorf("store database prepare: %w", err)
+	}
+
+	// Create the graph client
+	log.I.Info("Loading graph database provider")
+	gp, err := graphdb.Factory(ctx, cfg)
+	if err != nil {
+		return fmt.Errorf("graph database client creation: %w", err)
+	}
+	defer gp.Close(ctx)
+	log.I.Infof("Loaded %s graph provider", gp.Name())
+
+	err = gp.Prepare(ctx)
+	if err != nil {
+		return fmt.Errorf("graph database prepare: %w", err)
+	}
+
+	log.I.Info("Creating Blob Storage provider")
+	puller, err := blob.NewBlobStoragePuller(cfg)
+	if err != nil {
+		return err
+	}
+
+	log.I.Info("Creating Noop Notifier")
+	noopNotifier := noop.NewNoopNotifier()
+
+	log.I.Info("Creating Ingestor API")
+	ingestorApi := api.NewIngestorAPI(cfg, puller, noopNotifier, sp, gp, cp)
+
+	log.I.Info("Starting Ingestor API")
+	err = grpc.Listen(ctx, ingestorApi)
+	if err != nil {
+		return err
+	}
+
+	log.I.Infof("KubeHound Ingestor API shutdown")
 
 	return nil
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
+//go:generate mockery --name DataPuller --output mocks --case underscore --filename mock_puller.go --with-expecter
 type DataPuller interface {
 	Pull(ctx context.Context, clusterName string, runID string) (string, error)
 	Extract(ctx context.Context, archivePath string) error
