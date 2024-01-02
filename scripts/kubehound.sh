@@ -31,7 +31,7 @@ check_docker() {
         exit 1
     fi
 
-    if ! [ "$(docker compose version | grep '^Docker Compose version 2')" ]; then
+    if ! [ "$(docker compose version | grep '^Docker Compose version v2')" ]; then
     # docker compose v2 isn't available at all, there's no point in continuing
         echo "Docker Compose v2 isn't available. You should install it."
         exit 1
