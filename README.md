@@ -7,8 +7,8 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
 
 ## Quick Links <!-- omit in toc -->
 
-+ For an overview of the application architecture see the [design canvas](./docs/application/Architecture.excalidraw)
-+ To see the attacks covered see the [edge definitions](./docs/edges/)
++ For an overview of the application architecture see the [design canvas](./docs/Architecture.excalidraw)
++ To see the attacks covered see the [edge definitions](./docs/reference/attacks)
 + To contribute a new attack to the project follow the [contribution guidelines](./CONTRIBUTING.md)
 
 ## Sample Attack Path  <!-- omit in toc -->
@@ -241,7 +241,7 @@ The repository includes a suite of system tests that will do the following:
 
 The cluster setup and running instances can be found under [test/setup](./test/setup/)
 
-If you need to manually access the system test environement with kubectl and other commands, you'll need to set (assuming you are at the root dir):
+If you need to manually access the system test environment with kubectl and other commands, you'll need to set (assuming you are at the root dir):
 
 ```bash
 cd test/setup/ && export KUBECONFIG=$(pwd)/.kube-config
