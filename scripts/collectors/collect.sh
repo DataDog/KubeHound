@@ -25,7 +25,6 @@ RESOURCES_ALLOWLIST=(
     nodes
     clusterroles.rbac.authorization.k8s.io
     clusterrolebindings.rbac.authorization.k8s.io
-    hiveconfigs.hive.openshift.io
 )
 
 #
@@ -71,6 +70,60 @@ Usage ${0} [-ua] [-d DELAY] OUTDIR
     -a              Allowlist mode
     -h              Show this help message
 EOF
+}
+
+function collect_resources() {
+    dir=$1
+    resources=$2
+    res_count=$3
+    res_current=1
+
+    for resource in ${resources}; do
+        unwanted=0
+        for pattern in "${RESOURCES_DENYLIST[@]}"; do
+            if [[ ${resource} == ${pattern} ]]; then
+                echo "  - $(red "${resource}") ($(green "${res_current}")/${res_count}) - matches denylist (skipped)"
+                unwanted=1
+                res_current=$((res_current+1))
+                break
+            fi
+        done
+        [[ ${unwanted} -eq 1 ]] && continue
+
+        if [[ ${ALLOWLIST_MODE} -eq 1 ]]; then
+            wanted=0
+            for pattern in "${RESOURCES_ALLOWLIST[@]}"; do
+                if [[ ${resource} == ${pattern} ]]; then
+                    wanted=1
+                    break
+                fi
+            done
+            if [[ ${wanted} -ne 1 ]]; then
+                echo "  - $(red "${resource}") ($(green "${res_current}")/${res_count}) - does not match allowlist (skipped)"
+                res_current=$((res_current+1))
+                continue
+            fi
+        fi
+
+        outfile="${dir}/${resource}.json"
+        sleep "${DELAY}"
+        echo -n kubectl get "${resource}" -o json > "${outfile}" 2> "${ERRFILE}"
+        kubectl get "${resource}" -o json > "${outfile}" 2> "${ERRFILE}"
+
+        # check if access was denied
+        grep -q "MethodNotAllowed" "${ERRFILE}"
+        if [ $? -eq 0 ]; then
+            echo "  - $(red "${resource}") ($(green "${res_current}")/${res_count}) - access denied"
+            rm "${outfile}"
+            res_current=$((res_current+1))
+            echo '{"error":true}' > "${outfile}"
+            continue
+        fi
+
+        # success status
+        echo "  - $(green "${resource}") ($(green "${res_current}")/${res_count})"
+        res_current=$((res_current+1))
+    done
 }
 
 # record start date and parse arguments
@@ -155,57 +208,10 @@ for cluster in "${TARGET_CLUSTERS[@]}"; do
     echo -n "Extracting cluster-wide resources..."
     cluster_resources=$(kubectl api-resources -o name --namespaced=false)
     res_count="$(echo "${cluster_resources}" | wc -l)"
-    res_current=1
     echo " $(green "${res_count}") found"
+    collect_resources "${cluster_dir}" "${cluster_resources}" "${res_count}"
 
-    for resource in ${cluster_resources}; do
-        unwanted=0
-        for pattern in "${RESOURCES_DENYLIST[@]}"; do
-            if [[ ${resource} == ${pattern} ]]; then
-                echo "  - $(red "${resource}") ($(green "${res_current}")/${res_count}) - matches denylist (skipped)"
-                unwanted=1
-                res_current=$((res_current+1))
-                break
-            fi
-        done
-        [[ ${unwanted} -eq 1 ]] && continue
-
-        if [[ ${ALLOWLIST_MODE} -eq 1 ]]; then
-            wanted=0
-            for pattern in "${RESOURCES_ALLOWLIST[@]}"; do
-                if [[ ${resource} == ${pattern} ]]; then
-                    wanted=1
-                    break
-                fi
-            done
-            if [[ ${wanted} -ne 1 ]]; then
-                echo "  - $(red "${resource}") ($(green "${res_current}")/${res_count}) - does not match allowlist (skipped)"
-                res_current=$((res_current+1))
-                continue
-            fi
-        fi
-
-        outfile="${cluster_dir}/${resource}.json"
-        sleep "${DELAY}"
-        echo -n kubectl get "${resource}" -o json > "${outfile}" 2> "${ERRFILE}"
-        kubectl get "${resource}" -o json > "${outfile}" 2> "${ERRFILE}"
-
-        # check if access was denied
-        grep -q "MethodNotAllowed" "${ERRFILE}"
-        if [ $? -eq 0 ]; then
-            echo "  - $(red "${resource}") ($(green "${res_current}")/${res_count}) - access denied"
-            rm "${outfile}"
-            res_current=$((res_current+1))
-            echo '{"error":true}' > "${outfile}"
-            continue
-        fi
-
-        # success status
-        echo "  - $(green "${resource}") ($(green "${res_current}")/${res_count})"
-        res_current=$((res_current+1))
-    done
-
-    # extract resources
+    # extract namespaced resources
     echo -n "Extracting namespaced resources list..."
     resources=$(kubectl api-resources -o name --namespaced=true)
     res_count="$(echo "${resources}" | wc -l)"
@@ -239,68 +245,9 @@ for cluster in "${TARGET_CLUSTERS[@]}"; do
 
         echo "Extracting resources from the $(green "${namespace}") namespace in the $(green "${cluster}") cluster ($(green "${ns_current}")/${ns_count})"
         ns_current=$((ns_current+1))
-        res_current=1
-
-        for resource in ${resources}; do
-            # check if resource is unwanted
-            unwanted=0
-            for pattern in "${RESOURCES_DENYLIST[@]}"; do
-                if [[ ${resource} == ${pattern} ]]; then
-                    echo "  - $(red "${resource}") ($(green "${res_current}")/${res_count}) - matches denylist (skipped)"
-                    unwanted=1
-                    res_current=$((res_current+1))
-                    break
-                fi
-            done
-            [[ ${unwanted} -eq 1 ]] && continue
-
-            # check if resource is wanted (if allowlist mode)
-            if [[ ${ALLOWLIST_MODE} -eq 1 ]]; then
-                wanted=0
-                for pattern in "${RESOURCES_ALLOWLIST[@]}"; do
-                    if [[ ${resource} == ${pattern} ]]; then
-                        wanted=1
-                        break
-                    fi
-                done
-                if [[ ${wanted} -ne 1 ]]; then
-                    echo "  - $(red "${resource}") ($(green "${res_current}")/${res_count}) - does not match allowlist (skipped)"
-                    res_current=$((res_current+1))
-                    continue
-                fi
-            fi
-
-            # create output folder and generate filename
-            ns_dir="${cluster_dir}/${namespace}"
-            mkdir -p "${ns_dir}"
-            outfile="${ns_dir}/${resource}.json"
-
-            # check if data already exists for the resource
-            if [[ -f "${outfile}" ]] && [ ${UPDATE} -eq 1 ]; then
-                echo "  - $(green "${resource}") ($(green "${res_current}")/${res_count}) - already exists (skipped)"
-                res_current=$((res_current+1))
-                continue
-            fi
-
-            # extract data
-            sleep "${DELAY}"
-            kubectl get "${resource}" -n "${namespace}" -o json > "${outfile}" 2> "${ERRFILE}"
-            # TODO: handle return code
-
-            # check if access was denied
-            grep -q "MethodNotAllowed" "${ERRFILE}"
-            if [ $? -eq 0 ]; then
-                echo "  - $(red "${resource}") ($(green "${res_current}")/${res_count}) - access denied"
-                rm "${outfile}"
-                res_current=$((res_current+1))
-                echo '{"error":true}' > "${outfile}"
-                continue
-            fi
-
-            # success status
-            echo "  - $(green "${resource}") ($(green "${res_current}")/${res_count})"
-            res_current=$((res_current+1))
-        done
+        ns_dir="${cluster_dir}/${namespace}"
+        mkdir -p "${ns_dir}"
+        collect_resources "${ns_dir}" "${resources}" "${res_count}"
         echo ""
     done
 done
