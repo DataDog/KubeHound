@@ -6,7 +6,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
-	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
 const (
@@ -28,21 +27,5 @@ func (v *Identity) Processor(ctx context.Context, entry any) (any, error) {
 }
 
 func (v *Identity) Traversal() types.VertexTraversal {
-	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
-		g := source.GetGraphTraversal().
-			//nolint:asasalint // required due to constraints in the gremlin API
-			Inject(inserts).
-			Unfold().As("ids").
-			AddV(v.Label()).As("idVtx").
-			Property("class", v.Label()). // labels are not indexed - use a mirror property
-			SideEffect(
-				__.Select("ids").
-					Unfold().As("kv").
-					Select("idVtx").
-					Property(
-						__.Select("kv").By(Column.Keys),
-						__.Select("kv").By(Column.Values)))
-
-		return g
-	}
+	return v.DefaultTraversal(v.Label())
 }

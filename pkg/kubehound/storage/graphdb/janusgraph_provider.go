@@ -4,34 +4,39 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
-// TODO maybe move that into a config file?
-const channelSizeBatchFactor = 4
+const (
+	channelSizeBatchFactor = 4 // TODO maybe move that into a config file?
+	StorageProviderName    = "janusgraph"
+)
 
-var _ Provider = (*JanusGraphProvider)(nil)
+var (
+	_ Provider = (*JanusGraphProvider)(nil)
+)
 
 type JanusGraphProvider struct {
-	drc  *gremlin.DriverRemoteConnection
-	tags []string
+	drc  *gremlin.DriverRemoteConnection // Connection to the remote gremlin server
+	tags []string                        // Tags to be applied for telemetry
+	cfg  *config.KubehoundConfig         // Application configuration
 }
 
-func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (*JanusGraphProvider, error) {
-	if dbHost == "" {
+func NewGraphDriver(ctx context.Context, cfg *config.KubehoundConfig) (*JanusGraphProvider, error) {
+	if cfg.JanusGraph.URL == "" {
 		return nil, errors.New("JanusGraph DB URL is not set")
 	}
 
-	driver, err := gremlin.NewDriverRemoteConnection(dbHost,
+	driver, err := gremlin.NewDriverRemoteConnection(cfg.JanusGraph.URL,
 		func(settings *gremlin.DriverRemoteConnectionSettings) {
-			settings.ConnectionTimeout = timeout
+			settings.ConnectionTimeout = cfg.JanusGraph.ConnectionTimeout
 			settings.LogVerbosity = gremlin.Warning
 		},
 	)
@@ -40,18 +45,25 @@ func NewGraphDriver(ctx context.Context, dbHost string, timeout time.Duration) (
 	}
 
 	jgp := &JanusGraphProvider{
+		cfg:  cfg,
 		drc:  driver,
-		tags: append(telemetry.BaseTags, telemetry.TagTypeJanusGraph),
+		tags: append(tag.BaseTags, tag.Storage(StorageProviderName)),
 	}
 
 	return jgp, nil
 }
 
 func (jgp *JanusGraphProvider) Name() string {
-	return "JanusGraphProvider"
+	return StorageProviderName
 }
 
 func (jgp *JanusGraphProvider) Prepare(ctx context.Context) error {
+	if !jgp.cfg.Storage.Wipe {
+		log.Trace(ctx).Warn("Skipping graph vertex wipe")
+
+		return nil
+	}
+
 	g := gremlin.Traversal_().WithRemote(jgp.drc)
 	tx := g.Tx()
 	defer tx.Close()
@@ -115,11 +127,15 @@ func (jgp *JanusGraphProvider) Raw() any {
 func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builder,
 	c cache.CacheProvider, opts ...WriterOption) (AsyncVertexWriter, error) {
 
+	opts = append(opts, WithTags(jgp.tags))
+
 	return NewJanusGraphAsyncVertexWriter(ctx, jgp.drc, v, c, opts...)
 }
 
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
 func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error) {
+	opts = append(opts, WithTags(jgp.tags))
+
 	return NewJanusGraphAsyncEdgeWriter(ctx, jgp.drc, e, opts...)
 }
 

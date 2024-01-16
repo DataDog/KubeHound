@@ -1,0 +1,84 @@
+# ROLE_BIND_NAMESPACE edge
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-rb-r-rb-r-g
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-rb-r-rb-r
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: group-rb-r-rb-r
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-rb-r-rb-r-u
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-rb-r-rb-r
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: user-rb-r-rb-r
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-rb-r-crb-cr-fail-g
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-rb-r-crb-cr-fail
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: group-rb-r-crb-cr-fail
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-rb-r-crb-cr-fail-u
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-rb-r-crb-cr-fail
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: user-rb-r-crb-cr-fail
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-rb-r-rb-crb-g
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-rb-r-rb-crb
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: group-rb-r-rb-crb
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-bind-role-rb-r-rb-crb-u
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rolebind-rb-r-rb-crb
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: user-rb-r-rb-crb

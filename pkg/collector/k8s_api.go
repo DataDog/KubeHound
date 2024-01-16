@@ -5,9 +5,13 @@ import (
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+
+	"go.uber.org/ratelimit"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
@@ -16,10 +20,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/pager"
 	ctrl "sigs.k8s.io/controller-runtime"
-
-	"go.uber.org/ratelimit"
 )
 
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
@@ -33,6 +36,10 @@ type k8sAPICollector struct {
 
 const (
 	K8sAPICollectorName = "k8s-api-collector"
+)
+
+var (
+	CollectorUserAgent = fmt.Sprintf("KubeHound-Collector-v%s", config.BuildVersion)
 )
 
 // checkK8sAPICollectorConfig made for unit testing to avoid using NewK8sAPICollector that is bind to a kubernetes config file
@@ -54,8 +61,8 @@ func tunedListOptions() metav1.ListOptions {
 
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	tags := telemetry.BaseTags
-	tags = append(tags, telemetry.TagCollectorTypeK8sApi)
+	tags := tag.BaseTags
+	tags = append(tags, tag.Collector(K8sAPICollectorName))
 	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
 
 	err := checkK8sAPICollectorConfig(cfg.Collector.Type)
@@ -68,7 +75,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		return nil, fmt.Errorf("building kubernetes config: %w", err)
 	}
 
-	kubeConfig.UserAgent = "KubeHound-Collector"
+	kubeConfig.UserAgent = CollectorUserAgent
 
 	clientset, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
@@ -102,6 +109,21 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	configOverrides := &clientcmd.ConfigOverrides{}
+	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
+
+	raw, err := kubeConfig.RawConfig()
+	if err != nil {
+		return nil, fmt.Errorf("raw config get: %w", err)
+	}
+
+	return &ClusterInfo{
+		Name: raw.CurrentContext,
+	}, nil
 }
 
 func (c *k8sAPICollector) Close(_ context.Context) error {
@@ -148,7 +170,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(telemetry.MetricCollectorPodsCount, c.tags, 1)
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityPods)), 1)
 		c.rl.Take()
 		item, ok := obj.(*corev1.Pod)
 		if !ok {
@@ -165,8 +187,8 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 }
 
 func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourcePods)
+	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span.SetTag(tag.EntityTag, tag.EntityPods)
 	defer span.Finish()
 
 	// passing an empty namespace will collect all namespaces
@@ -198,7 +220,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(telemetry.MetricCollectorRolesCount, c.tags, 1)
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityRoles)), 1)
 		c.rl.Take()
 		item, ok := obj.(*rbacv1.Role)
 		if !ok {
@@ -215,8 +237,8 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 }
 
 func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceRoles)
+	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span.SetTag(tag.EntityTag, tag.EntityRoles)
 	defer span.Finish()
 
 	// passing an empty namespace will collect all namespaces
@@ -248,7 +270,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(telemetry.MetricCollectorRoleBindingsCount, c.tags, 1)
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityRolebindings)), 1)
 		c.rl.Take()
 		item, ok := obj.(*rbacv1.RoleBinding)
 		if !ok {
@@ -265,8 +287,8 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 }
 
 func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceRolebindings)
+	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span.SetTag(tag.EntityTag, tag.EntityRolebindings)
 	defer span.Finish()
 
 	// passing an empty namespace will collect all namespaces
@@ -298,7 +320,7 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(telemetry.MetricCollectorEndpointCount, c.tags, 1)
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityEndpoints)), 1)
 		c.rl.Take()
 		item, ok := obj.(*discoveryv1.EndpointSlice)
 		if !ok {
@@ -315,8 +337,8 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 }
 
 func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceEndpoints)
+	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
 	defer span.Finish()
 
 	// passing an empty namespace will collect all namespaces
@@ -329,8 +351,8 @@ func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor Endpoint
 }
 
 func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceNodes)
+	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span.SetTag(tag.EntityTag, tag.EntityNodes)
 	defer span.Finish()
 
 	opts := tunedListOptions()
@@ -346,7 +368,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(telemetry.MetricCollectorNodesCount, c.tags, 1)
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityNodes)), 1)
 		c.rl.Take()
 		item, ok := obj.(*corev1.Node)
 		if !ok {
@@ -368,8 +390,8 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 }
 
 func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceClusterRoles)
+	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span.SetTag(tag.EntityTag, tag.EntityClusterRoles)
 	defer span.Finish()
 
 	opts := tunedListOptions()
@@ -385,7 +407,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(telemetry.MetricCollectorClusterRolesCount, c.tags, 1)
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityClusterRoles)), 1)
 		c.rl.Take()
 		item, ok := obj.(*rbacv1.ClusterRole)
 		if !ok {
@@ -407,8 +429,8 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 }
 
 func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, telemetry.SpanOperationStream, tracer.Measured())
-	span.SetTag(telemetry.TagKeyResource, telemetry.TagResourceClusterRolebindings)
+	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span.SetTag(tag.EntityTag, tag.EntityClusterRolebindings)
 	defer span.Finish()
 
 	opts := tunedListOptions()
@@ -424,7 +446,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(telemetry.MetricCollectorClusterRoleBindingsCount, c.tags, 1)
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityClusterRolebindings)), 1)
 		c.rl.Take()
 		item, ok := obj.(*rbacv1.ClusterRoleBinding)
 		if !ok {

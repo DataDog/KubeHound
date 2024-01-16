@@ -12,8 +12,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -71,7 +71,7 @@ func WithCacheReader() IngestResourceOption {
 // WithCacheWriter initializes a store converter with cache access for the ingest pipeline.
 func WithConverterCache() IngestResourceOption {
 	return func(_ context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		rOpts.storeConvert = converter.NewStoreWithCache(deps.Cache)
+		rOpts.storeConvert = converter.NewStoreWithCache(deps.Config, deps.Cache)
 
 		return nil
 	}
@@ -81,10 +81,7 @@ func WithConverterCache() IngestResourceOption {
 // To access the writer use the storeWriter(c collections.Collection) function.
 func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		tags := telemetry.BaseTags
-		tags = append(tags, telemetry.TagTypeMongodb)
-
-		w, err := deps.StoreDB.BulkWriter(ctx, c, storedb.WithTags(tags))
+		w, err := deps.StoreDB.BulkWriter(ctx, c, storedb.WithTags(tag.BaseTags))
 		if err != nil {
 			return err
 		}
@@ -104,12 +101,11 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 // To access the writer use the graphWriter(v vertex.Vertex) function.
 func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		if err := v.Initialize(&deps.Config.Builder.Vertex); err != nil {
+		if err := v.Initialize(deps.Config); err != nil {
 			return err
 		}
 
-		tags := []string{telemetry.TagTypeJanusGraph}
-		w, err := deps.GraphDB.VertexWriter(ctx, v, deps.Cache, graphdb.WithTags(tags))
+		w, err := deps.GraphDB.VertexWriter(ctx, v, deps.Cache, graphdb.WithTags(tag.BaseTags))
 		if err != nil {
 			return err
 		}
@@ -165,8 +161,8 @@ func CreateResources(ctx context.Context, deps *Dependencies, opts ...IngestReso
 	i := &IngestResources{
 		resourceOptions{
 			collect:      deps.Collector,
-			graphConvert: converter.NewGraph(),
-			storeConvert: converter.NewStore(),
+			graphConvert: converter.NewGraph(deps.Config),
+			storeConvert: converter.NewStore(deps.Config),
 			flush:        make([]FlushFunc, 0),
 			cleanup:      make([]CleanupFunc, 0),
 			graphWriters: make(map[string]graphdb.AsyncVertexWriter),

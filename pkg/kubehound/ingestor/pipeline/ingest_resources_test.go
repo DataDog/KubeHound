@@ -126,6 +126,12 @@ func TestIngestResources_FlushErrors(t *testing.T) {
 		Cache:     c,
 		GraphDB:   gdb,
 		StoreDB:   sdb,
+		Config: &config.KubehoundConfig{
+			Dynamic: config.DynamicConfig{
+				Cluster: "test-clister",
+				RunID:   config.NewRunID(),
+			},
+		},
 	}
 
 	// Set cache to succeed

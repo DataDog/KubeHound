@@ -70,6 +70,10 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 			Builder: config.BuilderConfig{
 				Edge: config.EdgeBuilderConfig{},
 			},
+			Dynamic: config.DynamicConfig{
+				RunID:   config.NewRunID(),
+				Cluster: "test-cluster",
+			},
 		},
 	}
 

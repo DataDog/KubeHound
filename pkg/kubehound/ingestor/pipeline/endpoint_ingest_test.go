@@ -82,6 +82,8 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 		"serviceEndpoint": "cassandra-temporal-dev",
 		"storeID":         storeID.Hex(),
 		"team":            "workflow-engine",
+		"cluster":         "test-cluster",
+		"runID":           testID.String(),
 	}
 	vtx2 := map[string]interface{}{
 		"addressType":     "IPv4",
@@ -100,6 +102,8 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 		"serviceEndpoint": "cassandra-temporal-dev",
 		"storeID":         storeID.Hex(),
 		"team":            "workflow-engine",
+		"cluster":         "test-cluster",
+		"runID":           testID.String(),
 	}
 
 	gdb := graphdb.NewProvider(t)
@@ -118,6 +122,10 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 		Config: &config.KubehoundConfig{
 			Builder: config.BuilderConfig{
 				Edge: config.EdgeBuilderConfig{},
+			},
+			Dynamic: config.DynamicConfig{
+				RunID:   testID,
+				Cluster: "test-cluster",
 			},
 		},
 	}

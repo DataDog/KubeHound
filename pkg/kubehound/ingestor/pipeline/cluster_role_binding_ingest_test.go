@@ -32,7 +32,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 
 	fakeClusterRole, err := loadTestObject[types.ClusterRoleType]("testdata/clusterrole.json")
 	assert.NoError(t, err)
-	oFakeClusterRole, err := converter.NewStore().ClusterRole(ctx, fakeClusterRole)
+	oFakeClusterRole, err := converter.NewStore(testConfig).ClusterRole(ctx, fakeClusterRole)
 	assert.NoError(t, err)
 
 	client := mockcollect.NewCollectorClient(t)
@@ -111,6 +111,8 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 		"team":         "test-team",
 		"app":          "test-app",
 		"service":      "test-service",
+		"cluster":      "test-cluster",
+		"runID":        testID.String(),
 	}
 	gdb := graphdb.NewProvider(t)
 	gw := graphdb.NewAsyncVertexWriter(t)
@@ -130,6 +132,8 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 		"team":         "test-team",
 		"app":          "test-app",
 		"service":      "test-service",
+		"cluster":      "test-cluster",
+		"runID":        testID.String(),
 		"rules":        []interface{}{"API()::R(pods)::N()::V(get,list)", "API()::R(configmaps)::N()::V(get)", "API(apps)::R(statefulsets)::N()::V(get,list)"},
 	}
 
@@ -147,6 +151,10 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 		Config: &config.KubehoundConfig{
 			Builder: config.BuilderConfig{
 				Edge: config.EdgeBuilderConfig{},
+			},
+			Dynamic: config.DynamicConfig{
+				RunID:   testID,
+				Cluster: "test-cluster",
 			},
 		},
 	}

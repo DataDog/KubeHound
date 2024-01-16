@@ -6,6 +6,7 @@ import (
 
 	rbacv1 "k8s.io/api/rbac/v1"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/risk"
@@ -13,11 +14,14 @@ import (
 
 // GraphConverter enables converting between an input store model to its equivalent graph model.
 type GraphConverter struct {
+	runtime *config.DynamicConfig
 }
 
 // NewGraph returns a new graph converter instance.
-func NewGraph() *GraphConverter {
-	return &GraphConverter{}
+func NewGraph(cfg *config.KubehoundConfig) *GraphConverter {
+	return &GraphConverter{
+		runtime: &cfg.Dynamic,
+	}
 }
 
 // Container returns the graph representation of a container vertex from a store container model input.
@@ -27,6 +31,8 @@ func (c *GraphConverter) Container(input *store.Container, parent *store.Pod) (*
 		App:         input.Ownership.Application,
 		Team:        input.Ownership.Team,
 		Service:     input.Ownership.Service,
+		RunID:       c.runtime.RunID.String(),
+		Cluster:     c.runtime.Cluster,
 		Namespace:   input.Inherited.Namespace,
 		Name:        input.K8.Name,
 		Image:       input.K8.Image,
@@ -86,6 +92,8 @@ func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 		App:      input.Ownership.Application,
 		Team:     input.Ownership.Team,
 		Service:  input.Ownership.Service,
+		RunID:    c.runtime.RunID.String(),
+		Cluster:  c.runtime.Cluster,
 		Name:     input.K8.Name,
 		Critical: risk.Engine().IsCritical(input),
 	}
@@ -105,6 +113,8 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 		App:            input.Ownership.Application,
 		Team:           input.Ownership.Team,
 		Service:        input.Ownership.Service,
+		RunID:          c.runtime.RunID.String(),
+		Cluster:        c.runtime.Cluster,
 		Name:           input.K8.Name,
 		Namespace:      input.K8.GetNamespace(),
 		ServiceAccount: input.K8.Spec.ServiceAccountName,
@@ -128,6 +138,8 @@ func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.
 		App:        input.Ownership.Application,
 		Team:       input.Ownership.Team,
 		Service:    input.Ownership.Service,
+		RunID:      c.runtime.RunID.String(),
+		Cluster:    c.runtime.Cluster,
 		Name:       input.Name,
 		Namespace:  parent.K8.Namespace,
 		Type:       input.Type,
@@ -180,6 +192,8 @@ func (c *GraphConverter) PermissionSet(input *store.PermissionSet) (*graph.Permi
 		App:         input.Ownership.Application,
 		Team:        input.Ownership.Team,
 		Service:     input.Ownership.Service,
+		RunID:       c.runtime.RunID.String(),
+		Cluster:     c.runtime.Cluster,
 		Name:        input.Name,
 		Namespace:   input.Namespace,
 		Role:        input.RoleName,
@@ -202,6 +216,8 @@ func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error
 		App:       input.Ownership.Application,
 		Team:      input.Ownership.Team,
 		Service:   input.Ownership.Service,
+		RunID:     c.runtime.RunID.String(),
+		Cluster:   c.runtime.Cluster,
 		Name:      input.Name,
 		Namespace: input.Namespace,
 		Type:      input.Type,
@@ -222,6 +238,8 @@ func (c *GraphConverter) Endpoint(input *store.Endpoint) (*graph.Endpoint, error
 		App:                 input.Ownership.Application,
 		Team:                input.Ownership.Team,
 		Service:             input.Ownership.Service,
+		RunID:               c.runtime.RunID.String(),
+		Cluster:             c.runtime.Cluster,
 		Namespace:           input.Namespace,
 		IsNamespaced:        input.IsNamespaced,
 		Name:                input.Name,

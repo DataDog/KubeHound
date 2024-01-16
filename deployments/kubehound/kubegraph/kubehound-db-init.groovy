@@ -53,7 +53,7 @@ mgmt.addConnection(idAssume, node, identity);
 idImpersonate = mgmt.makeEdgeLabel('IDENTITY_IMPERSONATE').multiplicity(MANY2ONE).make();
 mgmt.addConnection(idImpersonate, permissionSet, identity);
 
-roleBind = mgmt.makeEdgeLabel('ROLE_BIND').multiplicity(MANY2ONE).make();
+roleBind = mgmt.makeEdgeLabel('ROLE_BIND').multiplicity(MULTI).make();
 mgmt.addConnection(roleBind, permissionSet, permissionSet);
 
 podAttach = mgmt.makeEdgeLabel('POD_ATTACH').multiplicity(ONE2MANY).make();
@@ -104,6 +104,8 @@ mgmt.addConnection(endpointExploit, endpoint, container);
 
 // All properties we will index on
 cls = mgmt.makePropertyKey('class').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+cluster = mgmt.makePropertyKey('cluster').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+runID = mgmt.makePropertyKey('runID').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 storeID = mgmt.makePropertyKey('storeID').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 app = mgmt.makePropertyKey('app').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 team = mgmt.makePropertyKey('team').dataType(String.class).cardinality(Cardinality.SINGLE).make();
@@ -149,20 +151,22 @@ roleBinding = mgmt.makePropertyKey('roleBinding').dataType(String.class).cardina
 
 
 // Define properties for each vertex 
-mgmt.addProperties(container, cls, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, 
+mgmt.addProperties(container, cls, cluster, runID, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, 
     hostIpc, hostNetwork, runAsUser, podName, nodeName, compromised, command, args, capabilities, ports);
-mgmt.addProperties(identity, cls, storeID, app, team, service, name, isNamespaced, namespace, type, critical);
-mgmt.addProperties(node, cls, storeID, app, team, service, name, isNamespaced, namespace, compromised, critical);
-mgmt.addProperties(pod, cls, storeID, app, team, service, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
-mgmt.addProperties(permissionSet, cls, storeID, app, team, service, name, isNamespaced, namespace, role, roleBinding, rules, critical);
-mgmt.addProperties(volume, cls, storeID, app, team, service, name, isNamespaced, namespace, type, sourcePath, mountPath, readonly);
-mgmt.addProperties(endpoint, cls, storeID, app, team, service, name, isNamespaced, namespace, serviceEndpoint, serviceDns, addressType, 
+mgmt.addProperties(identity, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, type, critical);
+mgmt.addProperties(node, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, compromised, critical);
+mgmt.addProperties(pod, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
+mgmt.addProperties(permissionSet, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, role, roleBinding, rules, critical);
+mgmt.addProperties(volume, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, type, sourcePath, mountPath, readonly);
+mgmt.addProperties(endpoint, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, serviceEndpoint, serviceDns, addressType, 
     addresses, port, portName, protocol, exposure, compromised);
 
 
 // Create the indexes on vertex properties
 // NOTE: labels cannot be indexed so we create the class property to mirror the vertex label and allow indexing
 mgmt.buildIndex('byClass', Vertex.class).addKey(cls).buildCompositeIndex();
+mgmt.buildIndex('byCluster', Vertex.class).addKey(cluster).buildCompositeIndex();
+mgmt.buildIndex('byRun', Vertex.class).addKey(runID).buildCompositeIndex();
 mgmt.buildIndex('byStoreIDUnique', Vertex.class).addKey(storeID).unique().buildCompositeIndex();
 mgmt.buildIndex('byApp', Vertex.class).addKey(app).buildCompositeIndex();
 mgmt.buildIndex('byTeam', Vertex.class).addKey(team).buildCompositeIndex();
@@ -182,6 +186,8 @@ mgmt.commit();
 
 // Wait for indexes to become available
 ManagementSystem.awaitGraphIndexStatus(graph, 'byClass').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byCluster').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byRun').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byStoreIDUnique').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byApp').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byTeam').status(SchemaStatus.ENABLED).call();

@@ -7,8 +7,8 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
 
 ## Quick Links <!-- omit in toc -->
 
-+ For an overview of the application architecture see the [design canvas](./docs/application/Architecture.excalidraw)
-+ To see the attacks covered see the [edge definitions](./docs/edges/)
++ For an overview of the application architecture see the [design canvas](./docs/Architecture.excalidraw)
++ To see the attacks covered see the [edge definitions](./docs/reference/attacks)
 + To contribute a new attack to the project follow the [contribution guidelines](./CONTRIBUTING.md)
 
 ## Sample Attack Path  <!-- omit in toc -->
@@ -83,9 +83,10 @@ Clone this repository via git:
 git clone https://github.com/DataDog/KubeHound.git
 ```
 
-KubeHound ships with a sensible default configuration designed to get new users up and running quickly. First step is to prepare the application:
+KubeHound ships with a sensible default configuration designed to get new users up and running quickly. The first step is to prepare the application:
 
 ```bash
+cd KubeHound
 make kubehound
 ```
 
@@ -180,6 +181,28 @@ To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop
 + Create a connection to the local janusgraph instance by following the steps here https://docs.gdotv.com/connection-management/ and using `hostname=localhost`
 + Navigate to the query editor and enter a sample query e.g `g.V().count()`. See detailed instructions here: https://docs.gdotv.com/query-editor/#run-your-query
 
+### Example queries
+
+We have documented a few sample queries to execute on the database in [our documentation](https://kubehound.io/queries/gremlin/).
+
+### Query data from your scripts
+
+#### Python
+
+You can query the database data in your python script by using the following snippet:
+
+```python
+#!/usr/bin/env python
+import sys
+from gremlin_python.driver.client import Client
+
+KH_QUERY = "kh.containers().count()"
+c = Client("ws://127.0.0.1:8182/gremlin", "kh")
+results = c.submit(KH_QUERY).all().result()
+```
+
+You'll need to install `gremlinpython` as a dependency via: `pip install gremlinpython`
+
 ## Development
 
 ### Build
@@ -218,7 +241,7 @@ The repository includes a suite of system tests that will do the following:
 
 The cluster setup and running instances can be found under [test/setup](./test/setup/)
 
-If you need to manually access the system test environement with kubectl and other commands, you'll need to set (assuming you are at the root dir):
+If you need to manually access the system test environment with kubectl and other commands, you'll need to set (assuming you are at the root dir):
 
 ```bash
 cd test/setup/ && export KUBECONFIG=$(pwd)/.kube-config

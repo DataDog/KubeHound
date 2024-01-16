@@ -9,6 +9,14 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
+type Optimization int
+
+const (
+	BalancedOptimization Optimization = iota
+	ReadOptimization
+	WriteOptimization
+)
+
 type writerOptions struct {
 	Tags []string
 }
@@ -30,8 +38,8 @@ type Provider interface {
 	// Prepare drops all collections from the database (usually to ensure a clean start) and recreates indices.
 	Prepare(ctx context.Context) error
 
-	// Raw returns a handle to the underlying provider to allow implementation specific operations e.g db queries.
-	Raw() any
+	// Reader returns a handle to the underlying provider to allow implementation specific queries against the mongo DB
+	Reader() any
 
 	// BulkWriter creates a new AsyncWriter instance to enable asynchronous bulk inserts.
 	BulkWriter(ctx context.Context, collection collections.Collection, opts ...WriterOption) (AsyncWriter, error)
@@ -58,5 +66,5 @@ type AsyncWriter interface {
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
 	r := storage.Retrier(NewMongoProvider, cfg.Storage.Retry, cfg.Storage.RetryDelay)
 
-	return r(ctx, cfg.MongoDB.URL, cfg.MongoDB.ConnectionTimeout)
+	return r(ctx, cfg)
 }
