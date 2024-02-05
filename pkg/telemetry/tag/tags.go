@@ -1,15 +1,19 @@
 package tag
 
 const (
-	CollectorTag  = "collector"
-	EntityTag     = "entity"
-	RunIdTag      = "run_id"
-	LabelTag      = "label"
-	CollectionTag = "collection"
-	BuilderTag    = "builder"
-	StorageTag    = "storage"
-	CacheKeyTag   = "cache_key"
-	EdgeTypeTag   = "edge_type"
+	CollectorTag          = "collector"
+	CollectorS3Bucket     = "s3_bucket"
+	CollectorS3key        = "s3_key"
+	CollectorFilePath     = "file_path"
+	CollectorWorkerNumber = "worker_number"
+	EntityTag             = "entity"
+	RunIdTag              = "run_id"
+	LabelTag              = "label"
+	CollectionTag         = "collection"
+	BuilderTag            = "builder"
+	StorageTag            = "storage"
+	CacheKeyTag           = "cache_key"
+	EdgeTypeTag           = "edge_type"
 )
 
 const (

@@ -51,12 +51,22 @@ func MustLoadConfig(configPath string) *KubehoundConfig {
 	return cfg
 }
 
+// MustLoadConfig loads the application configuration from the provided path, treating all errors as fatal.
+func MustLoadInlineConfig() *KubehoundConfig {
+	cfg, err := NewInlineConfig()
+	if err != nil {
+		log.I.Fatalf("config load: %v", err)
+	}
+
+	return cfg
+}
+
 // SetDefaultValues loads the default value from the different modules
 func SetDefaultValues(c *viper.Viper) {
 	// K8s Live collector module
-	c.SetDefault("collector.live.page_size", DefaultK8sAPIPageSize)
-	c.SetDefault("collector.live.page_buffer_size", DefaultK8sAPIPageBufferSize)
-	c.SetDefault("collector.live.rate_limit_per_second", DefaultK8sAPIRateLimitPerSecond)
+	c.SetDefault(CollectorLivePageSize, DefaultK8sAPIPageSize)
+	c.SetDefault(CollectorLivePageBufferSize, DefaultK8sAPIPageBufferSize)
+	c.SetDefault(CollectorLiveRate, DefaultK8sAPIRateLimitPerSecond)
 
 	// Default values for storage provider
 	c.SetDefault("storage.wipe", true)
@@ -121,6 +131,19 @@ func NewConfig(configPath string) (*KubehoundConfig, error) {
 
 	kc := KubehoundConfig{}
 	if err := c.Unmarshal(&kc); err != nil {
+		return nil, fmt.Errorf("unmarshaling config data: %w", err)
+	}
+
+	return &kc, nil
+}
+
+// NewConfig creates a new config instance from the provided file using viper.
+func NewInlineConfig() (*KubehoundConfig, error) {
+	// Configure environment variable override
+	SetEnvOverrides(viper.GetViper())
+
+	kc := KubehoundConfig{}
+	if err := viper.Unmarshal(&kc); err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
