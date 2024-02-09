@@ -77,13 +77,7 @@ INFO[0039] Attack graph generation complete in 39.108174109s  component=kubehoun
 ## Access the KubeHound data
 
 At this point, the KubeHound data has been ingested in KubeHound's [graph database](../architecture.md). 
-You can use any client that supports accessing JanusGraph - we recommend using [gdotv](https://gdotv.com/):
-
-- Download and install gdotv from the [official website](https://gdotv.com/)
-- Create a connection to the local KubeHound JanusGraph instance
-    1. Click on the `New database connection` button
-    2. Enter `localhost` as an hostname, and click on the `Test connection` button
-    3. Once the connection is successful, click `Submit` - you're good to go!
+You can use any client that supports accessing JanusGraph - a comprehensive list is available on the [JanusGraph home page](https://janusgraph.org/). We also provide a showcase [Jupyter Notebook](../../deployments/kubehound/notebook/KubeHound.ipynb) to get you started. This is accessible on [http://locahost:8888](http://locahost:8888) after starting KubeHound backend.
 
 ## Visualize and query the KubeHound data
 
