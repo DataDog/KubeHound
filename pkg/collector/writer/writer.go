@@ -11,5 +11,5 @@ type CollectorWriter interface {
 	Write(context.Context, []byte, string) error
 	Flush(context.Context) error
 	Close(context.Context) error
-	GetOutputPath() string
+	OutputPath() string
 }

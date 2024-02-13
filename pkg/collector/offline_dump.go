@@ -65,8 +65,8 @@ func (o *OfflineDump) Initialize(ctx context.Context, collector CollectorClient,
 	return o.writer.Initialize(ctx, path.Join(o.directoryOutput), o.ResName)
 }
 
-func (o *OfflineDump) GetOutputPath() string {
-	return o.writer.GetOutputPath()
+func (o *OfflineDump) OutputPath() string {
+	return o.writer.OutputPath()
 }
 
 func (o *OfflineDump) IngestNode(ctx context.Context, node types.NodeType) error {

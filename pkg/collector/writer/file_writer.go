@@ -31,7 +31,7 @@ func (f *FileWriter) Initialize(ctx context.Context, directoryOutput string, res
 	return nil
 }
 
-func (f *FileWriter) GetOutputPath() string {
+func (f *FileWriter) OutputPath() string {
 	return f.directoryOutput
 }
 

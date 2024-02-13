@@ -44,7 +44,7 @@ func (t *TarWriter) initializedTarFile(ctx context.Context, directoryOutput stri
 	return nil
 }
 
-func (f *TarWriter) GetOutputPath() string {
+func (f *TarWriter) OutputPath() string {
 	return f.tarPath
 }
 
