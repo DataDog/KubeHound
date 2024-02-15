@@ -88,15 +88,9 @@ func GetClusterName(ctx context.Context) (string, error) {
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
 	tags := tag.BaseTags
 	tags = append(tags, tag.Collector(K8sAPICollectorName))
-	clusterName, err := GetClusterName(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("collector cluster info: %w", err)
-	}
-	tags = append(tags, tag.ClusterName(clusterName))
-
 	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
 
-	err = checkK8sAPICollectorConfig(cfg.Collector.Type)
+	err := checkK8sAPICollectorConfig(cfg.Collector.Type)
 	if err != nil {
 		return nil, err
 	}

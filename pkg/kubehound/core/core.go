@@ -227,14 +227,20 @@ func (l *LaunchConfig) InitTelemetry() error {
 	return nil
 }
 
-func (l *LaunchConfig) InitTags() {
+func (l *LaunchConfig) InitTags(ctx context.Context) {
 	// We define a unique run id this so we can measure run by run in addition of version per version.
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
 	runID := config.NewRunID()
-	l.mainSpan.SetBaggageItem(tag.RunIdTag, runID.String())
 
 	// We update the base tags to include that run id, so we have it available for metrics
 	tag.BaseTags = append(tag.BaseTags, tag.RunID(runID.String()))
+
+	clusterName, err := collector.GetClusterName(ctx)
+	if err == nil {
+		tag.BaseTags = append(tag.BaseTags, tag.ClusterName(clusterName))
+	} else {
+		log.I.Errorf("collector cluster info: %v", err)
+	}
 
 	// Set the run ID as a global log tag
 	log.AddGlobalTags(map[string]string{
@@ -251,9 +257,10 @@ func (l *LaunchConfig) InitTags() {
 func (l *LaunchConfig) Bootstrap(ctx context.Context, mainSpanOp string) (context.Context, error) {
 	log.I.Info("Starting KubeHound")
 
+	l.InitTags(ctx)
 	l.InitTelemetry()
+
 	l.mainSpan, ctx = tracer.StartSpanFromContext(ctx, mainSpanOp, tracer.Measured())
-	l.InitTags()
 
 	return ctx, nil
 }
