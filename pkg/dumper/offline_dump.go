@@ -105,7 +105,7 @@ func (d *Dumper) IngestPod(ctx context.Context, pod types.PodType) error {
 func (i *Dumper) dumpPods(ctx context.Context) error {
 	log.I.Info("Dumping pods")
 	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperPods, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityNodes)
+	span.SetTag(tag.EntityTag, tag.EntityPods)
 	defer span.Finish()
 
 	return i.collect.StreamPods(ctx, i)
@@ -126,7 +126,7 @@ func (d *Dumper) IngestRole(ctx context.Context, role types.RoleType) error {
 func (d *Dumper) dumpRoles(ctx context.Context) error {
 	log.I.Info("Dumping roles")
 	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperRoles, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityNodes)
+	span.SetTag(tag.EntityTag, tag.EntityRoles)
 	defer span.Finish()
 
 	return d.collect.StreamRoles(ctx, d)
@@ -145,7 +145,7 @@ func (d *Dumper) IngestClusterRole(ctx context.Context, clusterRole types.Cluste
 func (d *Dumper) dumpClusterRoles(ctx context.Context) error {
 	log.I.Info("Dumping cluster roles")
 	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperClusterRoles, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityNodes)
+	span.SetTag(tag.EntityTag, tag.EntityClusterRoles)
 	defer span.Finish()
 
 	return d.collect.StreamClusterRoles(ctx, d)
@@ -166,7 +166,7 @@ func (d *Dumper) IngestRoleBinding(ctx context.Context, roleBinding types.RoleBi
 func (d *Dumper) DumpRoleBindings(ctx context.Context) error {
 	log.I.Info("Dumping role bindings")
 	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperRoleBindings, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityNodes)
+	span.SetTag(tag.EntityTag, tag.EntityRolebindings)
 	defer span.Finish()
 
 	return d.collect.StreamRoleBindings(ctx, d)
@@ -185,7 +185,7 @@ func (d *Dumper) IngestClusterRoleBinding(ctx context.Context, clusterRoleBindin
 func (d *Dumper) dumpClusterRoleBinding(ctx context.Context) error {
 	log.I.Info("Dumping cluster role bindings")
 	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperClusterRoleBindings, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityNodes)
+	span.SetTag(tag.EntityTag, tag.EntityClusterRolebindings)
 	defer span.Finish()
 
 	return d.collect.StreamClusterRoleBindings(ctx, d)
@@ -206,7 +206,7 @@ func (d *Dumper) IngestEndpoint(ctx context.Context, endpoint types.EndpointType
 func (d *Dumper) dumpEnpoints(ctx context.Context) error {
 	log.I.Info("Dumping endpoints")
 	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperEndpoints, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityNodes)
+	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
 	defer span.Finish()
 
 	return d.collect.StreamEndpoints(ctx, d)
