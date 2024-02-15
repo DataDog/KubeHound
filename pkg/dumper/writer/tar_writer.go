@@ -18,6 +18,7 @@ import (
 const (
 	TarWriterExtension = ".tar.gz"
 	TarWriterChmod     = 0600
+	TarTypeTag         = "tar"
 )
 
 type TarWriter struct {
@@ -64,8 +65,9 @@ func (t *TarWriter) Initialize(ctx context.Context, path string, resName string)
 // Write function writes the Kubernetes object to a buffer
 // All buffer are stored in a map which is flushed at the end of every type processed
 func (t *TarWriter) Write(ctx context.Context, object []byte, filePath string) error {
-	span, _ := tracer.StartSpanFromContext(ctx, span.CollectorTarWriterWrite, tracer.Measured())
-	span.SetTag(tag.CollectorFilePath, filePath)
+	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterWrite, tracer.Measured())
+	span.SetTag(tag.DumperFilePathTag, filePath)
+	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
 	defer span.Finish()
 	buf, ok := t.buffers[filePath]
 	if ok {
@@ -80,7 +82,8 @@ func (t *TarWriter) Write(ctx context.Context, object []byte, filePath string) e
 // Flush function flushes all kubernetes object from the buffers to the tar file
 func (t *TarWriter) Flush(ctx context.Context) error {
 	log.I.Debug("Flushing writers")
-	span, _ := tracer.StartSpanFromContext(ctx, span.CollectorTarWriterFlush, tracer.Measured())
+	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterFlush, tracer.Measured())
+	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
 	defer span.Finish()
 	for path, data := range t.buffers {
 		header := &tar.Header{
@@ -106,7 +109,8 @@ func (t *TarWriter) Flush(ctx context.Context) error {
 func (t *TarWriter) Close(ctx context.Context) error {
 	var err error
 	log.I.Debug("Closing handlers for tar")
-	span, _ := tracer.StartSpanFromContext(ctx, span.CollectorTarWriterClose, tracer.Measured())
+	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterClose, tracer.Measured())
+	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
 	defer span.Finish()
 	err = t.tarWriter.Close()
 	if err != nil {

@@ -38,13 +38,13 @@ import (
 // |____clusterroles.rbac.authorization.k8s.io.json
 // |____clusterrolebindings.rbac.authorization.k8s.io.json
 const (
-	nodePath                = "nodes.json"
-	endpointPath            = "endpointslices.discovery.k8s.io.json"
-	clusterRolesPath        = "clusterroles.rbac.authorization.k8s.io.json"
-	clusterRoleBindingsPath = "clusterrolebindings.rbac.authorization.k8s.io.json"
-	podPath                 = "pods.json"
-	rolesPath               = "roles.rbac.authorization.k8s.io.json"
-	roleBindingsPath        = "rolebindings.rbac.authorization.k8s.io.json"
+	NodePath                = "nodes.json"
+	EndpointPath            = "endpointslices.discovery.k8s.io.json"
+	ClusterRolesPath        = "clusterroles.rbac.authorization.k8s.io.json"
+	ClusterRoleBindingsPath = "clusterrolebindings.rbac.authorization.k8s.io.json"
+	PodPath                 = "pods.json"
+	RolesPath               = "roles.rbac.authorization.k8s.io.json"
+	RoleBindingsPath        = "rolebindings.rbac.authorization.k8s.io.json"
 )
 
 const (
@@ -107,6 +107,10 @@ func (c *FileCollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
 	}, nil
 }
 
+func (c *FileCollector) Tags(ctx context.Context) []string {
+	return c.tags
+}
+
 func (c *FileCollector) Close(_ context.Context) error {
 	// NOP for this implementation
 	return nil
@@ -142,7 +146,7 @@ func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) er
 			return nil
 		}
 
-		fp := filepath.Join(path, podPath)
+		fp := filepath.Join(path, PodPath)
 		c.log.Debugf("Streaming pods from file %s", fp)
 
 		return c.streamPodsNamespace(ctx, fp, ingestor)
@@ -185,7 +189,7 @@ func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) 
 			return nil
 		}
 
-		f := filepath.Join(path, rolesPath)
+		f := filepath.Join(path, RolesPath)
 		c.log.Debugf("Streaming roles from file %s", f)
 
 		return c.streamRolesNamespace(ctx, f, ingestor)
@@ -228,7 +232,7 @@ func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBin
 			return nil
 		}
 
-		fp := filepath.Join(path, roleBindingsPath)
+		fp := filepath.Join(path, RoleBindingsPath)
 		c.log.Debugf("Streaming role bindings from file %s", fp)
 
 		return c.streamRoleBindingsNamespace(ctx, fp, ingestor)
@@ -271,7 +275,7 @@ func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIn
 			return nil
 		}
 
-		fp := filepath.Join(path, endpointPath)
+		fp := filepath.Join(path, EndpointPath)
 		c.log.Debugf("Streaming endpoint slices from file %s", fp)
 
 		return c.streamEndpointsNamespace(ctx, fp, ingestor)
@@ -289,7 +293,7 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 	span.SetTag(tag.EntityTag, tag.EntityNodes)
 	defer span.Finish()
 
-	fp := filepath.Join(c.cfg.Directory, nodePath)
+	fp := filepath.Join(c.cfg.Directory, NodePath)
 	c.log.Debugf("Streaming nodes from file %s", fp)
 
 	list, err := readList[corev1.NodeList](ctx, fp)
@@ -314,7 +318,7 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 	span.SetTag(tag.EntityTag, tag.EntityClusterRoles)
 	defer span.Finish()
 
-	fp := filepath.Join(c.cfg.Directory, clusterRolesPath)
+	fp := filepath.Join(c.cfg.Directory, ClusterRolesPath)
 	c.log.Debugf("Streaming cluster roles from file %s", fp)
 
 	list, err := readList[rbacv1.ClusterRoleList](ctx, fp)
@@ -339,7 +343,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 	span.SetTag(tag.EntityTag, tag.EntityClusterRolebindings)
 	defer span.Finish()
 
-	fp := filepath.Join(c.cfg.Directory, clusterRoleBindingsPath)
+	fp := filepath.Join(c.cfg.Directory, ClusterRoleBindingsPath)
 	c.log.Debugf("Streaming cluster role bindings from file %s", fp)
 
 	list, err := readList[rbacv1.ClusterRoleBindingList](ctx, fp)
@@ -362,7 +366,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 // readList loads a list of K8s API objects into memory from a JSON file on disk.
 // NOTE: This implementation reads the entire array of objects from the file into memory at once.
 func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl, error) {
-	span, _ := tracer.StartSpanFromContext(ctx, span.CollectorReadFile, tracer.Measured())
+	span, _ := tracer.StartSpanFromContext(ctx, span.DumperReadFile, tracer.Measured())
 	defer span.Finish()
 
 	var inputList Tl

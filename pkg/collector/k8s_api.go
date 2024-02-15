@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -32,6 +33,7 @@ type k8sAPICollector struct {
 	rl        ratelimit.Limiter
 	cfg       *config.K8SAPICollectorConfig
 	tags      []string
+	waitTime  map[string]int64
 }
 
 const (
@@ -59,13 +61,42 @@ func tunedListOptions() metav1.ListOptions {
 	}
 }
 
+func NewClusterInfo(ctx context.Context) (*ClusterInfo, error) {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	configOverrides := &clientcmd.ConfigOverrides{}
+	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
+
+	raw, err := kubeConfig.RawConfig()
+	if err != nil {
+		return nil, fmt.Errorf("raw config get: %w", err)
+	}
+
+	return &ClusterInfo{
+		Name: raw.CurrentContext,
+	}, nil
+}
+
+func GetClusterName(ctx context.Context) (string, error) {
+	cluster, err := NewClusterInfo(ctx)
+	if err != nil {
+		return "", fmt.Errorf("collector cluster info: %w", err)
+	}
+	return cluster.Name, nil
+}
+
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
 	tags := tag.BaseTags
 	tags = append(tags, tag.Collector(K8sAPICollectorName))
+	clusterName, err := GetClusterName(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("collector cluster info: %w", err)
+	}
+	tags = append(tags, tag.ClusterName(clusterName))
+
 	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
 
-	err := checkK8sAPICollectorConfig(cfg.Collector.Type)
+	err = checkK8sAPICollectorConfig(cfg.Collector.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +119,25 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		log:       l,
 		rl:        ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
 		tags:      tags,
+		waitTime:  map[string]int64{},
 	}, nil
+}
+
+func (c *k8sAPICollector) Wait(ctx context.Context, resourceType string) {
+	prev := time.Now()
+	// span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorWait, tracer.Measured())
+
+	now := c.rl.Take()
+	// span.Finish()
+
+	waitTime := now.Sub(prev).Milliseconds()
+	c.waitTime[resourceType] += waitTime
+
+	entity := tag.Entity(resourceType)
+	err := statsd.Gauge(metric.CollectorWait, float64(c.waitTime[resourceType]), append(c.tags, entity), 1)
+	if err != nil {
+		log.I.Error(err)
+	}
 }
 
 func (c *k8sAPICollector) Name() string {
@@ -111,19 +160,12 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
+func (c *k8sAPICollector) Tags(ctx context.Context) []string {
+	return c.tags
+}
+
 func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
-	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	configOverrides := &clientcmd.ConfigOverrides{}
-	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
-
-	raw, err := kubeConfig.RawConfig()
-	if err != nil {
-		return nil, fmt.Errorf("raw config get: %w", err)
-	}
-
-	return &ClusterInfo{
-		Name: raw.CurrentContext,
-	}, nil
+	return NewClusterInfo(ctx)
 }
 
 func (c *k8sAPICollector) Close(_ context.Context) error {
@@ -152,6 +194,7 @@ func (c *k8sAPICollector) setPagerConfig(pager *pager.ListPager) {
 
 // streamPodsNamespace streams the pod objects corresponding to a cluster namespace.
 func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace string, ingestor PodIngestor) error {
+	entity := tag.EntityPods
 	err := c.checkNamespaceExists(ctx, namespace)
 	if err != nil {
 		return err
@@ -170,8 +213,8 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityPods)), 1)
-		c.rl.Take()
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		c.Wait(ctx, entity)
 		item, ok := obj.(*corev1.Pod)
 		if !ok {
 			return fmt.Errorf("pod stream type conversion error: %T", obj)
@@ -187,8 +230,9 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 }
 
 func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
+	entity := tag.EntityPods
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityPods)
+	span.SetTag(tag.EntityTag, entity)
 	defer span.Finish()
 
 	// passing an empty namespace will collect all namespaces
@@ -196,12 +240,14 @@ func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) 
 	if err != nil {
 		return err
 	}
-
+	span.SetTag(tag.WaitTag, c.waitTime[entity])
+	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
 	return ingestor.Complete(ctx)
 }
 
 // streamRolesNamespace streams the role objects corresponding to a cluster namespace.
 func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace string, ingestor RoleIngestor) error {
+	entity := tag.EntityRoles
 	err := c.checkNamespaceExists(ctx, namespace)
 	if err != nil {
 		return err
@@ -220,8 +266,8 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityRoles)), 1)
-		c.rl.Take()
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		c.Wait(ctx, entity)
 		item, ok := obj.(*rbacv1.Role)
 		if !ok {
 			return fmt.Errorf("role stream type conversion error: %T", obj)
@@ -237,8 +283,9 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 }
 
 func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
+	entity := tag.EntityRoles
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityRoles)
+	span.SetTag(tag.EntityTag, entity)
 	defer span.Finish()
 
 	// passing an empty namespace will collect all namespaces
@@ -247,11 +294,14 @@ func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor
 		return err
 	}
 
+	span.SetTag(tag.WaitTag, c.waitTime[entity])
+	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
 	return ingestor.Complete(ctx)
 }
 
 // streamRoleBindingsNamespace streams the role bindings objects corresponding to a cluster namespace.
 func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, namespace string, ingestor RoleBindingIngestor) error {
+	entity := tag.EntityRolebindings
 	err := c.checkNamespaceExists(ctx, namespace)
 	if err != nil {
 		return err
@@ -270,8 +320,8 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityRolebindings)), 1)
-		c.rl.Take()
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		c.Wait(ctx, entity)
 		item, ok := obj.(*rbacv1.RoleBinding)
 		if !ok {
 			return fmt.Errorf("role binding stream type conversion error: %T", obj)
@@ -287,8 +337,9 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 }
 
 func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
+	entity := tag.EntityRolebindings
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityRolebindings)
+	span.SetTag(tag.EntityTag, entity)
 	defer span.Finish()
 
 	// passing an empty namespace will collect all namespaces
@@ -297,11 +348,14 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 		return err
 	}
 
+	span.SetTag(tag.WaitTag, c.waitTime[entity])
+	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
 	return ingestor.Complete(ctx)
 }
 
 // streamEndpointsNamespace streams the endpoint slice objects corresponding to a cluster namespace.
 func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespace string, ingestor EndpointIngestor) error {
+	entity := tag.EntityEndpoints
 	err := c.checkNamespaceExists(ctx, namespace)
 	if err != nil {
 		return err
@@ -320,8 +374,8 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityEndpoints)), 1)
-		c.rl.Take()
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		c.Wait(ctx, entity)
 		item, ok := obj.(*discoveryv1.EndpointSlice)
 		if !ok {
 			return fmt.Errorf("endpoint stream type conversion error: %T", obj)
@@ -337,6 +391,7 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 }
 
 func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
+	entity := tag.EntityEndpoints
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
 	defer span.Finish()
@@ -347,12 +402,15 @@ func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor Endpoint
 		return err
 	}
 
+	span.SetTag(tag.WaitTag, c.waitTime[entity])
+	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
 	return ingestor.Complete(ctx)
 }
 
 func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
+	entity := tag.EntityNodes
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityNodes)
+	span.SetTag(tag.EntityTag, entity)
 	defer span.Finish()
 
 	opts := tunedListOptions()
@@ -368,8 +426,8 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityNodes)), 1)
-		c.rl.Take()
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		c.Wait(ctx, entity)
 		item, ok := obj.(*corev1.Node)
 		if !ok {
 			return fmt.Errorf("node stream type conversion error: %T", obj)
@@ -386,12 +444,15 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 		return err
 	}
 
+	span.SetTag(tag.WaitTag, c.waitTime[entity])
+	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
 	return ingestor.Complete(ctx)
 }
 
 func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
+	entity := tag.EntityClusterRoles
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityClusterRoles)
+	span.SetTag(tag.EntityTag, entity)
 	defer span.Finish()
 
 	opts := tunedListOptions()
@@ -407,8 +468,8 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityClusterRoles)), 1)
-		c.rl.Take()
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		c.Wait(ctx, entity)
 		item, ok := obj.(*rbacv1.ClusterRole)
 		if !ok {
 			return fmt.Errorf("cluster role stream type conversion error: %T", obj)
@@ -425,12 +486,15 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 		return err
 	}
 
+	span.SetTag(tag.WaitTag, c.waitTime[entity])
+	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
 	return ingestor.Complete(ctx)
 }
 
 func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
+	entity := tag.EntityClusterRolebindings
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityClusterRolebindings)
+	span.SetTag(tag.EntityTag, entity)
 	defer span.Finish()
 
 	opts := tunedListOptions()
@@ -446,8 +510,8 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityClusterRolebindings)), 1)
-		c.rl.Take()
+		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		c.Wait(ctx, entity)
 		item, ok := obj.(*rbacv1.ClusterRoleBinding)
 		if !ok {
 			return fmt.Errorf("cluster role binding stream type conversion error: %T", obj)
@@ -464,5 +528,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 		return err
 	}
 
+	span.SetTag(tag.WaitTag, c.waitTime[entity])
+	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
 	return ingestor.Complete(ctx)
 }

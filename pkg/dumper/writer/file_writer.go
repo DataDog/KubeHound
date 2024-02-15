@@ -16,6 +16,7 @@ import (
 
 const (
 	FileWriterChmod = 0600
+	FileTypeTag     = "file"
 )
 
 type FileWriter struct {
@@ -36,8 +37,9 @@ func (f *FileWriter) OutputPath() string {
 }
 
 func (f *FileWriter) Write(ctx context.Context, data []byte, filePath string) error {
-	span, _ := tracer.StartSpanFromContext(ctx, span.CollectorFileWriterWrite, tracer.Measured())
-	span.SetTag(tag.CollectorFilePath, filePath)
+	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterWrite, tracer.Measured())
+	span.SetTag(tag.DumperFilePathTag, filePath)
+	span.SetTag(tag.DumperWriterTypeTag, FileTypeTag)
 	defer span.Finish()
 	filePath = path.Join(f.directoryOutput, filePath)
 
@@ -66,7 +68,8 @@ func (f *FileWriter) Write(ctx context.Context, data []byte, filePath string) er
 
 func (f *FileWriter) Flush(ctx context.Context) error {
 	log.I.Debug("Flushing writers")
-	span, _ := tracer.StartSpanFromContext(ctx, span.CollectorFileWriterFlush, tracer.Measured())
+	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterFlush, tracer.Measured())
+	span.SetTag(tag.DumperWriterTypeTag, FileTypeTag)
 	defer span.Finish()
 	for _, writer := range f.buffers {
 		err := writer.Flush()
@@ -82,7 +85,8 @@ func (f *FileWriter) Flush(ctx context.Context) error {
 
 func (f *FileWriter) Close(ctx context.Context) error {
 	log.I.Debug("Closing writers")
-	span, _ := tracer.StartSpanFromContext(ctx, span.CollectorFileWriterClose, tracer.Measured())
+	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterClose, tracer.Measured())
+	span.SetTag(tag.DumperWriterTypeTag, FileTypeTag)
 	defer span.Finish()
 	for _, file := range f.files {
 		err := file.Close()

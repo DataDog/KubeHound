@@ -52,9 +52,9 @@ func (s *S3Store) formatS3URI(objectKey string) string {
 }
 
 func (s *S3Store) Upload(ctx context.Context, objectKey string, data []byte) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorS3Push, tracer.Measured())
-	span.SetTag(tag.CollectorS3Bucket, s.bucket)
-	span.SetTag(tag.CollectorS3key, objectKey)
+	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperS3Push, tracer.Measured())
+	span.SetTag(tag.DumperS3BucketTag, s.bucket)
+	span.SetTag(tag.DumperS3keyTag, objectKey)
 	defer span.Finish()
 	_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(s.bucket),
@@ -70,9 +70,9 @@ func (s *S3Store) Upload(ctx context.Context, objectKey string, data []byte) err
 }
 
 func (s *S3Store) Download(ctx context.Context, objectKey string, filePath string) ([]byte, error) {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorS3Push, tracer.Measured())
-	span.SetTag(tag.CollectorS3Bucket, s.bucket)
-	span.SetTag(tag.CollectorS3key, objectKey)
+	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperS3Push, tracer.Measured())
+	span.SetTag(tag.DumperS3BucketTag, s.bucket)
+	span.SetTag(tag.DumperS3keyTag, objectKey)
 	defer span.Finish()
 	result, err := s.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(s.bucket),

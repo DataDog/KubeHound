@@ -3,6 +3,8 @@ package metric
 // Collector metrics
 var (
 	CollectorCount = "kubehound.collector.count"
+	CollectorWait  = "kubehound.collector.wait"
+	CollectorSkip  = "kubehound.collector.skip"
 )
 
 // Pipeline storage metrics

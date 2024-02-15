@@ -20,8 +20,8 @@ const (
 	TelemetryProfilerPeriod      = "telemetry.profiler.period"
 
 	CollectorLiveRate           = "collector.live.rate_limit_per_second"
-	CollectorLivePageSize       = "collector.live.page-size"
-	CollectorLivePageBufferSize = "collector.live.page-buffer-size"
+	CollectorLivePageSize       = "collector.live.page_size"
+	CollectorLivePageBufferSize = "collector.live.page_buffer_size"
 	CollectorLocalCompress      = "collector.local.compress"
 	CollectorLocalOutputDir     = "collector.local.output-dir"
 	CollectorVerbose            = "collector.verbose"

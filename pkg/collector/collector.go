@@ -77,6 +77,9 @@ type CollectorClient interface {
 	// ClusterInfo returns the target cluster information for the current run.
 	ClusterInfo(ctx context.Context) (*ClusterInfo, error)
 
+	// Tags return the tags for the current run.
+	Tags(ctx context.Context) []string
+
 	// StreamNodes will iterate through all NodeType objects collected by the collector and invoke the ingestor.IngestNode method on each.
 	// Once all the NodeType objects have been exhausted the ingestor.Complete method will be invoked to signal the end of the stream.
 	StreamNodes(ctx context.Context, ingestor NodeIngestor) error

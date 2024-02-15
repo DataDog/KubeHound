@@ -21,17 +21,24 @@ const (
 
 // Collector component spans
 const (
-	CollectorStream          = "kubehound.collector.stream"
-	CollectorDump            = "kubehound.collector.dump"
-	CollectorReadFile        = "kubehound.collector.readFile"
-	CollectorS3Push          = "kubehound.collector.s3_push"
-	CollectorS3Download      = "kubehound.collector.s3_download"
-	CollectorFileWriterWrite = "kubehound.collector.file_writer.write"
-	CollectorFileWriterFlush = "kubehound.collector.file_writer.flush"
-	CollectorFileWriterClose = "kubehound.collector.file_writer.close"
-	CollectorTarWriterWrite  = "kubehound.collector.tar_writer.write"
-	CollectorTarWriterFlush  = "kubehound.collector.tar_writer.flush"
-	CollectorTarWriterClose  = "kubehound.collector.tar_writer.close"
+	CollectorStream = "kubehound.collector.stream"
+	CollectorDump   = "kubehound.collector.dump"
+	CollectorWait   = "kubehound.collector.wait"
+
+	DumperNodes               = "kubehound.dumper.nodes"
+	DumperPods                = "kubehound.dumper.pods"
+	DumperEndpoints           = "kubehound.dumper.endpoints"
+	DumperRoles               = "kubehound.dumper.roles"
+	DumperClusterRoles        = "kubehound.dumper.clusterroles"
+	DumperRoleBindings        = "kubehound.dumper.rolebindings"
+	DumperClusterRoleBindings = "kubehound.dumper.clusterrolebindings"
+
+	DumperReadFile    = "kubehound.dumper.readFile"
+	DumperS3Push      = "kubehound.dumper.s3_push"
+	DumperS3Download  = "kubehound.dumper.s3_download"
+	DumperWriterWrite = "kubehound.dumper.write"
+	DumperWriterFlush = "kubehound.dumper.flush"
+	DumperWriterClose = "kubehound.dumper.close"
 )
 
 // Graph builder spans

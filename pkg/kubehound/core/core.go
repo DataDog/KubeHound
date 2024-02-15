@@ -18,8 +18,15 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
+
+type LaunchConfig struct {
+	cfg      *config.KubehoundConfig
+	ts       *telemetry.State
+	mainSpan ddtrace.Span
+}
 
 func ingestData(ctx context.Context, cfg *config.KubehoundConfig, collect collector.CollectorClient, cache cache.CacheProvider,
 	storedb storedb.Provider, graphdb graphdb.Provider) error {
@@ -203,15 +210,28 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 
 	return nil
 }
+func NewLaunchConfig(cfg *config.KubehoundConfig) *LaunchConfig {
+	return &LaunchConfig{
+		cfg: cfg,
+	}
+}
 
-func Bootstrap(ctx context.Context, cfg *config.KubehoundConfig) (string, context.Context, error) {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.Launch, tracer.Measured())
-	defer span.Finish()
+func (l *LaunchConfig) InitTelemetry() error {
+	var err error
+	log.I.Info("Initializing application telemetry")
+	l.ts, err = telemetry.Initialize(l.cfg)
+	if err != nil {
+		log.I.Warnf("failed telemetry initialization: %v", err)
+	}
 
+	return nil
+}
+
+func (l *LaunchConfig) InitTags() {
 	// We define a unique run id this so we can measure run by run in addition of version per version.
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
 	runID := config.NewRunID()
-	span.SetBaggageItem("run_id", runID.String())
+	l.mainSpan.SetBaggageItem(tag.RunIdTag, runID.String())
 
 	// We update the base tags to include that run id, so we have it available for metrics
 	tag.BaseTags = append(tag.BaseTags, tag.RunID(runID.String()))
@@ -221,19 +241,26 @@ func Bootstrap(ctx context.Context, cfg *config.KubehoundConfig) (string, contex
 		tag.RunIdTag: runID.String(),
 	})
 
-	log.I.Infof("Starting KubeHound (run_id: %s)", runID.String())
-
 	// Update the logger behaviour from configuration
-	log.SetDD(cfg.Telemetry.Enabled)
-	log.AddGlobalTags(cfg.Telemetry.Tags)
+	log.SetDD(l.cfg.Telemetry.Enabled)
+	log.AddGlobalTags(l.cfg.Telemetry.Tags)
 
-	// Setup telemetry
-	log.I.Info("Initializing application telemetry")
-	ts, err := telemetry.Initialize(cfg)
-	if err != nil {
-		log.I.Warnf("failed telemetry initialization: %v", err)
-	}
-	defer telemetry.Shutdown(ts)
+	return
+}
 
-	return runID.String(), ctx, nil
+func (l *LaunchConfig) Bootstrap(ctx context.Context, mainSpanOp string) (context.Context, error) {
+	log.I.Info("Starting KubeHound")
+
+	l.InitTelemetry()
+	l.mainSpan, ctx = tracer.StartSpanFromContext(ctx, mainSpanOp, tracer.Measured())
+	l.InitTags()
+
+	return ctx, nil
+}
+
+func (l *LaunchConfig) Close() {
+	l.mainSpan.Finish()
+	telemetry.Shutdown(l.ts)
+
+	return
 }

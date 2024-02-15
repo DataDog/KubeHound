@@ -2,11 +2,14 @@ package tag
 
 const (
 	CollectorTag          = "collector"
-	CollectorS3Bucket     = "s3_bucket"
-	CollectorS3key        = "s3_key"
-	CollectorFilePath     = "file_path"
-	CollectorWorkerNumber = "worker_number"
+	CollectorCluster      = "cluster"
+	DumperS3BucketTag     = "s3_bucket"
+	DumperS3keyTag        = "s3_key"
+	DumperFilePathTag     = "file_path"
+	DumperWorkerNumberTag = "worker_number"
+	DumperWriterTypeTag   = "writer_type"
 	EntityTag             = "entity"
+	WaitTag               = "wait"
 	RunIdTag              = "run_id"
 	LabelTag              = "label"
 	CollectionTag         = "collection"
@@ -74,4 +77,8 @@ func CacheKey(ck string) string {
 
 func EdgeType(et string) string {
 	return makeTag(EdgeTypeTag, et)
+}
+
+func ClusterName(cluster string) string {
+	return makeTag(CollectorCluster, cluster)
 }
