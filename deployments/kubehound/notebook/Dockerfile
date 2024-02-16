@@ -69,6 +69,9 @@ RUN mkdir -p "${WORKING_DIR}" && \
     rm -rf /usr/share
 
 ADD "KubeHound.ipynb" "${NOTEBOOK_DIR}/KubeHound.ipynb"
+ADD "RedTeam.ipynb" "${NOTEBOOK_DIR}/RedTeam.ipynb"
+ADD "BlueTeam.ipynb" "${NOTEBOOK_DIR}/BlueTeam.ipynb"
+ADD "SecurityPosture.ipynb" "${NOTEBOOK_DIR}/SecurityPosture.ipynb"
 ADD ./service.sh /usr/bin/service.sh
 RUN chmod +x /usr/bin/service.sh
 
