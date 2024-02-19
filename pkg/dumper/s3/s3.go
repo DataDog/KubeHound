@@ -65,6 +65,9 @@ func (s *S3Store) Upload(ctx context.Context, objectKey string, data []byte) err
 		Key:    aws.String(objectKey),
 		Body:   bytes.NewReader(data),
 	})
+	if err != nil {
+		return fmt.Errorf("upload file to %s: %w", s.formatS3URI(objectKey), err)
+	}
 
 	tags := []string{
 		tag.S3Bucket(s.bucket),
@@ -74,10 +77,6 @@ func (s *S3Store) Upload(ctx context.Context, objectKey string, data []byte) err
 	err = statsd.Count(metric.DumperSize, int64(sizeData), tags, 1)
 	if err != nil {
 		log.I.Error(err)
-	}
-
-	if err != nil {
-		return fmt.Errorf("upload file to %s: %w", s.formatS3URI(objectKey), err)
 	}
 
 	return nil
