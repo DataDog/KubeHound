@@ -6,14 +6,19 @@ import (
 	"os"
 	"time"
 
+	"github.com/DataDog/datadog-go/v5/statsd"
+
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/dumper"
 	"github.com/DataDog/KubeHound/pkg/dumper/s3"
 	"github.com/DataDog/KubeHound/pkg/dumper/writer"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
+	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
+	kstatsd "github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -122,16 +127,34 @@ func dump(ctx context.Context, cmd *cobra.Command) error {
 
 	start := time.Now()
 
+	// Configuration initialization
 	cfg := config.MustLoadInlineConfig()
 	// Hardcoding the collector type to K8sAPI
 	cfg.Collector.Type = config.CollectorTypeK8sAPI
 
-	lc := core.NewLaunchConfig(cfg)
-	ctx, err := lc.Bootstrap(ctx, span.Launch)
+	lc := core.NewLaunchConfig(cfg, span.DumperLaunch)
+
+	// Getting current clusterName, needed to set as global tag
+	tags := map[string]string{}
+	clusterName, err := collector.GetClusterName(ctx)
+	if err == nil {
+		tags[tag.CollectorCluster] = clusterName
+	} else {
+		log.I.Errorf("collector cluster info: %v", err)
+	}
+
+	// Initiate the telemetry and tags
+	ctx, err = lc.Bootstrap(ctx, tags)
 	if err != nil {
 		return err
 	}
 	defer lc.Close()
+
+	_ = kstatsd.Event(&statsd.Event{
+		Title: fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
+		Text:  fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
+		Tags:  []string{tag.EventType(events.DumperRun)},
+	})
 
 	// Create the collector instance
 	log.I.Info("Loading Kubernetes data collector client")
@@ -180,7 +203,12 @@ func dump(ctx context.Context, cmd *cobra.Command) error {
 		}
 	}
 
-	log.I.Infof("KubeHound dump run completels in %s", time.Since(start))
+	_ = kstatsd.Event(&statsd.Event{
+		Title: fmt.Sprintf("Finish KubeHound dump for %s", clusterName),
+		Text:  fmt.Sprintf("KubeHound dump run has been completed in %s", time.Since(start)),
+		Tags:  []string{tag.ActionTypeTag, events.DumperStop},
+	})
+	log.I.Infof("KubeHound dump run has been completed in %s", time.Since(start))
 
 	return nil
 }
