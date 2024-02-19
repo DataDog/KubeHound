@@ -125,10 +125,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 
 func (c *k8sAPICollector) wait(ctx context.Context, resourceType string) {
 	prev := time.Now()
-	// span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorWait, tracer.Measured())
-
 	now := c.rl.Take()
-	// span.Finish()
 
 	waitTime := now.Sub(prev)
 	c.mu.Lock()
