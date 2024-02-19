@@ -153,7 +153,7 @@ func dump(ctx context.Context, cmd *cobra.Command) error {
 	_ = kstatsd.Event(&statsd.Event{
 		Title: fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
 		Text:  fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
-		Tags:  []string{tag.EventType(events.DumperRun)},
+		Tags:  []string{tag.ActionType(events.DumperRun)},
 	})
 
 	// Create the collector instance
@@ -173,6 +173,7 @@ func dump(ctx context.Context, cmd *cobra.Command) error {
 	}
 
 	// Multi-threading the dump with one worker for each types
+	// The number of workers is set to 7 to have one thread per k8s object type to pull  fronm the Kubernetes API
 	workerPoolSize := 7
 
 	// Using single thread when zipping to avoid concurency issues
@@ -202,11 +203,12 @@ func dump(ctx context.Context, cmd *cobra.Command) error {
 			return fmt.Errorf("push %s to s3: %w", objectKey, err)
 		}
 	}
-
 	_ = kstatsd.Event(&statsd.Event{
 		Title: fmt.Sprintf("Finish KubeHound dump for %s", clusterName),
 		Text:  fmt.Sprintf("KubeHound dump run has been completed in %s", time.Since(start)),
-		Tags:  []string{tag.ActionTypeTag, events.DumperStop},
+		Tags: []string{
+			tag.ActionType(events.DumperRun),
+		},
 	})
 	log.I.Infof("KubeHound dump run has been completed in %s", time.Since(start))
 
