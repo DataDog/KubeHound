@@ -83,7 +83,7 @@ func (s *S3Store) Upload(ctx context.Context, objectKey string, data []byte) err
 }
 
 func (s *S3Store) Download(ctx context.Context, objectKey string, filePath string) ([]byte, error) {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperS3Push, tracer.Measured())
+	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperS3Download, tracer.Measured())
 	span.SetTag(tag.DumperS3BucketTag, s.bucket)
 	span.SetTag(tag.DumperS3keyTag, objectKey)
 	defer span.Finish()
