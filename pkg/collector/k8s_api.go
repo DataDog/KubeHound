@@ -273,7 +273,7 @@ func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) 
 		return err
 	}
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
+	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
 	return ingestor.Complete(ctx)
 }
 
@@ -327,7 +327,7 @@ func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor
 	}
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Infof("Wait time for %s: %s", entity, c.waitTime[entity])
+	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
 	return ingestor.Complete(ctx)
 }
 
@@ -381,7 +381,7 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 	}
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
+	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
 	return ingestor.Complete(ctx)
 }
 
@@ -435,7 +435,7 @@ func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor Endpoint
 	}
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
+	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
 	return ingestor.Complete(ctx)
 }
 
@@ -477,7 +477,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	}
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
+	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
 	return ingestor.Complete(ctx)
 }
 
@@ -519,7 +519,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	}
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
+	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
 	return ingestor.Complete(ctx)
 }
 
@@ -561,6 +561,6 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	}
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Infof("Wait time for %s: %f sec", entity, float64(c.waitTime[entity])/1000)
+	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
 	return ingestor.Complete(ctx)
 }
