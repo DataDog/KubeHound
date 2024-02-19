@@ -23,7 +23,6 @@ const (
 const (
 	CollectorStream = "kubehound.collector.stream"
 	CollectorDump   = "kubehound.collector.dump"
-	CollectorWait   = "kubehound.collector.wait"
 
 	DumperLaunch = "kubehound.dumper.launch"
 
