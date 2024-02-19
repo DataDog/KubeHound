@@ -40,7 +40,7 @@ var (
 
 	s3Cmd = &cobra.Command{
 		Use:    "s3",
-		Short:  "Push collected k8s resources to an s3 bucket of a targeted cluste",
+		Short:  "Push collected k8s resources to an s3 bucket of a targeted cluster",
 		Long:   `Collect all Kubernetes resources needed to build the attack path in an offline format on a s3 bucket`,
 		PreRun: toggleDebug,
 		RunE: func(cmd *cobra.Command, args []string) error {
