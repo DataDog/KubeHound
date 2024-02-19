@@ -33,7 +33,8 @@ type k8sAPICollector struct {
 	rl        ratelimit.Limiter
 	cfg       *config.K8SAPICollectorConfig
 	tags      []string
-	waitTime  map[string]int64
+	waitTime  map[string]time.Duration
+	startTime time.Time
 }
 
 const (
@@ -113,7 +114,8 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		log:       l,
 		rl:        ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
 		tags:      tags,
-		waitTime:  map[string]int64{},
+		waitTime:  map[string]time.Duration{},
+		startTime: time.Now(),
 	}, nil
 }
 
@@ -124,7 +126,7 @@ func (c *k8sAPICollector) Wait(ctx context.Context, resourceType string) {
 	now := c.rl.Take()
 	// span.Finish()
 
-	waitTime := now.Sub(prev).Milliseconds()
+	waitTime := now.Sub(prev)
 	c.waitTime[resourceType] += waitTime
 
 	entity := tag.Entity(resourceType)
@@ -162,7 +164,37 @@ func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error)
 	return NewClusterInfo(ctx)
 }
 
-func (c *k8sAPICollector) Close(_ context.Context) error {
+// Generate metrics for k8sAPI collector
+func (c *k8sAPICollector) computeMetrics(ctx context.Context) error {
+	var runTotalWaitTime time.Duration
+	for _, wait := range c.waitTime {
+		runTotalWaitTime += wait
+	}
+
+	runDuration := time.Now().Sub(c.startTime)
+	err := statsd.Gauge(metric.CollectorRunWait, float64(runTotalWaitTime), c.tags, 1)
+	if err != nil {
+		log.I.Error(err)
+	}
+	err = statsd.Gauge(metric.CollectorRunDuration, float64(runDuration), c.tags, 1)
+	if err != nil {
+		log.I.Error(err)
+	}
+
+	runThrottlingPercentage := float64(1 - (float64(runDuration-runTotalWaitTime) / float64(runDuration)))
+	err = statsd.Gauge(metric.CollectorRunThrottling, runThrottlingPercentage, c.tags, 1)
+	if err != nil {
+		log.I.Error(err)
+	}
+	log.I.Infof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage)
+
+	return nil
+}
+
+func (c *k8sAPICollector) Close(ctx context.Context) error {
+
+	c.computeMetrics(ctx)
+
 	return nil
 }
 

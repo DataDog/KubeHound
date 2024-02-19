@@ -6,6 +6,10 @@ var (
 	CollectorWait  = "kubehound.collector.wait"
 	CollectorSkip  = "kubehound.collector.skip"
 	CollectorSize  = "kubehound.s3.size"
+
+	CollectorRunDuration   = "kubehound.collector.run.duration"
+	CollectorRunWait       = "kubehound.collector.run.wait"
+	CollectorRunThrottling = "kubehound.collector.run.throttling"
 )
 
 // Dumper metrics
