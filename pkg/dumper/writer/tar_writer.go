@@ -100,6 +100,7 @@ func (t *TarWriter) Flush(ctx context.Context) error {
 		if _, err := t.tarWriter.Write(*data); err != nil {
 			return err
 		}
+		delete(t.buffers, path)
 	}
 
 	return nil
