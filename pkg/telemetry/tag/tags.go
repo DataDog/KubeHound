@@ -84,7 +84,7 @@ func ClusterName(cluster string) string {
 	return MakeTag(CollectorCluster, cluster)
 }
 
-func EventType(action string) string {
+func ActionType(action string) string {
 	return MakeTag(ActionTypeTag, action)
 }
 
