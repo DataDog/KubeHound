@@ -3,12 +3,16 @@ package s3
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
 	"time"
 
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
+	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
@@ -61,6 +65,16 @@ func (s *S3Store) Upload(ctx context.Context, objectKey string, data []byte) err
 		Key:    aws.String(objectKey),
 		Body:   bytes.NewReader(data),
 	})
+
+	tags := []string{
+		tag.S3Bucket(s.bucket),
+		tag.S3Key(objectKey),
+	}
+	sizeData := binary.Size(data)
+	err = statsd.Count(metric.DumperSize, int64(sizeData), tags, 1)
+	if err != nil {
+		log.I.Error(err)
+	}
 
 	if err != nil {
 		return fmt.Errorf("upload file to %s: %w", s.formatS3URI(objectKey), err)

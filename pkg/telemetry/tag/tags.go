@@ -1,6 +1,7 @@
 package tag
 
 const (
+	ActionTypeTag         = "action"
 	CollectorTag          = "collector"
 	CollectorCluster      = "cluster"
 	DumperS3BucketTag     = "s3_bucket"
@@ -39,46 +40,58 @@ var (
 	BaseTags = []string{}
 )
 
-func makeTag(tag string, value string) string {
+func MakeTag(tag string, value string) string {
 	return tag + ":" + value
 }
 
 func RunID(uuid string) string {
-	return makeTag(RunIdTag, uuid)
+	return MakeTag(RunIdTag, uuid)
 }
 
 func Collector(collector string) string {
-	return makeTag(CollectorTag, collector)
+	return MakeTag(CollectorTag, collector)
 }
 
 func Storage(storage string) string {
-	return makeTag(StorageTag, storage)
+	return MakeTag(StorageTag, storage)
 }
 
 func Entity(name string) string {
-	return makeTag(EntityTag, name)
+	return MakeTag(EntityTag, name)
 }
 
 func Label(label string) string {
-	return makeTag(LabelTag, label)
+	return MakeTag(LabelTag, label)
 }
 
 func Builder(builder string) string {
-	return makeTag(BuilderTag, builder)
+	return MakeTag(BuilderTag, builder)
 }
 
 func Collection(collection string) string {
-	return makeTag(CollectionTag, collection)
+	return MakeTag(CollectionTag, collection)
 }
 
 func CacheKey(ck string) string {
-	return makeTag(CacheKeyTag, ck)
+	return MakeTag(CacheKeyTag, ck)
 }
 
 func EdgeType(et string) string {
-	return makeTag(EdgeTypeTag, et)
+	return MakeTag(EdgeTypeTag, et)
 }
 
 func ClusterName(cluster string) string {
-	return makeTag(CollectorCluster, cluster)
+	return MakeTag(CollectorCluster, cluster)
+}
+
+func EventType(action string) string {
+	return MakeTag(ActionTypeTag, action)
+}
+
+func S3Bucket(bucket string) string {
+	return MakeTag(DumperS3BucketTag, bucket)
+}
+
+func S3Key(key string) string {
+	return MakeTag(DumperS3keyTag, key)
 }

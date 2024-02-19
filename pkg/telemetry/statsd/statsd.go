@@ -7,7 +7,9 @@ package statsd
 import (
 	"time"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/DataDog/datadog-go/v5/statsd"
 )
 
@@ -21,7 +23,8 @@ func init() {
 	statsdClient = &NoopClient{}
 }
 
-func Setup(statsdURL string) error {
+func Setup(cfg *config.KubehoundConfig) error {
+	statsdURL := cfg.Telemetry.Statsd.URL
 	log.I.Infof("Using %s for statsd URL", statsdURL)
 	var err error
 	// In case we don't have a statsd url set, we just want to continue, but log that we aren't going to submit metrics.
@@ -30,8 +33,13 @@ func Setup(statsdURL string) error {
 
 		return nil
 	}
+	tags := tag.BaseTags
+	for tk, tv := range cfg.Telemetry.Tags {
+		tags = append(tags, tag.MakeTag(tk, tv))
+	}
 
-	statsdClient, err = statsd.New(statsdURL)
+	statsdClient, err = statsd.New(statsdURL,
+		statsd.WithTags(tags))
 	if err != nil {
 		return err
 	}

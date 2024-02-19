@@ -19,11 +19,13 @@ const (
 	MongoDBBatchWrite = "kubehound.mongo.batchwrite"
 )
 
-// Collector component spans
+// Collector/dumper component spans
 const (
 	CollectorStream = "kubehound.collector.stream"
 	CollectorDump   = "kubehound.collector.dump"
 	CollectorWait   = "kubehound.collector.wait"
+
+	DumperLaunch = "kubehound.dumper.launch"
 
 	DumperNodes               = "kubehound.dumper.nodes"
 	DumperPods                = "kubehound.dumper.pods"

@@ -5,6 +5,15 @@ var (
 	CollectorCount = "kubehound.collector.count"
 	CollectorWait  = "kubehound.collector.wait"
 	CollectorSkip  = "kubehound.collector.skip"
+	CollectorSize  = "kubehound.s3.size"
+)
+
+// Dumper metrics
+var (
+	DumperCount = "kubehound.collector.count"
+	DumperrWait = "kubehound.collector.wait"
+	DumperSkip  = "kubehound.collector.skip"
+	DumperSize  = "kubehound.s3.size"
 )
 
 // Pipeline storage metrics
