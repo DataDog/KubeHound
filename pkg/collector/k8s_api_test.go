@@ -3,7 +3,9 @@ package collector
 
 import (
 	"context"
+	"sync"
 	"testing"
+	"time"
 
 	mocks "github.com/DataDog/KubeHound/pkg/collector/mockingest"
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -20,6 +22,8 @@ import (
 )
 
 func NewTestK8sAPICollector(ctx context.Context, clientset *fake.Clientset) CollectorClient {
+	var mu sync.RWMutex
+
 	cfg := &config.K8SAPICollectorConfig{
 		PageSize:           config.DefaultK8sAPIPageSize,
 		PageBufferSize:     config.DefaultK8sAPIPageBufferSize,
@@ -31,6 +35,8 @@ func NewTestK8sAPICollector(ctx context.Context, clientset *fake.Clientset) Coll
 		clientset: clientset,
 		log:       log.Trace(ctx, log.WithComponent(K8sAPICollectorName)),
 		rl:        ratelimit.New(config.DefaultK8sAPIRateLimitPerSecond), // per second
+		waitTime:  map[string]time.Duration{},
+		mu:        &mu,
 	}
 }
 
