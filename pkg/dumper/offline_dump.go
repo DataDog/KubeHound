@@ -52,12 +52,11 @@ func (d *Dumper) Initialize(ctx context.Context, collector collector.CollectorCl
 	d.directoryOutput = directoryOutput
 	d.collect = collector
 
-	d.writer = &writer.FileWriter{}
-	// if compression is enabled, create the tar.gz file
-	if compression {
-		log.I.Infof("Compression enabled")
-		d.writer = &writer.TarWriter{}
+	d.writer, err = writer.CollectorWriterFactory(ctx, compression)
+	if err != nil {
+		return fmt.Errorf("create collector writer: %w", err)
 	}
+
 	d.ClusterName, err = d.getClusterName(ctx)
 	if err != nil {
 		return err
