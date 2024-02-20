@@ -513,6 +513,50 @@ func (_c *CollectorClient_StreamRoles_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// Tags provides a mock function with given fields: ctx
+func (_m *CollectorClient) Tags(ctx context.Context) []string {
+	ret := _m.Called(ctx)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(context.Context) []string); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	return r0
+}
+
+// CollectorClient_Tags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Tags'
+type CollectorClient_Tags_Call struct {
+	*mock.Call
+}
+
+// Tags is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *CollectorClient_Expecter) Tags(ctx interface{}) *CollectorClient_Tags_Call {
+	return &CollectorClient_Tags_Call{Call: _e.mock.On("Tags", ctx)}
+}
+
+func (_c *CollectorClient_Tags_Call) Run(run func(ctx context.Context)) *CollectorClient_Tags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *CollectorClient_Tags_Call) Return(_a0 []string) *CollectorClient_Tags_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CollectorClient_Tags_Call) RunAndReturn(run func(context.Context) []string) *CollectorClient_Tags_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 type mockConstructorTestingTNewCollectorClient interface {
 	mock.TestingT
 	Cleanup(func())
