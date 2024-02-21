@@ -87,7 +87,7 @@ endif
 all: build
 
 .PHONY: generate
-generate: ## Generate code the application
+generate: ## Generate code for the application
 	go generate $(BUILD_FLAGS) ./...
 
 .PHONY: build
