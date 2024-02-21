@@ -136,7 +136,7 @@ Edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`):
 * `DD_API_KEY`: api key you created from https://app.datadoghq.com/ website
 
 Note:
-* `KUBEHOUND_ENV=dev` will build the images locally (and provide some local debugging containers e.g `mongo-express`)
+* `KUBEHOUND_ENV=dev` will build the images locally
 * `KUBEHOUND_ENV=release` will use prebuilt images from ghcr.io 
 
 ### Running Kubehound
