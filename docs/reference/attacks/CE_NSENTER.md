@@ -84,6 +84,6 @@ Avoid running containers as the `root` user. Enforce running as an unprivileged 
 ## References:
 
 + [nsenter(1) - Linux manual page](https://man7.org/linux/man-pages/man1/nsenter.1.html)
-+ [Docker Breakout / Privilege Escalation](https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-breakout/docker-breakout-privilege-escalation#privileged-+-hostpid)
++ [Bad Pod #2: Privilege and HostPid](https://bishopfox.com/blog/kubernetes-pod-privilege-escalation#Pod2)
 + [Debugging containers using nsenter](https://jaanhio.me/blog/nsenter-debug/)
 
