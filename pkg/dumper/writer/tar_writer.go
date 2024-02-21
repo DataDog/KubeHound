@@ -19,6 +19,10 @@ const (
 	TarWriterExtension = ".tar.gz"
 	TarWriterChmod     = 0600
 	TarTypeTag         = "tar"
+
+	// 1 means 1 thread (tar/gzip are not multi-threaded)
+	// Using single thread when zipping to avoid concurency issues
+	TarWorkerNumber = 1
 )
 
 type TarWriter struct {
@@ -29,7 +33,7 @@ type TarWriter struct {
 	tarPath    string
 }
 
-func (t *TarWriter) initializedTarFile(ctx context.Context, directoryOutput string, resName string) error {
+func (t *TarWriter) initializedTarFile(directoryOutput string, resName string) error {
 	t.tarPath = path.Join(directoryOutput, fmt.Sprintf("%s%s", resName, TarWriterExtension))
 
 	log.I.Debugf("Creating tar file %s", t.tarPath)
@@ -49,8 +53,12 @@ func (f *TarWriter) OutputPath() string {
 	return f.tarPath
 }
 
+func (f *TarWriter) WorkerNumber() int {
+	return FileWriterWorkerNumber
+}
+
 func (t *TarWriter) Initialize(ctx context.Context, path string, resName string) error {
-	err := t.initializedTarFile(ctx, path, resName)
+	err := t.initializedTarFile(path, resName)
 	if err != nil {
 		return err
 	}
@@ -77,6 +85,7 @@ func (t *TarWriter) Write(ctx context.Context, object []byte, filePath string) e
 		buf = &object
 		t.buffers[filePath] = buf
 	}
+
 	return nil
 }
 

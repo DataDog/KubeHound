@@ -172,17 +172,8 @@ func dump(ctx context.Context, cmd *cobra.Command) error {
 		return fmt.Errorf("initialize collector: %w", err)
 	}
 
-	// Multi-threading the dump with one worker for each types
-	// The number of workers is set to 7 to have one thread per k8s object type to pull  fronm the Kubernetes API
-	workerPoolSize := 7
-
-	// Using single thread when zipping to avoid concurency issues
-	if viper.GetBool(config.CollectorLocalCompress) {
-		workerPoolSize = 1
-	}
-
 	// Dumping all k8s objects using the API
-	err = dumper.DumpK8sObjects(ctx, workerPoolSize)
+	err = dumper.DumpK8sObjects(ctx)
 	if err != nil {
 		return fmt.Errorf("dump k8s object: %w", err)
 	}

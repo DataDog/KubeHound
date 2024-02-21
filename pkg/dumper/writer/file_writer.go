@@ -17,6 +17,12 @@ import (
 const (
 	FileWriterChmod = 0600
 	FileTypeTag     = "file"
+
+	// Multi-threading the dump with one worker for each types
+	// The number of workers is set to the number of differents entities (roles, pods, ...)
+	// 1 thread per k8s object type to pull from the Kubernetes API
+	// 0 means as many thread as k8s entity types (calculated by the dumper_pipeline)
+	FileWriterWorkerNumber = 0
 )
 
 type FileWriter struct {
@@ -29,11 +35,16 @@ func (f *FileWriter) Initialize(ctx context.Context, directoryOutput string, res
 	f.buffers = make(map[string]*bufio.Writer)
 	f.files = make(map[string]*os.File)
 	f.directoryOutput = path.Join(directoryOutput, resName)
+
 	return nil
 }
 
 func (f *FileWriter) OutputPath() string {
 	return f.directoryOutput
+}
+
+func (f *FileWriter) WorkerNumber() int {
+	return FileWriterWorkerNumber
 }
 
 func (f *FileWriter) Write(ctx context.Context, data []byte, filePath string) error {
@@ -63,6 +74,7 @@ func (f *FileWriter) Write(ctx context.Context, data []byte, filePath string) er
 	if err != nil {
 		return fmt.Errorf("failed to write JSON data to buffer: %w", err)
 	}
+
 	return nil
 }
 
@@ -96,5 +108,6 @@ func (f *FileWriter) Close(ctx context.Context) error {
 	}
 
 	f.files = make(map[string]*os.File)
+
 	return nil
 }
