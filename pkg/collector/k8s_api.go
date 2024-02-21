@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -18,7 +19,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -64,7 +65,7 @@ func tunedListOptions() metav1.ListOptions {
 	}
 }
 
-func NewClusterInfo(ctx context.Context) (*ClusterInfo, error) {
+func newClusterInfo(ctx context.Context) (*ClusterInfo, error) {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	configOverrides := &clientcmd.ConfigOverrides{}
 	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
@@ -80,10 +81,11 @@ func NewClusterInfo(ctx context.Context) (*ClusterInfo, error) {
 }
 
 func GetClusterName(ctx context.Context) (string, error) {
-	cluster, err := NewClusterInfo(ctx)
+	cluster, err := newClusterInfo(ctx)
 	if err != nil {
 		return "", fmt.Errorf("collector cluster info: %w", err)
 	}
+
 	return cluster.Name, nil
 }
 
@@ -123,14 +125,14 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	}, nil
 }
 
-func (c *k8sAPICollector) wait(ctx context.Context, resourceType string) {
+func (c *k8sAPICollector) wait(_ context.Context, resourceType string) {
 	prev := time.Now()
 	now := c.rl.Take()
 
 	waitTime := now.Sub(prev)
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.waitTime[resourceType] += waitTime
-	c.mu.Unlock()
 
 	entity := tag.Entity(resourceType)
 	err := statsd.Gauge(metric.CollectorWait, float64(c.waitTime[resourceType]), append(c.tags, entity), 1)
@@ -164,39 +166,46 @@ func (c *k8sAPICollector) Tags(ctx context.Context) []string {
 }
 
 func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
-	return NewClusterInfo(ctx)
+	return newClusterInfo(ctx)
 }
 
 // Generate metrics for k8sAPI collector
-func (c *k8sAPICollector) computeMetrics(ctx context.Context) error {
+func (c *k8sAPICollector) computeMetrics(_ context.Context) error {
+	var errMetric error
 	var runTotalWaitTime time.Duration
 	for _, wait := range c.waitTime {
 		runTotalWaitTime += wait
 	}
 
-	runDuration := time.Now().Sub(c.startTime)
+	runDuration := time.Since(c.startTime)
 	err := statsd.Gauge(metric.CollectorRunWait, float64(runTotalWaitTime), c.tags, 1)
 	if err != nil {
+		errMetric = errors.Join(errMetric, err)
 		log.I.Error(err)
 	}
 	err = statsd.Gauge(metric.CollectorRunDuration, float64(runDuration), c.tags, 1)
 	if err != nil {
+		errMetric = errors.Join(errMetric, err)
 		log.I.Error(err)
 	}
 
-	runThrottlingPercentage := float64(1 - (float64(runDuration-runTotalWaitTime) / float64(runDuration)))
+	runThrottlingPercentage := 1 - (float64(runDuration-runTotalWaitTime) / float64(runDuration))
 	err = statsd.Gauge(metric.CollectorRunThrottling, runThrottlingPercentage, c.tags, 1)
 	if err != nil {
+		errMetric = errors.Join(errMetric, err)
 		log.I.Error(err)
 	}
 	log.I.Infof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage)
 
-	return nil
+	return errMetric
 }
 
 func (c *k8sAPICollector) Close(ctx context.Context) error {
-
-	c.computeMetrics(ctx)
+	err := c.computeMetrics(ctx)
+	if err != nil {
+		// We don't want to return an error here as it is just metrics and won't affect the collection of data
+		log.I.Errorf("Error computing metrics: %s", err)
+	}
 
 	return nil
 }
@@ -209,7 +218,7 @@ func (c *k8sAPICollector) checkNamespaceExists(ctx context.Context, namespace st
 		return nil
 	}
 
-	if errors.IsNotFound(err) {
+	if kerrors.IsNotFound(err) {
 		return fmt.Errorf("namespace %s does not exist", namespace)
 	}
 
@@ -271,6 +280,7 @@ func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) 
 	}
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
 	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+
 	return ingestor.Complete(ctx)
 }
 
@@ -325,6 +335,7 @@ func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
 	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+
 	return ingestor.Complete(ctx)
 }
 
@@ -379,6 +390,7 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
 	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+
 	return ingestor.Complete(ctx)
 }
 
@@ -433,6 +445,7 @@ func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor Endpoint
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
 	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+
 	return ingestor.Complete(ctx)
 }
 
@@ -475,6 +488,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
 	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+
 	return ingestor.Complete(ctx)
 }
 
@@ -517,6 +531,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
 	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+
 	return ingestor.Complete(ctx)
 }
 
@@ -559,5 +574,6 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 
 	span.SetTag(tag.WaitTag, c.waitTime[entity])
 	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+
 	return ingestor.Complete(ctx)
 }
