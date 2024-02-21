@@ -14,10 +14,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
-	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
-	"github.com/DataDog/KubeHound/pkg/worker"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -43,6 +41,7 @@ func (d *Dumper) getClusterName(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("collector cluster info: %w", err)
 	}
+
 	return cluster.Name, nil
 }
 
@@ -80,19 +79,11 @@ func (d *Dumper) IngestNode(ctx context.Context, node types.NodeType) error {
 	return d.processObject(ctx, node, collector.NodePath)
 }
 
-func (d *Dumper) dumpNodes(ctx context.Context) error {
-	log.I.Info("Dumping nodes")
-	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperNodes, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityNodes)
-	defer span.Finish()
-
-	return d.collect.StreamNodes(ctx, d)
-}
-
 func (d *Dumper) IngestPod(ctx context.Context, pod types.PodType) error {
 	if ok, err := preflight.CheckPod(pod); !ok {
 		entity := tag.Entity(tag.EntityPods)
 		_ = statsd.Incr(metric.CollectorSkip, append(d.collect.Tags(ctx), entity), 1)
+
 		return err
 	}
 
@@ -101,19 +92,11 @@ func (d *Dumper) IngestPod(ctx context.Context, pod types.PodType) error {
 	return d.processObject(ctx, pod, filePath)
 }
 
-func (i *Dumper) dumpPods(ctx context.Context) error {
-	log.I.Info("Dumping pods")
-	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperPods, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityPods)
-	defer span.Finish()
-
-	return i.collect.StreamPods(ctx, i)
-}
-
 func (d *Dumper) IngestRole(ctx context.Context, role types.RoleType) error {
 	if ok, err := preflight.CheckRole(role); !ok {
 		entity := tag.Entity(tag.EntityRoles)
 		_ = statsd.Incr(metric.CollectorSkip, append(d.collect.Tags(ctx), entity), 1)
+
 		return err
 	}
 
@@ -122,38 +105,22 @@ func (d *Dumper) IngestRole(ctx context.Context, role types.RoleType) error {
 	return d.processObject(ctx, role, filePath)
 }
 
-func (d *Dumper) dumpRoles(ctx context.Context) error {
-	log.I.Info("Dumping roles")
-	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperRoles, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityRoles)
-	defer span.Finish()
-
-	return d.collect.StreamRoles(ctx, d)
-}
-
 func (d *Dumper) IngestClusterRole(ctx context.Context, clusterRole types.ClusterRoleType) error {
 	if ok, err := preflight.CheckClusterRole(clusterRole); !ok {
 		entity := tag.Entity(tag.EntityClusterRoles)
 		_ = statsd.Incr(metric.CollectorSkip, append(d.collect.Tags(ctx), entity), 1)
+
 		return err
 	}
 
 	return d.processObject(ctx, clusterRole, collector.ClusterRolesPath)
 }
 
-func (d *Dumper) dumpClusterRoles(ctx context.Context) error {
-	log.I.Info("Dumping cluster roles")
-	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperClusterRoles, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityClusterRoles)
-	defer span.Finish()
-
-	return d.collect.StreamClusterRoles(ctx, d)
-}
-
 func (d *Dumper) IngestRoleBinding(ctx context.Context, roleBinding types.RoleBindingType) error {
 	if ok, err := preflight.CheckRoleBinding(roleBinding); !ok {
 		entity := tag.Entity(tag.EntityRolebindings)
 		_ = statsd.Incr(metric.CollectorSkip, append(d.collect.Tags(ctx), entity), 1)
+
 		return err
 	}
 
@@ -162,38 +129,22 @@ func (d *Dumper) IngestRoleBinding(ctx context.Context, roleBinding types.RoleBi
 	return d.processObject(ctx, roleBinding, filePath)
 }
 
-func (d *Dumper) DumpRoleBindings(ctx context.Context) error {
-	log.I.Info("Dumping role bindings")
-	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperRoleBindings, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityRolebindings)
-	defer span.Finish()
-
-	return d.collect.StreamRoleBindings(ctx, d)
-}
-
 func (d *Dumper) IngestClusterRoleBinding(ctx context.Context, clusterRoleBinding types.ClusterRoleBindingType) error {
 	if ok, err := preflight.CheckClusterRoleBinding(clusterRoleBinding); !ok {
 		entity := tag.Entity(tag.EntityClusterRolebindings)
 		_ = statsd.Incr(metric.CollectorSkip, append(d.collect.Tags(ctx), entity), 1)
+
 		return err
 	}
 
 	return d.processObject(ctx, clusterRoleBinding, collector.ClusterRoleBindingsPath)
 }
 
-func (d *Dumper) dumpClusterRoleBinding(ctx context.Context) error {
-	log.I.Info("Dumping cluster role bindings")
-	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperClusterRoleBindings, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityClusterRolebindings)
-	defer span.Finish()
-
-	return d.collect.StreamClusterRoleBindings(ctx, d)
-}
-
 func (d *Dumper) IngestEndpoint(ctx context.Context, endpoint types.EndpointType) error {
 	if ok, err := preflight.CheckEndpoint(endpoint); !ok {
 		entity := tag.Entity(tag.EntityEndpoints)
 		_ = statsd.Incr(metric.CollectorSkip, append(d.collect.Tags(ctx), entity), 1)
+
 		return err
 	}
 
@@ -202,61 +153,14 @@ func (d *Dumper) IngestEndpoint(ctx context.Context, endpoint types.EndpointType
 	return d.processObject(ctx, endpoint, filePath)
 }
 
-func (d *Dumper) dumpEnpoints(ctx context.Context) error {
-	log.I.Info("Dumping endpoints")
-	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperEndpoints, tracer.Measured())
-	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
+// Static wrapper to dump k8s object dynamically (streams Kubernetes objects to the collector writer).
+func dumpK8sObjs(ctx context.Context, operationName string, entity string, streamFunc StreamFunc) (context.Context, error) {
+	log.I.Infof("Dumping %s", entity)
+	span, ctx := tracer.StartSpanFromContext(ctx, operationName, tracer.Measured())
+	span.SetTag(tag.EntityTag, entity)
 	defer span.Finish()
-
-	return d.collect.StreamEndpoints(ctx, d)
-}
-
-func (d *Dumper) DumpK8sObjects(ctx context.Context, workerNumber int) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorDump, tracer.Measured())
-	span.SetTag(tag.DumperWorkerNumberTag, workerNumber)
-	defer span.Finish()
-
-	wp, err := worker.PoolFactory(workerNumber, 1)
-	if err != nil {
-		return fmt.Errorf("create worker pool: %w", err)
-	}
-
-	_, err = wp.Start(ctx)
-	if err != nil {
-		return fmt.Errorf("group worker pool start: %w", err)
-	}
-
-	defer d.writer.Close(ctx)
-
-	wp.Submit(func() error {
-		return d.dumpNodes(ctx)
-	})
-
-	wp.Submit(func() error {
-		return d.dumpPods(ctx)
-	})
-
-	wp.Submit(func() error {
-		return d.dumpRoles(ctx)
-	})
-
-	wp.Submit(func() error {
-		return d.dumpClusterRoles(ctx)
-	})
-
-	wp.Submit(func() error {
-		return d.DumpRoleBindings(ctx)
-	})
-
-	wp.Submit(func() error {
-		return d.dumpClusterRoleBinding(ctx)
-	})
-
-	wp.Submit(func() error {
-		return d.dumpEnpoints(ctx)
-	})
-
-	return wp.WaitForComplete()
+	err := streamFunc(ctx)
+	return ctx, err
 }
 
 func (d *Dumper) processObject(ctx context.Context, obj interface{}, filePath string) error {
@@ -265,22 +169,22 @@ func (d *Dumper) processObject(ctx context.Context, obj interface{}, filePath st
 		return fmt.Errorf("failed to marshal Kubernetes object: %w", err)
 	}
 
-	d.writer.Write(ctx, jsonData, filePath)
-
-	return err
+	return d.writer.Write(ctx, jsonData, filePath)
 }
 
-// completeCallback is invoked by the collector when all pods have been streamed.
+// Complete() is invoked by the collector when all k8s assets have been streamed.
 // The function flushes all writers and waits for completion.
 func (d *Dumper) Complete(ctx context.Context) error {
 	d.writer.Flush(ctx)
+
 	return nil
 }
 
-// completeCallback is invoked by the collector when all pods have been streamed.
+// Close() is invoked by the collector to close all handlers used to dump k8s objects.
 // The function flushes all writers and close all the handlers.
 func (d *Dumper) Close(ctx context.Context) error {
 	d.writer.Flush(ctx)
 	d.writer.Close(ctx)
+
 	return nil
 }
