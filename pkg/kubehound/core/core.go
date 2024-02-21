@@ -224,15 +224,13 @@ func NewLaunchConfig(cfg *config.KubehoundConfig, opName string) *LaunchConfig {
 	}
 }
 
-func (l *LaunchConfig) InitTelemetry() error {
+func (l *LaunchConfig) InitTelemetry() {
 	var err error
 	log.I.Info("Initializing application telemetry")
 	l.ts, err = telemetry.Initialize(l.cfg)
 	if err != nil {
 		log.I.Warnf("failed telemetry initialization: %v", err)
 	}
-
-	return nil
 }
 
 func (l *LaunchConfig) InitTags(ctx context.Context, tags map[string]string) {
@@ -259,8 +257,6 @@ func (l *LaunchConfig) InitTags(ctx context.Context, tags map[string]string) {
 	log.SetDD(l.cfg.Telemetry.Enabled)
 	log.AddGlobalTags(l.cfg.Telemetry.Tags)
 	log.AddGlobalTags(tags)
-
-	return
 }
 
 func (l *LaunchConfig) Bootstrap(ctx context.Context, tags map[string]string) (context.Context, error) {
@@ -277,6 +273,4 @@ func (l *LaunchConfig) Bootstrap(ctx context.Context, tags map[string]string) (c
 func (l *LaunchConfig) Close() {
 	l.mainSpan.Finish()
 	telemetry.Shutdown(l.ts)
-
-	return
 }

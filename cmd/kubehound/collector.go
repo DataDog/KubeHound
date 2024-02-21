@@ -33,8 +33,7 @@ var (
 		Long:   `Collect all Kubernetes resources needed to build the attack path. This will be dumped in an offline format (s3 or locally)`,
 		PreRun: toggleDebug,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Help()
-			return nil
+			return cmd.Help()
 		},
 	}
 
@@ -55,6 +54,7 @@ var (
 
 			log.I.Debugf("Temporary directory created: %s", tmpDir)
 			viper.Set(config.CollectorLocalOutputDir, tmpDir)
+
 			return dump(context.Background(), cmd)
 		},
 	}
@@ -102,15 +102,15 @@ func init() {
 
 	localCmd.Flags().String("output-dir", "", "Directory to dump the data")
 	viper.BindPFlag(config.CollectorLocalOutputDir, localCmd.Flags().Lookup("output-dir")) //nolint: errcheck
-	localCmd.MarkFlagRequired("output-dir")
+	localCmd.MarkFlagRequired("output-dir")                                                //nolint: errcheck
 
 	s3Cmd.Flags().String("bucket", "", "Bucket to use to push k8s resources")
 	viper.BindPFlag(config.CollectorS3Bucket, s3Cmd.Flags().Lookup("bucket")) //nolint: errcheck
-	s3Cmd.MarkFlagRequired("bucket")
+	s3Cmd.MarkFlagRequired("bucket")                                          //nolint: errcheck
 
 	s3Cmd.Flags().String("region", "", "Region to use to push k8s resources")
 	viper.BindPFlag(config.CollectorS3Region, s3Cmd.Flags().Lookup("region")) //nolint: errcheck
-	s3Cmd.MarkFlagRequired("region")
+	s3Cmd.MarkFlagRequired("region")                                          //nolint: errcheck
 
 	dumpCmd.AddCommand(s3Cmd)
 	dumpCmd.AddCommand(localCmd)
@@ -183,7 +183,7 @@ func dump(ctx context.Context, cmd *cobra.Command) error {
 		defer func() {
 			err := os.RemoveAll(viper.GetString(config.CollectorLocalOutputDir))
 			if err != nil {
-				fmt.Println("Failed to remove temporary directory:", err)
+				log.I.Errorf("Failed to remove temporary directory: %v", err)
 			}
 		}()
 
