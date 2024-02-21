@@ -82,5 +82,5 @@ Avoid running containers as the `root` user. Enforce running as an unprivileged 
 
 ## References:
 
-+ [HackTricks Docker Breakout](https://book.hacktricks.xyz/linux-hardening/privilege-escalation/docker-security/docker-breakout-privilege-escalation)
-
++ [Bad Pods: Kubernetes Pod Privilege Escalation](https://bishopfox.com/blog/kubernetes-pod-privilege-escalation)
++ [7 Ways to Escape a Container](https://www.panoptica.app/research/7-ways-to-escape-a-container)
