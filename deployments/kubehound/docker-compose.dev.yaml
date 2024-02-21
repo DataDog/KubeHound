@@ -15,20 +15,6 @@ services:
     volumes:
       - kubegraph_data:/var/lib/janusgraph
 
-  mongo-express:
-    image: mongo-express:1.0.0-alpha
-    profiles: ["infra"]
-    container_name: ${COMPOSE_PROJECT_NAME}-mongo-express
-    restart: unless-stopped
-    depends_on:
-      - mongodb
-    ports:
-      - "127.0.0.1:8081:8081"
-    networks:
-      - kubenet
-    environment:
-      - ME_CONFIG_MONGODB_SERVER=mongodb
-
 volumes:
   mongodb_data:
   kubegraph_data:

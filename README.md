@@ -28,6 +28,9 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
   - [Infrastructure Setup](#infrastructure-setup)
   - [Running Kubehound](#running-kubehound)
 - [Using KubeHound Data](#using-kubehound-data)
+  - [Example queries](#example-queries)
+  - [Query data from your scripts](#query-data-from-your-scripts)
+    - [Python](#python)
 - [Development](#development)
   - [Build](#build)
   - [Release build](#release-build)
@@ -133,7 +136,7 @@ Edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`):
 * `DD_API_KEY`: api key you created from https://app.datadoghq.com/ website
 
 Note:
-* `KUBEHOUND_ENV=dev` will build the images locally (and provide some local debugging containers e.g `mongo-express`)
+* `KUBEHOUND_ENV=dev` will build the images locally
 * `KUBEHOUND_ENV=release` will use prebuilt images from ghcr.io 
 
 ### Running Kubehound
@@ -175,11 +178,12 @@ make help
 
 ## Using KubeHound Data
 
-To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop.apache.org/gremlin.html) query language via an API call or dedicated graph query UI. A number of graph query UIs are availble, but we recommend [gdotv](https://gdotv.com/). To access the KubeHound graph using `gdotv`:
+To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop.apache.org/gremlin.html) query language via an API call or dedicated graph query UI. A number of fully featured graph query UIs are available (both commercial and open source), but we provide an accompanying Jupyter notebook based on the [AWS Graph Notebook](https://github.com/aws/graph-notebook),to quickly showcase the capabilities of Kubehound. To access the UI:
 
-+ Download and install the application from https://gdotv.com/
-+ Create a connection to the local janusgraph instance by following the steps here https://docs.gdotv.com/connection-management/ and using `hostname=localhost`
-+ Navigate to the query editor and enter a sample query e.g `g.V().count()`. See detailed instructions here: https://docs.gdotv.com/query-editor/#run-your-query
++ Visit [http://localhost:8888/notebooks/Kubehound.ipynb](http://localhost:8888/notebooks/Kubehound.ipynb) in your browser
++ Use the default password `admin` to login (note: this can be changed via the [Dockerfile](./deployments/kubehound/notebook/Dockerfile) or by setting the `NOTEBOOK_PASSWORD` environment variable in the [.env](./deployments/kubehound/.env.tpl) file)
++ Follow the initial setup instructions in the notebook to connect to the Kubehound graph and configure the rendering
++ Start running the queries and exploring the graph!
 
 ### Example queries
 

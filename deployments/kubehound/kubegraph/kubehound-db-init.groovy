@@ -151,15 +151,13 @@ roleBinding = mgmt.makePropertyKey('roleBinding').dataType(String.class).cardina
 
 
 // Define properties for each vertex 
-mgmt.addProperties(container, cls, cluster, runID, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, 
-    hostIpc, hostNetwork, runAsUser, podName, nodeName, compromised, command, args, capabilities, ports);
+mgmt.addProperties(container, cls, cluster, runID, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, hostIpc, hostNetwork, runAsUser, podName, nodeName, compromised, command, args, capabilities, ports);
 mgmt.addProperties(identity, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, type, critical);
 mgmt.addProperties(node, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, compromised, critical);
 mgmt.addProperties(pod, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, sharedPs, serviceAccount, nodeName, compromised, critical);
 mgmt.addProperties(permissionSet, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, role, roleBinding, rules, critical);
 mgmt.addProperties(volume, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, type, sourcePath, mountPath, readonly);
-mgmt.addProperties(endpoint, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, serviceEndpoint, serviceDns, addressType, 
-    addresses, port, portName, protocol, exposure, compromised);
+mgmt.addProperties(endpoint, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, serviceEndpoint, serviceDns, addressType, addresses, port, portName, protocol, exposure, compromised);
 
 
 // Create the indexes on vertex properties

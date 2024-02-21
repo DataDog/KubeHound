@@ -20,8 +20,6 @@ services:
       - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
       - DD_CONTAINER_LABELS_AS_TAGS={"com.docker.compose.service":"+app"}
       - DD_CONTAINER_INCLUDE=name:kubehound-*
-      # https://github.com/DataDog/datadog-agent/issues/6599
-      - DD_CONTAINER_EXCLUDE=name:kubehound-dev-mongo-express
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /proc/:/host/proc/:ro
