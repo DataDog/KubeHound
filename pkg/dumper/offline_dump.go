@@ -160,6 +160,7 @@ func dumpK8sObjs(ctx context.Context, operationName string, entity string, strea
 	span.SetTag(tag.EntityTag, entity)
 	defer span.Finish()
 	err := streamFunc(ctx)
+
 	return ctx, err
 }
 

@@ -71,7 +71,7 @@ type EndpointIngestor interface {
 }
 
 //go:generate mockery --name CollectorClient --output mockcollector --case underscore --filename collector_client.go --with-expecter
-type CollectorClient interface {
+type CollectorClient interface { //nolint: interfacebloat
 	services.Dependency
 
 	// ClusterInfo returns the target cluster information for the current run.

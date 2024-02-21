@@ -65,7 +65,7 @@ func tunedListOptions() metav1.ListOptions {
 	}
 }
 
-func newClusterInfo(ctx context.Context) (*ClusterInfo, error) {
+func newClusterInfo(_ context.Context) (*ClusterInfo, error) {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	configOverrides := &clientcmd.ConfigOverrides{}
 	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
@@ -195,7 +195,7 @@ func (c *k8sAPICollector) computeMetrics(_ context.Context) error {
 		errMetric = errors.Join(errMetric, err)
 		log.I.Error(err)
 	}
-	log.I.Infof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage)
+	log.I.Infof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage) //nolint:gomnd
 
 	return errMetric
 }

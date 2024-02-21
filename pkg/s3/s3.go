@@ -101,6 +101,7 @@ func (s *S3Store) Download(ctx context.Context, objectKey string, filePath strin
 	if err != nil {
 		return nil, fmt.Errorf("read object body from %s: %w", s.formatS3URI(objectKey), err)
 	}
+
 	return data, nil
 }
 
