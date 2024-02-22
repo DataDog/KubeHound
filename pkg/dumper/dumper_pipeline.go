@@ -9,7 +9,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/DataDog/KubeHound/pkg/worker"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 type StreamFunc func(context.Context) error
@@ -136,22 +135,4 @@ func (p *PipelineDumper) Run(ctx context.Context) error {
 
 func (p *PipelineDumper) Wait(ctx context.Context) error {
 	return p.wp.WaitForComplete()
-}
-
-func (d *Dumper) DumpK8sObjects(ctx context.Context) error {
-	spanDump, ctx := tracer.StartSpanFromContext(ctx, span.CollectorDump, tracer.Measured())
-	defer spanDump.Finish()
-
-	ctx, pipeline, err := newPipelineDumper(ctx, d)
-	if err != nil {
-		return fmt.Errorf("create pipeline ingestor: %w", err)
-	}
-	spanDump.SetTag(tag.DumperWorkerNumberTag, pipeline.WorkerNumber)
-
-	err = pipeline.Run(ctx)
-	if err != nil {
-		return fmt.Errorf("run pipeline ingestor: %w", err)
-	}
-
-	return pipeline.Wait(ctx)
 }
