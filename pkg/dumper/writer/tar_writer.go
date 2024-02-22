@@ -56,7 +56,7 @@ func (f *TarWriter) OutputPath() string {
 }
 
 func (f *TarWriter) WorkerNumber() int {
-	return FileWriterWorkerNumber
+	return TarWorkerNumber
 }
 
 func (t *TarWriter) Initialize(ctx context.Context, path string, resName string) error {
