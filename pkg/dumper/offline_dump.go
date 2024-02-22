@@ -23,7 +23,7 @@ type Dumper struct {
 	directoryOutput string
 	ResName         string
 	collect         collector.CollectorClient
-	writer          writer.CollectorWriter
+	writer          writer.DumperWriter
 	ClusterName     string
 }
 
@@ -51,7 +51,7 @@ func (d *Dumper) Initialize(ctx context.Context, collector collector.CollectorCl
 	d.directoryOutput = directoryOutput
 	d.collect = collector
 
-	d.writer, err = writer.CollectorWriterFactory(ctx, compression)
+	d.writer, err = writer.DumperWriterFactory(ctx, compression)
 	if err != nil {
 		return fmt.Errorf("create collector writer: %w", err)
 	}

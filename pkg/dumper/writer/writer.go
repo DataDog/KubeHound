@@ -10,8 +10,7 @@ const (
 	WriterDirChmod = 0700
 )
 
-// Explain file writers
-type CollectorWriter interface {
+type DumperWriter interface {
 	Initialize(context.Context, string, string) error
 	Write(context.Context, []byte, string) error
 	Flush(context.Context) error
@@ -24,7 +23,7 @@ type CollectorWriter interface {
 	OutputPath() string
 }
 
-func CollectorWriterFactory(ctx context.Context, compression bool) (CollectorWriter, error) {
+func DumperWriterFactory(ctx context.Context, compression bool) (DumperWriter, error) {
 	// if compression is enabled, create the tar.gz file
 	if compression {
 		log.I.Infof("Compression enabled")
