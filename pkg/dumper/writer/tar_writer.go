@@ -75,11 +75,6 @@ func (t *TarWriter) Initialize(ctx context.Context, path string, resName string)
 // Write function writes the Kubernetes object to a buffer
 // All buffer are stored in a map which is flushed at the end of every type processed
 func (t *TarWriter) Write(ctx context.Context, object []byte, filePath string) error {
-	// Use only for debugging purpose as span cost a lot of money and are capped to 100k
-	// span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterWrite, tracer.Measured())
-	// span.SetTag(tag.DumperFilePathTag, filePath)
-	// span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
-	// defer span.Finish()
 	buf, ok := t.buffers[filePath]
 	if ok {
 		*buf = append(*buf, object...)
