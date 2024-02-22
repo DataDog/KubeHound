@@ -87,9 +87,13 @@ func newPipelineDumper(ctx context.Context, d *Dumper) (context.Context, *Pipeli
 
 	// Getting the number of workers from the writer to setup multi-threading if possible
 	workerNumber := d.writer.WorkerNumber()
+	// Set the number of workers to the number of differents entities (roles, pods, ...)
 	if workerNumber == 0 {
-		log.I.Infof("Multi-threading enabled: %d workers", workerNumber)
 		workerNumber = len(sequence)
+	}
+
+	if workerNumber > 1 {
+		log.I.Infof("Multi-threading enabled: %d workers", workerNumber)
 	}
 
 	// Setting up the worker pool with multi-threading if possible
