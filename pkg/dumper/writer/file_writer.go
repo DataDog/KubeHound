@@ -85,12 +85,12 @@ func (f *FileWriter) Flush(ctx context.Context) error {
 	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterFlush, tracer.Measured())
 	span.SetTag(tag.DumperWriterTypeTag, FileTypeTag)
 	defer span.Finish()
-	for _, writer := range f.buffers {
+	for path, writer := range f.buffers {
 		err := writer.Flush()
 		if err != nil {
 			return fmt.Errorf("failed to flush writer: %w", err)
 		}
-
+		delete(f.buffers, path)
 	}
 	f.buffers = make(map[string]*bufio.Writer)
 
@@ -102,11 +102,12 @@ func (f *FileWriter) Close(ctx context.Context) error {
 	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterClose, tracer.Measured())
 	span.SetTag(tag.DumperWriterTypeTag, FileTypeTag)
 	defer span.Finish()
-	for _, file := range f.files {
+	for path, file := range f.files {
 		err := file.Close()
 		if err != nil {
 			return fmt.Errorf("failed to close writer: %w", err)
 		}
+		delete(f.files, path)
 	}
 
 	f.files = make(map[string]*os.File)
