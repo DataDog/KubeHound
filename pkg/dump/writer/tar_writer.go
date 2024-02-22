@@ -35,20 +35,30 @@ type TarWriter struct {
 	tarPath    string
 }
 
-func (t *TarWriter) initializedTarFile(directoryOutput string, resName string) error {
-	t.tarPath = path.Join(directoryOutput, fmt.Sprintf("%s%s", resName, TarWriterExtension))
-
-	log.I.Debugf("Creating tar file %s", t.tarPath)
-	err := os.MkdirAll(filepath.Dir(t.tarPath), WriterDirChmod)
+func NewTarWriter(ctx context.Context, directoryPath string, resName string) (*TarWriter, error) {
+	tarPath := path.Join(directoryPath, fmt.Sprintf("%s%s", resName, TarWriterExtension))
+	tarFile, err := createTarFile(tarPath)
 	if err != nil {
-		return fmt.Errorf("failed to create directories: %w", err)
+		return nil, fmt.Errorf("failed to create tar file: %w", err)
 	}
-	t.tarFile, err = os.Create(t.tarPath)
-	if err != nil {
-		return err
-	}
+	gzipWriter := gzip.NewWriter(tarFile)
 
-	return nil
+	return &TarWriter{
+		tarPath:    tarPath,
+		gzipWriter: gzipWriter,
+		tarWriter:  tar.NewWriter(gzipWriter),
+		buffers:    make(map[string]*[]byte),
+		tarFile:    tarFile,
+	}, nil
+}
+
+func createTarFile(tarPath string) (*os.File, error) {
+	log.I.Debugf("Creating tar file %s", tarPath)
+	err := os.MkdirAll(filepath.Dir(tarPath), WriterDirChmod)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create directories: %w", err)
+	}
+	return os.Create(tarPath)
 }
 
 func (f *TarWriter) OutputPath() string {
@@ -57,19 +67,6 @@ func (f *TarWriter) OutputPath() string {
 
 func (f *TarWriter) WorkerNumber() int {
 	return TarWorkerNumber
-}
-
-func (t *TarWriter) Initialize(ctx context.Context, path string, resName string) error {
-	err := t.initializedTarFile(path, resName)
-	if err != nil {
-		return err
-	}
-
-	t.gzipWriter = gzip.NewWriter(t.tarFile)
-	t.tarWriter = tar.NewWriter(t.gzipWriter)
-	t.buffers = make(map[string]*[]byte)
-
-	return nil
 }
 
 // Write function writes the Kubernetes object to a buffer

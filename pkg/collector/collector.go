@@ -14,6 +14,17 @@ type ClusterInfo struct {
 	Name string
 }
 
+// Generic interface to allow an ingestor to consume stream inputs from a collector.
+type GenericIngestor interface {
+	NodeIngestor
+	PodIngestor
+	RoleIngestor
+	ClusterRoleIngestor
+	RoleBindingIngestor
+	ClusterRoleBindingIngestor
+	EndpointIngestor
+}
+
 // NodeIngestor defines the interface to allow an ingestor to consume node inputs from a collector.
 //
 //go:generate mockery --name NodeIngestor --output mockingest --case underscore --filename node_ingestor.go --with-expecter

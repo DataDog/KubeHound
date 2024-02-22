@@ -1,4 +1,4 @@
-package dumper
+package dump
 
 import (
 	"context"
@@ -13,76 +13,76 @@ import (
 
 type StreamFunc func(context.Context) error
 
-type DumperPipeline struct {
+type DumpIngestorPipeline struct {
 	operationName string
 	entity        string
 	streamFunc    StreamFunc
 }
 
-// dumperSequence returns the pipeline sequence for dumping k8s object (can be multi-threaded depending on the writer used)
-func dumperSequence(d *Dumper) []DumperPipeline {
-	return []DumperPipeline{
+// dumpIngestorSequence returns the pipeline sequence for dumping k8s object (can be multi-threaded depending on the writer used)
+func dumpIngestorSequence(d *DumpIngestor) []DumpIngestorPipeline {
+	return []DumpIngestorPipeline{
 		{
 			operationName: span.DumperNodes,
 			entity:        tag.EntityNodes,
 			streamFunc: func(ctx context.Context) error {
-				return d.collect.StreamNodes(ctx, d)
+				return d.collector.StreamNodes(ctx, d)
 			},
 		},
 		{
 			operationName: span.DumperPods,
 			entity:        tag.EntityPods,
 			streamFunc: func(ctx context.Context) error {
-				return d.collect.StreamPods(ctx, d)
+				return d.collector.StreamPods(ctx, d)
 			},
 		},
 		{
 			operationName: span.DumperRoles,
 			entity:        tag.EntityRoles,
 			streamFunc: func(ctx context.Context) error {
-				return d.collect.StreamRoles(ctx, d)
+				return d.collector.StreamRoles(ctx, d)
 			},
 		},
 		{
 			operationName: span.DumperClusterRoles,
 			entity:        tag.EntityClusterRoles,
 			streamFunc: func(ctx context.Context) error {
-				return d.collect.StreamClusterRoles(ctx, d)
+				return d.collector.StreamClusterRoles(ctx, d)
 			},
 		},
 		{
 			operationName: span.DumperRoleBindings,
 			entity:        tag.EntityRolebindings,
 			streamFunc: func(ctx context.Context) error {
-				return d.collect.StreamRoleBindings(ctx, d)
+				return d.collector.StreamRoleBindings(ctx, d)
 			},
 		},
 		{
 			operationName: span.DumperClusterRoleBindings,
 			entity:        tag.EntityClusterRolebindings,
 			streamFunc: func(ctx context.Context) error {
-				return d.collect.StreamClusterRoleBindings(ctx, d)
+				return d.collector.StreamClusterRoleBindings(ctx, d)
 			},
 		},
 		{
 			operationName: span.DumperEndpoints,
 			entity:        tag.EntityEndpoints,
 			streamFunc: func(ctx context.Context) error {
-				return d.collect.StreamEndpoints(ctx, d)
+				return d.collector.StreamEndpoints(ctx, d)
 			},
 		},
 	}
 }
 
-// PipelineDumper is a parallelized pipeline based ingestor implementation.
-type PipelineDumper struct {
-	sequence     []DumperPipeline
+// PipelineDumpIngestor is a parallelized pipeline based ingestor implementation.
+type PipelineDumpIngestor struct {
+	sequence     []DumpIngestorPipeline
 	wp           worker.WorkerPool
 	WorkerNumber int
 }
 
-func newPipelineDumper(ctx context.Context, d *Dumper) (context.Context, *PipelineDumper, error) {
-	sequence := dumperSequence(d)
+func newPipelineDumpIngestor(ctx context.Context, d *DumpIngestor) (context.Context, *PipelineDumpIngestor, error) {
+	sequence := dumpIngestorSequence(d)
 
 	// Getting the number of workers from the writer to setup multi-threading if possible
 	workerNumber := d.writer.WorkerNumber()
@@ -108,7 +108,7 @@ func newPipelineDumper(ctx context.Context, d *Dumper) (context.Context, *Pipeli
 		return nil, nil, fmt.Errorf("group worker pool start: %w", err)
 	}
 
-	return ctx, &PipelineDumper{
+	return ctx, &PipelineDumpIngestor{
 		wp:           wp,
 		sequence:     sequence,
 		WorkerNumber: workerNumber,
@@ -116,7 +116,7 @@ func newPipelineDumper(ctx context.Context, d *Dumper) (context.Context, *Pipeli
 
 }
 
-func (p *PipelineDumper) Run(ctx context.Context) error {
+func (p *PipelineDumpIngestor) Run(ctx context.Context) error {
 	var err error
 	for _, v := range p.sequence {
 		v := v
@@ -133,6 +133,6 @@ func (p *PipelineDumper) Run(ctx context.Context) error {
 	return err
 }
 
-func (p *PipelineDumper) Wait(ctx context.Context) error {
+func (p *PipelineDumpIngestor) Wait(ctx context.Context) error {
 	return p.wp.WaitForComplete()
 }

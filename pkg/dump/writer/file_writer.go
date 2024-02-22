@@ -41,6 +41,14 @@ func (f *FileWriter) Initialize(ctx context.Context, directoryOutput string, res
 	return nil
 }
 
+func NewFileWriter(ctx context.Context, directoryOutput string, resName string) (*FileWriter, error) {
+	return &FileWriter{
+		buffers:         make(map[string]*bufio.Writer),
+		files:           make(map[string]*os.File),
+		directoryOutput: path.Join(directoryOutput, resName),
+	}, nil
+}
+
 func (f *FileWriter) OutputPath() string {
 	return f.directoryOutput
 }

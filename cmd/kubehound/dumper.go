@@ -10,10 +10,10 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/dumper"
-	"github.com/DataDog/KubeHound/pkg/dumper/writer"
+	"github.com/DataDog/KubeHound/pkg/data/s3"
+	"github.com/DataDog/KubeHound/pkg/dump"
+	"github.com/DataDog/KubeHound/pkg/dump/writer"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
-	"github.com/DataDog/KubeHound/pkg/s3"
 	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
@@ -55,7 +55,7 @@ var (
 			log.I.Debugf("Temporary directory created: %s", tmpDir)
 			viper.Set(config.CollectorLocalOutputDir, tmpDir)
 
-			return dump(context.Background(), cmd)
+			return dumpCore(context.Background(), cmd)
 		},
 	}
 
@@ -65,7 +65,7 @@ var (
 		Long:   `Collect all Kubernetes resources needed to build the attack path in an offline format locally (compressed or flat)`,
 		PreRun: toggleDebug,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return dump(context.Background(), cmd)
+			return dumpCore(context.Background(), cmd)
 		},
 	}
 )
@@ -123,8 +123,7 @@ func toggleDebug(cmd *cobra.Command, args []string) {
 	}
 }
 
-func dump(ctx context.Context, cmd *cobra.Command) error {
-
+func dumpCore(ctx context.Context, cmd *cobra.Command) error {
 	start := time.Now()
 
 	// Configuration initialization
@@ -165,15 +164,14 @@ func dump(ctx context.Context, cmd *cobra.Command) error {
 	defer collect.Close(ctx)
 	log.I.Infof("Loaded %s collector client", collect.Name())
 
-	dumper := dumper.NewDumper()
-	defer dumper.Close(ctx)
-	err = dumper.Initialize(ctx, collect, viper.GetBool(config.CollectorLocalCompress), viper.GetString(config.CollectorLocalOutputDir))
+	dumpIngestor, err := dump.NewDumpIngestor(ctx, collect, viper.GetBool(config.CollectorLocalCompress), viper.GetString(config.CollectorLocalOutputDir))
 	if err != nil {
-		return fmt.Errorf("initialize collector: %w", err)
+		return fmt.Errorf("create dumper: %w", err)
 	}
+	defer dumpIngestor.Close(ctx)
 
 	// Dumping all k8s objects using the API
-	err = dumper.DumpK8sObjects(ctx)
+	err = dumpIngestor.DumpK8sObjects(ctx)
 	if err != nil {
 		return fmt.Errorf("dump k8s object: %w", err)
 	}
@@ -187,9 +185,9 @@ func dump(ctx context.Context, cmd *cobra.Command) error {
 			}
 		}()
 
-		objectKey := fmt.Sprintf("%s%s", dumper.ResName, writer.TarWriterExtension)
+		objectKey := fmt.Sprintf("%s%s", dumpIngestor.ResName, writer.TarWriterExtension)
 		log.I.Infof("Pushing %s to s3", objectKey)
-		err = pushToS3(ctx, dumper.OutputPath(), objectKey)
+		err = pushToS3(ctx, dumpIngestor.OutputPath(), objectKey)
 		if err != nil {
 			return fmt.Errorf("push %s to s3: %w", objectKey, err)
 		}
