@@ -10,6 +10,9 @@ const (
 	WriterDirChmod = 0700
 )
 
+// The DumperWriter handle multiple types of writer (file, tar, ...)
+// It is used to centralized all writes and therefore handle all the files at once
+// Some of the writers support multi-threading (WorkerNumber to retrieve the info)
 type DumperWriter interface {
 	Initialize(context.Context, string, string) error
 	Write(context.Context, []byte, string) error

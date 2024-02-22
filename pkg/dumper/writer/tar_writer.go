@@ -25,6 +25,8 @@ const (
 	TarWorkerNumber = 1
 )
 
+// TarWriter keeps track of all handlers used to create the tar file
+// The write occurs in memory and is flushed to the file at the end of the process
 type TarWriter struct {
 	tarFile    *os.File
 	gzipWriter *gzip.Writer

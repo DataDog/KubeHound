@@ -25,6 +25,8 @@ const (
 	FileWriterWorkerNumber = 0
 )
 
+// The FileWriter uses a map of buffers to write data to files
+// Each file has its own buffer to optimize IO calls
 type FileWriter struct {
 	buffers         map[string]*bufio.Writer
 	files           map[string]*os.File
