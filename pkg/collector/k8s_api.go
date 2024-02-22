@@ -15,6 +15,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 
 	"go.uber.org/ratelimit"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
@@ -37,7 +38,7 @@ type k8sAPICollector struct {
 	tags      []string
 	waitTime  map[string]time.Duration
 	startTime time.Time
-	mu        *sync.RWMutex
+	mu        *sync.Mutex
 }
 
 const (
@@ -91,7 +92,6 @@ func GetClusterName(ctx context.Context) (string, error) {
 
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	var mu sync.RWMutex
 	tags := tag.BaseTags
 	tags = append(tags, tag.Collector(K8sAPICollectorName))
 	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
@@ -121,7 +121,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		tags:      tags,
 		waitTime:  map[string]time.Duration{},
 		startTime: time.Now(),
-		mu:        &mu,
+		mu:        &sync.Mutex{},
 	}, nil
 }
 
@@ -139,6 +139,15 @@ func (c *k8sAPICollector) wait(_ context.Context, resourceType string) {
 	if err != nil {
 		log.I.Error(err)
 	}
+}
+
+func (c *k8sAPICollector) waitTimeByResource(resourceType string, span ddtrace.Span) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	waitTime := c.waitTime[resourceType]
+	span.SetTag(tag.WaitTag, waitTime)
+	log.I.Debugf("Wait time for %s: %s", resourceType, waitTime)
 }
 
 func (c *k8sAPICollector) Name() string {
@@ -278,8 +287,8 @@ func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) 
 	if err != nil {
 		return err
 	}
-	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+
+	c.waitTimeByResource(entity, span)
 
 	return ingestor.Complete(ctx)
 }
@@ -333,8 +342,7 @@ func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor
 		return err
 	}
 
-	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+	c.waitTimeByResource(entity, span)
 
 	return ingestor.Complete(ctx)
 }
@@ -388,8 +396,7 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 		return err
 	}
 
-	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+	c.waitTimeByResource(entity, span)
 
 	return ingestor.Complete(ctx)
 }
@@ -443,8 +450,7 @@ func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor Endpoint
 		return err
 	}
 
-	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+	c.waitTimeByResource(entity, span)
 
 	return ingestor.Complete(ctx)
 }
@@ -486,8 +492,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 		return err
 	}
 
-	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+	c.waitTimeByResource(entity, span)
 
 	return ingestor.Complete(ctx)
 }
@@ -529,8 +534,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 		return err
 	}
 
-	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+	c.waitTimeByResource(entity, span)
 
 	return ingestor.Complete(ctx)
 }
@@ -572,8 +576,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 		return err
 	}
 
-	span.SetTag(tag.WaitTag, c.waitTime[entity])
-	log.I.Debugf("Wait time for %s: %s", entity, c.waitTime[entity])
+	c.waitTimeByResource(entity, span)
 
 	return ingestor.Complete(ctx)
 }
