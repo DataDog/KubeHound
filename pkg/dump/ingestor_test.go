@@ -42,41 +42,43 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	clientset := fake.NewSimpleClientset()
-	dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 
 	// no ingestion
-	noIngest := func(t *testing.T, _ []*discoveryv1.EndpointSlice) *mockwriter.DumperWriter {
+	noIngest := func(t *testing.T, _ []*discoveryv1.EndpointSlice) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
-		return m
+		return dumperIngestor
 	}
 
 	// ingesting n entries
-	nIngests := func(t *testing.T, endpoints []*discoveryv1.EndpointSlice) *mockwriter.DumperWriter {
+	nIngests := func(t *testing.T, endpoints []*discoveryv1.EndpointSlice) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
 		for _, endpoint := range endpoints {
 			m.EXPECT().Write(mock.Anything, mock.Anything, ingestEndpointPath(endpoint)).Return(nil).Once()
 		}
 
-		return m
+		return dumperIngestor
 	}
 
 	type args struct {
 		endpoints []*discoveryv1.EndpointSlice
 	}
 	tests := []struct {
-		name           string
-		dumperIngestor *DumpIngestor
-		testfct        func(t *testing.T, endpoints []*discoveryv1.EndpointSlice) *mockwriter.DumperWriter
-		args           args
-		wantErr        bool
+		name    string
+		testfct func(t *testing.T, endpoints []*discoveryv1.EndpointSlice) *DumpIngestor
+		args    args
+		wantErr bool
 	}{
 		{
-			name:           "no entry",
-			dumperIngestor: dumperIngestor,
-			testfct:        noIngest,
+			name:    "no entry",
+			testfct: noIngest,
 			args: args{
 				endpoints: []*discoveryv1.EndpointSlice{
 					nil,
@@ -85,9 +87,8 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:           "entries found",
-			dumperIngestor: dumperIngestor,
-			testfct:        nIngests,
+			name:    "entries found",
+			testfct: nIngests,
 			args: args{
 				endpoints: []*discoveryv1.EndpointSlice{
 					collector.FakeEndpoint("name1", "namespace1", []int32{int32(80)}),
@@ -97,9 +98,8 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:           "endpoint with no port",
-			dumperIngestor: dumperIngestor,
-			testfct:        noIngest,
+			name:    "endpoint with no port",
+			testfct: noIngest,
 			args: args{
 				endpoints: []*discoveryv1.EndpointSlice{
 					collector.FakeEndpoint("name1", "namespace1", []int32{}),
@@ -112,9 +112,9 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tt.dumperIngestor.writer = tt.testfct(t, tt.args.endpoints)
+			dumperIngestor := tt.testfct(t, tt.args.endpoints)
 			for _, endpoint := range tt.args.endpoints {
-				if err := tt.dumperIngestor.IngestEndpoint(ctx, endpoint); (err != nil) != tt.wantErr {
+				if err := dumperIngestor.IngestEndpoint(ctx, endpoint); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -126,24 +126,27 @@ func TestDumpIngestor_IngestNode(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	clientset := fake.NewSimpleClientset()
-	dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
-
 	// no ingestion
-	noIngest := func(t *testing.T, _ []*corev1.Node) *mockwriter.DumperWriter {
+	noIngest := func(t *testing.T, _ []*corev1.Node) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
-		return m
+		return dumperIngestor
 	}
 
 	// ingesting n entries
-	nIngest := func(t *testing.T, nodes []*corev1.Node) *mockwriter.DumperWriter {
+	nIngest := func(t *testing.T, nodes []*corev1.Node) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 		for range nodes {
 			m.EXPECT().Write(mock.Anything, mock.Anything, collector.NodePath).Return(nil).Once()
 		}
 
-		return m
+		return dumperIngestor
 	}
 
 	type args struct {
@@ -152,14 +155,13 @@ func TestDumpIngestor_IngestNode(t *testing.T) {
 	tests := []struct {
 		name           string
 		dumperIngestor *DumpIngestor
-		testfct        func(t *testing.T, nodes []*corev1.Node) *mockwriter.DumperWriter
+		testfct        func(t *testing.T, nodes []*corev1.Node) *DumpIngestor
 		args           args
 		wantErr        bool
 	}{
 		{
-			name:           "no entry",
-			dumperIngestor: dumperIngestor,
-			testfct:        noIngest,
+			name:    "no entry",
+			testfct: noIngest,
 			args: args{
 				nodes: []*corev1.Node{
 					nil,
@@ -168,9 +170,8 @@ func TestDumpIngestor_IngestNode(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:           "entries found",
-			dumperIngestor: dumperIngestor,
-			testfct:        nIngest,
+			name:    "entries found",
+			testfct: nIngest,
 			args: args{
 				nodes: []*corev1.Node{
 					collector.FakeNode("name1", "provider1"),
@@ -184,9 +185,9 @@ func TestDumpIngestor_IngestNode(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tt.dumperIngestor.writer = tt.testfct(t, tt.args.nodes)
+			dumperIngestor := tt.testfct(t, tt.args.nodes)
 			for _, node := range tt.args.nodes {
-				if err := tt.dumperIngestor.IngestNode(ctx, node); (err != nil) != tt.wantErr {
+				if err := dumperIngestor.IngestNode(ctx, node); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestNode() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -198,25 +199,28 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	clientset := fake.NewSimpleClientset()
-	dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
-
 	// no ingestion
-	noIngest := func(t *testing.T, _ []*corev1.Pod) *mockwriter.DumperWriter {
+	noIngest := func(t *testing.T, _ []*corev1.Pod) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
-		return m
+		return dumperIngestor
 	}
 
 	// ingesting n entries
-	nIngests := func(t *testing.T, pods []*corev1.Pod) *mockwriter.DumperWriter {
+	nIngests := func(t *testing.T, pods []*corev1.Pod) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
 		for _, pod := range pods {
 			m.EXPECT().Write(mock.Anything, mock.Anything, ingestPodPath(pod)).Return(nil).Once()
 		}
 
-		return m
+		return dumperIngestor
 	}
 
 	type args struct {
@@ -225,14 +229,13 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 	tests := []struct {
 		name           string
 		dumperIngestor *DumpIngestor
-		testfct        func(t *testing.T, pods []*corev1.Pod) *mockwriter.DumperWriter
+		testfct        func(t *testing.T, pods []*corev1.Pod) *DumpIngestor
 		args           args
 		wantErr        bool
 	}{
 		{
-			name:           "no entry",
-			dumperIngestor: dumperIngestor,
-			testfct:        noIngest,
+			name:    "no entry",
+			testfct: noIngest,
 			args: args{
 				pods: []*corev1.Pod{
 					nil,
@@ -241,9 +244,8 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:           "entries found",
-			dumperIngestor: dumperIngestor,
-			testfct:        nIngests,
+			name:    "entries found",
+			testfct: nIngests,
 			args: args{
 				pods: []*corev1.Pod{
 					collector.FakePod("name1", "image1", "Running"),
@@ -253,9 +255,8 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:           "pods not running",
-			dumperIngestor: dumperIngestor,
-			testfct:        noIngest,
+			name:    "pods not running",
+			testfct: noIngest,
 			args: args{
 				pods: []*corev1.Pod{
 					collector.FakePod("name1", "image1", "Failed"),
@@ -271,9 +272,9 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tt.dumperIngestor.writer = tt.testfct(t, tt.args.pods)
+			dumperIngestor := tt.testfct(t, tt.args.pods)
 			for _, pod := range tt.args.pods {
-				if err := tt.dumperIngestor.IngestPod(ctx, pod); (err != nil) != tt.wantErr {
+				if err := dumperIngestor.IngestPod(ctx, pod); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -285,25 +286,28 @@ func TestDumpIngestor_IngestRoleBinding(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	clientset := fake.NewSimpleClientset()
-	dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
-
 	// no ingestion
-	noIngest := func(t *testing.T, _ []*rbacv1.RoleBinding) *mockwriter.DumperWriter {
+	noIngest := func(t *testing.T, _ []*rbacv1.RoleBinding) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
-		return m
+		return dumperIngestor
 	}
 
 	// ingesting n entries
-	nIngests := func(t *testing.T, roleBindings []*rbacv1.RoleBinding) *mockwriter.DumperWriter {
+	nIngests := func(t *testing.T, roleBindings []*rbacv1.RoleBinding) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
 		for _, roleDinding := range roleBindings {
 			m.EXPECT().Write(mock.Anything, mock.Anything, ingestRoleBindingPath(roleDinding)).Return(nil).Once()
 		}
 
-		return m
+		return dumperIngestor
 	}
 
 	type args struct {
@@ -312,14 +316,13 @@ func TestDumpIngestor_IngestRoleBinding(t *testing.T) {
 	tests := []struct {
 		name           string
 		dumperIngestor *DumpIngestor
-		testfct        func(t *testing.T, roleBindings []*rbacv1.RoleBinding) *mockwriter.DumperWriter
+		testfct        func(t *testing.T, roleBindings []*rbacv1.RoleBinding) *DumpIngestor
 		args           args
 		wantErr        bool
 	}{
 		{
-			name:           "no entry",
-			dumperIngestor: dumperIngestor,
-			testfct:        noIngest,
+			name:    "no entry",
+			testfct: noIngest,
 			args: args{
 				roleBindings: []*rbacv1.RoleBinding{
 					nil,
@@ -328,9 +331,8 @@ func TestDumpIngestor_IngestRoleBinding(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:           "entries found",
-			dumperIngestor: dumperIngestor,
-			testfct:        nIngests,
+			name:    "entries found",
+			testfct: nIngests,
 			args: args{
 				roleBindings: []*rbacv1.RoleBinding{
 					collector.FakeRoleBinding("namespace1", "name1"),
@@ -344,9 +346,9 @@ func TestDumpIngestor_IngestRoleBinding(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tt.dumperIngestor.writer = tt.testfct(t, tt.args.roleBindings)
+			dumperIngestor := tt.testfct(t, tt.args.roleBindings)
 			for _, roleBinding := range tt.args.roleBindings {
-				if err := tt.dumperIngestor.IngestRoleBinding(ctx, roleBinding); (err != nil) != tt.wantErr {
+				if err := dumperIngestor.IngestRoleBinding(ctx, roleBinding); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -358,25 +360,28 @@ func TestDumpIngestor_IngestRole(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	clientset := fake.NewSimpleClientset()
-	dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
-
 	// no ingestion
-	noIngest := func(t *testing.T, _ []*rbacv1.Role) *mockwriter.DumperWriter {
+	noIngest := func(t *testing.T, _ []*rbacv1.Role) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
-		return m
+		return dumperIngestor
 	}
 
 	// ingesting n entries
-	nIngests := func(t *testing.T, roles []*rbacv1.Role) *mockwriter.DumperWriter {
+	nIngests := func(t *testing.T, roles []*rbacv1.Role) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
 		for _, role := range roles {
 			m.EXPECT().Write(mock.Anything, mock.Anything, ingestRolePath(role)).Return(nil).Once()
 		}
 
-		return m
+		return dumperIngestor
 	}
 
 	type args struct {
@@ -385,14 +390,13 @@ func TestDumpIngestor_IngestRole(t *testing.T) {
 	tests := []struct {
 		name           string
 		dumperIngestor *DumpIngestor
-		testfct        func(t *testing.T, pods []*rbacv1.Role) *mockwriter.DumperWriter
+		testfct        func(t *testing.T, pods []*rbacv1.Role) *DumpIngestor
 		args           args
 		wantErr        bool
 	}{
 		{
-			name:           "no entry",
-			dumperIngestor: dumperIngestor,
-			testfct:        noIngest,
+			name:    "no entry",
+			testfct: noIngest,
 			args: args{
 				roles: []*rbacv1.Role{
 					nil,
@@ -401,9 +405,8 @@ func TestDumpIngestor_IngestRole(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:           "entries found",
-			dumperIngestor: dumperIngestor,
-			testfct:        nIngests,
+			name:    "entries found",
+			testfct: nIngests,
 			args: args{
 				roles: []*rbacv1.Role{
 					collector.FakeRole("namespace1", "name1"),
@@ -417,9 +420,9 @@ func TestDumpIngestor_IngestRole(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tt.dumperIngestor.writer = tt.testfct(t, tt.args.roles)
+			dumperIngestor := tt.testfct(t, tt.args.roles)
 			for _, role := range tt.args.roles {
-				if err := tt.dumperIngestor.IngestRole(ctx, role); (err != nil) != tt.wantErr {
+				if err := dumperIngestor.IngestRole(ctx, role); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -431,24 +434,27 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	clientset := fake.NewSimpleClientset()
-	dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
-
 	// no ingestion
-	noIngest := func(t *testing.T, _ []*rbacv1.ClusterRole) *mockwriter.DumperWriter {
+	noIngest := func(t *testing.T, _ []*rbacv1.ClusterRole) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
-		return m
+		return dumperIngestor
 	}
 
 	// ingesting n entries
-	nIngest := func(t *testing.T, clusterRole []*rbacv1.ClusterRole) *mockwriter.DumperWriter {
+	nIngest := func(t *testing.T, clusterRole []*rbacv1.ClusterRole) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 		for range clusterRole {
 			m.EXPECT().Write(mock.Anything, mock.Anything, collector.ClusterRolesPath).Return(nil).Once()
 		}
 
-		return m
+		return dumperIngestor
 	}
 
 	type args struct {
@@ -457,14 +463,13 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 	tests := []struct {
 		name           string
 		dumperIngestor *DumpIngestor
-		testfct        func(t *testing.T, clusterRole []*rbacv1.ClusterRole) *mockwriter.DumperWriter
+		testfct        func(t *testing.T, clusterRole []*rbacv1.ClusterRole) *DumpIngestor
 		args           args
 		wantErr        bool
 	}{
 		{
-			name:           "no entry",
-			dumperIngestor: dumperIngestor,
-			testfct:        noIngest,
+			name:    "no entry",
+			testfct: noIngest,
 			args: args{
 				clusterRole: []*rbacv1.ClusterRole{
 					nil,
@@ -473,9 +478,8 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:           "entries found",
-			dumperIngestor: dumperIngestor,
-			testfct:        nIngest,
+			name:    "entries found",
+			testfct: nIngest,
 			args: args{
 				clusterRole: []*rbacv1.ClusterRole{
 					collector.FakeClusterRole("name1"),
@@ -489,9 +493,9 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tt.dumperIngestor.writer = tt.testfct(t, tt.args.clusterRole)
+			dumperIngestor := tt.testfct(t, tt.args.clusterRole)
 			for _, clusterRole := range tt.args.clusterRole {
-				if err := tt.dumperIngestor.IngestClusterRole(ctx, clusterRole); (err != nil) != tt.wantErr {
+				if err := dumperIngestor.IngestClusterRole(ctx, clusterRole); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestNode() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -503,24 +507,27 @@ func TestDumpIngestor_IngestClusterRoleBinding(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	clientset := fake.NewSimpleClientset()
-	dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
-
 	// no ingestion
-	noIngest := func(t *testing.T, _ []*rbacv1.ClusterRoleBinding) *mockwriter.DumperWriter {
+	noIngest := func(t *testing.T, _ []*rbacv1.ClusterRoleBinding) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 
-		return m
+		return dumperIngestor
 	}
 
 	// ingesting n entries
-	nIngest := func(t *testing.T, clusterRoleBidings []*rbacv1.ClusterRoleBinding) *mockwriter.DumperWriter {
+	nIngest := func(t *testing.T, clusterRoleBidings []*rbacv1.ClusterRoleBinding) *DumpIngestor {
+		clientset := fake.NewSimpleClientset()
+		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
+		dumperIngestor.writer = m
 		for range clusterRoleBidings {
 			m.EXPECT().Write(mock.Anything, mock.Anything, collector.ClusterRoleBindingsPath).Return(nil).Once()
 		}
 
-		return m
+		return dumperIngestor
 	}
 
 	type args struct {
@@ -529,14 +536,13 @@ func TestDumpIngestor_IngestClusterRoleBinding(t *testing.T) {
 	tests := []struct {
 		name           string
 		dumperIngestor *DumpIngestor
-		testfct        func(t *testing.T, clusterRoleBidings []*rbacv1.ClusterRoleBinding) *mockwriter.DumperWriter
+		testfct        func(t *testing.T, clusterRoleBidings []*rbacv1.ClusterRoleBinding) *DumpIngestor
 		args           args
 		wantErr        bool
 	}{
 		{
-			name:           "no entry",
-			dumperIngestor: dumperIngestor,
-			testfct:        noIngest,
+			name:    "no entry",
+			testfct: noIngest,
 			args: args{
 				clusterRoleBidings: []*rbacv1.ClusterRoleBinding{
 					nil,
@@ -545,9 +551,8 @@ func TestDumpIngestor_IngestClusterRoleBinding(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:           "entries found",
-			dumperIngestor: dumperIngestor,
-			testfct:        nIngest,
+			name:    "entries found",
+			testfct: nIngest,
 			args: args{
 				clusterRoleBidings: []*rbacv1.ClusterRoleBinding{
 					collector.FakeClusterRoleBinding("name1"),
@@ -561,9 +566,9 @@ func TestDumpIngestor_IngestClusterRoleBinding(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tt.dumperIngestor.writer = tt.testfct(t, tt.args.clusterRoleBidings)
+			dumperIngestor := tt.testfct(t, tt.args.clusterRoleBidings)
 			for _, clusterRoleBiding := range tt.args.clusterRoleBidings {
-				if err := tt.dumperIngestor.IngestClusterRoleBinding(ctx, clusterRoleBiding); (err != nil) != tt.wantErr {
+				if err := dumperIngestor.IngestClusterRoleBinding(ctx, clusterRoleBiding); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestNode() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
