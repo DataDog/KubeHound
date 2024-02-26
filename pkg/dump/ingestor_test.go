@@ -68,7 +68,6 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 
 	type args struct {
 		endpoints []*discoveryv1.EndpointSlice
-		ctx       context.Context
 	}
 	tests := []struct {
 		name           string
@@ -85,7 +84,6 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 				endpoints: []*discoveryv1.EndpointSlice{
 					nil,
 				},
-				ctx: ctx,
 			},
 			wantErr: true,
 		},
@@ -98,7 +96,6 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 					collector.FakeEndpoint("name1", "namespace1", []int32{int32(80)}),
 					collector.FakeEndpoint("name2", "namespace2", []int32{int32(443)}),
 				},
-				ctx: ctx,
 			},
 			wantErr: false,
 		},
@@ -110,7 +107,6 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 				endpoints: []*discoveryv1.EndpointSlice{
 					collector.FakeEndpoint("name1", "namespace1", []int32{}),
 				},
-				ctx: ctx,
 			},
 			wantErr: false,
 		},
@@ -121,7 +117,7 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 			t.Parallel()
 			tt.dumperIngestor.writer = tt.testfct(t, tt.args.endpoints)
 			for _, endpoint := range tt.args.endpoints {
-				if err := tt.dumperIngestor.IngestEndpoint(tt.args.ctx, endpoint); (err != nil) != tt.wantErr {
+				if err := tt.dumperIngestor.IngestEndpoint(ctx, endpoint); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -157,7 +153,6 @@ func TestDumpIngestor_IngestNode(t *testing.T) {
 
 	type args struct {
 		nodes []*corev1.Node
-		ctx   context.Context
 	}
 	tests := []struct {
 		name           string
@@ -174,7 +169,6 @@ func TestDumpIngestor_IngestNode(t *testing.T) {
 				nodes: []*corev1.Node{
 					nil,
 				},
-				ctx: ctx,
 			},
 			wantErr: true,
 		},
@@ -187,7 +181,6 @@ func TestDumpIngestor_IngestNode(t *testing.T) {
 					collector.FakeNode("name1", "provider1"),
 					collector.FakeNode("name2", "provider2"),
 				},
-				ctx: ctx,
 			},
 			wantErr: false,
 		},
@@ -198,7 +191,7 @@ func TestDumpIngestor_IngestNode(t *testing.T) {
 			t.Parallel()
 			tt.dumperIngestor.writer = tt.testfct(t, tt.args.nodes)
 			for _, node := range tt.args.nodes {
-				if err := tt.dumperIngestor.IngestNode(tt.args.ctx, node); (err != nil) != tt.wantErr {
+				if err := tt.dumperIngestor.IngestNode(ctx, node); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestNode() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -235,7 +228,6 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 
 	type args struct {
 		pods []*corev1.Pod
-		ctx  context.Context
 	}
 	tests := []struct {
 		name           string
@@ -252,7 +244,6 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 				pods: []*corev1.Pod{
 					nil,
 				},
-				ctx: ctx,
 			},
 			wantErr: true,
 		},
@@ -265,7 +256,6 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 					collector.FakePod("name1", "image1", "Running"),
 					collector.FakePod("name2", "image2", "Running"),
 				},
-				ctx: ctx,
 			},
 			wantErr: false,
 		},
@@ -280,7 +270,6 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 					collector.FakePod("name3", "image1", "Succeeded"),
 					collector.FakePod("name4", "image1", "Unknown"),
 				},
-				ctx: ctx,
 			},
 			wantErr: false,
 		},
@@ -291,7 +280,7 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 			t.Parallel()
 			tt.dumperIngestor.writer = tt.testfct(t, tt.args.pods)
 			for _, pod := range tt.args.pods {
-				if err := tt.dumperIngestor.IngestPod(tt.args.ctx, pod); (err != nil) != tt.wantErr {
+				if err := tt.dumperIngestor.IngestPod(ctx, pod); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -328,7 +317,6 @@ func TestDumpIngestor_IngestRoleBinding(t *testing.T) {
 
 	type args struct {
 		roleBindings []*rbacv1.RoleBinding
-		ctx          context.Context
 	}
 	tests := []struct {
 		name           string
@@ -345,7 +333,6 @@ func TestDumpIngestor_IngestRoleBinding(t *testing.T) {
 				roleBindings: []*rbacv1.RoleBinding{
 					nil,
 				},
-				ctx: ctx,
 			},
 			wantErr: true,
 		},
@@ -358,7 +345,6 @@ func TestDumpIngestor_IngestRoleBinding(t *testing.T) {
 					collector.FakeRoleBinding("namespace1", "name1"),
 					collector.FakeRoleBinding("namespace2", "name2"),
 				},
-				ctx: ctx,
 			},
 			wantErr: false,
 		},
@@ -369,7 +355,7 @@ func TestDumpIngestor_IngestRoleBinding(t *testing.T) {
 			t.Parallel()
 			tt.dumperIngestor.writer = tt.testfct(t, tt.args.roleBindings)
 			for _, roleBinding := range tt.args.roleBindings {
-				if err := tt.dumperIngestor.IngestRoleBinding(tt.args.ctx, roleBinding); (err != nil) != tt.wantErr {
+				if err := tt.dumperIngestor.IngestRoleBinding(ctx, roleBinding); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -406,7 +392,6 @@ func TestDumpIngestor_IngestRole(t *testing.T) {
 
 	type args struct {
 		roles []*rbacv1.Role
-		ctx   context.Context
 	}
 	tests := []struct {
 		name           string
@@ -423,7 +408,6 @@ func TestDumpIngestor_IngestRole(t *testing.T) {
 				roles: []*rbacv1.Role{
 					nil,
 				},
-				ctx: ctx,
 			},
 			wantErr: true,
 		},
@@ -436,7 +420,6 @@ func TestDumpIngestor_IngestRole(t *testing.T) {
 					collector.FakeRole("namespace1", "name1"),
 					collector.FakeRole("namespace2", "name2"),
 				},
-				ctx: ctx,
 			},
 			wantErr: false,
 		},
@@ -447,7 +430,7 @@ func TestDumpIngestor_IngestRole(t *testing.T) {
 			t.Parallel()
 			tt.dumperIngestor.writer = tt.testfct(t, tt.args.roles)
 			for _, role := range tt.args.roles {
-				if err := tt.dumperIngestor.IngestRole(tt.args.ctx, role); (err != nil) != tt.wantErr {
+				if err := tt.dumperIngestor.IngestRole(ctx, role); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -483,7 +466,6 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 
 	type args struct {
 		clusterRole []*rbacv1.ClusterRole
-		ctx         context.Context
 	}
 	tests := []struct {
 		name           string
@@ -500,7 +482,6 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 				clusterRole: []*rbacv1.ClusterRole{
 					nil,
 				},
-				ctx: ctx,
 			},
 			wantErr: true,
 		},
@@ -513,7 +494,6 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 					collector.FakeClusterRole("name1"),
 					collector.FakeClusterRole("name2"),
 				},
-				ctx: ctx,
 			},
 			wantErr: false,
 		},
@@ -524,7 +504,7 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 			t.Parallel()
 			tt.dumperIngestor.writer = tt.testfct(t, tt.args.clusterRole)
 			for _, clusterRole := range tt.args.clusterRole {
-				if err := tt.dumperIngestor.IngestClusterRole(tt.args.ctx, clusterRole); (err != nil) != tt.wantErr {
+				if err := tt.dumperIngestor.IngestClusterRole(ctx, clusterRole); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestNode() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -560,7 +540,6 @@ func TestDumpIngestor_IngestClusterRoleBinding(t *testing.T) {
 
 	type args struct {
 		clusterRoleBidings []*rbacv1.ClusterRoleBinding
-		ctx                context.Context
 	}
 	tests := []struct {
 		name           string
@@ -577,7 +556,6 @@ func TestDumpIngestor_IngestClusterRoleBinding(t *testing.T) {
 				clusterRoleBidings: []*rbacv1.ClusterRoleBinding{
 					nil,
 				},
-				ctx: ctx,
 			},
 			wantErr: true,
 		},
@@ -590,7 +568,6 @@ func TestDumpIngestor_IngestClusterRoleBinding(t *testing.T) {
 					collector.FakeClusterRoleBinding("name1"),
 					collector.FakeClusterRoleBinding("name2"),
 				},
-				ctx: ctx,
 			},
 			wantErr: false,
 		},
@@ -601,7 +578,7 @@ func TestDumpIngestor_IngestClusterRoleBinding(t *testing.T) {
 			t.Parallel()
 			tt.dumperIngestor.writer = tt.testfct(t, tt.args.clusterRoleBidings)
 			for _, clusterRoleBiding := range tt.args.clusterRoleBidings {
-				if err := tt.dumperIngestor.IngestClusterRoleBinding(tt.args.ctx, clusterRoleBiding); (err != nil) != tt.wantErr {
+				if err := tt.dumperIngestor.IngestClusterRoleBinding(ctx, clusterRoleBiding); (err != nil) != tt.wantErr {
 					t.Errorf("Dumper.IngestNode() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
@@ -618,7 +595,6 @@ func TestNewDumpIngestor(t *testing.T) {
 	directoryOutput := "/tmp"
 
 	type args struct {
-		ctx             context.Context
 		collectorClient collector.CollectorClient
 		compression     bool
 		directoryOutput string
@@ -633,7 +609,6 @@ func TestNewDumpIngestor(t *testing.T) {
 		{
 			name: "no compression",
 			args: args{
-				ctx:             ctx,
 				collectorClient: collectorClient,
 				compression:     false,
 				directoryOutput: directoryOutput,
@@ -648,7 +623,6 @@ func TestNewDumpIngestor(t *testing.T) {
 		{
 			name: "compression activated",
 			args: args{
-				ctx:             ctx,
 				collectorClient: collectorClient,
 				compression:     true,
 				directoryOutput: directoryOutput,
@@ -664,7 +638,7 @@ func TestNewDumpIngestor(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := NewDumpIngestor(tt.args.ctx, tt.args.collectorClient, tt.args.compression, tt.args.directoryOutput)
+			got, err := NewDumpIngestor(ctx, tt.args.collectorClient, tt.args.compression, tt.args.directoryOutput)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewDumpIngestorsss() error = %v, wantErr %v", err, tt.wantErr)
 
