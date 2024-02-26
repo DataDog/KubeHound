@@ -58,6 +58,7 @@ func createTarFile(tarPath string) (*os.File, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create directories: %w", err)
 	}
+
 	return os.Create(tarPath)
 }
 

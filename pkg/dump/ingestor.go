@@ -35,14 +35,19 @@ const (
 	OfflineDumpPrefix     = "kubehound_"
 )
 
+// ./<clusterName>/kubehound_<clusterName>_<date>
+func dumpIngestorResName(clusterName string) string {
+	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
+}
+
 func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, compression bool, directoryOutput string) (*DumpIngestor, error) {
 	// Generate path for the dump
 	clusterName, err := getClusterName(ctx, collector)
 	if err != nil {
 		return nil, err
 	}
-	// ./<clusterName>/kubehound_<clusterName>_<date>
-	resName := path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
+
+	resName := dumpIngestorResName(clusterName)
 
 	dumpWriter, err := writer.DumperWriterFactory(ctx, compression, directoryOutput, resName)
 	if err != nil {
@@ -80,6 +85,10 @@ func (d *DumpIngestor) IngestNode(ctx context.Context, node types.NodeType) erro
 	return d.processObject(ctx, node, collector.NodePath)
 }
 
+func ingestPodPath(pod types.PodType) string {
+	return path.Join(pod.Namespace, collector.PodPath)
+}
+
 func (d *DumpIngestor) IngestPod(ctx context.Context, pod types.PodType) error {
 	if ok, err := preflight.CheckPod(pod); !ok {
 		entity := tag.Entity(tag.EntityPods)
@@ -88,9 +97,13 @@ func (d *DumpIngestor) IngestPod(ctx context.Context, pod types.PodType) error {
 		return err
 	}
 
-	filePath := path.Join(pod.Namespace, collector.PodPath)
+	filePath := ingestPodPath(pod)
 
 	return d.processObject(ctx, pod, filePath)
+}
+
+func ingestRolePath(roleBinding types.RoleType) string {
+	return path.Join(roleBinding.Namespace, collector.RolesPath)
 }
 
 func (d *DumpIngestor) IngestRole(ctx context.Context, role types.RoleType) error {
@@ -101,7 +114,8 @@ func (d *DumpIngestor) IngestRole(ctx context.Context, role types.RoleType) erro
 		return err
 	}
 
-	filePath := path.Join(role.Namespace, collector.RolesPath)
+	// filePath := path.Join(role.Namespace, collector.RolesPath)
+	filePath := ingestRolePath(role)
 
 	return d.processObject(ctx, role, filePath)
 }
@@ -117,6 +131,10 @@ func (d *DumpIngestor) IngestClusterRole(ctx context.Context, clusterRole types.
 	return d.processObject(ctx, clusterRole, collector.ClusterRolesPath)
 }
 
+func ingestRoleBindingPath(roleBinding types.RoleBindingType) string {
+	return path.Join(roleBinding.Namespace, collector.RoleBindingsPath)
+}
+
 func (d *DumpIngestor) IngestRoleBinding(ctx context.Context, roleBinding types.RoleBindingType) error {
 	if ok, err := preflight.CheckRoleBinding(roleBinding); !ok {
 		entity := tag.Entity(tag.EntityRolebindings)
@@ -125,7 +143,7 @@ func (d *DumpIngestor) IngestRoleBinding(ctx context.Context, roleBinding types.
 		return err
 	}
 
-	filePath := path.Join(roleBinding.Namespace, collector.RoleBindingsPath)
+	filePath := ingestRoleBindingPath(roleBinding)
 
 	return d.processObject(ctx, roleBinding, filePath)
 }
@@ -141,6 +159,10 @@ func (d *DumpIngestor) IngestClusterRoleBinding(ctx context.Context, clusterRole
 	return d.processObject(ctx, clusterRoleBinding, collector.ClusterRoleBindingsPath)
 }
 
+func ingestEndpointPath(endpoint types.EndpointType) string {
+	return path.Join(endpoint.Namespace, collector.EndpointPath)
+}
+
 func (d *DumpIngestor) IngestEndpoint(ctx context.Context, endpoint types.EndpointType) error {
 	if ok, err := preflight.CheckEndpoint(endpoint); !ok {
 		entity := tag.Entity(tag.EntityEndpoints)
@@ -149,7 +171,7 @@ func (d *DumpIngestor) IngestEndpoint(ctx context.Context, endpoint types.Endpoi
 		return err
 	}
 
-	filePath := path.Join(endpoint.Namespace, collector.EndpointPath)
+	filePath := ingestEndpointPath(endpoint)
 
 	return d.processObject(ctx, endpoint, filePath)
 }

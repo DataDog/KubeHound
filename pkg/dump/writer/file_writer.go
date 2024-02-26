@@ -33,14 +33,6 @@ type FileWriter struct {
 	directoryOutput string
 }
 
-func (f *FileWriter) Initialize(ctx context.Context, directoryOutput string, resName string) error {
-	f.buffers = make(map[string]*bufio.Writer)
-	f.files = make(map[string]*os.File)
-	f.directoryOutput = path.Join(directoryOutput, resName)
-
-	return nil
-}
-
 func NewFileWriter(ctx context.Context, directoryOutput string, resName string) (*FileWriter, error) {
 	return &FileWriter{
 		buffers:         make(map[string]*bufio.Writer),

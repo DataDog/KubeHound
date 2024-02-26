@@ -21,7 +21,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func NewTestK8sAPICollector(ctx context.Context, clientset *fake.Clientset) CollectorClient {
+func newTestK8sAPICollector(ctx context.Context, clientset *fake.Clientset) CollectorClient {
 	cfg := &config.K8SAPICollectorConfig{
 		PageSize:           config.DefaultK8sAPIPageSize,
 		PageBufferSize:     config.DefaultK8sAPIPageBufferSize,
@@ -201,7 +201,7 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
+			c := newTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamPods(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamPods() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -286,7 +286,7 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
+			c := newTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamRoles(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamRoles() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -376,7 +376,7 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
+			c := newTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamRoleBindings(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamRoleBindings() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -456,7 +456,7 @@ func Test_k8sAPICollector_StreamNodes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
+			c := newTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamNodes(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamNodes() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -540,7 +540,7 @@ func Test_k8sAPICollector_StreamClusterRoles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
+			c := newTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamClusterRoles(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamClusterRoles() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -628,7 +628,7 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
+			c := newTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamClusterRoleBindings(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamClusterRoleBindings() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -637,6 +637,15 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 }
 
 func fakeEndpoint(name string, namespace string) *discoveryv1.EndpointSlice {
+	return &discoveryv1.EndpointSlice{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+}
+
+func FakeEndpoint3(name string, namespace string) *discoveryv1.EndpointSlice {
 	return &discoveryv1.EndpointSlice{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -706,7 +715,7 @@ func Test_k8sAPICollector_StreamEndpoints(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
+			c := newTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamEndpoints(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamEndpoints() error = %v, wantErr %v", err, tt.wantErr)
 			}
