@@ -114,7 +114,6 @@ func (d *DumpIngestor) IngestRole(ctx context.Context, role types.RoleType) erro
 		return err
 	}
 
-	// filePath := path.Join(role.Namespace, collector.RolesPath)
 	filePath := ingestRolePath(role)
 
 	return d.processObject(ctx, role, filePath)
