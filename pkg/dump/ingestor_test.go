@@ -20,6 +20,7 @@ import (
 )
 
 func newFakeDumpIngestor(ctx context.Context, t *testing.T, clientset *fake.Clientset) *DumpIngestor {
+	t.Helper()
 	directoryOutput := "/tmp"
 	dumpWriter := mockwriter.NewDumperWriter(t)
 	collectorClient := collector.NewTestK8sAPICollector(ctx, clientset)
@@ -45,6 +46,7 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 
 	// no ingestion
 	noIngest := func(t *testing.T, _ []*discoveryv1.EndpointSlice) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -55,6 +57,7 @@ func TestDumper_IngestEndpoint(t *testing.T) {
 
 	// ingesting n entries
 	nIngests := func(t *testing.T, endpoints []*discoveryv1.EndpointSlice) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -128,6 +131,7 @@ func TestDumpIngestor_IngestNode(t *testing.T) {
 
 	// no ingestion
 	noIngest := func(t *testing.T, _ []*corev1.Node) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -138,6 +142,7 @@ func TestDumpIngestor_IngestNode(t *testing.T) {
 
 	// ingesting n entries
 	nIngest := func(t *testing.T, nodes []*corev1.Node) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -201,6 +206,7 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 
 	// no ingestion
 	noIngest := func(t *testing.T, _ []*corev1.Pod) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -211,6 +217,7 @@ func TestDumpIngestor_IngestPod(t *testing.T) {
 
 	// ingesting n entries
 	nIngests := func(t *testing.T, pods []*corev1.Pod) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -288,6 +295,7 @@ func TestDumpIngestor_IngestRoleBinding(t *testing.T) {
 
 	// no ingestion
 	noIngest := func(t *testing.T, _ []*rbacv1.RoleBinding) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -298,6 +306,7 @@ func TestDumpIngestor_IngestRoleBinding(t *testing.T) {
 
 	// ingesting n entries
 	nIngests := func(t *testing.T, roleBindings []*rbacv1.RoleBinding) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -362,6 +371,7 @@ func TestDumpIngestor_IngestRole(t *testing.T) {
 
 	// no ingestion
 	noIngest := func(t *testing.T, _ []*rbacv1.Role) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -372,6 +382,7 @@ func TestDumpIngestor_IngestRole(t *testing.T) {
 
 	// ingesting n entries
 	nIngests := func(t *testing.T, roles []*rbacv1.Role) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -436,6 +447,7 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 
 	// no ingestion
 	noIngest := func(t *testing.T, _ []*rbacv1.ClusterRole) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -446,6 +458,7 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 
 	// ingesting n entries
 	nIngest := func(t *testing.T, clusterRole []*rbacv1.ClusterRole) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -509,6 +522,7 @@ func TestDumpIngestor_IngestClusterRoleBinding(t *testing.T) {
 
 	// no ingestion
 	noIngest := func(t *testing.T, _ []*rbacv1.ClusterRoleBinding) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
@@ -519,6 +533,7 @@ func TestDumpIngestor_IngestClusterRoleBinding(t *testing.T) {
 
 	// ingesting n entries
 	nIngest := func(t *testing.T, clusterRoleBidings []*rbacv1.ClusterRoleBinding) *DumpIngestor {
+		t.Helper()
 		clientset := fake.NewSimpleClientset()
 		dumperIngestor := newFakeDumpIngestor(ctx, t, clientset)
 		m := mockwriter.NewDumperWriter(t)
