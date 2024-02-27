@@ -204,10 +204,19 @@ func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
 	return pipeline.Wait(ctx)
 }
 
-func (d *DumpIngestor) processObject(ctx context.Context, obj interface{}, filePath string) error {
+func marshalK8sObj(obj interface{}) ([]byte, error) {
 	jsonData, err := json.Marshal(obj)
 	if err != nil {
-		return fmt.Errorf("failed to marshal Kubernetes object: %w", err)
+		return nil, fmt.Errorf("failed to marshal Kubernetes object: %w", err)
+	}
+
+	return jsonData, nil
+}
+
+func (d *DumpIngestor) processObject(ctx context.Context, obj interface{}, filePath string) error {
+	jsonData, err := marshalK8sObj(obj)
+	if err != nil {
+		return err
 	}
 
 	return d.writer.Write(ctx, jsonData, filePath)
