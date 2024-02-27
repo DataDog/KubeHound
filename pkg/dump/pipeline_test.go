@@ -16,7 +16,6 @@ import (
 func newFakeDumpIngestorPipeline(t *testing.T) (*DumpIngestor, *mockwriter.DumperWriter, *mockcollector.CollectorClient) {
 	t.Helper()
 
-	directoryOutput := "/tmp"
 	mDumpWriter := mockwriter.NewDumperWriter(t)
 	mCollectorClient := mockcollector.NewCollectorClient(t)
 
@@ -26,7 +25,7 @@ func newFakeDumpIngestorPipeline(t *testing.T) (*DumpIngestor, *mockwriter.Dumpe
 	resName := path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
 
 	return &DumpIngestor{
-		directoryOutput: directoryOutput,
+		directoryOutput: mockDirectoryOutput,
 		collector:       mCollectorClient,
 		ClusterName:     clusterName,
 		ResName:         resName,

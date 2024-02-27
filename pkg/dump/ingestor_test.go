@@ -19,10 +19,13 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
+const (
+	mockDirectoryOutput = "/tmp"
+)
+
 func newFakeDumpIngestor(ctx context.Context, t *testing.T) (*DumpIngestor, *mockwriter.DumperWriter) {
 	t.Helper()
 	clientset := fake.NewSimpleClientset()
-	directoryOutput := "/tmp"
 	dumpWriter := mockwriter.NewDumperWriter(t)
 	collectorClient := collector.NewTestK8sAPICollector(ctx, clientset)
 
@@ -32,7 +35,7 @@ func newFakeDumpIngestor(ctx context.Context, t *testing.T) (*DumpIngestor, *moc
 	resName := path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
 
 	return &DumpIngestor{
-		directoryOutput: directoryOutput,
+		directoryOutput: mockDirectoryOutput,
 		collector:       collectorClient,
 		ClusterName:     clusterName,
 		ResName:         resName,
@@ -567,7 +570,6 @@ func TestNewDumpIngestor(t *testing.T) {
 
 	clientset := fake.NewSimpleClientset()
 	collectorClient := collector.NewTestK8sAPICollector(ctx, clientset)
-	directoryOutput := "/tmp"
 
 	type args struct {
 		collectorClient collector.CollectorClient
@@ -586,10 +588,10 @@ func TestNewDumpIngestor(t *testing.T) {
 			args: args{
 				collectorClient: collectorClient,
 				compression:     false,
-				directoryOutput: directoryOutput,
+				directoryOutput: mockDirectoryOutput,
 			},
 			want: &DumpIngestor{
-				directoryOutput: directoryOutput,
+				directoryOutput: mockDirectoryOutput,
 
 				writer: &writer.FileWriter{},
 			},
@@ -600,10 +602,10 @@ func TestNewDumpIngestor(t *testing.T) {
 			args: args{
 				collectorClient: collectorClient,
 				compression:     true,
-				directoryOutput: directoryOutput,
+				directoryOutput: mockDirectoryOutput,
 			},
 			want: &DumpIngestor{
-				directoryOutput: directoryOutput,
+				directoryOutput: mockDirectoryOutput,
 				writer:          &writer.TarWriter{},
 			},
 			wantErr: false,
