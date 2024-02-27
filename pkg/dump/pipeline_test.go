@@ -7,30 +7,78 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DataDog/KubeHound/pkg/collector"
 	mockcollector "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	mockwriter "github.com/DataDog/KubeHound/pkg/dump/writer/mockwriter"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/stretchr/testify/mock"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
-func newFakeDumpIngestorPipeline(t *testing.T) (*DumpIngestor, *mockwriter.DumperWriter, *mockcollector.CollectorClient) {
+func genK8sObjects() []runtime.Object {
+	k8sOjb := []runtime.Object{
+		collector.FakeNode("node1", "provider1"),
+		collector.FakePod("pod1", "namespace1", "Running"),
+		collector.FakeRole("namespace1", "name1"),
+		collector.FakeClusterRole("name1"),
+		collector.FakeRoleBinding("namespace1", "name1"),
+		collector.FakeClusterRoleBinding("name1"),
+		collector.FakeEndpoint("namespace1", "name1", []int32{80}),
+	}
+
+	return k8sOjb
+}
+
+func newFakeDumpIngestorPipeline(t *testing.T, mockCollector bool) (*DumpIngestor, *mockwriter.DumperWriter, *mockcollector.CollectorClient) {
 	t.Helper()
 
 	mDumpWriter := mockwriter.NewDumperWriter(t)
+
 	mCollectorClient := mockcollector.NewCollectorClient(t)
+	clientset := fake.NewSimpleClientset(genK8sObjects()...)
+	collectorClient := collector.NewTestK8sAPICollector(context.TODO(), clientset)
 
 	// Generate path for the dump
 	clusterName := "test-cluster"
 	// ./<clusterName>/kubehound_<clusterName>_<date>
 	resName := path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
 
+	if mockCollector {
+		return &DumpIngestor{
+			directoryOutput: mockDirectoryOutput,
+			collector:       mCollectorClient,
+			ClusterName:     clusterName,
+			ResName:         resName,
+			writer:          mDumpWriter,
+		}, mDumpWriter, mCollectorClient
+	}
+
 	return &DumpIngestor{
 		directoryOutput: mockDirectoryOutput,
-		collector:       mCollectorClient,
+		collector:       collectorClient,
 		ClusterName:     clusterName,
 		ResName:         resName,
 		writer:          mDumpWriter,
 	}, mDumpWriter, mCollectorClient
+
+}
+
+func liveTest(t *testing.T, workerNum int) *DumpIngestor {
+	t.Helper()
+	dumperIngestor, mDumpWriter, _ := newFakeDumpIngestorPipeline(t, false)
+
+	mDumpWriter.EXPECT().WorkerNumber().Return(workerNum)
+
+	for range genK8sObjects() {
+		mDumpWriter.EXPECT().Write(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+		mDumpWriter.EXPECT().Flush(mock.Anything).Return(nil).Once()
+	}
+
+	mFlush := mDumpWriter.EXPECT().Flush(mock.Anything).Return(nil).Once()
+	mDumpWriter.EXPECT().Close(mock.Anything).Return(nil).Once().NotBefore(mFlush)
+
+	return dumperIngestor
 }
 
 func TestPipelineDumpIngestor_Run(t *testing.T) {
@@ -39,7 +87,7 @@ func TestPipelineDumpIngestor_Run(t *testing.T) {
 
 	singleThreadedPipeline := func(t *testing.T) *DumpIngestor {
 		t.Helper()
-		dumperIngestor, mDumpWriter, mCollectorClient := newFakeDumpIngestorPipeline(t)
+		dumperIngestor, mDumpWriter, mCollectorClient := newFakeDumpIngestorPipeline(t, true)
 		sequence := dumpIngestorSequence(dumperIngestor)
 
 		mDumpWriter.EXPECT().WorkerNumber().Return(1)
@@ -64,12 +112,15 @@ func TestPipelineDumpIngestor_Run(t *testing.T) {
 			}
 		}
 
+		mFlush := mDumpWriter.EXPECT().Flush(mock.Anything).Return(nil).Once()
+		mDumpWriter.EXPECT().Close(mock.Anything).Return(nil).Once().NotBefore(mFlush)
+
 		return dumperIngestor
 	}
 
 	multiThreadedPipeline := func(t *testing.T) *DumpIngestor {
 		t.Helper()
-		dumperIngestor, mDumpWriter, mCollectorClient := newFakeDumpIngestorPipeline(t)
+		dumperIngestor, mDumpWriter, mCollectorClient := newFakeDumpIngestorPipeline(t, true)
 		sequence := dumpIngestorSequence(dumperIngestor)
 
 		mDumpWriter.EXPECT().WorkerNumber().Return(0)
@@ -91,10 +142,24 @@ func TestPipelineDumpIngestor_Run(t *testing.T) {
 			case tag.EntityEndpoints:
 				mCollectorClient.EXPECT().StreamEndpoints(mock.Anything, dumperIngestor).Return(nil).Once()
 			}
-
 		}
 
+		mFlush := mDumpWriter.EXPECT().Flush(mock.Anything).Return(nil).Once()
+		mDumpWriter.EXPECT().Close(mock.Anything).Return(nil).Once().NotBefore(mFlush)
+
 		return dumperIngestor
+	}
+
+	singleThreadedPipelineLive := func(t *testing.T) *DumpIngestor {
+		t.Helper()
+
+		return liveTest(t, 1)
+	}
+
+	multiThreadedPipelineLive := func(t *testing.T) *DumpIngestor {
+		t.Helper()
+
+		return liveTest(t, 0)
 	}
 
 	tests := []struct {
@@ -112,6 +177,16 @@ func TestPipelineDumpIngestor_Run(t *testing.T) {
 			testfct: multiThreadedPipeline,
 			wantErr: false,
 		},
+		{
+			name:    "single threaded pipeline live",
+			testfct: singleThreadedPipelineLive,
+			wantErr: false,
+		},
+		{
+			name:    "multi threaded pipeline live",
+			testfct: multiThreadedPipelineLive,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -126,6 +201,10 @@ func TestPipelineDumpIngestor_Run(t *testing.T) {
 
 			if err := pipeline.Wait(ctx); (err != nil) != tt.wantErr {
 				t.Errorf("PipelineDumpIngestor.Wait() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if err := dumperIngestor.Close(ctx); (err != nil) != tt.wantErr {
+				t.Errorf("dumperIngestor.Close(ctx) error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 		})
