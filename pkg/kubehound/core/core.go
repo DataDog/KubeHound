@@ -269,6 +269,8 @@ func LaunchRemoteIngestor(ctx context.Context, opts ...LaunchOption) error {
 	log.I.Infof("KubeHound Ingestor API shutdown")
 
 	return nil
+}
+
 func NewLaunchConfig(cfg *config.KubehoundConfig, opName string) *LaunchConfig {
 	// We define a unique run id this so we can measure run by run in addition of version per version.
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
