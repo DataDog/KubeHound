@@ -28,7 +28,7 @@ func Initialize(cfg *config.KubehoundConfig) (*State, error) {
 	tracer.Initialize(cfg)
 
 	// Metrics
-	err := statsd.Setup(cfg.Telemetry.Statsd.URL)
+	err := statsd.Setup(cfg)
 	if err != nil {
 		return &State{
 			Enabled: true,

@@ -8,7 +8,16 @@ locals {
     "team"          = "team",
     "version"       = "version",
     "platform"      = "platform",
+    "cluster"       = "@cluster",
   }
+}
+
+import {
+ # ID of the cloud resource
+ # Check provider documentation for importable resources and format
+ id = "kubehound.ingest.duration"
+ # Resource address
+ to = datadog_spans_metric.kubehound_ingest_duration
 }
 
 // Duration of the data ingest
@@ -33,6 +42,15 @@ resource "datadog_spans_metric" "kubehound_ingest_duration" {
     }
   }
 }
+
+import {
+ # ID of the cloud resource
+ # Check provider documentation for importable resources and format
+ id = "kubehound.graph.duration"
+ # Resource address
+ to = datadog_spans_metric.kubehound_graph_duration
+}
+
 
 // Duration of the graph construction
 resource "datadog_spans_metric" "kubehound_graph_duration" {
@@ -59,11 +77,19 @@ resource "datadog_spans_metric" "kubehound_graph_duration" {
 
 locals {
   stream_tags = merge(
-    universal_tags,
+    local.universal_tags,
     {
       # tag_name => path
       "entity" = "@entity"
   })
+}
+
+import {
+ # ID of the cloud resource
+ # Check provider documentation for importable resources and format
+ id = "kubehound.collector.stream.duration"
+ # Resource address
+ to = datadog_spans_metric.kubehound_collector_stream_duration
 }
 
 // Collector stream duration grouped by entity
@@ -92,11 +118,19 @@ resource "datadog_spans_metric" "kubehound_collector_stream_duration" {
 
 locals {
   edge_tags = merge(
-    universal_tags,
+    local.universal_tags,
     {
       # tag_name => path
       "label" = "@label"
   })
+}
+
+import {
+ # ID of the cloud resource
+ # Check provider documentation for importable resources and format
+ id = "kubehound.graph.builder.edge.duration"
+ # Resource address
+ to = datadog_spans_metric.kubehound_graph_builder_edge_duration
 }
 
 // Edge builder duration grouped by label

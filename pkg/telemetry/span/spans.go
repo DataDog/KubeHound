@@ -19,10 +19,27 @@ const (
 	MongoDBBatchWrite = "kubehound.mongo.batchwrite"
 )
 
-// Collector component spans
+// Collector/dumper component spans
 const (
-	CollectorStream   = "kubehound.collector.stream"
-	CollectorReadFile = "kubehound.collector.readFile"
+	CollectorStream = "kubehound.collector.stream"
+	CollectorDump   = "kubehound.collector.dump"
+
+	DumperLaunch = "kubehound.dumper.launch"
+
+	DumperNodes               = "kubehound.dumper.nodes"
+	DumperPods                = "kubehound.dumper.pods"
+	DumperEndpoints           = "kubehound.dumper.endpoints"
+	DumperRoles               = "kubehound.dumper.roles"
+	DumperClusterRoles        = "kubehound.dumper.clusterroles"
+	DumperRoleBindings        = "kubehound.dumper.rolebindings"
+	DumperClusterRoleBindings = "kubehound.dumper.clusterrolebindings"
+
+	DumperReadFile    = "kubehound.dumper.readFile"
+	DumperS3Push      = "kubehound.dumper.s3_push"
+	DumperS3Download  = "kubehound.dumper.s3_download"
+	DumperWriterWrite = "kubehound.dumper.write"
+	DumperWriterFlush = "kubehound.dumper.flush"
+	DumperWriterClose = "kubehound.dumper.close"
 )
 
 // Graph builder spans
