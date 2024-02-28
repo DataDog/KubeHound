@@ -14,6 +14,17 @@ type ClusterInfo struct {
 	Name string
 }
 
+// Generic interface to allow an ingestor to consume stream inputs from a collector.
+type GenericIngestor interface {
+	NodeIngestor
+	PodIngestor
+	RoleIngestor
+	ClusterRoleIngestor
+	RoleBindingIngestor
+	ClusterRoleBindingIngestor
+	EndpointIngestor
+}
+
 // NodeIngestor defines the interface to allow an ingestor to consume node inputs from a collector.
 //
 //go:generate mockery --name NodeIngestor --output mockingest --case underscore --filename node_ingestor.go --with-expecter
@@ -71,11 +82,14 @@ type EndpointIngestor interface {
 }
 
 //go:generate mockery --name CollectorClient --output mockcollector --case underscore --filename collector_client.go --with-expecter
-type CollectorClient interface {
+type CollectorClient interface { //nolint: interfacebloat
 	services.Dependency
 
 	// ClusterInfo returns the target cluster information for the current run.
 	ClusterInfo(ctx context.Context) (*ClusterInfo, error)
+
+	// Tags return the tags for the current run.
+	Tags(ctx context.Context) []string
 
 	// StreamNodes will iterate through all NodeType objects collected by the collector and invoke the ingestor.IngestNode method on each.
 	// Once all the NodeType objects have been exhausted the ingestor.Complete method will be invoked to signal the end of the stream.

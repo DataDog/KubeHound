@@ -9,6 +9,8 @@ KUBEHOUND_ENV="release"
 # Pull in the requisite compose files for the current setup
 DOCKER_COMPOSE_FILE_PATH="-f deployments/kubehound/docker-compose.yaml"
 DOCKER_COMPOSE_FILE_PATH+=" -f deployments/kubehound/docker-compose.release.yaml"
+DOCKER_COMPOSE_FILE_PATH+=" -f deployments/kubehound/docker-compose.ui.yaml"
+
 if [ -n "${DD_API_KEY}" ]; then
     DOCKER_COMPOSE_FILE_PATH+=" -f deployments/kubehound/docker-compose.datadog.yaml"
 fi

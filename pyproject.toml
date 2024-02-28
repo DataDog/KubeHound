@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "kubehoundpc-wiki"
+version = "0.1.0"
+description = "Generate and serve the mkdocs wiki on localhost"
+authors = ["jt-dd"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+mkdocs = "^1.2"
+mkdocs-material = "^9.4.7"
+mkdocs-awesome-pages-plugin = "^2.9.2"
+markdown-captions = "^2.1.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

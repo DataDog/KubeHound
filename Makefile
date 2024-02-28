@@ -37,9 +37,9 @@ endif
 
 ifeq (,$(filter $(SYSTEM_TEST_CMD),$(MAKECMDGOALS)))
 	ifeq (${KUBEHOUND_ENV}, release)
-		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.release.yaml
+		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.release.yaml -f deployments/kubehound/docker-compose.ui.yaml
 	else ifeq (${KUBEHOUND_ENV}, dev)
-		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml
+		DOCKER_COMPOSE_FILE_PATH += -f deployments/kubehound/docker-compose.dev.yaml -f deployments/kubehound/docker-compose.ui.yaml
 	endif
 
 # No API key is being set
@@ -87,7 +87,7 @@ endif
 all: build
 
 .PHONY: generate
-generate: ## Generate code the application
+generate: ## Generate code for the application
 	go generate $(BUILD_FLAGS) ./...
 
 .PHONY: build
@@ -169,8 +169,8 @@ thirdparty-licenses: ## Generate the list of 3rd party dependencies and write to
 
 .PHONY: local-wiki
 local-wiki: ## Generate and serve the mkdocs wiki on localhost
-	pip install mkdocs-material mkdocs-awesome-pages-plugin markdown-captions
-	mkdocs serve
+	poetry install || pip install mkdocs-material mkdocs-awesome-pages-plugin markdown-captions
+	poetry run mkdocs serve || mksdocs serve
 
 .PHONY: local-release
 local-release: ## Generate release packages locally via goreleaser

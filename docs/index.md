@@ -19,7 +19,7 @@ After it has ingested data from your cluster, it can easily answer advanced ques
 - What is the shortest exploitable path between a publicly-exposed service and a cluster administrator role?
 - Is there an attack path from a specific container to a node in the cluster?
 
-KubeHound was built with efficiency in mind and can consequently handle very large clusters. Ingestion and computation of attack paths typically takes 1 minute for a cluster with 1'000 running pods, 15 minutes for 10'000 pods, and 25 minutes for 25'000 pods.
+KubeHound was built with efficiency in mind and can consequently handle very large clusters. Ingestion and computation of attack paths typically takes a few seconds for a cluster with 1'000 running pods, 2 minutes for 10'000 pods, and 5 minutes for 25'000 pods. 
 
 Next steps:
 

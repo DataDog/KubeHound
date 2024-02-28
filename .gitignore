@@ -60,3 +60,6 @@ deployments/kubehound/kubegraph/dsl/kubehound/target
 
 # RBAC certificates
 test/setup/test-cluster/RBAC/
+
+# poetry file
+poetry.lock

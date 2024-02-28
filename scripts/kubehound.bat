@@ -6,6 +6,8 @@ set KUBEHOUND_ENV=release
 set DOCKER_CMD=docker
 set DOCKER_COMPOSE_FILE_PATH=-f deployments\kubehound\docker-compose.yaml
 set DOCKER_COMPOSE_FILE_PATH=%DOCKER_COMPOSE_FILE_PATH% -f deployments\kubehound\docker-compose.release.yaml
+set DOCKER_COMPOSE_FILE_PATH=%DOCKER_COMPOSE_FILE_PATH% -f deployments/kubehound/docker-compose.ui.yaml
+
 if not "%DD_API_KEY%"=="" (
     set DOCKER_COMPOSE_FILE_PATH=%DOCKER_COMPOSE_FILE_PATH% -f deployments\kubehound\docker-compose.datadog.yaml
 )
