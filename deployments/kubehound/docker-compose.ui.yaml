@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  notebook:
+    build: ./notebook/
+    restart: unless-stopped
+    container_name: ${COMPOSE_PROJECT_NAME}-notebook
+    ports:
+      - "127.0.0.1:8888:8888"
+    networks:
+      - kubenet
+    volumes:
+      - ./notebook/shared:/root/notebooks/shared
+
+networks:
+  kubenet:

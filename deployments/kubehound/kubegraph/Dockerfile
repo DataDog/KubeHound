@@ -7,7 +7,7 @@ COPY dsl/kubehound/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean install
 
 # Now build our janusgraph wrapper container with KubeHound customizations
-FROM janusgraph/janusgraph:1.0.0-rc2
+FROM janusgraph/janusgraph:1.0.0
 LABEL org.opencontainers.image.source="https://github.com/DataDog/kubehound/"
 
 # Add our initialization script for the database schema to the startup directory
