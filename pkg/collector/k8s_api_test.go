@@ -3,40 +3,15 @@ package collector
 
 import (
 	"context"
-	"sync"
 	"testing"
-	"time"
 
 	mocks "github.com/DataDog/KubeHound/pkg/collector/mockingest"
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.uber.org/ratelimit"
-	corev1 "k8s.io/api/core/v1"
-	discoveryv1 "k8s.io/api/discovery/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 )
-
-func newTestK8sAPICollector(ctx context.Context, clientset *fake.Clientset) CollectorClient {
-	cfg := &config.K8SAPICollectorConfig{
-		PageSize:           config.DefaultK8sAPIPageSize,
-		PageBufferSize:     config.DefaultK8sAPIPageBufferSize,
-		RateLimitPerSecond: config.DefaultK8sAPIRateLimitPerSecond,
-	}
-
-	return &k8sAPICollector{
-		cfg:       cfg,
-		clientset: clientset,
-		log:       log.Trace(ctx, log.WithComponent(K8sAPICollectorName)),
-		rl:        ratelimit.New(config.DefaultK8sAPIRateLimitPerSecond), // per second
-		waitTime:  map[string]time.Duration{},
-		mu:        &sync.Mutex{},
-	}
-}
 
 func TestNewK8sAPICollectorConfig(t *testing.T) {
 	ctx := context.Background()
@@ -123,23 +98,6 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 	}
 }
 
-func fakePod(namespace string, image string) *corev1.Pod {
-	return &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:  image,
-					Image: "nginx:latest",
-				},
-			},
-			RestartPolicy: corev1.RestartPolicyAlways,
-		},
-	}
-}
-
 func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
@@ -159,8 +117,8 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
-				fakePod("namespace1", "iamge1"),
-				fakePod("namespace2", "image2"),
+				FakePod("namespace1", "iamge1", "Running"),
+				FakePod("namespace2", "image2", "Running"),
 			}...,
 		)
 		m := mocks.NewPodIngestor(t)
@@ -201,27 +159,11 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := newTestK8sAPICollector(tt.args.ctx, clientset)
+			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamPods(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamPods() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
-	}
-}
-
-func fakeRole(namespace string, name string) *rbacv1.Role {
-	return &rbacv1.Role{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
-		},
-		Rules: []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{""},
-				Verbs:     []string{"get", "list", "watch"},
-				Resources: []string{"pods", "configmaps"},
-			},
-		},
 	}
 }
 
@@ -244,8 +186,8 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
-				fakeRole("namespace1", "name1"),
-				fakeRole("namespace2", "name2"),
+				FakeRole("namespace1", "name1"),
+				FakeRole("namespace2", "name2"),
 			}...,
 		)
 		m := mocks.NewRoleIngestor(t)
@@ -286,32 +228,11 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := newTestK8sAPICollector(tt.args.ctx, clientset)
+			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamRoles(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamRoles() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
-	}
-}
-
-func fakeRoleBinding(namespace, name string) *rbacv1.RoleBinding {
-	return &rbacv1.RoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
-		},
-		RoleRef: rbacv1.RoleRef{
-			Kind:     "Role",
-			Name:     "my-role",
-			APIGroup: "rbac.authorization.k8s.io",
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:      "User",
-				Name:      "my-user",
-				Namespace: namespace,
-			},
-		},
 	}
 }
 
@@ -334,8 +255,8 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
-				fakeRoleBinding("namespace1", "name1"),
-				fakeRoleBinding("namespace2", "name2"),
+				FakeRoleBinding("namespace1", "name1"),
+				FakeRoleBinding("namespace2", "name2"),
 			}...,
 		)
 		m := mocks.NewRoleBindingIngestor(t)
@@ -376,22 +297,11 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := newTestK8sAPICollector(tt.args.ctx, clientset)
+			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamRoleBindings(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamRoleBindings() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
-	}
-}
-
-func fakeNode(name string, providerID string) *corev1.Node {
-	return &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		Spec: corev1.NodeSpec{
-			ProviderID: providerID,
-		},
 	}
 }
 
@@ -414,8 +324,8 @@ func Test_k8sAPICollector_StreamNodes(t *testing.T) {
 		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
-				fakeNode("name1", "uid1"),
-				fakeNode("name2", "uid2"),
+				FakeNode("name1", "uid1"),
+				FakeNode("name2", "uid2"),
 			}...,
 		)
 		m := mocks.NewNodeIngestor(t)
@@ -456,26 +366,11 @@ func Test_k8sAPICollector_StreamNodes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := newTestK8sAPICollector(tt.args.ctx, clientset)
+			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamNodes(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamNodes() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
-	}
-}
-
-func fakeClusterRole(name string) *rbacv1.ClusterRole {
-	return &rbacv1.ClusterRole{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		Rules: []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{""},
-				Verbs:     []string{"get", "list", "watch"},
-				Resources: []string{"pods", "configmaps"},
-			},
-		},
 	}
 }
 
@@ -498,8 +393,8 @@ func Test_k8sAPICollector_StreamClusterRoles(t *testing.T) {
 		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
-				fakeClusterRole("name1"),
-				fakeClusterRole("name2"),
+				FakeClusterRole("name1"),
+				FakeClusterRole("name2"),
 			}...,
 		)
 		m := mocks.NewClusterRoleIngestor(t)
@@ -540,30 +435,11 @@ func Test_k8sAPICollector_StreamClusterRoles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := newTestK8sAPICollector(tt.args.ctx, clientset)
+			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamClusterRoles(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamClusterRoles() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
-	}
-}
-
-func fakeClusterRoleBinding(name string) *rbacv1.ClusterRoleBinding {
-	return &rbacv1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		RoleRef: rbacv1.RoleRef{
-			Kind:     "ClusterRole",
-			Name:     name,
-			APIGroup: "rbac.authorization.k8s.io",
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind: "User",
-				Name: "user1",
-			},
-		},
 	}
 }
 
@@ -586,8 +462,8 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
-				fakeClusterRoleBinding("name1"),
-				fakeClusterRoleBinding("name2"),
+				FakeClusterRoleBinding("name1"),
+				FakeClusterRoleBinding("name2"),
 			}...,
 		)
 		m := mocks.NewClusterRoleBindingIngestor(t)
@@ -628,29 +504,11 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := newTestK8sAPICollector(tt.args.ctx, clientset)
+			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamClusterRoleBindings(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamClusterRoleBindings() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
-	}
-}
-
-func fakeEndpoint(name string, namespace string) *discoveryv1.EndpointSlice {
-	return &discoveryv1.EndpointSlice{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-	}
-}
-
-func FakeEndpoint3(name string, namespace string) *discoveryv1.EndpointSlice {
-	return &discoveryv1.EndpointSlice{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
 	}
 }
 
@@ -673,8 +531,8 @@ func Test_k8sAPICollector_StreamEndpoints(t *testing.T) {
 		t.Helper()
 		clienset := fake.NewSimpleClientset(
 			[]runtime.Object{
-				fakeEndpoint("namespace1", "name1"),
-				fakeEndpoint("namespace2", "name2"),
+				FakeEndpoint("namespace1", "name1", []int32{80, 443}),
+				FakeEndpoint("namespace2", "name2", []int32{80, 443}),
 			}...,
 		)
 		m := mocks.NewEndpointIngestor(t)
@@ -715,7 +573,7 @@ func Test_k8sAPICollector_StreamEndpoints(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
-			c := newTestK8sAPICollector(tt.args.ctx, clientset)
+			c := NewTestK8sAPICollector(tt.args.ctx, clientset)
 			if err := c.StreamEndpoints(tt.args.ctx, mock); (err != nil) != tt.wantErr {
 				t.Errorf("k8sAPICollector.StreamEndpoints() error = %v, wantErr %v", err, tt.wantErr)
 			}
