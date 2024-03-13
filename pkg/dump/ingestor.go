@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"path"
 
-	"time"
-
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/dump/writer"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
