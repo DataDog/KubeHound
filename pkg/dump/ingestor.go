@@ -45,6 +45,7 @@ func dumpIngestorResName(clusterName string) string {
 	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
 }
 
+func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, compression bool, directoryOutput string) (*DumpIngestor, error) {
 	// Generate path for the dump
 	clusterName, err := getClusterName(ctx, collector)
 	if err != nil {
