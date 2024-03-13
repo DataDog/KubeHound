@@ -62,6 +62,23 @@ func MustLoadInlineConfig() *KubehoundConfig {
 	return cfg
 }
 
+func NewKubehoundConfig(configPath string, inLine bool) *KubehoundConfig {
+	// Configuration initialization
+	var cfg *KubehoundConfig
+	switch {
+	case len(configPath) != 0:
+		log.I.Infof("Loading application configuration from file %s", configPath)
+		cfg = MustLoadConfig(configPath)
+	case inLine:
+		cfg = MustLoadInlineConfig()
+	default:
+		log.I.Infof("Loading application configuration from default embedded")
+		cfg = MustLoadEmbedConfig()
+	}
+
+	return cfg
+}
+
 // SetDefaultValues loads the default value from the different modules
 func SetDefaultValues(c *viper.Viper) {
 	// K8s Live collector module
@@ -149,7 +166,6 @@ func NewConfig(configPath string) (*KubehoundConfig, error) {
 func NewInlineConfig() (*KubehoundConfig, error) {
 	// Configure environment variable override
 	SetEnvOverrides(viper.GetViper())
-
 	kc := KubehoundConfig{}
 	if err := viper.Unmarshal(&kc); err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
@@ -188,14 +204,20 @@ func IsCI() bool {
 }
 
 // ComputeDynamic sets the dynamic components of the config from the provided options.
-func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) {
+func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) error {
 	kc.Dynamic.mu.Lock()
 	defer kc.Dynamic.mu.Unlock()
 
 	kc.Dynamic.RunID = NewRunID()
 	kc.Dynamic.Cluster = DefaultClusterName
 
-	for _, opt := range opts {
+	for _, option := range opts {
+		opt, err := option()
+		if err != nil {
+			return err
+		}
 		opt(&kc.Dynamic)
 	}
+
+	return nil
 }
