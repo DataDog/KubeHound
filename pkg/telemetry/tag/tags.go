@@ -3,7 +3,7 @@ package tag
 const (
 	ActionTypeTag         = "action"
 	CollectorTag          = "collector"
-	CollectorCluster      = "cluster"
+	CollectorClusterTag   = "cluster"
 	DumperS3BucketTag     = "s3_bucket"
 	DumperS3keyTag        = "s3_key"
 	DumperFilePathTag     = "file_path"
@@ -12,6 +12,7 @@ const (
 	EntityTag             = "entity"
 	WaitTag               = "wait"
 	RunIdTag              = "run_id"
+	IngestionRunIdTag     = "ingestion_run_id"
 	LabelTag              = "label"
 	CollectionTag         = "collection"
 	BuilderTag            = "builder"
@@ -48,6 +49,10 @@ func RunID(uuid string) string {
 	return MakeTag(RunIdTag, uuid)
 }
 
+func IngestionRunID(uuid string) string {
+	return MakeTag(IngestionRunIdTag, uuid)
+}
+
 func Collector(collector string) string {
 	return MakeTag(CollectorTag, collector)
 }
@@ -81,7 +86,7 @@ func EdgeType(et string) string {
 }
 
 func ClusterName(cluster string) string {
-	return MakeTag(CollectorCluster, cluster)
+	return MakeTag(CollectorClusterTag, cluster)
 }
 
 func ActionType(action string) string {
