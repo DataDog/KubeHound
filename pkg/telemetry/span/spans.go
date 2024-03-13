@@ -53,6 +53,7 @@ const (
 	DumperS3Push      = "kubehound.dumper.s3_push"
 	DumperS3Download  = "kubehound.dumper.s3_download"
 	DumperWriterWrite = "kubehound.dumper.write"
+	DumperWriterFlush = "kubehound.dumper.flush"
 	DumperWriterClose = "kubehound.dumper.close"
 )
 
