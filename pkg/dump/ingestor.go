@@ -35,9 +35,9 @@ const (
 	OfflineDumpPrefix     = "kubehound_"
 )
 
-// ./<clusterName>/kubehound_<clusterName>_<date>
-func dumpIngestorResName(clusterName string) string {
-	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
+// ./<clusterName>/kubehound_<clusterName>_<run_id>
+func DumpIngestorResName(clusterName string, runID string) string {
+	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, runID))
 }
 
 func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, compression bool, directoryOutput string) (*DumpIngestor, error) {
