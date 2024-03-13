@@ -9,14 +9,17 @@ import (
 	"path/filepath"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/dump"
+	"github.com/DataDog/KubeHound/pkg/dump/writer"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"gocloud.dev/blob"
 	_ "gocloud.dev/blob/s3blob"
 )
 
 var (
-	ErrInvalidBucketName = errors.New("Invalid bucket name")
+	ErrInvalidBucketName = errors.New("empty bucket name")
 )
 
 type BlobStore struct {
@@ -33,13 +36,57 @@ func NewBlobStoragePuller(cfg *config.KubehoundConfig) (*BlobStore, error) {
 
 	return &BlobStore{
 		bucketName: cfg.Ingestor.BucketName,
+		cfg:        cfg,
 	}, nil
 }
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
-func (bs *BlobStore) Pull(ctx context.Context, clusterName string, runID string) (string, error) {
+func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName string, runID string) error {
 	log.I.Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
-	key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
+	spanPull, ctx := span.SpanIngestRunFromContext(outer, span.IngestorBlobPull)
+	defer spanPull.Finish()
+
+	key := fmt.Sprintf("%s%s", dump.DumpIngestorResName(clusterName, runID), writer.TarWriterExtension)
+	log.I.Infof("Downloading archive (%s) from blob store", key)
+	//key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
+	b, err := blob.OpenBucket(ctx, bs.bucketName)
+	if err != nil {
+		return err
+	}
+	defer b.Close()
+	log.I.Infof("Opening archive file %s", archivePath)
+	f, err := os.Open(archivePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	log.I.Infof("Downloading archive (%q) from blob store", key)
+	w := bufio.NewReader(f)
+	err = b.Upload(ctx, key, w, &blob.WriterOptions{
+		ContentType: "application/gzip",
+	})
+	if err != nil {
+		return err
+	}
+
+	err = f.Sync()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
+func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID string) (string, error) {
+	log.I.Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
+	spanPull, ctx := span.SpanIngestRunFromContext(outer, span.IngestorBlobPull)
+	defer spanPull.Finish()
+
+	key := fmt.Sprintf("%s%s", dump.DumpIngestorResName(clusterName, runID), writer.TarWriterExtension)
+	log.I.Infof("Downloading archive (%s) from blob store", key)
+	//key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
 	if err != nil {
 		return "", err
@@ -60,7 +107,7 @@ func (bs *BlobStore) Pull(ctx context.Context, clusterName string, runID string)
 	archivePath := filepath.Join(dirname, "archive.tar.gz")
 	f, err := os.Create(archivePath)
 	if err != nil {
-		return dirname, err
+		return archivePath, err
 	}
 	defer f.Close()
 
@@ -68,28 +115,28 @@ func (bs *BlobStore) Pull(ctx context.Context, clusterName string, runID string)
 	w := bufio.NewWriter(f)
 	err = b.Download(ctx, key, w, nil)
 	if err != nil {
-		return dirname, err
+		return archivePath, err
 	}
 
 	err = f.Sync()
 	if err != nil {
-		return dirname, err
+		return archivePath, err
 	}
 
-	return dirname, nil
+	return archivePath, nil
 }
 
 func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
-	basePath := filepath.Base(archivePath)
+	spanExtract, _ := span.SpanIngestRunFromContext(ctx, span.IngestorBlobExtract)
+	defer spanExtract.Finish()
+
+	basePath := filepath.Dir(archivePath)
 	err := puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
 	if err != nil {
 		return fmt.Errorf("Dangerous file path used during extraction, aborting: %w", err)
 	}
-	r, err := os.Open(archivePath)
-	if err != nil {
-		return err
-	}
-	err = puller.ExtractTarGz(r, basePath, bs.cfg.Ingestor.MaxArchiveSize)
+
+	err = puller.ExtractTarGz(archivePath, basePath, bs.cfg.Ingestor.MaxArchiveSize)
 	if err != nil {
 		return err
 	}
@@ -100,6 +147,9 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 // Once downloaded and processed, we should cleanup the disk so we can reduce the disk usage
 // required for large infrastructure
 func (bs *BlobStore) Close(ctx context.Context, archivePath string) error {
+	spanClose, _ := span.SpanIngestRunFromContext(ctx, span.IngestorBlobClose)
+	defer spanClose.Finish()
+
 	path := filepath.Base(archivePath)
 	err := puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
 	if err != nil {

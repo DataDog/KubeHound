@@ -31,6 +31,8 @@ type server struct {
 func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestResponse, error) {
 	err := s.api.Ingest(ctx, in.GetClusterName(), in.GetRunId())
 	if err != nil {
+		log.I.Errorf("Ingest failed: %v", err)
+
 		return nil, err
 	}
 

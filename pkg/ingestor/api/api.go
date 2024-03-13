@@ -2,14 +2,22 @@ package api
 
 import (
 	"context"
+	"fmt"
+	"path/filepath"
 
+	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/ingestor"
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
+	"github.com/DataDog/KubeHound/pkg/telemetry/events"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 )
 
 type API interface {
@@ -24,13 +32,13 @@ type IngestorAPI struct {
 	Cfg      *config.KubehoundConfig
 	storedb  storedb.Provider
 	graphdb  graphdb.Provider
-	cache    cache.CacheReader
+	cache    cache.CacheProvider
 }
 
 var _ API = (*IngestorAPI)(nil)
 
 func NewIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller, notifier notifier.Notifier,
-	sdb storedb.Provider, gdb graphdb.Provider, c cache.CacheReader) *IngestorAPI {
+	sdb storedb.Provider, gdb graphdb.Provider, c cache.CacheProvider) *IngestorAPI {
 	return &IngestorAPI{
 		notifier: notifier,
 		puller:   puller,
@@ -41,24 +49,69 @@ func NewIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller, notif
 	}
 }
 
-func (g *IngestorAPI) Ingest(ctx context.Context, clusterName string, runID string) error {
-	archivePath, err := g.puller.Pull(ctx, clusterName, runID)
+func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string) error {
+	events.PushEvent(
+		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
+		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
+		[]string{
+			tag.IngestionRunID(runID),
+		},
+	)
+	// Settings global variables for the run in the context to propagate them to the spans
+	runCtx := context.Background()
+	runCtx = context.WithValue(runCtx, span.ContextLogFieldClusterName, clusterName)
+	runCtx = context.WithValue(runCtx, span.ContextLogFieldRunID, runID)
+
+	spanJob, runCtx := span.SpanIngestRunFromContext(runCtx, span.IngestorStartJob)
+	defer spanJob.Finish()
+
+	archivePath, err := g.puller.Pull(runCtx, clusterName, runID)
 	if err != nil {
 		return err
 	}
-	err = g.puller.Close(ctx, archivePath)
+	err = g.puller.Close(runCtx, archivePath)
 	if err != nil {
 		return err
 	}
-	err = g.puller.Extract(ctx, archivePath)
+	err = g.puller.Extract(runCtx, archivePath)
 	if err != nil {
 		return err
 	}
-	err = graph.BuildGraph(ctx, g.Cfg, g.storedb, g.graphdb, g.cache)
+
+	runCfg := g.Cfg
+	runCfg.Collector = config.CollectorConfig{
+		Type: config.CollectorTypeFile,
+		File: &config.FileCollectorConfig{
+			Directory:   filepath.Dir(archivePath),
+			ClusterName: clusterName,
+		},
+	}
+
+	// // Create the collector instance
+	log.I.Info("Loading Kubernetes data collector client")
+	collect, err := collector.ClientFactory(runCtx, runCfg)
+	if err != nil {
+		return fmt.Errorf("collector client creation: %w", err)
+	}
+	defer collect.Close(runCtx)
+	log.I.Infof("Loaded %s collector client", collect.Name())
+
+	err = g.Cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID))
 	if err != nil {
 		return err
 	}
-	err = g.notifier.Notify(ctx, clusterName, runID)
+
+	// Run the ingest pipeline
+	log.I.Info("Starting Kubernetes raw data ingest")
+	if err := ingestor.IngestData(runCtx, runCfg, collect, g.cache, g.storedb, g.graphdb); err != nil {
+		return fmt.Errorf("raw data ingest: %w", err)
+	}
+
+	err = graph.BuildGraph(runCtx, runCfg, g.storedb, g.graphdb, g.cache)
+	if err != nil {
+		return err
+	}
+	err = g.notifier.Notify(runCtx, clusterName, runID)
 	if err != nil {
 		return err
 	}
