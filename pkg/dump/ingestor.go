@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"path"
 
+	"time"
+
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/dump/writer"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
@@ -38,14 +40,19 @@ func DumpIngestorResName(clusterName string, runID string) string {
 	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, runID))
 }
 
-func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, compression bool, directoryOutput string) (*DumpIngestor, error) {
+// TODO: Rmove this function after the code split
+func dumpIngestorResName(clusterName string) string {
+	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
+}
+
 	// Generate path for the dump
 	clusterName, err := getClusterName(ctx, collector)
 	if err != nil {
 		return nil, err
 	}
 
-	resName := DumpIngestorResName(clusterName, runID.String())
+	//resName := DumpIngestorResName(clusterName, runID.String())
+	resName := dumpIngestorResName(clusterName)
 
 	dumpWriter, err := writer.DumperWriterFactory(ctx, compression, directoryOutput, resName)
 	if err != nil {
