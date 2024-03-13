@@ -1,5 +1,7 @@
 package tag
 
+import "sync"
+
 const (
 	ActionTypeTag         = "action"
 	CollectorTag          = "collector"
@@ -37,9 +39,46 @@ const (
 	EntityClusterRolebindings = "clusterrolebindings"
 )
 
+// TODO: delete it once PR merged
 var (
 	BaseTags = []string{}
 )
+
+type BasesTags struct {
+	mu   sync.Mutex
+	tags []string
+}
+
+var currentBaseTag = BasesTags{}
+
+func SetupBaseTags() {
+	currentBaseTag = BasesTags{
+		mu:   sync.Mutex{},
+		tags: []string{},
+	}
+}
+
+func AppendBaseTags(tags ...string) {
+	currentBaseTag.mu.Lock()
+	defer currentBaseTag.mu.Unlock()
+	currentBaseTag.tags = append(currentBaseTag.tags, tags...)
+}
+
+func GetBaseTagsWith(optTags ...string) []string {
+	currentBaseTag.mu.Lock()
+	defer currentBaseTag.mu.Unlock()
+	var tags []string
+	copy(currentBaseTag.tags, tags)
+
+	return append(tags, optTags...)
+}
+
+func GetBaseTags() []string {
+	currentBaseTag.mu.Lock()
+	defer currentBaseTag.mu.Unlock()
+
+	return currentBaseTag.tags
+}
 
 func MakeTag(tag string, value string) string {
 	return tag + ":" + value
