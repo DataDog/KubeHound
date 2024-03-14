@@ -55,7 +55,7 @@ func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, c
 	// resultName := DumpIngestorResName(clusterName, runID.String())
 	resultName := dumpIngestorResultName(clusterName)
 
-	dumpWriter, err := writer.DumperWriterFactory(ctx, compression, directoryOutput, resName)
+	dumpWriter, err := writer.DumperWriterFactory(ctx, compression, directoryOutput, resultName)
 	if err != nil {
 		return nil, fmt.Errorf("create collector writer: %w", err)
 	}
