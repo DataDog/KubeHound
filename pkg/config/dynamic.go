@@ -36,8 +36,10 @@ func WithRunID(runID string) DynamicOption {
 	val, err := LoadRunID(runID)
 	if err != nil {
 		log.I.Errorf("error loading run id: %v", err)
-		return failure(fmt.Errorf("loading run id: %v", err))
+
+		return failure(fmt.Errorf("loading run id: %w", err))
 	}
+
 	return success(func(c *DynamicConfig) {
 		c.RunID = val
 	})

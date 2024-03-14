@@ -36,6 +36,7 @@ func LoadRunID(runid string) (*RunID, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error parsing run id: %w", err)
 	}
+
 	return &RunID{
 		val: val,
 	}, nil
