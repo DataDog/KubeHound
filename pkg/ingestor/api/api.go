@@ -18,6 +18,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 type API interface {
@@ -63,7 +64,8 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	runCtx = context.WithValue(runCtx, span.ContextLogFieldRunID, runID)
 
 	spanJob, runCtx := span.SpanIngestRunFromContext(runCtx, span.IngestorStartJob)
-	defer spanJob.Finish()
+	var err error
+	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 
 	archivePath, err := g.puller.Pull(runCtx, clusterName, runID)
 	if err != nil {
@@ -103,7 +105,8 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 
 	// Run the ingest pipeline
 	log.I.Info("Starting Kubernetes raw data ingest")
-	if err := ingestor.IngestData(runCtx, runCfg, collect, g.cache, g.storedb, g.graphdb); err != nil {
+	err = ingestor.IngestData(runCtx, runCfg, collect, g.cache, g.storedb, g.graphdb)
+	if err != nil {
 		return fmt.Errorf("raw data ingest: %w", err)
 	}
 

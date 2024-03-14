@@ -21,7 +21,8 @@ func IngestData(ctx context.Context, cfg *config.KubehoundConfig, collect collec
 
 	start := time.Now()
 	span, ctx := tracer.StartSpanFromContext(ctx, span.IngestData, tracer.Measured())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	log.I.Info("Loading data ingestor")
 	ingest, err := ingestor.Factory(cfg, collect, cache, storedb, graphdb)

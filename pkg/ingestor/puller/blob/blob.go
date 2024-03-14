@@ -16,6 +16,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"gocloud.dev/blob"
 	_ "gocloud.dev/blob/s3blob"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 var (
@@ -40,13 +41,18 @@ func NewBlobStoragePuller(cfg *config.KubehoundConfig) (*BlobStore, error) {
 	}, nil
 }
 
+func getKeyPath(clusterName, runID string) string {
+	return fmt.Sprintf("%s%s", dump.DumpIngestorResultName(clusterName, runID), writer.TarWriterExtension)
+}
+
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
 func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName string, runID string) error {
 	log.I.Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
-	spanPull, ctx := span.SpanIngestRunFromContext(outer, span.IngestorBlobPull)
-	defer spanPull.Finish()
+	spanPut, ctx := span.SpanIngestRunFromContext(outer, span.IngestorBlobPull)
+	var err error
+	defer func() { spanPut.Finish(tracer.WithError(err)) }()
 
-	key := fmt.Sprintf("%s%s", dump.DumpIngestorResName(clusterName, runID), writer.TarWriterExtension)
+	key := getKeyPath(clusterName, runID)
 	log.I.Infof("Downloading archive (%s) from blob store", key)
 	// key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
@@ -82,9 +88,10 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID string) (string, error) {
 	log.I.Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
 	spanPull, ctx := span.SpanIngestRunFromContext(outer, span.IngestorBlobPull)
-	defer spanPull.Finish()
+	var err error
+	defer func() { spanPull.Finish(tracer.WithError(err)) }()
 
-	key := fmt.Sprintf("%s%s", dump.DumpIngestorResName(clusterName, runID), writer.TarWriterExtension)
+	key := getKeyPath(clusterName, runID)
 	log.I.Infof("Downloading archive (%s) from blob store", key)
 	// key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
@@ -128,10 +135,11 @@ func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID strin
 
 func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 	spanExtract, _ := span.SpanIngestRunFromContext(ctx, span.IngestorBlobExtract)
-	defer spanExtract.Finish()
+	var err error
+	defer func() { spanExtract.Finish(tracer.WithError(err)) }()
 
 	basePath := filepath.Dir(archivePath)
-	err := puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
+	err = puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
 	if err != nil {
 		return fmt.Errorf("Dangerous file path used during extraction, aborting: %w", err)
 	}
@@ -148,10 +156,11 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 // required for large infrastructure
 func (bs *BlobStore) Close(ctx context.Context, archivePath string) error {
 	spanClose, _ := span.SpanIngestRunFromContext(ctx, span.IngestorBlobClose)
-	defer spanClose.Finish()
+	var err error
+	defer func() { spanClose.Finish(tracer.WithError(err)) }()
 
 	path := filepath.Base(archivePath)
-	err := puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
+	err = puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
 	if err != nil {
 		return fmt.Errorf("Dangerous file path used while closing, aborting: %w", err)
 	}
