@@ -67,15 +67,15 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	var err error
 	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 
-	archivePath, err := g.puller.Pull(runCtx, clusterName, runID)
+	archivePath, err := g.puller.Pull(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
-	err = g.puller.Close(runCtx, archivePath)
+	err = g.puller.Close(runCtx, archivePath) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
-	err = g.puller.Extract(runCtx, archivePath)
+	err = g.puller.Extract(runCtx, archivePath) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
@@ -91,11 +91,11 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 
 	// // Create the collector instance
 	log.I.Info("Loading Kubernetes data collector client")
-	collect, err := collector.ClientFactory(runCtx, runCfg)
+	collect, err := collector.ClientFactory(runCtx, runCfg) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("collector client creation: %w", err)
 	}
-	defer collect.Close(runCtx)
+	defer collect.Close(runCtx) //nolint: contextcheck
 	log.I.Infof("Loaded %s collector client", collect.Name())
 
 	err = g.Cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID))
@@ -105,16 +105,16 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 
 	// Run the ingest pipeline
 	log.I.Info("Starting Kubernetes raw data ingest")
-	err = ingestor.IngestData(runCtx, runCfg, collect, g.cache, g.storedb, g.graphdb)
+	err = ingestor.IngestData(runCtx, runCfg, collect, g.cache, g.storedb, g.graphdb) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("raw data ingest: %w", err)
 	}
 
-	err = graph.BuildGraph(runCtx, runCfg, g.storedb, g.graphdb, g.cache)
+	err = graph.BuildGraph(runCtx, runCfg, g.storedb, g.graphdb, g.cache) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
-	err = g.notifier.Notify(runCtx, clusterName, runID)
+	err = g.notifier.Notify(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
