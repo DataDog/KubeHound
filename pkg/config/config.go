@@ -28,6 +28,7 @@ type KubehoundConfig struct {
 	Storage    StorageConfig    `mapstructure:"storage"`    // Global param for all storage provider
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 	Builder    BuilderConfig    `mapstructure:"builder"`    // Graph builder  configuration
+	Ingestor   IngestorConfig   `mapstructure:"ingestor"`   // Ingestor configuration
 	Dynamic    DynamicConfig    // Dynamic (i.e runtime generated) configuration
 }
 
@@ -56,6 +57,23 @@ func MustLoadInlineConfig() *KubehoundConfig {
 	cfg, err := NewInlineConfig()
 	if err != nil {
 		log.I.Fatalf("config load: %v", err)
+	}
+
+	return cfg
+}
+
+func NewKubehoundConfig(configPath string, inLine bool) *KubehoundConfig {
+	// Configuration initialization
+	var cfg *KubehoundConfig
+	switch {
+	case len(configPath) != 0:
+		log.I.Infof("Loading application configuration from file %s", configPath)
+		cfg = MustLoadConfig(configPath)
+	case inLine:
+		cfg = MustLoadInlineConfig()
+	default:
+		log.I.Infof("Loading application configuration from default embedded")
+		cfg = MustLoadEmbedConfig()
 	}
 
 	return cfg
@@ -97,6 +115,13 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("builder.edge.batch_size_small", DefaultEdgeBatchSizeSmall)
 	c.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
 	c.SetDefault("builder.stop_on_error", DefaultStopOnError)
+
+	c.SetDefault("ingestor.api.port", DefaultIngestorAPIPort)
+	c.SetDefault("ingestor.api.address", DefaultIngestorAPIAddr)
+	c.SetDefault("ingestor.bucket_name", DefaultBucketName)
+	c.SetDefault("ingestor.temp_dir", DefaultTempDir)
+	c.SetDefault("ingestor.max_archive_size", DefaultMaxArchiveSize)
+	c.SetDefault("ingestor.archive_name", DefaultArchiveName)
 }
 
 // SetEnvOverrides enables environment variable overrides for the config.
@@ -141,7 +166,6 @@ func NewConfig(configPath string) (*KubehoundConfig, error) {
 func NewInlineConfig() (*KubehoundConfig, error) {
 	// Configure environment variable override
 	SetEnvOverrides(viper.GetViper())
-
 	kc := KubehoundConfig{}
 	if err := viper.Unmarshal(&kc); err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
@@ -180,14 +204,20 @@ func IsCI() bool {
 }
 
 // ComputeDynamic sets the dynamic components of the config from the provided options.
-func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) {
+func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) error {
 	kc.Dynamic.mu.Lock()
 	defer kc.Dynamic.mu.Unlock()
 
 	kc.Dynamic.RunID = NewRunID()
 	kc.Dynamic.Cluster = DefaultClusterName
 
-	for _, opt := range opts {
+	for _, option := range opts {
+		opt, err := option()
+		if err != nil {
+			return err
+		}
 		opt(&kc.Dynamic)
 	}
+
+	return nil
 }

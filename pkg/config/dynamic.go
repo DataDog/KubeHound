@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -12,11 +13,37 @@ type DynamicConfig struct {
 }
 
 // DynamicOption is a functional option for configuring the dynamic config.
-type DynamicOption func(c *DynamicConfig)
+type DynamicOption func() (func(*DynamicConfig), error)
+
+// Wrapper around the dynamic config to provide error feedback
+func success(opt func(*DynamicConfig)) DynamicOption {
+	return func() (func(*DynamicConfig), error) {
+		return opt, nil
+	}
+}
+
+// Wrapper around the dynamic config to provide error feedback
+func failure(err error) DynamicOption {
+	return func() (func(*DynamicConfig), error) {
+		return nil, err
+	}
+}
+
+// WithRunID is a functional option for configuring the runID (using in KHaaS).
+func WithRunID(runID string) DynamicOption {
+	val, err := LoadRunID(runID)
+	if err != nil {
+		return failure(fmt.Errorf("loading run id: %w", err))
+	}
+
+	return success(func(c *DynamicConfig) {
+		c.RunID = val
+	})
+}
 
 // WithClusterName is a functional option for configuring the cluster name.
 func WithClusterName(cluster string) DynamicOption {
-	return func(c *DynamicConfig) {
+	return success(func(c *DynamicConfig) {
 		c.Cluster = cluster
-	}
+	})
 }

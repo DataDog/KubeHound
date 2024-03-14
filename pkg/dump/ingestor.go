@@ -24,7 +24,7 @@ var _ collector.GenericIngestor = (*DumpIngestor)(nil)
 
 type DumpIngestor struct {
 	directoryOutput string
-	ResName         string
+	ResultName      string
 	collector       collector.CollectorClient
 	writer          writer.DumperWriter
 	ClusterName     string
@@ -35,8 +35,13 @@ const (
 	OfflineDumpPrefix     = "kubehound_"
 )
 
-// ./<clusterName>/kubehound_<clusterName>_<date>
-func dumpIngestorResName(clusterName string) string {
+// ./<clusterName>/kubehound_<clusterName>_<run_id>
+func DumpIngestorResultName(clusterName string, runID string) string {
+	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, runID))
+}
+
+// TODO: Rmove this function after the code split
+func dumpIngestorResultName(clusterName string) string {
 	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
 }
 
@@ -47,9 +52,10 @@ func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, c
 		return nil, err
 	}
 
-	resName := dumpIngestorResName(clusterName)
+	// resultName := DumpIngestorResName(clusterName, runID.String())
+	resultName := dumpIngestorResultName(clusterName)
 
-	dumpWriter, err := writer.DumperWriterFactory(ctx, compression, directoryOutput, resName)
+	dumpWriter, err := writer.DumperWriterFactory(ctx, compression, directoryOutput, resultName)
 	if err != nil {
 		return nil, fmt.Errorf("create collector writer: %w", err)
 	}
@@ -57,9 +63,8 @@ func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, c
 	return &DumpIngestor{
 		directoryOutput: directoryOutput,
 		collector:       collector,
-		ClusterName:     clusterName,
 		writer:          dumpWriter,
-		ResName:         resName,
+		ResultName:      resultName,
 	}, nil
 }
 

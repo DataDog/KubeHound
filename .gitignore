@@ -31,7 +31,9 @@ go.work
 bin/
 dist/
 
-cmd/kubehound
+cmd/kubehound/kubehound
+cmd/kubehound/__debug_bin
+cmd/kubehound-ingestor/kubehound-ingestor
 deployments/kubehound/data
 deployments/kubehound/data/*
 
