@@ -52,7 +52,7 @@ func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, c
 		return nil, err
 	}
 
-	//resName := DumpIngestorResName(clusterName, runID.String())
+	// resName := DumpIngestorResName(clusterName, runID.String())
 	resName := dumpIngestorResName(clusterName)
 
 	dumpWriter, err := writer.DumperWriterFactory(ctx, compression, directoryOutput, resName)

@@ -119,7 +119,10 @@ func Launch(ctx context.Context, opts ...LaunchOption) error {
 	if err != nil {
 		return fmt.Errorf("collector cluster info: %w", err)
 	}
-	cfg.ComputeDynamic(config.WithClusterName(cluster.Name))
+	err = cfg.ComputeDynamic(config.WithClusterName(cluster.Name))
+	if err != nil {
+		return fmt.Errorf("compute dynamic config: %w", err)
+	}
 
 	// Run the ingest pipeline
 	log.I.Info("Starting Kubernetes raw data ingest")

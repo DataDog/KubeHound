@@ -48,7 +48,7 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 
 	key := fmt.Sprintf("%s%s", dump.DumpIngestorResName(clusterName, runID), writer.TarWriterExtension)
 	log.I.Infof("Downloading archive (%s) from blob store", key)
-	//key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
+	// key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID strin
 
 	key := fmt.Sprintf("%s%s", dump.DumpIngestorResName(clusterName, runID), writer.TarWriterExtension)
 	log.I.Infof("Downloading archive (%s) from blob store", key)
-	//key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
+	// key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
 	if err != nil {
 		return "", err
