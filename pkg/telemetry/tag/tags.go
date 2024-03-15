@@ -39,11 +39,6 @@ const (
 	EntityClusterRolebindings = "clusterrolebindings"
 )
 
-// TODO: delete it once PR merged
-var (
-	BaseTags = []string{}
-)
-
 type BasesTags struct {
 	mu   sync.Mutex
 	tags []string

@@ -35,7 +35,7 @@ type k8sAPICollector struct {
 	log       *log.KubehoundLogger
 	rl        ratelimit.Limiter
 	cfg       *config.K8SAPICollectorConfig
-	tags      []string
+	tags      collectorTags
 	waitTime  map[string]time.Duration
 	startTime time.Time
 	mu        *sync.Mutex
@@ -92,8 +92,6 @@ func GetClusterName(ctx context.Context) (string, error) {
 
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	tags := tag.BaseTags
-	tags = append(tags, tag.Collector(K8sAPICollectorName))
 	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
 
 	err := checkK8sAPICollectorConfig(cfg.Collector.Type)
@@ -118,11 +116,16 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		clientset: clientset,
 		log:       l,
 		rl:        ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
-		tags:      tags,
+		tags:      *newCollectorTags(),
 		waitTime:  map[string]time.Duration{},
 		startTime: time.Now(),
 		mu:        &sync.Mutex{},
 	}, nil
+}
+
+// TODO: remove this after all PR
+func (c *k8sAPICollector) Tags(ctx context.Context) []string {
+	return nil
 }
 
 func (c *k8sAPICollector) wait(_ context.Context, resourceType string) {
@@ -135,7 +138,7 @@ func (c *k8sAPICollector) wait(_ context.Context, resourceType string) {
 	c.waitTime[resourceType] += waitTime
 
 	entity := tag.Entity(resourceType)
-	err := statsd.Gauge(metric.CollectorWait, float64(c.waitTime[resourceType]), append(c.tags, entity), 1)
+	err := statsd.Gauge(metric.CollectorWait, float64(c.waitTime[resourceType]), append(c.tags.baseTags, entity), 1)
 	if err != nil {
 		log.I.Error(err)
 	}
@@ -170,10 +173,6 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (c *k8sAPICollector) Tags(ctx context.Context) []string {
-	return c.tags
-}
-
 func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
 	return newClusterInfo(ctx)
 }
@@ -187,19 +186,19 @@ func (c *k8sAPICollector) computeMetrics(_ context.Context) error {
 	}
 
 	runDuration := time.Since(c.startTime)
-	err := statsd.Gauge(metric.CollectorRunWait, float64(runTotalWaitTime), c.tags, 1)
+	err := statsd.Gauge(metric.CollectorRunWait, float64(runTotalWaitTime), c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
 		log.I.Error(err)
 	}
-	err = statsd.Gauge(metric.CollectorRunDuration, float64(runDuration), c.tags, 1)
+	err = statsd.Gauge(metric.CollectorRunDuration, float64(runDuration), c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
 		log.I.Error(err)
 	}
 
 	runThrottlingPercentage := 1 - (float64(runDuration-runTotalWaitTime) / float64(runDuration))
-	err = statsd.Gauge(metric.CollectorRunThrottling, runThrottlingPercentage, c.tags, 1)
+	err = statsd.Gauge(metric.CollectorRunThrottling, runThrottlingPercentage, c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
 		log.I.Error(err)
@@ -260,7 +259,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.pod, 1)
 		c.wait(ctx, entity)
 		item, ok := obj.(*corev1.Pod)
 		if !ok {
@@ -314,7 +313,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.role, 1)
 		c.wait(ctx, entity)
 		item, ok := obj.(*rbacv1.Role)
 		if !ok {
@@ -368,7 +367,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.rolebinding, 1)
 		c.wait(ctx, entity)
 		item, ok := obj.(*rbacv1.RoleBinding)
 		if !ok {
@@ -422,7 +421,7 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 	c.setPagerConfig(pager)
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.endpoint, 1)
 		c.wait(ctx, entity)
 		item, ok := obj.(*discoveryv1.EndpointSlice)
 		if !ok {
@@ -474,7 +473,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.node, 1)
 		c.wait(ctx, entity)
 		item, ok := obj.(*corev1.Node)
 		if !ok {
@@ -516,7 +515,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrole, 1)
 		c.wait(ctx, entity)
 		item, ok := obj.(*rbacv1.ClusterRole)
 		if !ok {
@@ -558,7 +557,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	c.setPagerConfig(pager)
 
 	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrolebinding, 1)
 		c.wait(ctx, entity)
 		item, ok := obj.(*rbacv1.ClusterRoleBinding)
 		if !ok {

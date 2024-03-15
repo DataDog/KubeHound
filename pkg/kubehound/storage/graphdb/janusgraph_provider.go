@@ -47,7 +47,7 @@ func NewGraphDriver(ctx context.Context, cfg *config.KubehoundConfig) (*JanusGra
 	jgp := &JanusGraphProvider{
 		cfg:  cfg,
 		drc:  driver,
-		tags: append(tag.BaseTags, tag.Storage(StorageProviderName)),
+		tags: tag.GetBaseTagsWith(tag.Storage(StorageProviderName)),
 	}
 
 	return jgp, nil
