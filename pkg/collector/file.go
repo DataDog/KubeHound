@@ -62,8 +62,6 @@ type FileCollector struct {
 
 // NewFileCollector creates a new instance of the file collector from the provided application config.
 func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	tags := tag.BaseTags
-	tags = append(tags, tag.Collector(FileCollectorName))
 	if cfg.Collector.Type != config.CollectorTypeFile {
 		return nil, fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
 	}
