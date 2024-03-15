@@ -2,14 +2,12 @@ package writer
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 const (
-	WriterDirChmod = 0700
+	WriterDirMod = 0700
 )
 
 // The DumperWriter handle multiple types of writer (file, tar, ...)
@@ -18,7 +16,7 @@ const (
 //
 //go:generate mockery --name DumperWriter --output mockwriter --case underscore --filename writer.go --with-expecter
 type DumperWriter interface {
-	Write(context.Context, any, string) error
+	Write(context.Context, []byte, string) error
 	Flush(context.Context) error
 	Close(context.Context) error
 
@@ -38,13 +36,4 @@ func DumperWriterFactory(ctx context.Context, compression bool, directoryPath st
 	}
 
 	return NewFileWriter(ctx, directoryPath, resultName)
-}
-
-func marshalK8sObj(obj interface{}) ([]byte, error) {
-	jsonData, err := json.Marshal(obj)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal Kubernetes object: %w", err)
-	}
-
-	return jsonData, nil
 }

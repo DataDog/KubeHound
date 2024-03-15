@@ -2,11 +2,9 @@ package writer
 
 import (
 	"archive/tar"
-	"bufio"
 	"compress/gzip"
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -38,8 +36,8 @@ type TarWriter struct {
 	gzipWriter *gzip.Writer
 	tarWriter  *tar.Writer
 	tarPath    string
-	fs         *afero.MemMapFs
 	mu         sync.Mutex
+	fsWriter   *FSWriter
 }
 
 func NewTarWriter(ctx context.Context, directoryPath string, resName string) (*TarWriter, error) {
@@ -50,19 +48,24 @@ func NewTarWriter(ctx context.Context, directoryPath string, resName string) (*T
 	}
 	gzipWriter := gzip.NewWriter(tarFile)
 
+	fsWriter, err := NewFSWriter(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("creating fs writer: %w", err)
+	}
+
 	return &TarWriter{
 		tarPath:    tarPath,
 		gzipWriter: gzipWriter,
 		tarWriter:  tar.NewWriter(gzipWriter),
 		tarFile:    tarFile,
-		fs:         &afero.MemMapFs{},
+		fsWriter:   fsWriter,
 		mu:         sync.Mutex{},
 	}, nil
 }
 
 func createTarFile(tarPath string) (*os.File, error) {
 	log.I.Debugf("Creating tar file %s", tarPath)
-	err := os.MkdirAll(filepath.Dir(tarPath), WriterDirChmod)
+	err := os.MkdirAll(filepath.Dir(tarPath), WriterDirMod)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create directories: %w", err)
 	}
@@ -80,37 +83,16 @@ func (f *TarWriter) WorkerNumber() int {
 
 // Write function writes the Kubernetes object to a buffer
 // All buffer are stored in a map which is flushed at the end of every type processed
-func (t *TarWriter) Write(ctx context.Context, k8sObj any, filePath string) error {
+func (t *TarWriter) Write(ctx context.Context, k8sObj []byte, filePath string) error {
 	log.I.Debugf("Writing to file %s", filePath)
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	data, err := marshalK8sObj(k8sObj)
+	// Writing file to Afero memfs
+	fmt.Printf("filePath: %s\n", filePath)
+	err := t.fsWriter.WriteFile(ctx, filePath, k8sObj)
 	if err != nil {
-		return err
-	}
-
-	// Create directories if they do not exist
-	err = t.fs.MkdirAll(filepath.Dir(filePath), WriterDirChmod)
-	if err != nil {
-		return fmt.Errorf("failed to create directories: %w", err)
-	}
-
-	file, err := t.fs.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, FileWriterChmod)
-	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
-	}
-	// t.files[pathObj] = &file
-	buffer := bufio.NewWriter(file)
-
-	_, err = buffer.Write(data)
-	if err != nil {
-		return fmt.Errorf("failed to write JSON data to buffer: %w", err)
-	}
-
-	err = buffer.Flush()
-	if err != nil {
-		return fmt.Errorf("failed to flush writer: %w", err)
+		return fmt.Errorf("write file %s: %w", filePath, err)
 	}
 
 	return nil
@@ -119,43 +101,24 @@ func (t *TarWriter) Write(ctx context.Context, k8sObj any, filePath string) erro
 // Flush function flushes all kubernetes object from the buffers to the tar file
 func (t *TarWriter) Flush(ctx context.Context) error {
 	log.I.Debug("Flushing writers")
+	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterFlush, tracer.Measured())
+	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
+
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	// Walking the memfs and copying all the files to the tar
-	err := afero.Walk(t.fs, "", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+	fs := afero.NewIOFS(t.fsWriter.vfs)
 
-		if info.IsDir() {
-			return nil
-		}
-		file, err := t.fs.Open(path)
-		if err != nil {
-			return fmt.Errorf("open file %s from fs: %w", path, err)
-		}
-		fileInfo, err := t.fs.Stat(path)
-		if err != nil {
-			return fmt.Errorf("stat file %s from fs: %w", path, err)
-		}
-		tarHader, err := tar.FileInfoHeader(fileInfo, "")
-		if err != nil {
-			return fmt.Errorf("create tar header for file %s: %w", path, err)
-		}
-		tarHader.Name = path
-		if err := t.tarWriter.WriteHeader(tarHader); err != nil {
-			return fmt.Errorf("write tar header for file %s: %w", path, err)
-		}
-		if _, err := io.Copy(t.tarWriter, file); err != nil {
-			return fmt.Errorf("copy file %s to tar: %w", path, err)
-		}
-
-		return nil
-	})
-
+	err = t.tarWriter.AddFS(fs)
 	if err != nil {
-		return fmt.Errorf("walk fs: %w", err)
+		return fmt.Errorf("add fs to tar: %w", err)
+	}
+
+	err = t.tarWriter.Flush()
+	if err != nil {
+		return fmt.Errorf("flush tar: %w", err)
 	}
 
 	return nil

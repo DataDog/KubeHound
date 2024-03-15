@@ -188,11 +188,11 @@ func (_c *DumperWriter_WorkerNumber_Call) RunAndReturn(run func() int) *DumperWr
 }
 
 // Write provides a mock function with given fields: _a0, _a1, _a2
-func (_m *DumperWriter) Write(_a0 context.Context, _a1 interface{}, _a2 string) error {
+func (_m *DumperWriter) Write(_a0 context.Context, _a1 []byte, _a2 string) error {
 	ret := _m.Called(_a0, _a1, _a2)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, interface{}, string) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []byte, string) error); ok {
 		r0 = rf(_a0, _a1, _a2)
 	} else {
 		r0 = ret.Error(0)
@@ -208,15 +208,15 @@ type DumperWriter_Write_Call struct {
 
 // Write is a helper method to define mock.On call
 //   - _a0 context.Context
-//   - _a1 interface{}
+//   - _a1 []byte
 //   - _a2 string
 func (_e *DumperWriter_Expecter) Write(_a0 interface{}, _a1 interface{}, _a2 interface{}) *DumperWriter_Write_Call {
 	return &DumperWriter_Write_Call{Call: _e.mock.On("Write", _a0, _a1, _a2)}
 }
 
-func (_c *DumperWriter_Write_Call) Run(run func(_a0 context.Context, _a1 interface{}, _a2 string)) *DumperWriter_Write_Call {
+func (_c *DumperWriter_Write_Call) Run(run func(_a0 context.Context, _a1 []byte, _a2 string)) *DumperWriter_Write_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(interface{}), args[2].(string))
+		run(args[0].(context.Context), args[1].([]byte), args[2].(string))
 	})
 	return _c
 }
@@ -226,7 +226,7 @@ func (_c *DumperWriter_Write_Call) Return(_a0 error) *DumperWriter_Write_Call {
 	return _c
 }
 
-func (_c *DumperWriter_Write_Call) RunAndReturn(run func(context.Context, interface{}, string) error) *DumperWriter_Write_Call {
+func (_c *DumperWriter_Write_Call) RunAndReturn(run func(context.Context, []byte, string) error) *DumperWriter_Write_Call {
 	_c.Call.Return(run)
 	return _c
 }
