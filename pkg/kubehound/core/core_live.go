@@ -22,7 +22,8 @@ import (
 // Launch will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func Launch(ctx context.Context, opts ...LaunchOption) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.Launch, tracer.Measured())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	// We define a unique run id this so we can measure run by run in addition of version per version.
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...

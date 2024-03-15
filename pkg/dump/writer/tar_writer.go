@@ -113,11 +113,11 @@ func (t *TarWriter) Flush(ctx context.Context) error {
 // Close all the handler used to write the tar file
 // Need to be closed only when all assets are dumped
 func (t *TarWriter) Close(ctx context.Context) error {
-	var err error
 	log.I.Debug("Closing handlers for tar")
 	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterClose, tracer.Measured())
 	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 	err = t.tarWriter.Close()
 	if err != nil {
 		return err
