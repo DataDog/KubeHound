@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
@@ -56,8 +55,7 @@ const (
 type FileCollector struct {
 	cfg  *config.FileCollectorConfig
 	log  *log.KubehoundLogger
-	tags []string
-	mu   sync.Mutex
+	tags *collectorTags
 }
 
 // NewFileCollector creates a new instance of the file collector from the provided application config.
@@ -76,8 +74,7 @@ func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (Collect
 	return &FileCollector{
 		cfg:  cfg.Collector.File,
 		log:  l,
-		tags: tag.GetBaseTagsWith(tag.Collector(FileCollectorName)),
-		mu:   sync.Mutex{},
+		tags: newCollectorTags(),
 	}, nil
 }
 
@@ -108,19 +105,9 @@ func (c *FileCollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
 	}, nil
 }
 
-func (c *FileCollector) Tags(ctx context.Context) []string {
-	return c.tags
-}
-
 func (c *FileCollector) Close(_ context.Context) error {
 	// NOP for this implementation
 	return nil
-}
-
-func (c *FileCollector) count(entity string) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
 }
 
 // streamPodsNamespace streams the pod objects in a single file, corresponding to a cluster namespace.
@@ -131,7 +118,7 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 	}
 
 	for _, item := range list.Items {
-		c.count(tag.EntityPods)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.pod, 1)
 		i := item
 		err = ingestor.IngestPod(ctx, &i)
 		if err != nil {
@@ -174,7 +161,7 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 	}
 
 	for _, item := range list.Items {
-		c.count(tag.EntityRoles)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.role, 1)
 		i := item
 		err = ingestor.IngestRole(ctx, &i)
 		if err != nil {
@@ -217,7 +204,7 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 	}
 
 	for _, item := range list.Items {
-		c.count(tag.EntityRolebindings)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.rolebinding, 1)
 		i := item
 		err = ingestor.IngestRoleBinding(ctx, &i)
 		if err != nil {
@@ -260,7 +247,7 @@ func (c *FileCollector) streamEndpointsNamespace(ctx context.Context, fp string,
 	}
 
 	for _, item := range list.Items {
-		c.count(tag.EntityEndpoints)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.endpoint, 1)
 		i := item
 		err = ingestor.IngestEndpoint(ctx, &i)
 		if err != nil {
@@ -309,7 +296,7 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 	}
 
 	for _, item := range list.Items {
-		c.count(tag.EntityNodes)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.node, 1)
 		i := item
 		err = ingestor.IngestNode(ctx, &i)
 		if err != nil {
@@ -334,7 +321,7 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 	}
 
 	for _, item := range list.Items {
-		c.count(tag.EntityClusterRoles)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrole, 1)
 		i := item
 		err = ingestor.IngestClusterRole(ctx, &i)
 		if err != nil {
@@ -359,7 +346,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityClusterRolebindings)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrolebinding, 1)
 		i := item
 		err = ingestor.IngestClusterRoleBinding(ctx, &i)
 		if err != nil {

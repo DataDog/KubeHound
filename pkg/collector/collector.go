@@ -7,6 +7,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 )
 
 // ClusterInfo encapsulates the target cluster information for the current run.
@@ -88,9 +89,6 @@ type CollectorClient interface { //nolint: interfacebloat
 	// ClusterInfo returns the target cluster information for the current run.
 	ClusterInfo(ctx context.Context) (*ClusterInfo, error)
 
-	// Tags return the tags for the current run.
-	Tags(ctx context.Context) []string
-
 	// StreamNodes will iterate through all NodeType objects collected by the collector and invoke the ingestor.IngestNode method on each.
 	// Once all the NodeType objects have been exhausted the ingestor.Complete method will be invoked to signal the end of the stream.
 	StreamNodes(ctx context.Context, ingestor NodeIngestor) error
@@ -132,5 +130,29 @@ func ClientFactory(ctx context.Context, cfg *config.KubehoundConfig) (CollectorC
 		return NewFileCollector(ctx, cfg)
 	default:
 		return nil, fmt.Errorf("collector type not supported: %s", cfg.Collector.Type)
+	}
+}
+
+type collectorTags struct {
+	pod                []string
+	role               []string
+	rolebinding        []string
+	endpoint           []string
+	node               []string
+	clusterrole        []string
+	clusterrolebinding []string
+	baseTags           []string
+}
+
+func newCollectorTags() *collectorTags {
+	return &collectorTags{
+		pod:                tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityPods)),
+		role:               tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityRoles)),
+		rolebinding:        tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityRolebindings)),
+		endpoint:           tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityEndpoints)),
+		node:               tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityNodes)),
+		clusterrole:        tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityClusterRoles)),
+		clusterrolebinding: tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityClusterRolebindings)),
+		baseTags:           tag.GetBaseTags(),
 	}
 }
