@@ -2,16 +2,20 @@ package writer
 
 import (
 	"archive/tar"
+	"bufio"
 	"compress/gzip"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+	"github.com/spf13/afero"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -20,9 +24,11 @@ const (
 	TarWriterChmod     = 0600
 	TarTypeTag         = "tar"
 
-	// 1 means 1 thread (tar/gzip are not multi-threaded)
-	// Using single thread when zipping to avoid concurency issues
-	TarWorkerNumber = 1
+	// Multi-threading the dump with one worker for each types
+	// The number of workers is set to the number of differents entities (roles, pods, ...)
+	// 1 thread per k8s object type to pull from the Kubernetes API
+	// 0 means as many thread as k8s entity types (calculated by the dumper_pipeline)
+	TarWorkerNumber = 0
 )
 
 // TarWriter keeps track of all handlers used to create the tar file
@@ -31,8 +37,9 @@ type TarWriter struct {
 	tarFile    *os.File
 	gzipWriter *gzip.Writer
 	tarWriter  *tar.Writer
-	buffers    map[string]*[]byte
 	tarPath    string
+	fs         *afero.MemMapFs
+	mu         sync.Mutex
 }
 
 func NewTarWriter(ctx context.Context, directoryPath string, resName string) (*TarWriter, error) {
@@ -47,8 +54,9 @@ func NewTarWriter(ctx context.Context, directoryPath string, resName string) (*T
 		tarPath:    tarPath,
 		gzipWriter: gzipWriter,
 		tarWriter:  tar.NewWriter(gzipWriter),
-		buffers:    make(map[string]*[]byte),
 		tarFile:    tarFile,
+		fs:         &afero.MemMapFs{},
+		mu:         sync.Mutex{},
 	}, nil
 }
 
@@ -72,13 +80,37 @@ func (f *TarWriter) WorkerNumber() int {
 
 // Write function writes the Kubernetes object to a buffer
 // All buffer are stored in a map which is flushed at the end of every type processed
-func (t *TarWriter) Write(ctx context.Context, object []byte, filePath string) error {
-	buf, ok := t.buffers[filePath]
-	if ok {
-		*buf = append(*buf, object...)
-	} else {
-		buf = &object
-		t.buffers[filePath] = buf
+func (t *TarWriter) Write(ctx context.Context, k8sObj any, filePath string) error {
+	log.I.Debugf("Writing to file %s", filePath)
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	data, err := marshalK8sObj(k8sObj)
+	if err != nil {
+		return err
+	}
+
+	// Create directories if they do not exist
+	err = t.fs.MkdirAll(filepath.Dir(filePath), WriterDirChmod)
+	if err != nil {
+		return fmt.Errorf("failed to create directories: %w", err)
+	}
+
+	file, err := t.fs.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, FileWriterChmod)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %w", err)
+	}
+	// t.files[pathObj] = &file
+	buffer := bufio.NewWriter(file)
+
+	_, err = buffer.Write(data)
+	if err != nil {
+		return fmt.Errorf("failed to write JSON data to buffer: %w", err)
+	}
+
+	err = buffer.Flush()
+	if err != nil {
+		return fmt.Errorf("failed to flush writer: %w", err)
 	}
 
 	return nil
@@ -87,24 +119,43 @@ func (t *TarWriter) Write(ctx context.Context, object []byte, filePath string) e
 // Flush function flushes all kubernetes object from the buffers to the tar file
 func (t *TarWriter) Flush(ctx context.Context) error {
 	log.I.Debug("Flushing writers")
-	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterFlush, tracer.Measured())
-	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
-	defer span.Finish()
-	for path, data := range t.buffers {
-		header := &tar.Header{
-			Name: path,
-			Mode: TarWriterChmod,
-			Size: int64(len(*data)),
-		}
+	t.mu.Lock()
+	defer t.mu.Unlock()
 
-		if err := t.tarWriter.WriteHeader(header); err != nil {
+	// Walking the memfs and copying all the files to the tar
+	err := afero.Walk(t.fs, "", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
 			return err
 		}
 
-		if _, err := t.tarWriter.Write(*data); err != nil {
-			return err
+		if info.IsDir() {
+			return nil
 		}
-		delete(t.buffers, path)
+		file, err := t.fs.Open(path)
+		if err != nil {
+			return fmt.Errorf("open file %s from fs: %w", path, err)
+		}
+		fileInfo, err := t.fs.Stat(path)
+		if err != nil {
+			return fmt.Errorf("stat file %s from fs: %w", path, err)
+		}
+		tarHader, err := tar.FileInfoHeader(fileInfo, "")
+		if err != nil {
+			return fmt.Errorf("create tar header for file %s: %w", path, err)
+		}
+		tarHader.Name = path
+		if err := t.tarWriter.WriteHeader(tarHader); err != nil {
+			return fmt.Errorf("write tar header for file %s: %w", path, err)
+		}
+		if _, err := io.Copy(t.tarWriter, file); err != nil {
+			return fmt.Errorf("copy file %s to tar: %w", path, err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("walk fs: %w", err)
 	}
 
 	return nil
