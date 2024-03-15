@@ -59,4 +59,13 @@ func TestFSWriter_WriteFile(t *testing.T) {
 	if !reflect.DeepEqual(processedDummyK8sObject, dummyK8sObject) {
 		t.Fatalf("expected %v, got %v", processedDummyK8sObject, readK8sObject)
 	}
+
+	err = writer.Flush(ctx)
+	if err != nil {
+		t.Fatalf("failed to flush: %v", err)
+	}
+	err = writer.Close(ctx)
+	if err != nil {
+		t.Fatalf("failed to close: %v", err)
+	}
 }

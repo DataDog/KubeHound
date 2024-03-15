@@ -72,4 +72,13 @@ func TestFileWriter_Write(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to remove file: %v", err)
 	}
+
+	err = writer.Flush(ctx)
+	if err != nil {
+		t.Fatalf("failed to flush: %v", err)
+	}
+	err = writer.Close(ctx)
+	if err != nil {
+		t.Fatalf("failed to close: %v", err)
+	}
 }
