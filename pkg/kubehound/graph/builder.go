@@ -57,7 +57,8 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, oic *converter.ObjectIDConverter, l *log.KubehoundLogger) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildEdge, tracer.Measured(), tracer.ResourceName(e.Label()))
 	span.SetTag(tag.LabelTag, e.Label())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	l.Infof("Building edge %s", label)
 
@@ -221,8 +222,8 @@ func BuildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb stored
 	graphdb graphdb.Provider, cache cache.CacheReader) error {
 
 	start := time.Now()
-	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildGraph, tracer.Measured())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	log.I.Info("Loading graph edge definitions")
 	edges := edge.Registered()

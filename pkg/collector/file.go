@@ -137,7 +137,8 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityPods)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
@@ -180,7 +181,8 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityRoles)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
@@ -223,7 +225,8 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityRolebindings)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
@@ -266,7 +269,8 @@ func (c *FileCollector) streamEndpointsNamespace(ctx context.Context, fp string,
 func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
@@ -290,7 +294,8 @@ func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIn
 func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityNodes)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	fp := filepath.Join(c.cfg.Directory, NodePath)
 	c.log.Debugf("Streaming nodes from file %s", fp)
@@ -315,7 +320,8 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityClusterRoles)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	fp := filepath.Join(c.cfg.Directory, ClusterRolesPath)
 	c.log.Debugf("Streaming cluster roles from file %s", fp)
@@ -340,7 +346,8 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityClusterRolebindings)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	fp := filepath.Join(c.cfg.Directory, ClusterRoleBindingsPath)
 	c.log.Debugf("Streaming cluster role bindings from file %s", fp)
@@ -366,7 +373,8 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 // NOTE: This implementation reads the entire array of objects from the file into memory at once.
 func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, span.DumperReadFile, tracer.Measured())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	var inputList Tl
 	bytes, err := os.ReadFile(inputPath)

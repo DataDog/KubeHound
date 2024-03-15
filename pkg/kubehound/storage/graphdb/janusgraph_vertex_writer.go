@@ -126,7 +126,8 @@ func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []any) e
 	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphBatchWrite,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
 	span.SetTag(tag.LabelTag, jgv.builder)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 	defer jgv.writingInFlight.Done()
 
 	datalen := len(data)
@@ -164,7 +165,8 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphFlush,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
 	span.SetTag(tag.LabelTag, jgv.builder)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	jgv.mu.Lock()
 	defer jgv.mu.Unlock()

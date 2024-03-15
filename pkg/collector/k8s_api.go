@@ -279,7 +279,8 @@ func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) 
 	entity := tag.EntityPods
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, entity)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	// passing an empty namespace will collect all namespaces
 	err := c.streamPodsNamespace(ctx, "", ingestor)
@@ -333,7 +334,8 @@ func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor
 	entity := tag.EntityRoles
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, entity)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	// passing an empty namespace will collect all namespaces
 	err := c.streamRolesNamespace(ctx, "", ingestor)
@@ -387,7 +389,8 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 	entity := tag.EntityRolebindings
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, entity)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	// passing an empty namespace will collect all namespaces
 	err := c.streamRoleBindingsNamespace(ctx, "", ingestor)
@@ -441,7 +444,8 @@ func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor Endpoint
 	entity := tag.EntityEndpoints
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	// passing an empty namespace will collect all namespaces
 	err := c.streamEndpointsNamespace(ctx, "", ingestor)
@@ -458,7 +462,8 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 	entity := tag.EntityNodes
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, entity)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	opts := tunedListOptions()
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
@@ -500,7 +505,8 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 	entity := tag.EntityClusterRoles
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, entity)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	opts := tunedListOptions()
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
@@ -542,7 +548,8 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 	entity := tag.EntityClusterRolebindings
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, entity)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	opts := tunedListOptions()
 	pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {

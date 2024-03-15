@@ -87,7 +87,8 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteModel) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.MongoDBBatchWrite, tracer.Measured())
 	span.SetTag(tag.CollectionTag, maw.collection.Name())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 	defer maw.writingInFlight.Done()
 
 	_ = statsd.Count(metric.ObjectWrite, int64(len(ops)), maw.tags, 1)
@@ -127,7 +128,8 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.MongoDBFlush, tracer.Measured())
 	span.SetTag(tag.CollectionTag, maw.collection.Name())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	if maw.dbWriter == nil {
 		return fmt.Errorf("mongodb client is not initialized")
