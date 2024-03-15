@@ -120,8 +120,7 @@ func (c *FileCollector) Close(_ context.Context) error {
 func (c *FileCollector) count(entity string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.tags = append(c.tags, tag.Entity(entity))
-	_ = statsd.Incr(metric.CollectorCount, c.tags, 1)
+	_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(entity)), 1)
 }
 
 // streamPodsNamespace streams the pod objects in a single file, corresponding to a cluster namespace.
