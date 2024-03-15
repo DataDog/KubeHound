@@ -89,7 +89,6 @@ func (t *TarWriter) Write(ctx context.Context, k8sObj []byte, filePath string) e
 	defer t.mu.Unlock()
 
 	// Writing file to Afero memfs
-	fmt.Printf("filePath: %s\n", filePath)
 	err := t.fsWriter.WriteFile(ctx, filePath, k8sObj)
 	if err != nil {
 		return fmt.Errorf("write file %s: %w", filePath, err)
