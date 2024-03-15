@@ -14,6 +14,10 @@ import (
 	discoveryv1 "k8s.io/api/discovery/v1"
 )
 
+const (
+	dummyNamespace = "namespace1"
+)
+
 func TestFileWriter_Write(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
@@ -24,7 +28,6 @@ func TestFileWriter_Write(t *testing.T) {
 	}
 
 	fileNameK8sObject := collector.EndpointPath
-	dummyNamespace := "namespace1"
 	dummyK8sObject := []*discoveryv1.EndpointSlice{
 		collector.FakeEndpoint("name1", dummyNamespace, []int32{int32(80)}),
 		collector.FakeEndpoint("name2", dummyNamespace, []int32{int32(443)}),
