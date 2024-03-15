@@ -48,23 +48,6 @@ func (f *FSWriter) WriteFile(ctx context.Context, pathObj string, k8sObj []byte)
 		return fmt.Errorf("failed to write JSON data to file: %w", err)
 	}
 
-	// file, err := f.vfs.OpenFile(pathObj, os.O_APPEND|os.O_WRONLY|os.O_CREATE, FileWriterChmod)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to open file: %w", err)
-	// }
-	// defer file.Close()
-
-	// buffer := bufio.NewWriter(file)
-	// _, err = buffer.Write(k8sObj)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to write JSON data to buffer: %w", err)
-	// }
-
-	// err = buffer.Flush()
-	// if err != nil {
-	// 	return fmt.Errorf("failed to flush writer: %w", err)
-	// }
-
 	return nil
 }
 
