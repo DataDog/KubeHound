@@ -123,6 +123,11 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	}, nil
 }
 
+// TODO: remove this after all PR
+func (c *k8sAPICollector) Tags(ctx context.Context) []string {
+	return nil
+}
+
 func (c *k8sAPICollector) wait(_ context.Context, resourceType string) {
 	prev := time.Now()
 	now := c.rl.Take()

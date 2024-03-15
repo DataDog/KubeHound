@@ -78,6 +78,11 @@ func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (Collect
 	}, nil
 }
 
+// TODO: remove this after all PR
+func (c *FileCollector) Tags(ctx context.Context) []string {
+	return nil
+}
+
 func (c *FileCollector) Name() string {
 	return FileCollectorName
 }
