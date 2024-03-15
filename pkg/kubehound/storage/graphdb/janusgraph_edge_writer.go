@@ -110,7 +110,7 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 
 	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()
-	err := <-promise
+	err = <-promise
 	if err != nil {
 		return fmt.Errorf("%s edge insert: %w", jgv.builder, err)
 	}
@@ -144,7 +144,7 @@ func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 		_ = statsd.Incr(metric.FlushWriterCall, jgv.tags, 1)
 
 		jgv.writingInFlight.Add(1)
-		err := jgv.batchWrite(ctx, jgv.inserts)
+		err = jgv.batchWrite(ctx, jgv.inserts)
 		if err != nil {
 			log.Trace(ctx).Errorf("batch write %s: %+v", jgv.builder, err)
 			jgv.writingInFlight.Wait()

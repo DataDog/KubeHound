@@ -94,7 +94,7 @@ func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteMo
 	_ = statsd.Count(metric.ObjectWrite, int64(len(ops)), maw.tags, 1)
 
 	bulkWriteOpts := options.BulkWrite().SetOrdered(false)
-	_, err := maw.dbWriter.BulkWrite(ctx, ops, bulkWriteOpts)
+	_, err = maw.dbWriter.BulkWrite(ctx, ops, bulkWriteOpts)
 	if err != nil {
 		return fmt.Errorf("could not write in bulk to mongo: %w", err)
 	}
@@ -144,7 +144,7 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 
 	if len(maw.ops) != 0 {
 		maw.writingInFlight.Add(1)
-		err := maw.batchWrite(ctx, maw.ops)
+		err = maw.batchWrite(ctx, maw.ops)
 		if err != nil {
 			log.Trace(ctx).Errorf("batch write %s: %+v", maw.collection.Name(), err)
 			maw.writingInFlight.Wait()

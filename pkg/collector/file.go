@@ -140,7 +140,7 @@ func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) er
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil
@@ -184,7 +184,7 @@ func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) 
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil
@@ -228,7 +228,7 @@ func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBin
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil
@@ -272,7 +272,7 @@ func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIn
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil

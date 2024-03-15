@@ -283,7 +283,7 @@ func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) 
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	// passing an empty namespace will collect all namespaces
-	err := c.streamPodsNamespace(ctx, "", ingestor)
+	err = c.streamPodsNamespace(ctx, "", ingestor)
 	if err != nil {
 		return err
 	}
@@ -338,7 +338,7 @@ func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	// passing an empty namespace will collect all namespaces
-	err := c.streamRolesNamespace(ctx, "", ingestor)
+	err = c.streamRolesNamespace(ctx, "", ingestor)
 	if err != nil {
 		return err
 	}
@@ -393,7 +393,7 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	// passing an empty namespace will collect all namespaces
-	err := c.streamRoleBindingsNamespace(ctx, "", ingestor)
+	err = c.streamRoleBindingsNamespace(ctx, "", ingestor)
 	if err != nil {
 		return err
 	}
@@ -448,7 +448,7 @@ func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor Endpoint
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	// passing an empty namespace will collect all namespaces
-	err := c.streamEndpointsNamespace(ctx, "", ingestor)
+	err = c.streamEndpointsNamespace(ctx, "", ingestor)
 	if err != nil {
 		return err
 	}
@@ -477,7 +477,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 
 	c.setPagerConfig(pager)
 
-	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
+	err = pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(metric.CollectorCount, c.tags.node, 1)
 		c.wait(ctx, entity)
 		item, ok := obj.(*corev1.Node)
@@ -520,7 +520,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 
 	c.setPagerConfig(pager)
 
-	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
+	err = pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrole, 1)
 		c.wait(ctx, entity)
 		item, ok := obj.(*rbacv1.ClusterRole)
@@ -563,7 +563,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 
 	c.setPagerConfig(pager)
 
-	err := pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
+	err = pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrolebinding, 1)
 		c.wait(ctx, entity)
 		item, ok := obj.(*rbacv1.ClusterRoleBinding)
