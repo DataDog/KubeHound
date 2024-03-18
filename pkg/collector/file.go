@@ -94,7 +94,7 @@ func (c *FileCollector) HealthCheck(_ context.Context) (bool, error) {
 	}
 
 	if !file.IsDir() {
-		return false, fmt.Errorf("file collector base path is not a directory")
+		return false, fmt.Errorf("file collector base path is not a directory: %s", file.Name())
 	}
 
 	if c.cfg.ClusterName == "" {
@@ -147,6 +147,13 @@ func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) er
 		}
 
 		fp := filepath.Join(path, PodPath)
+
+		// Check if the file exists
+		if _, err := os.Stat(fp); os.IsNotExist(err) {
+			// Skipping streaming as file does not exist (k8s type not necessarly required in a namespace, for instance, an namespace can have no pods)
+			return nil
+		}
+
 		c.log.Debugf("Streaming pods from file %s", fp)
 
 		return c.streamPodsNamespace(ctx, fp, ingestor)
@@ -191,6 +198,13 @@ func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) 
 		}
 
 		f := filepath.Join(path, RolesPath)
+
+		// Check if the file exists
+		if _, err := os.Stat(f); os.IsNotExist(err) {
+			// Skipping streaming as file does not exist (k8s type not necessarly required in a namespace, for instance, an namespace can have no roles)
+			return nil
+		}
+
 		c.log.Debugf("Streaming roles from file %s", f)
 
 		return c.streamRolesNamespace(ctx, f, ingestor)
@@ -235,6 +249,13 @@ func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBin
 		}
 
 		fp := filepath.Join(path, RoleBindingsPath)
+
+		// Check if the file exists
+		if _, err := os.Stat(fp); os.IsNotExist(err) {
+			// Skipping streaming as file does not exist (k8s type not necessarly required in a namespace, for instance, an namespace can have no rolebindings)
+			return nil
+		}
+
 		c.log.Debugf("Streaming role bindings from file %s", fp)
 
 		return c.streamRoleBindingsNamespace(ctx, fp, ingestor)
@@ -279,6 +300,13 @@ func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIn
 		}
 
 		fp := filepath.Join(path, EndpointPath)
+
+		// Check if the file exists
+		if _, err := os.Stat(fp); os.IsNotExist(err) {
+			// Skipping streaming as file does not exist (k8s type not necessarly required in a namespace, for instance, an namespace can have no endpoints)
+			return nil
+		}
+
 		c.log.Debugf("Streaming endpoint slices from file %s", fp)
 
 		return c.streamEndpointsNamespace(ctx, fp, ingestor)
@@ -388,7 +416,7 @@ func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl
 
 	err = json.Unmarshal(bytes, &inputList)
 	if err != nil {
-		return inputList, fmt.Errorf("unmarshalling %T json: %w", inputList, err)
+		return inputList, fmt.Errorf("unmarshalling %T in %s json: %w", inputList, inputPath, err)
 	}
 
 	return inputList, nil
