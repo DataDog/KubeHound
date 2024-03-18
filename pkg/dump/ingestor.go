@@ -9,12 +9,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/dump/writer"
-	"github.com/DataDog/KubeHound/pkg/globals/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
-	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
-	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
