@@ -77,18 +77,19 @@ func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
 	spanDump, ctx := tracer.StartSpanFromContext(ctx, span.CollectorDump, tracer.Measured())
 	defer spanDump.Finish()
 
-	//ctx, pipeline, err := pipeline.NewPipelineDumpIngestor(ctx, d.collector, d.writer)
+	// ctx, pipeline, err := pipeline.NewPipelineDumpIngestor(ctx, d.collector, d.writer)
 	if err != nil {
 		return fmt.Errorf("create pipeline ingestor: %w", err)
 	}
-	spanDump.SetTag(tag.DumperWorkerNumberTag, pipeline.WorkerNumber)
+	return nil
+	// spanDump.SetTag(tag.DumperWorkerNumberTag, pipeline.WorkerNumber)
 
-	err = pipeline.Run(ctx)
-	if err != nil {
-		return fmt.Errorf("run pipeline ingestor: %w", err)
-	}
+	// err = pipeline.Run(ctx)
+	// if err != nil {
+	// 	return fmt.Errorf("run pipeline ingestor: %w", err)
+	// }
 
-	return pipeline.Wait(ctx)
+	// return pipeline.Wait(ctx)
 }
 
 // Close() is invoked by the collector to close all handlers used to dump k8s objects.
