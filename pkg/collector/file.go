@@ -150,7 +150,7 @@ func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) er
 
 		// Check if the file exists
 		if _, err := os.Stat(fp); os.IsNotExist(err) {
-			// Skipping streaming as file does not exist (k8s type not necessarly required in a namespace, for instance, an namespace can have no pods)
+			// Skipping streaming as file does not exist (k8s type not necessary required in a namespace, for instance, an namespace can have no pods)
 			return nil
 		}
 
@@ -201,7 +201,7 @@ func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) 
 
 		// Check if the file exists
 		if _, err := os.Stat(f); os.IsNotExist(err) {
-			// Skipping streaming as file does not exist (k8s type not necessarly required in a namespace, for instance, an namespace can have no roles)
+			// Skipping streaming as file does not exist (k8s type not necessary required in a namespace, for instance, an namespace can have no roles)
 			return nil
 		}
 
@@ -252,7 +252,7 @@ func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBin
 
 		// Check if the file exists
 		if _, err := os.Stat(fp); os.IsNotExist(err) {
-			// Skipping streaming as file does not exist (k8s type not necessarly required in a namespace, for instance, an namespace can have no rolebindings)
+			// Skipping streaming as file does not exist (k8s type not necessary required in a namespace, for instance, an namespace can have no rolebindings)
 			return nil
 		}
 
@@ -303,7 +303,7 @@ func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIn
 
 		// Check if the file exists
 		if _, err := os.Stat(fp); os.IsNotExist(err) {
-			// Skipping streaming as file does not exist (k8s type not necessarly required in a namespace, for instance, an namespace can have no endpoints)
+			// Skipping streaming as file does not exist (k8s type not necessary required in a namespace, for instance, an namespace can have no endpoints)
 			return nil
 		}
 
