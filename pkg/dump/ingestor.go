@@ -2,7 +2,6 @@ package dump
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"path"
 
