@@ -10,7 +10,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/dump/writer"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
-	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -75,7 +74,8 @@ func (d *DumpIngestor) OutputPath() string {
 
 func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
 	spanDump, ctx := tracer.StartSpanFromContext(ctx, span.CollectorDump, tracer.Measured())
-	defer spanDump.Finish()
+	var err error
+	defer func() { spanDump.Finish(tracer.WithError(err)) }()
 
 	// ctx, pipeline, err := pipeline.NewPipelineDumpIngestor(ctx, d.collector, d.writer)
 	if err != nil {
