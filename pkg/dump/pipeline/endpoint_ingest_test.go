@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
@@ -37,8 +38,12 @@ func TestDumpIngestor_IngestEndpoint(t *testing.T) {
 			}
 		}
 
-		for path, endpoint := range buffer {
-			mDumpWriter.EXPECT().Write(ctx, endpoint, path).Return(nil).Once()
+		for path, endpointListNamespaced := range buffer {
+			rawBuffer, err := json.Marshal(endpointListNamespaced)
+			if err != nil {
+				t.Fatalf("failed to marshal Kubernetes object: %v", err)
+			}
+			mDumpWriter.EXPECT().Write(ctx, rawBuffer, path).Return(nil).Once()
 		}
 
 		return ingestor

@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
@@ -24,17 +25,21 @@ func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 	}
 
 	// ingesting n entries
-	nIngest := func(t *testing.T, clusterRole []*rbacv1.ClusterRole) *ClusterRoleIngestor {
+	nIngest := func(t *testing.T, clusterRoles []*rbacv1.ClusterRole) *ClusterRoleIngestor {
 		t.Helper()
 		mDumpWriter := mockwriter.NewDumperWriter(t)
 		ingestor := NewClusterRoleIngestor(ctx, mDumpWriter)
 
 		buffer := &rbacv1.ClusterRoleList{}
 
-		for _, clusterRole := range clusterRole {
+		for _, clusterRole := range clusterRoles {
 			buffer.Items = append(buffer.Items, *clusterRole)
 		}
-		mDumpWriter.EXPECT().Write(mock.Anything, buffer, collector.ClusterRolesPath).Return(nil).Once()
+		rawBuffer, err := json.Marshal(buffer)
+		if err != nil {
+			t.Fatalf("failed to marshal Kubernetes object: %v", err)
+		}
+		mDumpWriter.EXPECT().Write(mock.Anything, rawBuffer, collector.ClusterRolesPath).Return(nil).Once()
 
 		return ingestor
 	}
