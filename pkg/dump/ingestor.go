@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/dump/writer"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -18,7 +19,6 @@ type DumpIngestor struct {
 	ResultName      string
 	collector       collector.CollectorClient
 	writer          writer.DumperWriter
-	ClusterName     string
 }
 
 const (
@@ -36,7 +36,8 @@ func dumpIngestorResultName(clusterName string) string {
 	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
 }
 
-func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, compression bool, directoryOutput string) (*DumpIngestor, error) {
+// func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, compression bool, directoryOutput string) (*DumpIngestor, error) {
+func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, compression bool, directoryOutput string, runID *config.RunID) (*DumpIngestor, error) {
 	// Generate path for the dump
 	clusterName, err := getClusterName(ctx, collector)
 	if err != nil {
@@ -73,7 +74,7 @@ func (d *DumpIngestor) OutputPath() string {
 }
 
 func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
-	spanDump, ctx := tracer.StartSpanFromContext(ctx, span.CollectorDump, tracer.Measured())
+	spanDump, _ := tracer.StartSpanFromContext(ctx, span.CollectorDump, tracer.Measured())
 	var err error
 	defer func() { spanDump.Finish(tracer.WithError(err)) }()
 
@@ -81,6 +82,7 @@ func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("create pipeline ingestor: %w", err)
 	}
+
 	return nil
 	// spanDump.SetTag(tag.DumperWorkerNumberTag, pipeline.WorkerNumber)
 
@@ -95,8 +97,10 @@ func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
 // Close() is invoked by the collector to close all handlers used to dump k8s objects.
 // The function flushes all writers and close all the handlers.
 func (d *DumpIngestor) Close(ctx context.Context) error {
-	d.writer.Flush(ctx)
-	d.writer.Close(ctx)
+	err := d.writer.Flush(ctx)
+	if err != nil {
+		return fmt.Errorf("flush writer: %w", err)
+	}
 
-	return nil
+	return d.writer.Close(ctx)
 }
