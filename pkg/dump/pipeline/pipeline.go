@@ -101,7 +101,8 @@ func NewPipelineDumpIngestor(ctx context.Context, collector collector.CollectorC
 	// Setting up the worker pool with multi-threading if possible
 	// enable for raw file writer
 	// disable for targz writer (not thread safe)
-	wp, err := worker.PoolFactory(workerNumber, 1)
+	bufferCapacity := 1
+	wp, err := worker.PoolFactory(workerNumber, bufferCapacity)
 	if err != nil {
 		return nil, nil, fmt.Errorf("create worker pool: %w", err)
 	}
