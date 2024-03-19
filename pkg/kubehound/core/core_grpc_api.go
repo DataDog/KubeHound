@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func LaunchRemoteIngestor(ctx context.Context, opts ...LaunchOption) error {
@@ -18,10 +19,18 @@ func LaunchRemoteIngestor(ctx context.Context, opts ...LaunchOption) error {
 	for _, opt := range opts {
 		opt(lOpts)
 	}
+	var err error
 
-	ctx, lc := NewLaunchConfig(ctx, span.IngestorLaunch, lOpts.ConfigPath, false)
-	ctx = lc.Initialize(ctx, false)
-	defer lc.Close()
+	ctx, lc := NewLaunchConfig(ctx, lOpts.ConfigPath, false)
+	span, ctx := tracer.StartSpanFromContext(ctx, span.IngestorLaunch, tracer.Measured())
+	err = lc.Initialize(ctx, true)
+	if err != nil {
+		return fmt.Errorf("initialize config: %w", err)
+	}
+	defer func() {
+		span.Finish(tracer.WithError(err))
+		lc.Close()
+	}()
 
 	fc, err := NewProvidersFactoryConfig(ctx, lc)
 	if err != nil {

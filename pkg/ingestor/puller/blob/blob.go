@@ -111,7 +111,7 @@ func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID strin
 	}
 
 	log.I.Infof("Created temporary directory %s", dirname)
-	archivePath := filepath.Join(dirname, "archive.tar.gz")
+	archivePath := filepath.Join(dirname, config.DefaultArchiveName)
 	f, err := os.Create(archivePath)
 	if err != nil {
 		return archivePath, err

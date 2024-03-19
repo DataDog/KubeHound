@@ -12,9 +12,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
-
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 type ProvidersFactoryConfig struct {
@@ -73,28 +70,25 @@ func (fc *ProvidersFactoryConfig) Close(ctx context.Context) {
 }
 
 type LaunchConfig struct {
-	Cfg      *config.KubehoundConfig
-	ts       *telemetry.State
-	mainSpan ddtrace.Span
-	RunID    *config.RunID
-	opName   string
+	Cfg   *config.KubehoundConfig
+	ts    *telemetry.State
+	RunID *config.RunID
 }
 
 // Initiating configuration of Kubehound (from file or inline)
 // This includes all the telemetry aspects (tags, spans, tracer, runID, logs, ...)
-func NewLaunchConfig(ctx context.Context, opName string, configPath string, inline bool) (context.Context, *LaunchConfig) {
+func NewLaunchConfig(ctx context.Context, configPath string, inline bool) (context.Context, *LaunchConfig) {
 	// Configuration initialization
 	cfg := config.NewKubehoundConfig(configPath, inline)
 
 	lc := &LaunchConfig{
-		Cfg:    cfg,
-		opName: opName,
+		Cfg: cfg,
 	}
 
 	return ctx, lc
 }
 
-func (l *LaunchConfig) Initialize(ctx context.Context, generateRunID bool) context.Context {
+func (l *LaunchConfig) Initialize(ctx context.Context, generateRunID bool) error {
 	// We define a unique run id this so we can measure run by run in addition of version per version.
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
 	// In the case of KHaaS, the runID is taken from the GRPC request argument
@@ -105,9 +99,7 @@ func (l *LaunchConfig) Initialize(ctx context.Context, generateRunID bool) conte
 	l.InitTags(ctx)
 	l.InitTelemetry()
 
-	l.mainSpan, ctx = tracer.StartSpanFromContext(ctx, l.opName, tracer.Measured())
-
-	return ctx
+	return nil
 
 }
 
@@ -145,6 +137,5 @@ func (l *LaunchConfig) InitTags(ctx context.Context) {
 }
 
 func (l *LaunchConfig) Close() {
-	l.mainSpan.Finish()
 	telemetry.Shutdown(l.ts)
 }
