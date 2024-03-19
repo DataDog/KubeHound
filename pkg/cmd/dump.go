@@ -44,7 +44,7 @@ func InitLocalCmd(cmd *cobra.Command) {
 
 	cmd.Flags().String("output-dir", "", "Directory to dump the data")
 	viper.BindPFlag(config.CollectorLocalOutputDir, cmd.Flags().Lookup("output-dir")) //nolint: errcheck
-	cmd.MarkFlagRequired("output-dir")
+	cmd.MarkFlagRequired("output-dir")                                                //nolint: errcheck
 }
 
 func InitS3Cmd(cmd *cobra.Command) {
