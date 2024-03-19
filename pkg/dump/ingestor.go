@@ -9,8 +9,10 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/dump/pipeline"
 	"github.com/DataDog/KubeHound/pkg/dump/writer"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -74,24 +76,23 @@ func (d *DumpIngestor) OutputPath() string {
 }
 
 func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
-	spanDump, _ := tracer.StartSpanFromContext(ctx, span.CollectorDump, tracer.Measured())
+	spanDump, ctx := tracer.StartSpanFromContext(ctx, span.CollectorDump, tracer.Measured())
 	var err error
 	defer func() { spanDump.Finish(tracer.WithError(err)) }()
 
-	// ctx, pipeline, err := pipeline.NewPipelineDumpIngestor(ctx, d.collector, d.writer)
+	ctx, pipeline, err := pipeline.NewPipelineDumpIngestor(ctx, d.collector, d.writer)
 	if err != nil {
 		return fmt.Errorf("create pipeline ingestor: %w", err)
 	}
 
-	return nil
-	// spanDump.SetTag(tag.DumperWorkerNumberTag, pipeline.WorkerNumber)
+	spanDump.SetTag(tag.DumperWorkerNumberTag, pipeline.WorkerNumber)
 
-	// err = pipeline.Run(ctx)
-	// if err != nil {
-	// 	return fmt.Errorf("run pipeline ingestor: %w", err)
-	// }
+	err = pipeline.Run(ctx)
+	if err != nil {
+		return fmt.Errorf("run pipeline ingestor: %w", err)
+	}
 
-	// return pipeline.Wait(ctx)
+	return pipeline.Wait(ctx)
 }
 
 // Close() is invoked by the collector to close all handlers used to dump k8s objects.
