@@ -90,8 +90,8 @@ func DumpCore(ctx context.Context, cmd *cobra.Command) (*DumpConfig, error) {
 	)
 	log.I.Infof("KubeHound dump run has been completed in %s", time.Since(start))
 
-	var runID config.RunID
-	runID = *lc.RunID
+	runID := *lc.RunID
+
 	return &DumpConfig{
 		RunID:       &runID,
 		ClusterName: clusterName,
