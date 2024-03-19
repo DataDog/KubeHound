@@ -9,35 +9,8 @@ import (
 	mockwriter "github.com/DataDog/KubeHound/pkg/dump/writer/mockwriter"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/stretchr/testify/mock"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 )
-
-func genK8sObjects() []runtime.Object {
-	k8sOjb := []runtime.Object{
-		collector.FakeNode("node1", "provider1"),
-		collector.FakePod("namespace1", "name11", "Running"),
-		collector.FakePod("namespace1", "name12", "Running"),
-		collector.FakePod("namespace2", "name21", "Running"),
-		collector.FakePod("namespace2", "name22", "Running"),
-		collector.FakeRole("namespace1", "name11"),
-		collector.FakeRole("namespace1", "name12"),
-		collector.FakeRole("namespace2", "name21"),
-		collector.FakeRole("namespace2", "name22"),
-		collector.FakeClusterRole("name1"),
-		collector.FakeRoleBinding("namespace1", "name11"),
-		collector.FakeRoleBinding("namespace1", "name12"),
-		collector.FakeRoleBinding("namespace2", "name21"),
-		collector.FakeRoleBinding("namespace2", "name22"),
-		collector.FakeClusterRoleBinding("name1"),
-		collector.FakeEndpoint("namespace1", "name11", []int32{80}),
-		collector.FakeEndpoint("namespace1", "name12", []int32{80}),
-		collector.FakeEndpoint("namespace2", "name21", []int32{80}),
-		collector.FakeEndpoint("namespace2", "name22", []int32{80}),
-	}
-
-	return k8sOjb
-}
 
 func newFakeDumpIngestorPipeline(ctx context.Context, t *testing.T, mockCollector bool) (*mockwriter.DumperWriter, collector.CollectorClient) {
 	t.Helper()
@@ -45,7 +18,7 @@ func newFakeDumpIngestorPipeline(ctx context.Context, t *testing.T, mockCollecto
 	mDumpWriter := mockwriter.NewDumperWriter(t)
 
 	mCollectorClient := mockcollector.NewCollectorClient(t)
-	clientset := fake.NewSimpleClientset(genK8sObjects()...)
+	clientset := fake.NewSimpleClientset(GenK8sObjects()...)
 	collectorClient := collector.NewTestK8sAPICollector(ctx, clientset)
 
 	if mockCollector {
