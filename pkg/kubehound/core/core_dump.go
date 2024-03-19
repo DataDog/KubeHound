@@ -110,8 +110,10 @@ func runLocalDump(ctx context.Context, lc *LaunchConfig) (string, error) {
 
 	// Create the dumper instance
 	clusterName, _ := collector.GetClusterName(ctx)
-	log.I.Infof("Dumping %s to %s", clusterName, viper.GetString(config.CollectorLocalOutputDir))
-	dumpIngestor, err := dump.NewDumpIngestor(ctx, collect, viper.GetBool(config.CollectorLocalCompress), viper.GetString(config.CollectorLocalOutputDir), lc.RunID)
+	collectorLocalOutputDir := viper.GetString(config.CollectorLocalOutputDir)
+	collectorLocalCompress := viper.GetBool(config.CollectorLocalCompress)
+	log.I.Infof("Dumping %s to %s", clusterName, collectorLocalOutputDir)
+	dumpIngestor, err := dump.NewDumpIngestor(ctx, collect, collectorLocalCompress, collectorLocalOutputDir, lc.RunID)
 	if err != nil {
 		return "", fmt.Errorf("create dumper: %w", err)
 	}
