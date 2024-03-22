@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	tag.SetupBaseTags()
+	tag.S()
 	if err := rootCmd.Execute(); err != nil {
 		log.I.Fatal(err.Error())
 	}
