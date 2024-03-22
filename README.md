@@ -180,7 +180,7 @@ make help
 
 To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop.apache.org/gremlin.html) query language via an API call or dedicated graph query UI. A number of fully featured graph query UIs are available (both commercial and open source), but we provide an accompanying Jupyter notebook based on the [AWS Graph Notebook](https://github.com/aws/graph-notebook),to quickly showcase the capabilities of Kubehound. To access the UI:
 
-+ Visit [http://localhost:8888/notebooks/Kubehound.ipynb](http://localhost:8888/notebooks/Kubehound.ipynb) in your browser
++ Visit [http://localhost:8888/notebooks/KubeHound.ipynb](http://localhost:8888/notebooks/Kubehound.ipynb) in your browser
 + Use the default password `admin` to login (note: this can be changed via the [Dockerfile](./deployments/kubehound/notebook/Dockerfile) or by setting the `NOTEBOOK_PASSWORD` environment variable in the [.env](./deployments/kubehound/.env.tpl) file)
 + Follow the initial setup instructions in the notebook to connect to the Kubehound graph and configure the rendering
 + Start running the queries and exploring the graph!
