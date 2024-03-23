@@ -10,11 +10,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 )
 
-// ClusterInfo encapsulates the target cluster information for the current run.
-type ClusterInfo struct {
-	Name string
-}
-
 // Generic interface to allow an ingestor to consume stream inputs from a collector.
 type GenericIngestor interface {
 	NodeIngestor
@@ -87,7 +82,7 @@ type CollectorClient interface { //nolint: interfacebloat
 	services.Dependency
 
 	// ClusterInfo returns the target cluster information for the current run.
-	ClusterInfo(ctx context.Context) (*ClusterInfo, error)
+	ClusterInfo(ctx context.Context) (*config.ClusterInfo, error)
 
 	// Tags return the tags for the current run.
 	Tags(ctx context.Context) []string
