@@ -4,42 +4,35 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/ingestor/api"
 	"github.com/DataDog/KubeHound/pkg/ingestor/api/grpc"
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier/noop"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
+	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-func LaunchRemoteIngestor(ctx context.Context, opts ...LaunchOption) error {
+func CoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) error {
 	log.I.Infof("Starting KubeHound Distributed Ingestor Service")
-	lOpts := &launchConfig{}
-	for _, opt := range opts {
-		opt(lOpts)
-	}
-	var err error
-
-	ctx, lc := NewLaunchConfig(ctx, lOpts.ConfigPath, false)
 	span, ctx := tracer.StartSpanFromContext(ctx, span.IngestorLaunch, tracer.Measured())
-	err = lc.Initialize(ctx, true)
-	if err != nil {
-		return fmt.Errorf("initialize config: %w", err)
-	}
+	var err error
 	defer func() {
 		span.Finish(tracer.WithError(err))
-		lc.Close()
 	}()
 
-	fc, err := NewProvidersFactoryConfig(ctx, lc)
+	// Initialize the providers (graph, cache, store)
+	log.I.Info("Initializing providers (graph, cache, store)")
+	p, err := providers.NewProvidersFactoryConfig(ctx, khCfg)
 	if err != nil {
 		return fmt.Errorf("factory config creation: %w", err)
 	}
-	defer fc.Close(ctx)
+	defer p.Close(ctx)
 
 	log.I.Info("Creating Blob Storage provider")
-	puller, err := blob.NewBlobStoragePuller(lc.Cfg)
+	puller, err := blob.NewBlobStorage(khCfg, khCfg.Ingestor.BucketName)
 	if err != nil {
 		return err
 	}
@@ -48,7 +41,7 @@ func LaunchRemoteIngestor(ctx context.Context, opts ...LaunchOption) error {
 	noopNotifier := noop.NewNoopNotifier()
 
 	log.I.Info("Creating Ingestor API")
-	ingestorApi := api.NewIngestorAPI(lc.Cfg, puller, noopNotifier, fc.StoreProvider, fc.GraphProvider, fc.CacheProvider)
+	ingestorApi := api.NewIngestorAPI(khCfg, puller, noopNotifier, p)
 
 	log.I.Info("Starting Ingestor API")
 	err = grpc.Listen(ctx, ingestorApi)

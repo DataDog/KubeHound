@@ -14,37 +14,27 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-type DumpConfig struct {
-	RunID       *config.RunID
-	ClusterName string
-	ResPath     string
-}
-
-func DumpCore(ctx context.Context, cmd *cobra.Command) (*DumpConfig, error) {
+// DumpCore is the main entry point for the KubeHound dump process.
+// It collects all the necessary data from the Kubernetes API and dumps it to a file.
+// If upload is true, it will upload the file to the configured blob storage.
+// It returns the path to the dumped file/dir (only used for the system tests)
+func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (string, error) {
 	start := time.Now()
 	var err error
 
-	ctx, lc := NewLaunchConfig(ctx, "", true)
 	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperLaunch, tracer.Measured())
-	err = lc.Initialize(ctx, true)
-	if err != nil {
-		return nil, fmt.Errorf("initialize config: %w", err)
-	}
 	defer func() {
 		span.Finish(tracer.WithError(err))
-		lc.Close()
 	}()
 
-	lc.Cfg.Collector.Type = config.CollectorTypeK8sAPI
+	khCfg.Collector.Type = config.CollectorTypeK8sAPI
 
-	clusterName, err := collector.GetClusterName(ctx)
+	clusterName, err := config.GetClusterName(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("collector cluster info: %w", err)
+		return "", fmt.Errorf("collector cluster info: %w", err)
 	}
 
 	events.PushEvent(
@@ -55,29 +45,28 @@ func DumpCore(ctx context.Context, cmd *cobra.Command) (*DumpConfig, error) {
 		},
 	)
 
-	filePath, err := runLocalDump(ctx, lc)
+	filePath, err := runLocalDump(ctx, khCfg)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	log.I.Infof("result %s", filePath)
 
-	if cmd.Use == "s3" {
+	if upload {
 		// Clean up the temporary directory when done
 		defer func() {
-			err = os.RemoveAll(viper.GetString(config.CollectorLocalOutputDir))
+			err = os.RemoveAll(khCfg.Collector.File.Directory)
 			if err != nil {
 				log.I.Errorf("Failed to remove temporary directory: %v", err)
 			}
 		}()
-		lc.Cfg.Ingestor.BucketName = viper.GetString(config.CollectorS3Bucket)
-		puller, err := blob.NewBlobStoragePuller(lc.Cfg)
+		puller, err := blob.NewBlobStorage(khCfg, khCfg.Collector.File.Blob.Bucket)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
-		err = puller.Put(ctx, filePath, clusterName, lc.RunID.String())
+		err = puller.Put(ctx, filePath, clusterName, khCfg.Dynamic.RunID.String())
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 	}
 
@@ -90,30 +79,25 @@ func DumpCore(ctx context.Context, cmd *cobra.Command) (*DumpConfig, error) {
 	)
 	log.I.Infof("KubeHound dump run has been completed in %s", time.Since(start))
 
-	runID := *lc.RunID
-
-	return &DumpConfig{
-		RunID:       &runID,
-		ClusterName: clusterName,
-		ResPath:     filePath,
-	}, nil
+	return filePath, nil
 }
 
-func runLocalDump(ctx context.Context, lc *LaunchConfig) (string, error) {
+// Running the local dump of the k8s objects (dumper pipeline)
+// It returns the path to the dumped file/dir (only used for the system tests)
+func runLocalDump(ctx context.Context, khCfg *config.KubehoundConfig) (string, error) {
 	log.I.Info("Loading Kubernetes data collector client")
-	collect, err := collector.ClientFactory(ctx, lc.Cfg)
+	collect, err := collector.ClientFactory(ctx, khCfg)
 	if err != nil {
 		return "", fmt.Errorf("collector client creation: %w", err)
 	}
-	defer collect.Close(ctx)
+	defer func() { collect.Close(ctx) }()
 	log.I.Infof("Loaded %s collector client", collect.Name())
 
 	// Create the dumper instance
-	clusterName, _ := collector.GetClusterName(ctx)
-	collectorLocalOutputDir := viper.GetString(config.CollectorLocalOutputDir)
-	collectorLocalCompress := viper.GetBool(config.CollectorLocalCompress)
-	log.I.Infof("Dumping %s to %s", clusterName, collectorLocalOutputDir)
-	dumpIngestor, err := dump.NewDumpIngestor(ctx, collect, collectorLocalCompress, collectorLocalOutputDir, lc.RunID)
+	collectorLocalOutputDir := khCfg.Collector.File.Directory
+	collectorLocalCompress := khCfg.Collector.File.Archive.Format
+	log.I.Infof("Dumping %s to %s", khCfg.Dynamic.ClusterName, collectorLocalOutputDir)
+	dumpIngestor, err := dump.NewDumpIngestor(ctx, collect, collectorLocalCompress, collectorLocalOutputDir, khCfg.Dynamic.RunID)
 	if err != nil {
 		return "", fmt.Errorf("create dumper: %w", err)
 	}

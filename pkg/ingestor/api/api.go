@@ -11,9 +11,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
+	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
 	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
@@ -28,25 +26,21 @@ type API interface {
 
 //go:generate protoc --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative api.proto
 type IngestorAPI struct {
-	puller   puller.DataPuller
-	notifier notifier.Notifier
-	Cfg      *config.KubehoundConfig
-	storedb  storedb.Provider
-	graphdb  graphdb.Provider
-	cache    cache.CacheProvider
+	puller    puller.DataPuller
+	notifier  notifier.Notifier
+	Cfg       *config.KubehoundConfig
+	providers *providers.ProvidersFactoryConfig
 }
 
 var _ API = (*IngestorAPI)(nil)
 
 func NewIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller, notifier notifier.Notifier,
-	sdb storedb.Provider, gdb graphdb.Provider, c cache.CacheProvider) *IngestorAPI {
+	p *providers.ProvidersFactoryConfig) *IngestorAPI {
 	return &IngestorAPI{
-		notifier: notifier,
-		puller:   puller,
-		Cfg:      cfg,
-		storedb:  sdb,
-		graphdb:  gdb,
-		cache:    c,
+		notifier:  notifier,
+		puller:    puller,
+		Cfg:       cfg,
+		providers: p,
 	}
 }
 
@@ -89,7 +83,7 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 		},
 	}
 
-	// // Create the collector instance
+	// Create the collector instance
 	log.I.Info("Loading Kubernetes data collector client")
 	collect, err := collector.ClientFactory(runCtx, runCfg) //nolint: contextcheck
 	if err != nil {
@@ -105,12 +99,12 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 
 	// Run the ingest pipeline
 	log.I.Info("Starting Kubernetes raw data ingest")
-	err = ingestor.IngestData(runCtx, runCfg, collect, g.cache, g.storedb, g.graphdb) //nolint: contextcheck
+	err = ingestor.IngestData(runCtx, runCfg, collect, g.providers.CacheProvider, g.providers.StoreProvider, g.providers.GraphProvider) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("raw data ingest: %w", err)
 	}
 
-	err = graph.BuildGraph(runCtx, runCfg, g.storedb, g.graphdb, g.cache) //nolint: contextcheck
+	err = graph.BuildGraph(runCtx, runCfg, g.providers.StoreProvider, g.providers.GraphProvider, g.providers.CacheProvider) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
