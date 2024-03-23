@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"path"
 
-	"time"
-
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/dump/pipeline"
@@ -31,11 +29,6 @@ const (
 // ./<clusterName>/kubehound_<clusterName>_<run_id>
 func DumpIngestorResultName(clusterName string, runID string) string {
 	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, runID))
-}
-
-// TODO: Rmove this function after the code split
-func dumpIngestorResultName(clusterName string) string {
-	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, time.Now().Format(OfflineDumpDateFormat)))
 }
 
 // func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, compression bool, directoryOutput string) (*DumpIngestor, error) {
