@@ -30,13 +30,13 @@ type BlobStore struct {
 
 var _ puller.DataPuller = (*BlobStore)(nil)
 
-func NewBlobStoragePuller(cfg *config.KubehoundConfig) (*BlobStore, error) {
-	if cfg.Ingestor.BucketName == "" {
+func NewBlobStorage(cfg *config.KubehoundConfig, bucketName string) (*BlobStore, error) {
+	if bucketName == "" {
 		return nil, ErrInvalidBucketName
 	}
 
 	return &BlobStore{
-		bucketName: cfg.Ingestor.BucketName,
+		bucketName: bucketName,
 		cfg:        cfg,
 	}, nil
 }
