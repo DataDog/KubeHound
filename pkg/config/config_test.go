@@ -3,6 +3,7 @@ package config
 import (
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -161,7 +162,8 @@ func TestMustLoadConfig(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cfg, err := NewConfig(tt.args.configPath)
+			v := viper.New()
+			cfg, err := NewConfig(v, tt.args.configPath)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, cfg)
