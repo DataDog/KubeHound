@@ -7,9 +7,9 @@ import (
 
 // DynamicConfig represent application configuration that can be updated at runtime.
 type DynamicConfig struct {
-	mu      sync.Mutex
-	RunID   *RunID
-	Cluster string
+	mu          sync.Mutex
+	RunID       *RunID `mapstructure:"run_id"`
+	ClusterName string `mapstructure:"cluster_name"`
 }
 
 // DynamicOption is a functional option for configuring the dynamic config.
@@ -44,6 +44,6 @@ func WithRunID(runID string) DynamicOption {
 // WithClusterName is a functional option for configuring the cluster name.
 func WithClusterName(cluster string) DynamicOption {
 	return success(func(c *DynamicConfig) {
-		c.Cluster = cluster
+		c.ClusterName = cluster
 	})
 }

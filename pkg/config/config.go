@@ -207,7 +207,7 @@ func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) error {
 	defer kc.Dynamic.mu.Unlock()
 
 	kc.Dynamic.RunID = NewRunID()
-	kc.Dynamic.Cluster = DefaultClusterName
+	kc.Dynamic.ClusterName = DefaultClusterName
 
 	for _, option := range opts {
 		opt, err := option()
