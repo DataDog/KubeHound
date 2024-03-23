@@ -22,6 +22,7 @@ const (
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
 type KubehoundConfig struct {
+	Debug      bool             `mapstructure:"debug"`      // Debug mode
 	Collector  CollectorConfig  `mapstructure:"collector"`  // Collector configuration
 	MongoDB    MongoDBConfig    `mapstructure:"mongodb"`    // MongoDB configuration
 	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // JanusGraph configuration
@@ -29,7 +30,7 @@ type KubehoundConfig struct {
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 	Builder    BuilderConfig    `mapstructure:"builder"`    // Graph builder  configuration
 	Ingestor   IngestorConfig   `mapstructure:"ingestor"`   // Ingestor configuration
-	Dynamic    DynamicConfig    // Dynamic (i.e runtime generated) configuration
+	Dynamic    DynamicConfig    `mapstructure:"dynamic"`    // Dynamic (i.e runtime generated) configuration
 }
 
 // MustLoadEmbedConfig loads the embedded default application configuration, treating all errors as fatal.
@@ -140,22 +141,20 @@ func SetEnvOverrides(c *viper.Viper) {
 
 // NewConfig creates a new config instance from the provided file using viper.
 func NewConfig(configPath string) (*KubehoundConfig, error) {
-	c := viper.New()
-	c.SetConfigType(DefaultConfigType)
-	c.SetConfigFile(configPath)
+	viper.SetConfigType(DefaultConfigType)
+	viper.SetConfigFile(configPath)
 
 	// Configure default values
-	SetDefaultValues(c)
+	SetDefaultValues(viper.GetViper())
 
 	// Configure environment variable override
-	SetEnvOverrides(c)
-
-	if err := c.ReadInConfig(); err != nil {
+	SetEnvOverrides(viper.GetViper())
+	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
 
 	kc := KubehoundConfig{}
-	if err := c.Unmarshal(&kc); err != nil {
+	if err := viper.Unmarshal(&kc); err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
@@ -176,22 +175,21 @@ func NewInlineConfig() (*KubehoundConfig, error) {
 
 // NewEmbedConfig creates a new config instance from an embedded config file using viper.
 func NewEmbedConfig(configPath string) (*KubehoundConfig, error) {
-	c := viper.New()
-	c.SetConfigType(DefaultConfigType)
-	SetDefaultValues(c)
+	viper.SetConfigType(DefaultConfigType)
+	SetDefaultValues(viper.GetViper())
 
 	data, err := embedconfig.F.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("reading embed config: %w", err)
 	}
 
-	err = c.ReadConfig(bytes.NewReader(data))
+	err = viper.ReadConfig(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
 
 	kc := KubehoundConfig{}
-	if err := c.Unmarshal(&kc); err != nil {
+	if err := viper.Unmarshal(&kc); err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 

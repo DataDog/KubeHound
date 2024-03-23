@@ -35,26 +35,27 @@ func InitDumpCmd(cmd *cobra.Command) {
 	cmd.PersistentFlags().Int32("page-buffer-count", config.DefaultK8sAPIPageBufferSize, "Number of pages to buffer")
 	viper.BindPFlag(config.CollectorLivePageBufferSize, cmd.PersistentFlags().Lookup("page-buffer-count")) //nolint: errcheck
 
-	cmd.PersistentFlags().BoolVar(&debug, "debug", false, "Enable debug logs")
+	cmd.PersistentFlags().Bool("debug", false, "Enable debug logs")
+	viper.BindPFlag(config.GlobalDebug, cmd.PersistentFlags().Lookup("debug")) //nolint: errcheck
 }
 
 func InitLocalCmd(cmd *cobra.Command) {
 	cmd.Flags().Bool("compress", false, "Enable compression for the dumped data (generates a tar.gz file)")
-	viper.BindPFlag(config.CollectorLocalCompress, cmd.Flags().Lookup("compress")) //nolint: errcheck
+	viper.BindPFlag(config.CollectorFileArchiveFormat, cmd.Flags().Lookup("compress")) //nolint: errcheck
 
 	cmd.Flags().String("output-dir", "", "Directory to dump the data")
-	viper.BindPFlag(config.CollectorLocalOutputDir, cmd.Flags().Lookup("output-dir")) //nolint: errcheck
-	cmd.MarkFlagRequired("output-dir")                                                //nolint: errcheck
+	viper.BindPFlag(config.CollectorFileDirectory, cmd.Flags().Lookup("output-dir")) //nolint: errcheck
+	cmd.MarkFlagRequired("output-dir")                                               //nolint: errcheck
 }
 
 func InitS3Cmd(cmd *cobra.Command) {
 	cmd.Flags().String("bucket", "", "Bucket to use to push k8s resources (e.g.: s3://kubehound-dumps)")
-	viper.BindPFlag(config.CollectorS3Bucket, cmd.Flags().Lookup("bucket")) //nolint: errcheck
-	cmd.MarkFlagRequired("bucket")                                          //nolint: errcheck
+	viper.BindPFlag(config.CollectorFileBlobBucket, cmd.Flags().Lookup("bucket")) //nolint: errcheck
+	cmd.MarkFlagRequired("bucket")                                                //nolint: errcheck
 
 	cmd.Flags().String("region", "", "Region to use to push k8s resources")
-	viper.BindPFlag(config.CollectorS3Region, cmd.Flags().Lookup("region")) //nolint: errcheck
-	cmd.MarkFlagRequired("region")                                          //nolint: errcheck
+	viper.BindPFlag(config.CollectorFileBlobRegion, cmd.Flags().Lookup("region")) //nolint: errcheck
+	cmd.MarkFlagRequired("region")                                                //nolint: errcheck
 }
 
 func ToggleDebug(cmd *cobra.Command, args []string) {
