@@ -32,7 +32,8 @@ func TestMustLoadConfig(t *testing.T) {
 				Collector: CollectorConfig{
 					Type: CollectorTypeFile,
 					File: &FileCollectorConfig{
-						Directory: "cluster-data/",
+						Directory:   "cluster-data/",
+						ClusterName: "test-cluster",
 					},
 					// This is always set as the default value
 					Live: &K8SAPICollectorConfig{
