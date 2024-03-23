@@ -72,21 +72,21 @@ func (p *ProvidersFactoryConfig) Close(ctx context.Context) {
 func (p *ProvidersFactoryConfig) IngestBuildData(ctx context.Context, khCfg *config.KubehoundConfig) error {
 	// Create the collector instance
 	log.I.Info("Loading Kubernetes data collector client")
-	collect, err := collector.ClientFactory(ctx, khCfg) //nolint: contextcheck
+	collect, err := collector.ClientFactory(ctx, khCfg)
 	if err != nil {
 		return fmt.Errorf("collector client creation: %w", err)
 	}
-	defer collect.Close(ctx) //nolint: contextcheck
+	defer collect.Close(ctx)
 	log.I.Infof("Loaded %s collector client", collect.Name())
 
 	// Run the ingest pipeline
 	log.I.Info("Starting Kubernetes raw data ingest")
-	err = ingestor.IngestData(ctx, khCfg, collect, p.CacheProvider, p.StoreProvider, p.GraphProvider) //nolint: contextcheck
+	err = ingestor.IngestData(ctx, khCfg, collect, p.CacheProvider, p.StoreProvider, p.GraphProvider)
 	if err != nil {
 		return fmt.Errorf("raw data ingest: %w", err)
 	}
 
-	err = graph.BuildGraph(ctx, khCfg, p.StoreProvider, p.GraphProvider, p.CacheProvider) //nolint: contextcheck
+	err = graph.BuildGraph(ctx, khCfg, p.StoreProvider, p.GraphProvider, p.CacheProvider)
 	if err != nil {
 		return err
 	}

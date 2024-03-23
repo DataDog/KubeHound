@@ -13,8 +13,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var debug bool
-
 var (
 	dumpCmd = &cobra.Command{
 		Use:   "dump",
