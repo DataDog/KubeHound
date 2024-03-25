@@ -52,10 +52,6 @@ func InitS3Cmd(cmd *cobra.Command) {
 	cmd.Flags().String("bucket", "", "Bucket to use to push k8s resources (e.g.: s3://kubehound-dumps)")
 	viper.BindPFlag(config.CollectorFileBlobBucket, cmd.Flags().Lookup("bucket")) //nolint: errcheck
 	cmd.MarkFlagRequired("bucket")                                                //nolint: errcheck
-
-	cmd.Flags().String("region", "", "Region to use to push k8s resources")
-	viper.BindPFlag(config.CollectorFileBlobRegion, cmd.Flags().Lookup("region")) //nolint: errcheck
-	cmd.MarkFlagRequired("region")                                                //nolint: errcheck
 }
 
 func ToggleDebug(cmd *cobra.Command, args []string) {

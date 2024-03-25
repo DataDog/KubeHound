@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -23,8 +22,8 @@ var (
 		},
 	}
 
-	s3Cmd = &cobra.Command{
-		Use:   "s3",
+	cloudCmd = &cobra.Command{
+		Use:   "cloud",
 		Short: "Push collected k8s resources to an s3 bucket of a targeted cluster",
 		Long:  `Collect all Kubernetes resources needed to build the attack path in an offline format on a s3 bucket`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
@@ -62,7 +61,7 @@ var (
 			if err != nil {
 				return fmt.Errorf("get config: %w", err)
 			}
-			_, err = core.DumpCore(context.Background(), khCfg, false)
+			_, err = core.DumpCore(cobraCmd.Background(), khCfg, false)
 
 			return err
 		},
@@ -73,9 +72,9 @@ func init() {
 
 	cmd.InitDumpCmd(dumpCmd)
 	cmd.InitLocalCmd(localCmd)
-	cmd.InitS3Cmd(s3Cmd)
+	cmd.InitS3Cmd(cloudCmd)
 
-	dumpCmd.AddCommand(s3Cmd)
+	dumpCmd.AddCommand(cloudCmd)
 	dumpCmd.AddCommand(localCmd)
 	rootCmd.AddCommand(dumpCmd)
 }

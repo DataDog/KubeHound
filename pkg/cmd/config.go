@@ -31,6 +31,7 @@ func InitializeKubehoundConfig(ctx context.Context, configPath string, generateR
 		viper.Set(config.DynamicRunID, config.NewRunID())
 	}
 
+	// This code is also used for file ingestion (dump), so it is not needed in this case. So, we can continue if it fails.
 	clusterName, err := config.GetClusterName(ctx)
 	if err == nil {
 		viper.Set(config.DynamicClusterName, clusterName)
