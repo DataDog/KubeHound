@@ -19,7 +19,7 @@ type WriterOption func(*writerOptions)
 
 func WithTags(tags []string) WriterOption {
 	return func(wo *writerOptions) {
-		wo.Tags = tags
+		wo.Tags = append(wo.Tags, tags...)
 	}
 }
 
