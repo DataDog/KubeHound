@@ -101,7 +101,7 @@ func runLocalDump(ctx context.Context, khCfg *config.KubehoundConfig) (string, e
 	if err != nil {
 		return "", fmt.Errorf("create dumper: %w", err)
 	}
-	defer func(){ dumpIngestor.Close(ctx)}
+	defer func() { dumpIngestor.Close(ctx) }()
 
 	// Dumping all k8s objects using the API
 	err = dumpIngestor.DumpK8sObjects(ctx)

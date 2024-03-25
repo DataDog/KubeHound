@@ -61,7 +61,7 @@ var (
 			if err != nil {
 				return fmt.Errorf("get config: %w", err)
 			}
-			_, err = core.DumpCore(cobraCmd.Background(), khCfg, false)
+			_, err = core.DumpCore(cobraCmd.Context(), khCfg, false)
 
 			return err
 		},
@@ -72,7 +72,7 @@ func init() {
 
 	cmd.InitDumpCmd(dumpCmd)
 	cmd.InitLocalCmd(localCmd)
-	cmd.InitS3Cmd(cloudCmd)
+	cmd.InitCloudCmd(cloudCmd)
 
 	dumpCmd.AddCommand(cloudCmd)
 	dumpCmd.AddCommand(localCmd)
