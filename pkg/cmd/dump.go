@@ -48,7 +48,7 @@ func InitLocalCmd(cmd *cobra.Command) {
 	cmd.MarkFlagRequired("output-dir")                                               //nolint: errcheck
 }
 
-func InitS3Cmd(cmd *cobra.Command) {
+func InitCloudCmd(cmd *cobra.Command) {
 	cmd.Flags().String("bucket", "", "Bucket to use to push k8s resources (e.g.: s3://kubehound-dumps)")
 	viper.BindPFlag(config.CollectorFileBlobBucket, cmd.Flags().Lookup("bucket")) //nolint: errcheck
 	cmd.MarkFlagRequired("bucket")                                                //nolint: errcheck
