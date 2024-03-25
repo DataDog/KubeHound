@@ -76,7 +76,7 @@ func (p *ProvidersFactoryConfig) IngestBuildData(ctx context.Context, khCfg *con
 	if err != nil {
 		return fmt.Errorf("collector client creation: %w", err)
 	}
-	defer func() {collect.Close(ctx)}()
+	defer func() { collect.Close(ctx) }()
 	log.I.Infof("Loaded %s collector client", collect.Name())
 
 	// Run the ingest pipeline
