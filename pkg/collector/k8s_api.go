@@ -24,7 +24,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/pager"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -64,30 +63,6 @@ func tunedListOptions() metav1.ListOptions {
 		ResourceVersion:      "0",
 		ResourceVersionMatch: metav1.ResourceVersionMatchNotOlderThan,
 	}
-}
-
-func newClusterInfo(_ context.Context) (*ClusterInfo, error) {
-	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	configOverrides := &clientcmd.ConfigOverrides{}
-	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
-
-	raw, err := kubeConfig.RawConfig()
-	if err != nil {
-		return nil, fmt.Errorf("raw config get: %w", err)
-	}
-
-	return &ClusterInfo{
-		Name: raw.CurrentContext,
-	}, nil
-}
-
-func GetClusterName(ctx context.Context) (string, error) {
-	cluster, err := newClusterInfo(ctx)
-	if err != nil {
-		return "", fmt.Errorf("collector cluster info: %w", err)
-	}
-
-	return cluster.Name, nil
 }
 
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
@@ -173,8 +148,8 @@ func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
-	return newClusterInfo(ctx)
+func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*config.ClusterInfo, error) {
+	return config.NewClusterInfo(ctx)
 }
 
 // Generate metrics for k8sAPI collector

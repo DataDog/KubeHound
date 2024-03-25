@@ -7,6 +7,7 @@ import (
 
 	mocks "github.com/DataDog/KubeHound/pkg/collector/mockingest"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -14,7 +15,8 @@ import (
 func TestFileCollector_Constructor(t *testing.T) {
 	t.Parallel()
 
-	cfg, err := config.NewConfig("testdata/kubehound-test.yaml")
+	v := viper.New()
+	cfg, err := config.NewConfig(v, "testdata/kubehound-test.yaml")
 	assert.NoError(t, err)
 
 	c, err := NewFileCollector(context.Background(), cfg)
@@ -61,7 +63,8 @@ func TestFileCollector_HealthCheck(t *testing.T) {
 func NewTestFileCollector(t *testing.T) *FileCollector {
 	t.Helper()
 
-	cfg, err := config.NewConfig("testdata/kubehound-test.yaml")
+	v := viper.New()
+	cfg, err := config.NewConfig(v, "testdata/kubehound-test.yaml")
 	assert.NoError(t, err)
 
 	c, err := NewFileCollector(context.Background(), cfg)

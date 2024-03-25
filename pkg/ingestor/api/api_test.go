@@ -8,6 +8,7 @@ import (
 	mocksNotifier "github.com/DataDog/KubeHound/pkg/ingestor/notifier/mocks"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	mocksPuller "github.com/DataDog/KubeHound/pkg/ingestor/puller/mocks"
+	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
 	mocksCache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	mocksGraph "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	mocksStore "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
@@ -79,7 +80,13 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 			mockedStoreDB := mocksStore.NewProvider(t)
 			mockedGraphDB := mocksGraph.NewProvider(t)
 
-			g := NewIngestorAPI(tt.fields.cfg, mockedPuller, mockedNotifier, mockedStoreDB, mockedGraphDB, mockedCache)
+			mockedProvider := &providers.ProvidersFactoryConfig{
+				CacheProvider: mockedCache,
+				StoreProvider: mockedStoreDB,
+				GraphProvider: mockedGraphDB,
+			}
+
+			g := NewIngestorAPI(tt.fields.cfg, mockedPuller, mockedNotifier, mockedProvider)
 			tt.mock(mockedPuller, mockedNotifier, mockedCache, mockedStoreDB, mockedGraphDB)
 			if err := g.Ingest(context.TODO(), tt.args.clusterName, tt.args.runID); (err != nil) != tt.wantErr {
 				t.Errorf("IngestorAPI.Ingest() error = %v, wantErr %v", err, tt.wantErr)

@@ -3,7 +3,6 @@ package system
 
 import (
 	"context"
-	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
@@ -926,10 +925,6 @@ func (suite *EdgeTestSuite) Test_CE_VAR_LOG_SYMLINK() {
 	}
 
 	suite._testContainerEscape("CE_VAR_LOG_SYMLINK", DefaultContainerEscapeNodes, containers)
-}
-
-func TestEdgeTestSuite(t *testing.T) {
-	suite.Run(t, new(EdgeTestSuite))
 }
 
 func (suite *EdgeTestSuite) TearDownTest() {

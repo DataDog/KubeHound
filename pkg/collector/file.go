@@ -90,7 +90,7 @@ func (c *FileCollector) Name() string {
 func (c *FileCollector) HealthCheck(_ context.Context) (bool, error) {
 	file, err := os.Stat(c.cfg.Directory)
 	if err != nil {
-		return false, fmt.Errorf("file collector base path: %w", err)
+		return false, fmt.Errorf("file collector base path: %s %w", c.cfg.Directory, err)
 	}
 
 	if !file.IsDir() {
@@ -104,8 +104,8 @@ func (c *FileCollector) HealthCheck(_ context.Context) (bool, error) {
 	return true, nil
 }
 
-func (c *FileCollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
-	return &ClusterInfo{
+func (c *FileCollector) ClusterInfo(ctx context.Context) (*config.ClusterInfo, error) {
+	return &config.ClusterInfo{
 		Name: c.cfg.ClusterName,
 	}, nil
 }

@@ -1,0 +1,24 @@
+storage:
+  retry_delay: 15s
+  retry: 6
+collector:
+  type: file-collector
+janusgraph:
+  url: "ws://localhost:8183/gremlin"
+  connection_timeout: 60s
+mongodb:
+  url: "mongodb://localhost:27018"
+  connection_timeout: 60s
+telemetry:
+  enabled: true
+  tags:
+    team: ase
+  statsd:
+    url: "127.0.0.1:825"
+  tracer:
+    url: "127.0.0.1:8226"
+  # this profiler block needs to set the period of cpu collection lower than the default 60s
+  # in order to be able to have the chance to run it once during a run against the kind cluster
+  profiler:
+    period: "5s"
+    cpu_duration: "5s"
