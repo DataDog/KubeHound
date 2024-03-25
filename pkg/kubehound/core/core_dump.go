@@ -91,7 +91,7 @@ func runLocalDump(ctx context.Context, khCfg *config.KubehoundConfig) (string, e
 		return "", fmt.Errorf("collector client creation: %w", err)
 	}
 	defer func() { collect.Close(ctx) }()
-	log.I.Infof("Loaded %s collector client", collect.Name())
+	log.I.Infof("Loaded %q collector client", collect.Name())
 
 	// Create the dumper instance
 	collectorLocalOutputDir := khCfg.Collector.File.Directory
