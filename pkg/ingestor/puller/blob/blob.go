@@ -15,6 +15,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"gocloud.dev/blob"
+	_ "gocloud.dev/blob/azureblob"
+	_ "gocloud.dev/blob/gcsblob"
 	_ "gocloud.dev/blob/s3blob"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -54,7 +56,6 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 
 	key := getKeyPath(clusterName, runID)
 	log.I.Infof("Downloading archive (%s) from blob store", key)
-	// key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
 	if err != nil {
 		return err
@@ -93,7 +94,6 @@ func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID strin
 
 	key := getKeyPath(clusterName, runID)
 	log.I.Infof("Downloading archive (%s) from blob store", key)
-	// key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
 	if err != nil {
 		return "", err
