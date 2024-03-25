@@ -96,7 +96,7 @@ func runLocalDump(ctx context.Context, khCfg *config.KubehoundConfig) (string, e
 	// Create the dumper instance
 	collectorLocalOutputDir := khCfg.Collector.File.Directory
 	collectorLocalCompress := khCfg.Collector.File.Archive.Format
-	log.I.Infof("Dumping %s to %s", khCfg.Dynamic.ClusterName, collectorLocalOutputDir)
+	log.I.Infof("Dumping %q to %q", khCfg.Dynamic.ClusterName, collectorLocalOutputDir)
 	dumpIngestor, err := dump.NewDumpIngestor(ctx, collect, collectorLocalCompress, collectorLocalOutputDir, khCfg.Dynamic.RunID)
 	if err != nil {
 		return "", fmt.Errorf("create dumper: %w", err)
