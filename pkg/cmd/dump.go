@@ -10,11 +10,6 @@ import (
 
 var debug bool
 
-func InitRootCmd(cmd *cobra.Command) {
-	cmd.PersistentFlags().Bool("debug", false, "Enable debug logs")
-	viper.BindPFlag(config.GlobalDebug, cmd.PersistentFlags().Lookup("debug")) //nolint: errcheck
-}
-
 func InitDumpCmd(cmd *cobra.Command) {
 	cmd.PersistentFlags().String("statsd", config.DefaultTelemetryStatsdUrl, "URL of the statsd endpoint")
 	viper.BindPFlag(config.TelemetryStatsdUrl, cmd.PersistentFlags().Lookup("statsd")) //nolint: errcheck
@@ -57,24 +52,6 @@ func InitCloudCmd(cmd *cobra.Command) {
 	cmd.Flags().String("bucket", "", "Bucket to use to push k8s resources (e.g.: s3://kubehound-dumps)")
 	viper.BindPFlag(config.CollectorFileBlobBucket, cmd.Flags().Lookup("bucket")) //nolint: errcheck
 	cmd.MarkFlagRequired("bucket")                                                //nolint: errcheck
-}
-
-func InitGrpcClientCmd(cmd *cobra.Command, standalone bool) {
-	cmd.Flags().String("khaas-server", config.DefaultIngestorGrpcEndpoint, "GRPC endpoint exposed by KubeHound as a Service (KHaaS) server (e.g.: localhost:9000)")
-	viper.BindPFlag(config.IngestorGrpcEndpoint, cmd.Flags().Lookup("khaas-server")) //nolint: errcheck
-
-	if standalone {
-		cmd.Flags().String("run_id", "", "KubeHound run id to ingest (e.g.: 01htdgjj34mcmrrksw4bjy2e94)")
-		viper.BindPFlag(config.IngestorRunID, cmd.Flags().Lookup("run_id")) //nolint: errcheck
-		cmd.MarkFlagRequired("run_id")                                      //nolint: errcheck
-
-		cmd.Flags().String("cluster", "", "Cluster name to ingest (e.g.: my-cluster-1)")
-		viper.BindPFlag(config.IngestorClusterName, cmd.Flags().Lookup("cluster")) //nolint: errcheck
-		cmd.MarkFlagRequired("cluster")                                            //nolint: errcheck
-
-		// Reusing the same flags for the dump cloud and ingest command
-		cmd.MarkFlagRequired("khaas-server") //nolint: errcheck
-	}
 }
 
 func ToggleDebug(cmd *cobra.Command, args []string) {

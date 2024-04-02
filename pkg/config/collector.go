@@ -10,6 +10,8 @@ const (
 	DefaultK8sAPIPageBufferSize     int32 = 10
 	DefaultK8sAPIRateLimitPerSecond int   = 100
 
+	GlobalDebug = "debug"
+
 	DefaultTelemetryStatsdUrl   = "127.0.0.1:8225"
 	DefaultTelemetryProfilerUrl = "127.0.0.1:8226"
 
@@ -27,11 +29,6 @@ const (
 	CollectorFileClusterName    = "collector.file.cluster_name"
 	CollectorFileBlobRegion     = "collector.file.blob.region"
 	CollectorFileBlobBucket     = "collector.file.blob.bucket"
-
-	DefaultIngestorGrpcEndpoint = "127.0.0.1:9000"
-	IngestorGrpcEndpoint        = "ingestor.grpc_endpoint"
-	IngestorRunID               = "ingestor.run_id"
-	IngestorClusterName         = "ingestor.cluster_name"
 
 	DynamicRunID       = "dynamic.run_id"
 	DynamicClusterName = "dynamic.cluster_name"
@@ -53,6 +50,18 @@ type K8SAPICollectorConfig struct {
 
 // FileCollectorConfig configures the file collector.
 type FileCollectorConfig struct {
-	ClusterName string `mapstructure:"cluster"`   // Target cluster (must be specified in config as not present in JSON files)
-	Directory   string `mapstructure:"directory"` // Base directory holding the K8s data JSON files
+	ClusterName string               `mapstructure:"cluster_name"` // Target cluster (must be specified in config as not present in JSON files)
+	Directory   string               `mapstructure:"directory"`    // Base directory holding the K8s data JSON files
+	Archive     *FileArchiveConfig   `mapstructure:"archive"`      // Archive configuration
+	Blob        *BlobCollectorConfig `mapstructure:"blob"`         // Blob storage configuration
+}
+
+type FileArchiveConfig struct {
+	ArchiveName string `mapstructure:"archive_name"` // Name of the output archive
+	Format      bool   `mapstructure:"format"`       // Enable compression for the dumped data (generates a tar.gz file)
+}
+
+type BlobCollectorConfig struct {
+	Bucket string `mapstructure:"bucket"` // Bucket to use to push k8s resources (e.g.: s3://kubehound-dumps)
+	Region string `mapstructure:"region"` // Region to use to push k8s resources
 }

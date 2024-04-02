@@ -24,8 +24,8 @@ var (
 
 	cloudCmd = &cobra.Command{
 		Use:   "cloud",
-		Short: "Push collected k8s resources to an s3 bucket of a targeted cluster. Run the ingestion on KHaaS if khaas-server is set.",
-		Long:  `Collect all Kubernetes resources needed to build the attack path in an offline format on a s3 bucket. If KubeHound as a Service (KHaaS) is set, then run the ingestion on KHaaS.`,
+		Short: "Push collected k8s resources to an s3 bucket of a targeted cluster",
+		Long:  `Collect all Kubernetes resources needed to build the attack path in an offline format on a s3 bucket`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// using compress feature
 			viper.Set(config.CollectorFileArchiveFormat, true)
@@ -47,14 +47,10 @@ var (
 
 			_, err = core.DumpCore(cobraCmd.Context(), khCfg, true)
 
-			// Running the ingestion on KHaaS
-			if viper.GetString(config.IngestorGrpcEndpoint) != "" {
-				return core.CallIngest(viper.GetString(config.IngestorGrpcEndpoint), khCfg.Dynamic.RunID.String(), khCfg.Dynamic.ClusterName)
-			}
-
 			return err
 		},
 	}
+
 	localCmd = &cobra.Command{
 		Use:   "local",
 		Short: "Dump locally the k8s resources of a targeted cluster",
@@ -77,11 +73,8 @@ func init() {
 	cmd.InitDumpCmd(dumpCmd)
 	cmd.InitLocalCmd(localCmd)
 	cmd.InitCloudCmd(cloudCmd)
-	cmd.InitGrpcClientCmd(cloudCmd, false)
 
 	dumpCmd.AddCommand(cloudCmd)
 	dumpCmd.AddCommand(localCmd)
-	dumpCmd.AddCommand(grpcClientIngestCmd)
 	rootCmd.AddCommand(dumpCmd)
-
 }

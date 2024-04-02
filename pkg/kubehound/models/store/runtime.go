@@ -12,6 +12,6 @@ type RuntimeInfo struct {
 func Runtime(cfg *config.DynamicConfig) RuntimeInfo {
 	return RuntimeInfo{
 		RunID:   cfg.RunID.String(),
-		Cluster: cfg.Cluster,
+		Cluster: cfg.ClusterName,
 	}
 }

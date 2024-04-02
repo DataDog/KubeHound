@@ -22,6 +22,7 @@ const (
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
 type KubehoundConfig struct {
+	Debug      bool             `mapstructure:"debug"`      // Debug mode
 	Collector  CollectorConfig  `mapstructure:"collector"`  // Collector configuration
 	MongoDB    MongoDBConfig    `mapstructure:"mongodb"`    // MongoDB configuration
 	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // JanusGraph configuration
@@ -29,12 +30,12 @@ type KubehoundConfig struct {
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 	Builder    BuilderConfig    `mapstructure:"builder"`    // Graph builder  configuration
 	Ingestor   IngestorConfig   `mapstructure:"ingestor"`   // Ingestor configuration
-	Dynamic    DynamicConfig    // Dynamic (i.e runtime generated) configuration
+	Dynamic    DynamicConfig    `mapstructure:"dynamic"`    // Dynamic (i.e runtime generated) configuration
 }
 
 // MustLoadEmbedConfig loads the embedded default application configuration, treating all errors as fatal.
 func MustLoadEmbedConfig() *KubehoundConfig {
-	cfg, err := NewEmbedConfig(embedconfig.DefaultPath)
+	cfg, err := NewEmbedConfig(viper.GetViper(), embedconfig.DefaultPath)
 	if err != nil {
 		log.I.Fatalf("embed config load: %v", err)
 	}
@@ -44,7 +45,7 @@ func MustLoadEmbedConfig() *KubehoundConfig {
 
 // MustLoadConfig loads the application configuration from the provided path, treating all errors as fatal.
 func MustLoadConfig(configPath string) *KubehoundConfig {
-	cfg, err := NewConfig(configPath)
+	cfg, err := NewConfig(viper.GetViper(), configPath)
 	if err != nil {
 		log.I.Fatalf("config load: %v", err)
 	}
@@ -54,7 +55,7 @@ func MustLoadConfig(configPath string) *KubehoundConfig {
 
 // MustLoadConfig loads the application configuration from the provided path, treating all errors as fatal.
 func MustLoadInlineConfig() *KubehoundConfig {
-	cfg, err := NewInlineConfig()
+	cfg, err := NewInlineConfig(viper.GetViper())
 	if err != nil {
 		log.I.Fatalf("config load: %v", err)
 	}
@@ -139,23 +140,21 @@ func SetEnvOverrides(c *viper.Viper) {
 }
 
 // NewConfig creates a new config instance from the provided file using viper.
-func NewConfig(configPath string) (*KubehoundConfig, error) {
-	c := viper.New()
-	c.SetConfigType(DefaultConfigType)
-	c.SetConfigFile(configPath)
+func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
+	v.SetConfigType(DefaultConfigType)
+	v.SetConfigFile(configPath)
 
 	// Configure default values
-	SetDefaultValues(c)
+	SetDefaultValues(v)
 
 	// Configure environment variable override
-	SetEnvOverrides(c)
-
-	if err := c.ReadInConfig(); err != nil {
+	SetEnvOverrides(v)
+	if err := v.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
 
 	kc := KubehoundConfig{}
-	if err := c.Unmarshal(&kc); err != nil {
+	if err := v.Unmarshal(&kc); err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
@@ -163,11 +162,11 @@ func NewConfig(configPath string) (*KubehoundConfig, error) {
 }
 
 // NewConfig creates a new config instance from the provided file using viper.
-func NewInlineConfig() (*KubehoundConfig, error) {
+func NewInlineConfig(v *viper.Viper) (*KubehoundConfig, error) {
 	// Configure environment variable override
-	SetEnvOverrides(viper.GetViper())
+	SetEnvOverrides(v)
 	kc := KubehoundConfig{}
-	if err := viper.Unmarshal(&kc); err != nil {
+	if err := v.Unmarshal(&kc); err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
@@ -175,23 +174,22 @@ func NewInlineConfig() (*KubehoundConfig, error) {
 }
 
 // NewEmbedConfig creates a new config instance from an embedded config file using viper.
-func NewEmbedConfig(configPath string) (*KubehoundConfig, error) {
-	c := viper.New()
-	c.SetConfigType(DefaultConfigType)
-	SetDefaultValues(c)
+func NewEmbedConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
+	v.SetConfigType(DefaultConfigType)
+	SetDefaultValues(v)
 
 	data, err := embedconfig.F.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("reading embed config: %w", err)
 	}
 
-	err = c.ReadConfig(bytes.NewReader(data))
+	err = viper.ReadConfig(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
 
 	kc := KubehoundConfig{}
-	if err := c.Unmarshal(&kc); err != nil {
+	if err := v.Unmarshal(&kc); err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
@@ -209,7 +207,7 @@ func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) error {
 	defer kc.Dynamic.mu.Unlock()
 
 	kc.Dynamic.RunID = NewRunID()
-	kc.Dynamic.Cluster = DefaultClusterName
+	kc.Dynamic.ClusterName = DefaultClusterName
 
 	for _, option := range opts {
 		opt, err := option()
