@@ -22,11 +22,19 @@ const (
 	CollectorLiveRate           = "collector.live.rate_limit_per_second"
 	CollectorLivePageSize       = "collector.live.page_size"
 	CollectorLivePageBufferSize = "collector.live.page_buffer_size"
-	CollectorLocalCompress      = "collector.local.compress"
-	CollectorLocalOutputDir     = "collector.local.output-dir"
-	CollectorVerbose            = "collector.verbose"
-	CollectorS3Region           = "collector.s3.region"
-	CollectorS3Bucket           = "collector.s3.bucket"
+	CollectorFileArchiveFormat  = "collector.file.archive.format"
+	CollectorFileDirectory      = "collector.file.directory"
+	CollectorFileClusterName    = "collector.file.cluster_name"
+	CollectorFileBlobRegion     = "collector.file.blob.region"
+	CollectorFileBlobBucket     = "collector.file.blob.bucket"
+
+	DefaultIngestorGrpcEndpoint = "127.0.0.1:9000"
+	IngestorGrpcEndpoint        = "ingestor.grpc_endpoint"
+	IngestorRunID               = "ingestor.run_id"
+	IngestorClusterName         = "ingestor.cluster_name"
+
+	DynamicRunID       = "dynamic.run_id"
+	DynamicClusterName = "dynamic.cluster_name"
 )
 
 // CollectorConfig configures collector specific parameters.

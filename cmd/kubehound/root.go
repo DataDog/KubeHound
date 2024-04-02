@@ -24,4 +24,6 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", cfgFile, "application config file")
+
+	cmd.InitRootCmd(rootCmd)
 }
