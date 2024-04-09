@@ -19,7 +19,7 @@ var (
 		Long:         `instance of Kubehound that pulls data from cloud storage`,
 		SilenceUsage: true,
 		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true)
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, false)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// Passing the Kubehound config from viper
