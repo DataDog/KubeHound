@@ -44,8 +44,27 @@ func RunTestSuites(t *testing.T) {
 	suite.Run(t, new(DslTestSuite))
 }
 
-func DumpAndRun(compress bool) {
-	ctx := context.Background()
+func InitSetupTest(ctx context.Context) *providers.ProvidersFactoryConfig {
+	err := cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
+	if err != nil {
+		log.I.Fatalf(err.Error())
+	}
+
+	khCfg, err := cmd.GetConfig()
+	if err != nil {
+		log.I.Fatal(err.Error())
+	}
+
+	// Initialisation of the p needed for the ingestion and the graph creation
+	p, err := providers.NewProvidersFactoryConfig(ctx, khCfg)
+	if err != nil {
+		log.I.Fatalf("factory config creation: %v", err)
+	}
+
+	return p
+}
+
+func DumpAndRun(ctx context.Context, compress bool, providers *providers.ProvidersFactoryConfig) {
 	var err error
 
 	// Setting the base tags
@@ -68,7 +87,11 @@ func DumpAndRun(compress bool) {
 	viper.Set(config.CollectorFileDirectory, tmpDir)
 
 	// Initialisation of the Kubehound config
-	cmd.InitializeKubehoundConfig(ctx, "", true)
+	err = cmd.InitializeKubehoundConfig(ctx, "", true, false)
+	if err != nil {
+		log.I.Fatalf(err.Error())
+	}
+
 	khCfg, err := cmd.GetConfig()
 	if err != nil {
 		log.I.Fatalf(err.Error())
@@ -103,9 +126,8 @@ func DumpAndRun(compress bool) {
 	// This information is used by the grpc server to run the ingestion
 	viper.Set(config.CollectorFileDirectory, collectorDir)
 	viper.Set(config.CollectorFileClusterName, clusterName)
-	viper.Set(config.DynamicRunID, runID)
 
-	err = cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false)
+	err = cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
 	if err != nil {
 		log.I.Fatalf(err.Error())
 	}
@@ -115,19 +137,18 @@ func DumpAndRun(compress bool) {
 		log.I.Fatal(err.Error())
 	}
 
-	err = khCfg.ComputeDynamic(config.WithClusterName(clusterName))
+	// We need to flush the cache to prevent warning/error on the overwriting element in cache the  any conflict with the previous ingestion
+	err = providers.CacheProvider.Prepare(ctx)
+	if err != nil {
+		log.I.Fatalf("preparing cache provider: %v", err)
+	}
+
+	err = khCfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID.String()))
 	if err != nil {
 		log.I.Fatalf("collector client creation: %v", err)
 	}
 
-	// Initialisation of the providers needed for the ingestion and the graph creation
-	fc, err := providers.NewProvidersFactoryConfig(ctx, khCfg)
-	if err != nil {
-		log.I.Fatalf("factory config creation: %v", err)
-	}
-	defer fc.Close(ctx)
-
-	err = fc.IngestBuildData(ctx, khCfg)
+	err = providers.IngestBuildData(ctx, khCfg)
 	if err != nil {
 		log.I.Fatalf("ingest build data: %v", err)
 	}
@@ -138,7 +159,13 @@ type FlatTestSuite struct {
 }
 
 func (s *FlatTestSuite) SetupSuite() {
-	DumpAndRun(false)
+	// Reseting the context to simulate a new ingestion from scratch
+	ctx := context.Background()
+
+	p := InitSetupTest(ctx)
+	defer p.Close(ctx)
+
+	DumpAndRun(ctx, false, p)
 }
 
 func (s *FlatTestSuite) TestRun() {
@@ -150,7 +177,13 @@ type CompressTestSuite struct {
 }
 
 func (s *CompressTestSuite) SetupSuite() {
-	DumpAndRun(true)
+	// Reseting the context to simulate a new ingestion from scratch
+	ctx := context.Background()
+
+	p := InitSetupTest(ctx)
+	defer p.Close(ctx)
+
+	DumpAndRun(ctx, true, p)
 }
 
 func (s *CompressTestSuite) TestRun() {
@@ -168,7 +201,7 @@ func (s *LiveTestSuite) SetupSuite() {
 	libkube.ResetOnce()
 
 	// Initialisation of the Kubehound config
-	cmd.InitializeKubehoundConfig(ctx, KubeHoundConfigPath, true)
+	cmd.InitializeKubehoundConfig(ctx, KubeHoundConfigPath, true, false)
 	khCfg, err := cmd.GetConfig()
 	if err != nil {
 		log.I.Fatalf(err.Error())
