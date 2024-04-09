@@ -10,17 +10,6 @@ const (
 	DefaultK8sAPIPageBufferSize     int32 = 10
 	DefaultK8sAPIRateLimitPerSecond int   = 100
 
-	GlobalDebug = "debug"
-
-	DefaultTelemetryStatsdUrl   = "127.0.0.1:8225"
-	DefaultTelemetryProfilerUrl = "127.0.0.1:8226"
-
-	TelemetryStatsdUrl           = "telemetry.statsd.url"
-	TelemetryTracerUrl           = "telemetry.tracer.url"
-	TelemetryEnabled             = "telemetry.enabled"
-	TelemetryProfilerCPUDuration = "telemetry.profiler.cpu_duration"
-	TelemetryProfilerPeriod      = "telemetry.profiler.period"
-
 	CollectorLiveRate           = "collector.live.rate_limit_per_second"
 	CollectorLivePageSize       = "collector.live.page_size"
 	CollectorLivePageBufferSize = "collector.live.page_buffer_size"
@@ -29,9 +18,6 @@ const (
 	CollectorFileClusterName    = "collector.file.cluster_name"
 	CollectorFileBlobRegion     = "collector.file.blob.region"
 	CollectorFileBlobBucket     = "collector.file.blob.bucket"
-
-	DynamicRunID       = "dynamic.run_id"
-	DynamicClusterName = "dynamic.cluster_name"
 )
 
 // CollectorConfig configures collector specific parameters.

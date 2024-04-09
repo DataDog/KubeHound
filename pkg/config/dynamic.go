@@ -5,6 +5,11 @@ import (
 	"sync"
 )
 
+const (
+	DynamicRunID       = "dynamic.run_id"
+	DynamicClusterName = "dynamic.cluster_name"
+)
+
 // DynamicConfig represent application configuration that can be updated at runtime.
 type DynamicConfig struct {
 	mu          sync.Mutex
