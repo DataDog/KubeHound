@@ -137,12 +137,6 @@ func DumpAndRun(ctx context.Context, compress bool, providers *providers.Provide
 		log.I.Fatal(err.Error())
 	}
 
-	// We need to flush the cache to prevent warning/error on the overwriting element in cache the  any conflict with the previous ingestion
-	err = providers.CacheProvider.Prepare(ctx)
-	if err != nil {
-		log.I.Fatalf("preparing cache provider: %v", err)
-	}
-
 	err = khCfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID.String()))
 	if err != nil {
 		log.I.Fatalf("collector client creation: %v", err)
