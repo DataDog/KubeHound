@@ -91,6 +91,5 @@ func init() {
 
 	dumpCmd.AddCommand(cloudCmd)
 	dumpCmd.AddCommand(localCmd)
-	dumpCmd.AddCommand(grpcClientIngestCmd)
 	rootCmd.AddCommand(dumpCmd)
 }
