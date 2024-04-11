@@ -121,3 +121,13 @@ builder:
 
     #  # Cluster impact batch size for edge inserts
     # batch_size_cluster_impact: 1
+  
+# Ingestor configuration (for KHaaS)
+# ingestor:
+#   bucket_name: "<your-bucket>"
+#   temp_dir: "/tmp/kubehound"
+#   archive_name: "archive.tar.gz"
+#   max_archive_size: 1073741824 # 1GB
+#   api: # GRPC endpoint for the ingestor
+#     url: "http://localhost:8080"
+#     insecure: true
