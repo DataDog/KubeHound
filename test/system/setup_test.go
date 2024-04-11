@@ -64,7 +64,7 @@ func InitSetupTest(ctx context.Context) *providers.ProvidersFactoryConfig {
 	return p
 }
 
-func DumpAndRun(ctx context.Context, compress bool, providers *providers.ProvidersFactoryConfig) {
+func DumpAndRun(ctx context.Context, compress bool, p *providers.ProvidersFactoryConfig) {
 	var err error
 
 	// Setting the base tags
@@ -142,7 +142,7 @@ func DumpAndRun(ctx context.Context, compress bool, providers *providers.Provide
 		log.I.Fatalf("collector client creation: %v", err)
 	}
 
-	err = providers.IngestBuildData(ctx, khCfg)
+	err = p.IngestBuildData(ctx, khCfg)
 	if err != nil {
 		log.I.Fatalf("ingest build data: %v", err)
 	}
