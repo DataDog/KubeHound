@@ -129,5 +129,5 @@ builder:
 #   archive_name: "archive.tar.gz"
 #   max_archive_size: 1073741824 # 1GB
 #   api: # GRPC endpoint for the ingestor
-#     url: "http://localhost:8080"
+#     endpoint: "127.0.0.1:9000"
 #     insecure: true
