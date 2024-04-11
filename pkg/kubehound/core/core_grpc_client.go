@@ -16,7 +16,7 @@ func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName strin
 	if ingestorConfig.API.Insecure {
 		dialOpt = grpc.WithTransportCredentials(insecure.NewCredentials())
 	} else {
-		return fmt.Errorf("insecure connection is not supported")
+		return fmt.Errorf("secure connection is not supported")
 	}
 
 	log.I.Infof("Launching ingestion on %s [%s:%s]", ingestorConfig.API.Endpoint, clusteName, runID)
