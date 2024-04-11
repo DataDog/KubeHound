@@ -17,8 +17,8 @@ var (
 		Use:   "kubehound-local",
 		Short: "A local Kubehound instance",
 		Long:  `A local instance of Kubehound - a Kubernetes attack path generator`,
-		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true)
+		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, false)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// Passing the Kubehound config from viper
@@ -37,4 +37,6 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", cfgFile, "application config file")
+
+	cmd.InitRootCmd(rootCmd)
 }

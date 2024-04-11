@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 	"net"
 
 	"github.com/DataDog/KubeHound/pkg/ingestor/api"
@@ -42,7 +41,7 @@ func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestRe
 // Listen starts the GRPC server with the generic api implementation
 // It uses the config from the passed API for address and ports
 func Listen(ctx context.Context, api *api.IngestorAPI) error {
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", api.Cfg.Ingestor.API.Addr, api.Cfg.Ingestor.API.Port))
+	lis, err := net.Listen("tcp", api.Cfg.Ingestor.API.Endpoint)
 	if err != nil {
 		return err
 	}

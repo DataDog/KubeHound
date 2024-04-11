@@ -103,7 +103,7 @@ func (c *k8sAPICollector) Tags(ctx context.Context) []string {
 	return nil
 }
 
-func (c *k8sAPICollector) wait(_ context.Context, resourceType string) {
+func (c *k8sAPICollector) wait(_ context.Context, resourceType string, tags []string) {
 	prev := time.Now()
 	now := c.rl.Take()
 
@@ -112,8 +112,8 @@ func (c *k8sAPICollector) wait(_ context.Context, resourceType string) {
 	defer c.mu.Unlock()
 	c.waitTime[resourceType] += waitTime
 
-	entity := tag.Entity(resourceType)
-	err := statsd.Gauge(metric.CollectorWait, float64(c.waitTime[resourceType]), append(c.tags.baseTags, entity), 1)
+	// entity := tag.Entity(resourceType)
+	err := statsd.Gauge(metric.CollectorWait, float64(c.waitTime[resourceType]), tags, 1)
 	if err != nil {
 		log.I.Error(err)
 	}
@@ -235,7 +235,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(metric.CollectorCount, c.tags.pod, 1)
-		c.wait(ctx, entity)
+		c.wait(ctx, entity, c.tags.pod)
 		item, ok := obj.(*corev1.Pod)
 		if !ok {
 			return fmt.Errorf("pod stream type conversion error: %T", obj)
@@ -290,7 +290,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(metric.CollectorCount, c.tags.role, 1)
-		c.wait(ctx, entity)
+		c.wait(ctx, entity, c.tags.role)
 		item, ok := obj.(*rbacv1.Role)
 		if !ok {
 			return fmt.Errorf("role stream type conversion error: %T", obj)
@@ -345,7 +345,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(metric.CollectorCount, c.tags.rolebinding, 1)
-		c.wait(ctx, entity)
+		c.wait(ctx, entity, c.tags.rolebinding)
 		item, ok := obj.(*rbacv1.RoleBinding)
 		if !ok {
 			return fmt.Errorf("role binding stream type conversion error: %T", obj)
@@ -400,7 +400,7 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 
 	return pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(metric.CollectorCount, c.tags.endpoint, 1)
-		c.wait(ctx, entity)
+		c.wait(ctx, entity, c.tags.endpoint)
 		item, ok := obj.(*discoveryv1.EndpointSlice)
 		if !ok {
 			return fmt.Errorf("endpoint stream type conversion error: %T", obj)
@@ -454,7 +454,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 
 	err = pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(metric.CollectorCount, c.tags.node, 1)
-		c.wait(ctx, entity)
+		c.wait(ctx, entity, c.tags.node)
 		item, ok := obj.(*corev1.Node)
 		if !ok {
 			return fmt.Errorf("node stream type conversion error: %T", obj)
@@ -497,7 +497,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 
 	err = pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrole, 1)
-		c.wait(ctx, entity)
+		c.wait(ctx, entity, c.tags.clusterrole)
 		item, ok := obj.(*rbacv1.ClusterRole)
 		if !ok {
 			return fmt.Errorf("cluster role stream type conversion error: %T", obj)
@@ -540,7 +540,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 
 	err = pager.EachListItem(ctx, opts, func(obj runtime.Object) error {
 		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrolebinding, 1)
-		c.wait(ctx, entity)
+		c.wait(ctx, entity, c.tags.clusterrolebinding)
 		item, ok := obj.(*rbacv1.ClusterRoleBinding)
 		if !ok {
 			return fmt.Errorf("cluster role binding stream type conversion error: %T", obj)

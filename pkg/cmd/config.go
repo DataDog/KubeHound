@@ -23,7 +23,7 @@ func GetConfig() (*config.KubehoundConfig, error) {
 	return &khCfg, nil
 }
 
-func InitializeKubehoundConfig(ctx context.Context, configPath string, generateRunID bool) error {
+func InitializeKubehoundConfig(ctx context.Context, configPath string, generateRunID bool, inline bool) error {
 	// We define a unique run id this so we can measure run by run in addition of version per version.
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
 	// In the case of KHaaS, the runID is taken from the GRPC request argument
@@ -39,10 +39,11 @@ func InitializeKubehoundConfig(ctx context.Context, configPath string, generateR
 		log.I.Errorf("collector cluster info: %v", err)
 	}
 
-	khCfg := config.NewKubehoundConfig(configPath, true)
+	khCfg := config.NewKubehoundConfig(configPath, inline)
 
 	// Activate debug mode if needed
 	if khCfg.Debug {
+		log.I.Info("Debug mode activated")
 		log.I.Logger.SetLevel(logrus.DebugLevel)
 	}
 

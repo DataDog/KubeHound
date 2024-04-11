@@ -7,6 +7,7 @@ import (
 
 	embedconfig "github.com/DataDog/KubeHound/configs"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/go-playground/validator/v10"
 	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/viper"
 )
@@ -18,6 +19,8 @@ var (
 const (
 	DefaultConfigType  = "yaml"
 	DefaultClusterName = "unknown"
+
+	GlobalDebug = "debug"
 )
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
@@ -71,6 +74,7 @@ func NewKubehoundConfig(configPath string, inLine bool) *KubehoundConfig {
 		log.I.Infof("Loading application configuration from file %s", configPath)
 		cfg = MustLoadConfig(configPath)
 	case inLine:
+		log.I.Info("Loading application from inline command")
 		cfg = MustLoadInlineConfig()
 	default:
 		log.I.Infof("Loading application configuration from default embedded")
@@ -93,7 +97,7 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("storage.retry_delay", DefaultRetryDelay)
 
 	// Disable Datadog telemetry by default
-	c.SetDefault("telemetry.enabled", false)
+	c.SetDefault(TelemetryEnabled, false)
 
 	// Default value for MongoDB
 	c.SetDefault("mongodb.url", DefaultMongoUrl)
@@ -104,8 +108,8 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("janusgraph.connection_timeout", DefaultConnectionTimeout)
 
 	// Profiler values
-	c.SetDefault("telemetry.profiler.period", DefaultProfilerPeriod)
-	c.SetDefault("telemetry.profiler.cpu_duration", DefaultProfilerCPUDuration)
+	c.SetDefault(TelemetryProfilerPeriod, DefaultProfilerPeriod)
+	c.SetDefault(TelemetryProfilerCPUDuration, DefaultProfilerCPUDuration)
 
 	// Default values for graph builder
 	c.SetDefault("builder.vertex.batch_size", DefaultVertexBatchSize)
@@ -117,8 +121,8 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
 	c.SetDefault("builder.stop_on_error", DefaultStopOnError)
 
-	c.SetDefault("ingestor.api.port", DefaultIngestorAPIPort)
-	c.SetDefault("ingestor.api.address", DefaultIngestorAPIAddr)
+	c.SetDefault(IngestorAPIEndpoint, DefaultIngestorAPIEndpoint)
+	c.SetDefault(IngestorAPIInsecure, DefaultIngestorAPIInsecure)
 	c.SetDefault("ingestor.bucket_name", DefaultBucketName)
 	c.SetDefault("ingestor.temp_dir", DefaultTempDir)
 	c.SetDefault("ingestor.max_archive_size", DefaultMaxArchiveSize)
@@ -139,6 +143,26 @@ func SetEnvOverrides(c *viper.Viper) {
 	}
 }
 
+func unmarshalConfig(v *viper.Viper) (*KubehoundConfig, error) {
+	kc := KubehoundConfig{}
+	kc.Dynamic.mu.Lock()
+	defer kc.Dynamic.mu.Unlock()
+
+	err := v.Unmarshal(&kc)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshaling config data: %w", err)
+	}
+
+	// Validating the object
+	validateConfig := validator.New(validator.WithRequiredStructEnabled())
+	err = validateConfig.Struct(&kc)
+	if err != nil {
+		return nil, fmt.Errorf("validating config: %w", err)
+	}
+
+	return &kc, nil
+}
+
 // NewConfig creates a new config instance from the provided file using viper.
 func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
 	v.SetConfigType(DefaultConfigType)
@@ -153,24 +177,24 @@ func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
 
-	kc := KubehoundConfig{}
-	if err := v.Unmarshal(&kc); err != nil {
+	kc, err := unmarshalConfig(v)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
-	return &kc, nil
+	return kc, nil
 }
 
 // NewConfig creates a new config instance from the provided file using viper.
 func NewInlineConfig(v *viper.Viper) (*KubehoundConfig, error) {
 	// Configure environment variable override
 	SetEnvOverrides(v)
-	kc := KubehoundConfig{}
-	if err := v.Unmarshal(&kc); err != nil {
+	kc, err := unmarshalConfig(v)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
-	return &kc, nil
+	return kc, nil
 }
 
 // NewEmbedConfig creates a new config instance from an embedded config file using viper.
@@ -188,12 +212,12 @@ func NewEmbedConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error)
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
 
-	kc := KubehoundConfig{}
-	if err := v.Unmarshal(&kc); err != nil {
+	kc, err := unmarshalConfig(v)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
-	return &kc, nil
+	return kc, nil
 }
 
 // IsCI determines whether the application is running within a CI action
