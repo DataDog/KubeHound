@@ -11,11 +11,14 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
+	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+	"go.mongodb.org/mongo-driver/bson"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -60,6 +63,11 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	spanJob, runCtx := span.SpanIngestRunFromContext(runCtx, span.IngestorStartJob)
 	var err error
 	defer func() { spanJob.Finish(tracer.WithError(err)) }()
+
+	err = g.checkPreviousRun(runCtx, clusterName, runID) //nolint: contextcheck
+	if err != nil {
+		return err
+	}
 
 	archivePath, err := g.puller.Pull(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
@@ -111,6 +119,34 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	err = g.notifier.Notify(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (g *IngestorAPI) checkPreviousRun(ctx context.Context, clusterName string, runID string) error {
+	var resNum int64
+	var err error
+	for _, collection := range collections.GetCollections() {
+		db := adapter.MongoDB(g.providers.StoreProvider).Collection(collection)
+		filter := bson.M{
+			"runtime": bson.M{
+				"runID":   runID,
+				"cluster": clusterName,
+			},
+		}
+		resNum, err = db.CountDocuments(ctx, filter, nil) //nolint: contextcheck
+		if err != nil {
+			return fmt.Errorf("error counting documents in collection %s: %w", collection, err)
+		}
+		if resNum != 0 {
+			log.I.Infof("Found %d element in collection %s", resNum, collection)
+
+			break
+		}
+	}
+	if resNum != 0 {
+		return fmt.Errorf("ingestion already completed [%s:%s]", clusterName, runID)
 	}
 
 	return nil
