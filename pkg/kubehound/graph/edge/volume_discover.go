@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -45,7 +46,7 @@ func (e *VolumeDiscover) Processor(ctx context.Context, oic *converter.ObjectIDC
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Volume)
 }
 
-func (e *VolumeDiscover) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *VolumeDiscover) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)
@@ -53,7 +54,12 @@ func (e *VolumeDiscover) Stream(ctx context.Context, store storedb.Provider, _ c
 	// We just need a 1:1 mapping of the container and volume to create this edge
 	projection := bson.M{"_id": 1, "container_id": 1}
 
-	cur, err := volumes.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	filter := bson.M{
+		"runtime.runID":   runtime.RunID.String(),
+		"runtime.cluster": runtime.ClusterName,
+	}
+
+	cur, err := volumes.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}

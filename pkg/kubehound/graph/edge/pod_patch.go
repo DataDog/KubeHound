@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -101,14 +102,16 @@ func (e *PodPatch) Traversal() types.EdgeTraversal {
 }
 
 // Stream finds all roles that have pod/patch or equivalent wildcard permissions.
-func (e *PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_namespaced": false,
+				"is_namespaced":   false,
+				"runtime.runID":   runtime.RunID.String(),
+				"runtime.cluster": runtime.ClusterName,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{
@@ -153,3 +156,46 @@ func (e *PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.C
 
 	return adapter.MongoCursorHandler[podPatchGroup](ctx, cur, callback, complete)
 }
+
+/* db.permissionSets.aggregate([
+	{
+		$match: {
+			is_namespaced: false,
+			"runtime.runID": "<runtime.RunID>",
+			"runtime.cluster": "<runtime.ClusterName>",
+			rules: {
+				$elemMatch: {
+					$and: [
+						{ $or: [{ apigroups: "" }, { apigroups: "*" }] },
+						{
+							$or: [
+								{ resources: "pods" },
+								{ resources: "cronjobs" },
+								{ resources: "deamonsets" },
+								{ resources: "deployments" },
+								{ resources: "jobs" },
+								{ resources: "replicasets" },
+								{ resources: "replicationcontrollers" },
+								{ resources: "statefulsets" },
+								{ resources: "*" },
+							],
+						},
+						{
+							$or: [
+								{ verbs: "patch" },
+								{ verbs: "update" },
+								{ verbs: "*" },
+							],
+						},
+						{ resourcenames: null },
+					],
+				},
+			},
+		},
+	},
+	{
+		$project: {
+			_id: 1,
+		},
+	},
+])*/

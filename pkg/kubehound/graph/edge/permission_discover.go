@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -44,12 +45,18 @@ func (e *PermissionDiscover) Processor(ctx context.Context, oic *converter.Objec
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Identity, typed.PermissionSet)
 }
 
-func (e *PermissionDiscover) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *PermissionDiscover) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 
 	pipeline := bson.A{
+		bson.M{
+			"$match": bson.M{
+				"runtime.runID":   runtime.RunID.String(),
+				"runtime.cluster": runtime.ClusterName,
+			},
+		},
 		// First we retrieve all rolebindings associated to the permissionset
 		bson.M{
 			"$lookup": bson.M{

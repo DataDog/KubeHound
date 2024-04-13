@@ -3,6 +3,7 @@ package edge
 import (
 	"context"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -34,7 +35,7 @@ func (e *EscapeModuleLoad) Processor(ctx context.Context, oic *converter.ObjectI
 	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }
 
-func (e *EscapeModuleLoad) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *EscapeModuleLoad) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
@@ -44,7 +45,10 @@ func (e *EscapeModuleLoad) Stream(ctx context.Context, store storedb.Provider, _
 		"$or": bson.A{
 			bson.M{"k8.securitycontext.privileged": true},
 			bson.M{"k8.securitycontext.capabilities.add": "SYS_MODULE"},
-		}}
+		},
+		"runtime.runID":   runtime.RunID.String(),
+		"runtime.cluster": runtime.ClusterName,
+	}
 
 	// We just need a 1:1 mapping of the node and container to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}

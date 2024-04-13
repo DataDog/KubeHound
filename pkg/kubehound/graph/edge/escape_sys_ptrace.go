@@ -3,6 +3,7 @@ package edge
 import (
 	"context"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -34,7 +35,7 @@ func (e *EscapeSysPtrace) Processor(ctx context.Context, oic *converter.ObjectID
 	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }
 
-func (e *EscapeSysPtrace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *EscapeSysPtrace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
@@ -45,7 +46,10 @@ func (e *EscapeSysPtrace) Stream(ctx context.Context, store storedb.Provider, _ 
 			bson.M{"inherited.host_pid": true},
 			bson.M{"k8.securitycontext.capabilities.add": "SYS_PTRACE"},
 			bson.M{"k8.securitycontext.capabilities.add": "SYS_ADMIN"},
-		}}
+		},
+		"runtime.runID":   runtime.RunID.String(),
+		"runtime.cluster": runtime.ClusterName,
+	}
 
 	// We just need a 1:1 mapping of the node and container to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}

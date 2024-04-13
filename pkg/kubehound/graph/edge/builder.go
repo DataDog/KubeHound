@@ -40,7 +40,7 @@ type Builder interface {
 	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
 	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput via a call to
 	// the edge's Processor function. Invoking the complete callback signals the end of the stream.
-	Stream(ctx context.Context, store storedb.Provider, cache cache.CacheReader,
+	Stream(ctx context.Context, store storedb.Provider, cache cache.CacheReader, runtime *config.DynamicConfig,
 		process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error
 }
 

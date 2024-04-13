@@ -71,7 +71,7 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 		return err
 	}
 
-	err = e.Stream(ctx, b.storedb, b.cache,
+	err = e.Stream(ctx, b.storedb, b.cache, &b.cfg.Dynamic,
 		func(ctx context.Context, entry types.DataContainer) error {
 			insert, err := e.Processor(ctx, oic, entry)
 			if err != nil {

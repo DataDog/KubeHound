@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -46,14 +47,16 @@ func (e *PodExecNamespace) Processor(ctx context.Context, oic *converter.ObjectI
 
 // Stream finds all roles that are namespaced and have pod/exec or equivalent wildcard permissions and matching pods.
 // Matching pods are defined as all pods that share the role namespace or non-namespaced pods.
-func (e *PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_namespaced": true,
+				"is_namespaced":   true,
+				"runtime.runID":   runtime.RunID.String(),
+				"runtime.cluster": runtime.ClusterName,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{
@@ -85,14 +88,18 @@ func (e *PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _
 				},
 				"pipeline": []bson.M{
 					{
-						"$match": bson.M{"$or": bson.A{
-							bson.M{"$expr": bson.M{
-								"$eq": bson.A{
-									"$k8.objectmeta.namespace", "$$roleNamespace",
-								},
-							}},
-							bson.M{"is_namespaced": false},
-						}},
+						"$match": bson.M{
+							"$or": bson.A{
+								bson.M{"$expr": bson.M{
+									"$eq": bson.A{
+										"$k8.objectmeta.namespace", "$$roleNamespace",
+									},
+								}},
+								bson.M{"is_namespaced": false},
+							},
+							"runtime.runID":   runtime.RunID.String(),
+							"runtime.cluster": runtime.ClusterName,
+						},
 					},
 					{
 						"$project": bson.M{

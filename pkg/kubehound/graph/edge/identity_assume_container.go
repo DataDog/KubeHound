@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -45,11 +46,17 @@ func (e *IdentityAssumeContainer) Processor(ctx context.Context, oic *converter.
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Identity)
 }
 
-func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
 	pipeline := bson.A{
+		bson.M{
+			"$match": bson.M{
+				"runtime.runID":   runtime.RunID.String(),
+				"runtime.cluster": runtime.ClusterName,
+			},
+		},
 		bson.M{
 			"$lookup": bson.M{
 				"as":   "idc",
@@ -60,19 +67,23 @@ func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Prov
 				},
 				"pipeline": []bson.M{
 					{
-						"$match": bson.M{"$and": bson.A{
-							bson.M{"$expr": bson.M{
-								"$eq": bson.A{
-									"$name", "$$idName",
-								},
-							}},
-							bson.M{"$expr": bson.M{
-								"$eq": bson.A{
-									"$namespace", "$$idNamespace",
-								},
-							}},
-							bson.M{"type": shared.IdentityTypeSA},
-						}},
+						"$match": bson.M{
+							"$and": bson.A{
+								bson.M{"$expr": bson.M{
+									"$eq": bson.A{
+										"$name", "$$idName",
+									},
+								}},
+								bson.M{"$expr": bson.M{
+									"$eq": bson.A{
+										"$namespace", "$$idNamespace",
+									},
+								}},
+								bson.M{"type": shared.IdentityTypeSA},
+							},
+							"runtime.runID":   runtime.RunID.String(),
+							"runtime.cluster": runtime.ClusterName,
+						},
 					},
 					{
 						"$project": bson.M{

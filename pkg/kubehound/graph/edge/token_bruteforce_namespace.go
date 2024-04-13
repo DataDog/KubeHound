@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -46,7 +47,7 @@ func (e *TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter
 
 // Stream finds all roles that are namespaced and have secrets/get or equivalent wildcard permissions and matching identities.
 // Matching identities are defined as namespaced identities that share the role namespace or non-namespaced identities.
-func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	var verbMatcher bson.M
@@ -64,7 +65,9 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_namespaced": true,
+				"is_namespaced":   true,
+				"runtime.runID":   runtime.RunID.String(),
+				"runtime.cluster": runtime.ClusterName,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{
@@ -92,17 +95,21 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 				},
 				"pipeline": []bson.M{
 					{
-						"$match": bson.M{"$and": bson.A{
-							bson.M{"$or": bson.A{
-								bson.M{"$expr": bson.M{
-									"$eq": bson.A{
-										"$namespace", "$$roleNamespace",
-									},
+						"$match": bson.M{
+							"$and": bson.A{
+								bson.M{"$or": bson.A{
+									bson.M{"$expr": bson.M{
+										"$eq": bson.A{
+											"$namespace", "$$roleNamespace",
+										},
+									}},
+									bson.M{"is_namespaced": false},
 								}},
-								bson.M{"is_namespaced": false},
-							}},
-							bson.M{"type": "ServiceAccount"},
-						}},
+								bson.M{"type": "ServiceAccount"},
+							},
+							"runtime.runID":   runtime.RunID.String(),
+							"runtime.cluster": runtime.ClusterName,
+						},
 					},
 					{
 						"$project": bson.M{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -89,7 +90,7 @@ func (e *RoleBindCrbCrR) Traversal() types.EdgeTraversal {
 	}
 }
 
-func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
@@ -98,7 +99,9 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 		// $match stage
 		{
 			"$match": bson.M{
-				"is_namespaced": false,
+				"is_namespaced":   false,
+				"runtime.runID":   runtime.RunID.String(),
+				"runtime.cluster": runtime.ClusterName,
 				"$and": []bson.M{
 					// Looking for RBAC objects
 					{
@@ -167,12 +170,47 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 			},
 		},
 		// Looking for all permissionSets link to the same namespace
+		// {
+		// 	"$lookup": bson.M{
+		// 		"as":   "rb",
+		// 		"from": "rolebindings",
+		// 		"let": bson.M{
+		// 			"roleId": "$_id",
+		// 		},
+		// 		"pipeline": []bson.M{
+		// 			{
+		// 				"$match": bson.M{
+		// 					"$or": bson.A{
+		// 						bson.M{"$expr": bson.M{
+		// 							"$eq": bson.A{
+		// 								"$k8.objectmeta.namespace", "$$roleId",
+		// 							},
+		// 						}},
+		// 						bson.M{"is_namespaced": false},
+		// 					},
+		// 					"runtime.runID":   runtime.RunID.String(),
+		// 					"runtime.cluster": runtime.ClusterName,
+		// 				},
+		// 			},
+		// 			{
+		// 				"$project": bson.M{
+		// 					"_id": 1,
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// },
+		// Looking for all permissionSets link to the same namespace
 		{
 			"$lookup": bson.M{
 				"from":         "rolebindings",
 				"localField":   "role_binding_id",
 				"foreignField": "_id",
 				"as":           "rb",
+				// "let": bson.M{
+				// 	"$runtime.runID":   runtime.RunID.String(),
+				// 	"$runtime.cluster": runtime.ClusterName,
+				// },
 			},
 		},
 		{
@@ -183,6 +221,8 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 		{
 			"$match": bson.M{
 				"rb.is_namespaced": false,
+				"runtime.runID":    runtime.RunID.String(),
+				"runtime.cluster":  runtime.ClusterName,
 			},
 		},
 		// $project stage

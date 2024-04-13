@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -45,7 +46,7 @@ func (e *IdentityAssumeNode) Processor(ctx context.Context, oic *converter.Objec
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Node, typed.Identity)
 }
 
-func (e *IdentityAssumeNode) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *IdentityAssumeNode) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	nodes := adapter.MongoDB(store).Collection(collections.NodeName)
@@ -55,7 +56,11 @@ func (e *IdentityAssumeNode) Stream(ctx context.Context, store storedb.Provider,
 	projection := bson.M{"_id": 1, "user_id": 1}
 
 	// If the default node group has no permissions, we do not set a user id
-	filter := bson.M{"user_id": bson.M{"$ne": primitive.NilObjectID}}
+	filter := bson.M{
+		"user_id":         bson.M{"$ne": primitive.NilObjectID},
+		"runtime.runID":   runtime.RunID.String(),
+		"runtime.cluster": runtime.ClusterName,
+	}
 
 	cur, err := nodes.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {

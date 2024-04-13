@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -48,7 +49,7 @@ func (e *RoleBindRbRbR) Processor(ctx context.Context, oic *converter.ObjectIDCo
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.FromPerm, typed.ToPerm)
 }
 
-func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader, runtime *config.DynamicConfig,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
@@ -56,7 +57,9 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 		bson.M{
 			"$match": bson.M{
 				// looking for RB CR/R role only
-				"is_namespaced": true,
+				"is_namespaced":   true,
+				"runtime.runID":   runtime.RunID.String(),
+				"runtime.cluster": runtime.ClusterName,
 				"$and": []bson.M{
 					// Looking for RBAC objects
 					{
@@ -127,12 +130,48 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 		// Looking for all permissionSets link to the same namespace
 		bson.M{
 			"$lookup": bson.M{
-				"from":         "permissionsets",
-				"localField":   "namespace",
-				"foreignField": "namespace",
-				"as":           "linkpermset",
+				"as":   "linkpermset",
+				"from": "permissionsets",
+				"let": bson.M{
+					"roleNamespace": "$namespace",
+				},
+				"pipeline": []bson.M{
+					{
+						"$match": bson.M{
+							"$or": bson.A{
+								bson.M{"$expr": bson.M{
+									"$eq": bson.A{
+										"$k8.objectmeta.namespace", "$$roleNamespace",
+									},
+								}},
+								bson.M{"is_namespaced": true},
+							},
+							"runtime.runID":   runtime.RunID.String(),
+							"runtime.cluster": runtime.ClusterName,
+						},
+					},
+					{
+						"$project": bson.M{
+							"_id": 1,
+						},
+					},
+				},
 			},
 		},
+		// Looking for all permissionSets link to the same namespace
+		// bson.M{
+		// 	"$lookup": bson.M{
+		// 		"from":         "permissionsets",
+		// 		"localField":   "namespace",
+		// 		"foreignField": "namespace",
+		// 		"as":           "linkpermset",
+		// 		// "let": bson.M{
+		// 		// 	"namespace":       "$namespace",
+		// 		// 	"$runtime.runID":   runtime.RunID.String(),
+		// 		// 	"$runtime.cluster": runtime.ClusterName,
+		// 		// },
+		// 	},
+		// },
 		bson.M{
 			"$unwind": bson.M{
 				"path": "$linkpermset",
