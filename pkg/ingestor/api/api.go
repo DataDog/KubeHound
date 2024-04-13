@@ -142,7 +142,7 @@ func (g *IngestorAPI) checkPreviousRun(ctx context.Context, clusterName string, 
 				"cluster": clusterName,
 			},
 		}
-		resNum, err = db.CountDocuments(ctx, filter, nil) //nolint: contextcheck
+		resNum, err = db.CountDocuments(ctx, filter, nil)
 		if err != nil {
 			return fmt.Errorf("error counting documents in collection %s: %w", collection, err)
 		}

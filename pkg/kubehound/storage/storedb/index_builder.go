@@ -94,9 +94,9 @@ func (ib *IndexBuilder) containers(ctx context.Context) error {
 		},
 		{
 			Keys: bson.D{
-				{"inherited.namespace", 1},
-				{"inherited.pod_name", 1},
-				{"k8.ports", 1},
+				{Key: "inherited.namespace", Value: 1},
+				{Key: "inherited.pod_name", Value: 1},
+				{Key: "k8.ports", Value: 1},
 			},
 			Options: options.Index().SetName("bySharedNode"),
 		},
@@ -144,9 +144,9 @@ func (ib *IndexBuilder) identities(ctx context.Context) error {
 		},
 		{
 			Keys: bson.D{
-				{"name", 1},
-				{"namespace", 1},
-				{"type", 1},
+				{Key: "name", Value: 1},
+				{Key: "namespace", Value: 1},
+				{Key: "type", Value: 1},
 			},
 			Options: options.Index().SetName("byLookupFields"),
 		},
@@ -264,24 +264,24 @@ func (ib *IndexBuilder) volumes(ctx context.Context) error {
 		},
 		{
 			Keys: bson.D{
-				{"node_id", 1},
-				{"projected_id", 1},
-				{"type", 1},
+				{Key: "node_id", Value: 1},
+				{Key: "projected_id", Value: 1},
+				{Key: "type", Value: 1},
 			},
 			Options: options.Index().SetName("bySharedNode"),
 		},
 		{
 			Keys: bson.D{
-				{"source", 1},
-				{"type", 1},
+				{Key: "source", Value: 1},
+				{Key: "type", Value: 1},
 			},
 			Options: options.Index().SetName("byMountProperties"),
 		},
 		{
 			Keys: bson.D{
-				{"source", 1},
-				{"readonly", 1},
-				{"type", 1},
+				{Key: "source", Value: 1},
+				{Key: "readonly", Value: 1},
+				{Key: "type", Value: 1},
 			},
 			Options: options.Index().SetName("byMountPropertiesEx"),
 		},
