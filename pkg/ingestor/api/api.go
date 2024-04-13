@@ -91,6 +91,13 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 		},
 	}
 
+	// We need to flush the cache to prevent warning/error on the overwriting element in cache the  any conflict with the previous ingestion
+	log.I.Info("Preparing cache provider")
+	err = g.providers.CacheProvider.Prepare(runCtx) //nolint: contextcheck
+	if err != nil {
+		return fmt.Errorf("cache client creation: %w", err)
+	}
+
 	// Create the collector instance
 	log.I.Info("Loading Kubernetes data collector client")
 	collect, err := collector.ClientFactory(runCtx, runCfg) //nolint: contextcheck

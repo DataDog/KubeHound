@@ -34,6 +34,9 @@ type CacheProvider interface {
 
 	// BulkWriter creates a new AsyncWriter instance to enable asynchronous bulk inserts.
 	BulkWriter(ctx context.Context, opts ...WriterOption) (AsyncWriter, error)
+
+	// Prepare drops all data from the cache (usually to ensure a clean start).
+	Prepare(ctx context.Context) error
 }
 
 // AysncWriter defines the interface for writer clients to queue aysnchronous, batched writes to the cache.

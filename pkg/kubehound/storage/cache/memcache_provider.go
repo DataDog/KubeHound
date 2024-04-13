@@ -48,6 +48,12 @@ func (m *MemCacheProvider) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
+func (m *MemCacheProvider) Prepare(ctx context.Context) error {
+	clear(m.data)
+
+	return nil
+}
+
 func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) *CacheResult {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

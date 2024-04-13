@@ -30,6 +30,11 @@ func NewProvidersFactoryConfig(ctx context.Context, khCfg *config.KubehoundConfi
 	}
 	log.I.Infof("Loaded %s cache provider", cp.Name())
 
+	err = cp.Prepare(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("store database prepare: %w", err)
+	}
+
 	// Create the store client
 	log.I.Info("Loading store database provider")
 	sp, err := storedb.Factory(ctx, khCfg)
