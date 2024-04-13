@@ -1,4 +1,3 @@
-//nolint:govet
 package storedb
 
 import (
