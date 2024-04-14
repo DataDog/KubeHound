@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -12,8 +13,66 @@ import (
 	mocksCache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	mocksGraph "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	mocksStore "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
+	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 )
+
+func foundPreviousScan(mt *mtest.T, g *IngestorAPI) {
+	mt.Helper()
+
+	store, ok := g.providers.StoreProvider.(*mocksStore.Provider)
+	if !ok {
+		mt.Fatalf("failed to cast store provider to mock")
+	}
+
+	defer func() {
+		mt.Client = nil
+	}()
+	mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+	// Return X documents to emulate a previous scan
+	store.On("Reader", mock.Anything).Return(mt.DB).Once()
+	mt.AddMockResponses(mtest.CreateCursorResponse(1, "test.nodes", mtest.FirstBatch, bson.D{{Key: "n", Value: 123}}))
+
+	// For count to work, mongo needs an index. So we need to create that. Index view should contains a key. Value does not matter
+	indexView := mt.Coll.Indexes()
+	_, err := indexView.CreateOne(context.TODO(), mongo.IndexModel{
+		Keys: bson.D{{Key: "n", Value: 321}},
+	})
+	require.Nil(mt, err, "CreateOne error for index: %v", err)
+}
+
+func noPreviousScan(mt *mtest.T, g *IngestorAPI) {
+	mt.Helper()
+
+	store, ok := g.providers.StoreProvider.(*mocksStore.Provider)
+	if !ok {
+		mt.Fatalf("failed to cast store provider to mock")
+	}
+
+	defer func() {
+		mt.Client = nil
+	}()
+	mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+	// For count to work, mongo needs an index. So we need to create that. Index view should contains a key. Value does not matter
+	indexView := mt.Coll.Indexes()
+	_, err := indexView.CreateOne(context.TODO(), mongo.IndexModel{
+		Keys: bson.D{{Key: "n", Value: 321}},
+	})
+	require.Nil(mt, err, "CreateOne error for index: %v", err)
+
+	// Iterate over all collections without findings any element
+	for _, collection := range collections.GetCollections() {
+		store.On("Reader", mock.Anything).Return(mt.DB)
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, fmt.Sprintf("test.%s", collection), mtest.FirstBatch, bson.D{{Key: "n", Value: 0}}))
+
+	}
+}
 
 func TestIngestorAPI_Ingest(t *testing.T) {
 	t.Parallel()
@@ -24,6 +83,9 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 		clusterName string
 		runID       string
 	}
+
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
 
 	tests := []struct {
 		name    string
@@ -72,8 +134,8 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+		mt.Run(tt.name, func(mt *mtest.T) {
+			mt.Parallel()
 			mockedPuller := mocksPuller.NewDataPuller(t)
 			mockedNotifier := mocksNotifier.NewNotifier(t)
 			mockedCache := mocksCache.NewCacheProvider(t)
@@ -87,9 +149,80 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 			}
 
 			g := NewIngestorAPI(tt.fields.cfg, mockedPuller, mockedNotifier, mockedProvider)
+			noPreviousScan(mt, g)
 			tt.mock(mockedPuller, mockedNotifier, mockedCache, mockedStoreDB, mockedGraphDB)
 			if err := g.Ingest(context.TODO(), tt.args.clusterName, tt.args.runID); (err != nil) != tt.wantErr {
 				t.Errorf("IngestorAPI.Ingest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestIngestorAPI_checkPreviousRun(t *testing.T) {
+	t.Parallel()
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+	ctx := context.TODO()
+	mockStoreProvider := mocksStore.NewProvider(t)
+
+	type fields struct {
+		providers *providers.ProvidersFactoryConfig
+		mock      *mtest.T
+	}
+	type args struct {
+		clusterName string
+		runID       string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+		testfct func(mt *mtest.T, g *IngestorAPI)
+	}{
+		{
+			name: "RunID already ingested",
+			fields: fields{
+				mock: mt,
+				providers: &providers.ProvidersFactoryConfig{
+					StoreProvider: mockStoreProvider,
+				},
+			},
+			args: args{
+				clusterName: "test-cluster",
+				runID:       "test-run-id",
+			},
+			wantErr: true,
+			testfct: foundPreviousScan,
+		},
+		{
+			name: "RunID not ingested",
+			fields: fields{
+				mock: mt,
+				providers: &providers.ProvidersFactoryConfig{
+					StoreProvider: mockStoreProvider,
+				},
+			},
+			args: args{
+				clusterName: "test-cluster",
+				runID:       "test-run-id",
+			},
+			wantErr: false,
+			testfct: noPreviousScan,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		mt.Run(tt.name, func(mt *mtest.T) {
+			mt.Parallel()
+			g := &IngestorAPI{
+				providers: tt.fields.providers,
+			}
+
+			tt.testfct(mt, g)
+
+			if err := g.checkPreviousRun(ctx, tt.args.clusterName, tt.args.runID); (err != nil) != tt.wantErr {
+				t.Errorf("%s - IngestorAPI.checkPreviousRun() error = %d, wantErr %v", tt.name, err, tt.wantErr)
 			}
 		})
 	}
