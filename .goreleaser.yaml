@@ -30,6 +30,7 @@ archives:
       - deployments/kubehound/docker-compose.yaml
       - deployments/kubehound/docker-compose.datadog.yaml
       - deployments/kubehound/docker-compose.release.yaml
+      - deployments/kubehound/docker-compose.ui.yaml
       - src: scripts/kubehound.sh
         dst: kubehound.sh
       - src: scripts/kubehound.bat
