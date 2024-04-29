@@ -158,6 +158,7 @@ func (g *IngestorAPI) isAlreadyIngested(ctx context.Context, clusterName string,
 		}
 		if resNum != 0 {
 			log.I.Infof("Found %d element in collection %s", resNum, collection)
+
 			return true, nil
 		}
 		log.I.Infof("Found %d element in collection %s", resNum, collection)
