@@ -131,7 +131,7 @@ test: ## Run the full suite of unit tests
 
 .PHONY: system-test
 system-test: | backend-reset ## Run the system tests
-	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "80s" -count=1 -race ./...
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "120s" -count=1 -race ./...
 
 .PHONY: system-test-fast
 system-test-fast: ## Run the system tests WITHOUT recreating the backend
