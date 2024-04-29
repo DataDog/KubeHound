@@ -157,20 +157,6 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 				},
 			},
 		},
-		// Looking for all permissionSets link to the same namespace
-		// bson.M{
-		// 	"$lookup": bson.M{
-		// 		"from":         "permissionsets",
-		// 		"localField":   "namespace",
-		// 		"foreignField": "namespace",
-		// 		"as":           "linkpermset",
-		// 		// "let": bson.M{
-		// 		// 	"namespace":       "$namespace",
-		// 		// 	"$runtime.runID":   runtime.RunID.String(),
-		// 		// 	"$runtime.cluster": runtime.ClusterName,
-		// 		// },
-		// 	},
-		// },
 		bson.M{
 			"$unwind": bson.M{
 				"path": "$linkpermset",

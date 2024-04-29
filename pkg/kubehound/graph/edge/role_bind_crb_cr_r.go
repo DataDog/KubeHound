@@ -169,47 +169,12 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 			},
 		},
 		// Looking for all permissionSets link to the same namespace
-		// {
-		// 	"$lookup": bson.M{
-		// 		"as":   "rb",
-		// 		"from": "rolebindings",
-		// 		"let": bson.M{
-		// 			"roleId": "$_id",
-		// 		},
-		// 		"pipeline": []bson.M{
-		// 			{
-		// 				"$match": bson.M{
-		// 					"$or": bson.A{
-		// 						bson.M{"$expr": bson.M{
-		// 							"$eq": bson.A{
-		// 								"$k8.objectmeta.namespace", "$$roleId",
-		// 							},
-		// 						}},
-		// 						bson.M{"is_namespaced": false},
-		// 					},
-		// 					"runtime.runID":   runtime.RunID.String(),
-		// 					"runtime.cluster": runtime.ClusterName,
-		// 				},
-		// 			},
-		// 			{
-		// 				"$project": bson.M{
-		// 					"_id": 1,
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// },
-		// Looking for all permissionSets link to the same namespace
 		{
 			"$lookup": bson.M{
 				"from":         "rolebindings",
 				"localField":   "role_binding_id",
 				"foreignField": "_id",
 				"as":           "rb",
-				// "let": bson.M{
-				// 	"$runtime.runID":   runtime.RunID.String(),
-				// 	"$runtime.cluster": runtime.ClusterName,
-				// },
 			},
 		},
 		{
