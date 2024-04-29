@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -11,11 +12,14 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
+	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+	"go.mongodb.org/mongo-driver/bson"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -32,7 +36,10 @@ type IngestorAPI struct {
 	providers *providers.ProvidersFactoryConfig
 }
 
-var _ API = (*IngestorAPI)(nil)
+var (
+	_                  API = (*IngestorAPI)(nil)
+	ErrAlreadyIngested     = errors.New("ingestion already completed")
+)
 
 func NewIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller, notifier notifier.Notifier,
 	p *providers.ProvidersFactoryConfig) *IngestorAPI {
@@ -61,6 +68,15 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	var err error
 	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 
+	alreadyIngested, err := g.isAlreadyIngested(runCtx, clusterName, runID) //nolint: contextcheck
+	if err != nil {
+		return err
+	}
+
+	if alreadyIngested {
+		return fmt.Errorf("%w [%s:%s]", ErrAlreadyIngested, clusterName, runID)
+	}
+
 	archivePath, err := g.puller.Pull(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
@@ -81,6 +97,14 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 			Directory:   filepath.Dir(archivePath),
 			ClusterName: clusterName,
 		},
+	}
+
+	// We need to flush the cache to prevent warnings/errors when overwriting elements in cache from the previous ingestion
+	// This avoid conflicts from previous ingestion (there is no need to reuse the cache from a previous ingestion)
+	log.I.Info("Preparing cache provider")
+	err = g.providers.CacheProvider.Prepare(runCtx) //nolint: contextcheck
+	if err != nil {
+		return fmt.Errorf("cache client creation: %w", err)
 	}
 
 	// Create the collector instance
@@ -114,6 +138,33 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	}
 
 	return nil
+}
+
+func (g *IngestorAPI) isAlreadyIngested(ctx context.Context, clusterName string, runID string) (bool, error) {
+	var resNum int64
+	var err error
+	for _, collection := range collections.GetCollections() {
+		mdb := adapter.MongoDB(g.providers.StoreProvider)
+		db := mdb.Collection(collection)
+		filter := bson.M{
+			"runtime": bson.M{
+				"runID":   runID,
+				"cluster": clusterName,
+			},
+		}
+		resNum, err = db.CountDocuments(ctx, filter, nil)
+		if err != nil {
+			return false, fmt.Errorf("error counting documents in collection %s: %w", collection, err)
+		}
+		if resNum != 0 {
+			log.I.Infof("Found %d element in collection %s", resNum, collection)
+
+			return true, nil
+		}
+		log.I.Infof("Found %d element in collection %s", resNum, collection)
+	}
+
+	return false, nil
 }
 
 // Notify notifies the caller that the ingestion is completed

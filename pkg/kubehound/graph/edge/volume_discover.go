@@ -53,7 +53,12 @@ func (e *VolumeDiscover) Stream(ctx context.Context, store storedb.Provider, _ c
 	// We just need a 1:1 mapping of the container and volume to create this edge
 	projection := bson.M{"_id": 1, "container_id": 1}
 
-	cur, err := volumes.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	filter := bson.M{
+		"runtime.runID":   e.runtime.RunID.String(),
+		"runtime.cluster": e.runtime.ClusterName,
+	}
+
+	cur, err := volumes.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}

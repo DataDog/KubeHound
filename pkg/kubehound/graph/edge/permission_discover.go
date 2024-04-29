@@ -50,6 +50,12 @@ func (e *PermissionDiscover) Stream(ctx context.Context, store storedb.Provider,
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
 
 	pipeline := bson.A{
+		bson.M{
+			"$match": bson.M{
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
+			},
+		},
 		// First we retrieve all rolebindings associated to the permissionset
 		bson.M{
 			"$lookup": bson.M{

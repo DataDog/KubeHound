@@ -62,7 +62,7 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 
 	l.Infof("Building edge %s", label)
 
-	if err = e.Initialize(&b.cfg.Builder.Edge); err != nil {
+	if err = e.Initialize(&b.cfg.Builder.Edge, &b.cfg.Dynamic); err != nil {
 		return err
 	}
 

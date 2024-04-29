@@ -108,7 +108,9 @@ func (e *PodExec) Stream(ctx context.Context, store storedb.Provider, _ cache.Ca
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_namespaced": false,
+				"is_namespaced":   false,
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{

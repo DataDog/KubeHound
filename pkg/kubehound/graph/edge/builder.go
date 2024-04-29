@@ -20,7 +20,7 @@ var P = gremlin.P
 //go:generate mockery --name Builder --output mocks --case underscore --filename edge.go --with-expecter
 type Builder interface {
 	// Initialize intializes an edge builder from the application config
-	Initialize(cfg *config.EdgeBuilderConfig) error
+	Initialize(cfg *config.EdgeBuilderConfig, runtime *config.DynamicConfig) error
 
 	// Name returns the unique name for the edge builder. This must be unique.
 	Name() string

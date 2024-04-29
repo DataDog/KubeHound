@@ -273,6 +273,48 @@ func (_c *CacheProvider_Name_Call) RunAndReturn(run func() string) *CacheProvide
 	return _c
 }
 
+// Prepare provides a mock function with given fields: ctx
+func (_m *CacheProvider) Prepare(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CacheProvider_Prepare_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Prepare'
+type CacheProvider_Prepare_Call struct {
+	*mock.Call
+}
+
+// Prepare is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *CacheProvider_Expecter) Prepare(ctx interface{}) *CacheProvider_Prepare_Call {
+	return &CacheProvider_Prepare_Call{Call: _e.mock.On("Prepare", ctx)}
+}
+
+func (_c *CacheProvider_Prepare_Call) Run(run func(ctx context.Context)) *CacheProvider_Prepare_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *CacheProvider_Prepare_Call) Return(_a0 error) *CacheProvider_Prepare_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CacheProvider_Prepare_Call) RunAndReturn(run func(context.Context) error) *CacheProvider_Prepare_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 type mockConstructorTestingTNewCacheProvider interface {
 	mock.TestingT
 	Cleanup(func())

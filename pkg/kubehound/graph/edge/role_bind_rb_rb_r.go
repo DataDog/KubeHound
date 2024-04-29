@@ -56,7 +56,9 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 		bson.M{
 			"$match": bson.M{
 				// looking for RB CR/R role only
-				"is_namespaced": true,
+				"is_namespaced":   true,
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
 				"$and": []bson.M{
 					// Looking for RBAC objects
 					{
@@ -127,10 +129,32 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 		// Looking for all permissionSets link to the same namespace
 		bson.M{
 			"$lookup": bson.M{
-				"from":         "permissionsets",
-				"localField":   "namespace",
-				"foreignField": "namespace",
-				"as":           "linkpermset",
+				"as":   "linkpermset",
+				"from": "permissionsets",
+				"let": bson.M{
+					"roleNamespace": "$namespace",
+				},
+				"pipeline": []bson.M{
+					{
+						"$match": bson.M{
+							"$or": bson.A{
+								bson.M{"$expr": bson.M{
+									"$eq": bson.A{
+										"$k8.objectmeta.namespace", "$$roleNamespace",
+									},
+								}},
+								bson.M{"is_namespaced": true},
+							},
+							"runtime.runID":   e.runtime.RunID.String(),
+							"runtime.cluster": e.runtime.ClusterName,
+						},
+					},
+					{
+						"$project": bson.M{
+							"_id": 1,
+						},
+					},
+				},
 			},
 		},
 		bson.M{

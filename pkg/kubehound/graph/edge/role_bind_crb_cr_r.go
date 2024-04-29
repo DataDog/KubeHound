@@ -98,7 +98,9 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 		// $match stage
 		{
 			"$match": bson.M{
-				"is_namespaced": false,
+				"is_namespaced":   false,
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
 				"$and": []bson.M{
 					// Looking for RBAC objects
 					{
@@ -183,6 +185,8 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 		{
 			"$match": bson.M{
 				"rb.is_namespaced": false,
+				"runtime.runID":    e.runtime.RunID.String(),
+				"runtime.cluster":  e.runtime.ClusterName,
 			},
 		},
 		// $project stage

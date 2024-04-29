@@ -44,7 +44,10 @@ func (e *EscapeModuleLoad) Stream(ctx context.Context, store storedb.Provider, _
 		"$or": bson.A{
 			bson.M{"k8.securitycontext.privileged": true},
 			bson.M{"k8.securitycontext.capabilities.add": "SYS_MODULE"},
-		}}
+		},
+		"runtime.runID":   e.runtime.RunID.String(),
+		"runtime.cluster": e.runtime.ClusterName,
+	}
 
 	// We just need a 1:1 mapping of the node and container to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}

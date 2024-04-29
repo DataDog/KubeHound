@@ -25,3 +25,17 @@ type Collection interface {
 	// BatchSize returns the batch size of bulk inserts (and threshold for triggering a flush).
 	BatchSize() int
 }
+
+func GetCollections() []string {
+	return []string{
+		NodeName,
+		PodName,
+		ContainerName,
+		VolumeName,
+		RoleName,
+		RoleBindingName,
+		IdentityName,
+		PermissionSetName,
+		EndpointName,
+	}
+}
