@@ -14,6 +14,7 @@ import (
 	mocksGraph "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	mocksStore "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
@@ -158,7 +159,7 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 	}
 }
 
-func TestIngestorAPI_checkPreviousRun(t *testing.T) {
+func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
 	t.Parallel()
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	defer mt.Close()
@@ -174,11 +175,12 @@ func TestIngestorAPI_checkPreviousRun(t *testing.T) {
 		runID       string
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-		testfct func(mt *mtest.T, g *IngestorAPI)
+		name            string
+		fields          fields
+		args            args
+		wantErr         bool
+		alreadyIngested bool
+		testfct         func(mt *mtest.T, g *IngestorAPI)
 	}{
 		{
 			name: "RunID already ingested",
@@ -192,8 +194,9 @@ func TestIngestorAPI_checkPreviousRun(t *testing.T) {
 				clusterName: "test-cluster",
 				runID:       "test-run-id",
 			},
-			wantErr: true,
-			testfct: foundPreviousScan,
+			wantErr:         false,
+			testfct:         foundPreviousScan,
+			alreadyIngested: true,
 		},
 		{
 			name: "RunID not ingested",
@@ -207,8 +210,9 @@ func TestIngestorAPI_checkPreviousRun(t *testing.T) {
 				clusterName: "test-cluster",
 				runID:       "test-run-id",
 			},
-			wantErr: false,
-			testfct: noPreviousScan,
+			wantErr:         false,
+			testfct:         noPreviousScan,
+			alreadyIngested: false,
 		},
 	}
 	for _, tt := range tests {
@@ -220,10 +224,11 @@ func TestIngestorAPI_checkPreviousRun(t *testing.T) {
 			}
 
 			tt.testfct(mt, g)
-
-			if err := g.checkPreviousRun(ctx, tt.args.clusterName, tt.args.runID); (err != nil) != tt.wantErr {
+			alreadyIngested, err := g.isAlreadyIngested(ctx, tt.args.clusterName, tt.args.runID)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("%s - IngestorAPI.checkPreviousRun() error = %d, wantErr %v", tt.name, err, tt.wantErr)
 			}
+			assert.Equal(t, tt.alreadyIngested, alreadyIngested)
 		})
 	}
 }

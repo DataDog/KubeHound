@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -35,7 +36,10 @@ type IngestorAPI struct {
 	providers *providers.ProvidersFactoryConfig
 }
 
-var _ API = (*IngestorAPI)(nil)
+var (
+	_                  API = (*IngestorAPI)(nil)
+	ErrAlreadyIngested     = errors.New("ingestion already completed")
+)
 
 func NewIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller, notifier notifier.Notifier,
 	p *providers.ProvidersFactoryConfig) *IngestorAPI {
@@ -64,9 +68,13 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	var err error
 	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 
-	err = g.checkPreviousRun(runCtx, clusterName, runID) //nolint: contextcheck
+	alreadyIngested, err := g.isAlreadyIngested(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
+	}
+
+	if alreadyIngested {
+		return fmt.Errorf("%w [%s:%s]", ErrAlreadyIngested, clusterName, runID)
 	}
 
 	archivePath, err := g.puller.Pull(runCtx, clusterName, runID) //nolint: contextcheck
@@ -131,11 +139,12 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	return nil
 }
 
-func (g *IngestorAPI) checkPreviousRun(ctx context.Context, clusterName string, runID string) error {
+func (g *IngestorAPI) isAlreadyIngested(ctx context.Context, clusterName string, runID string) (bool, error) {
 	var resNum int64
 	var err error
 	for _, collection := range collections.GetCollections() {
-		db := adapter.MongoDB(g.providers.StoreProvider).Collection(collection)
+		mdb := adapter.MongoDB(g.providers.StoreProvider)
+		db := mdb.Collection(collection)
 		filter := bson.M{
 			"runtime": bson.M{
 				"runID":   runID,
@@ -144,19 +153,16 @@ func (g *IngestorAPI) checkPreviousRun(ctx context.Context, clusterName string, 
 		}
 		resNum, err = db.CountDocuments(ctx, filter, nil)
 		if err != nil {
-			return fmt.Errorf("error counting documents in collection %s: %w", collection, err)
+			return false, fmt.Errorf("error counting documents in collection %s: %w", collection, err)
 		}
 		if resNum != 0 {
 			log.I.Infof("Found %d element in collection %s", resNum, collection)
-
-			break
+			return true, nil
 		}
-	}
-	if resNum != 0 {
-		return fmt.Errorf("ingestion already completed [%s:%s]", clusterName, runID)
+		log.I.Infof("Found %d element in collection %s", resNum, collection)
 	}
 
-	return nil
+	return false, nil
 }
 
 // Notify notifies the caller that the ingestion is completed
