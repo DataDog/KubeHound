@@ -70,3 +70,9 @@ func NodeIdentity(ctx context.Context, c cache.CacheReader, nodeName string) (pr
 
 	return primitive.NilObjectID, fmt.Errorf("resolving node identity (%s): %w", nodeName, err)
 }
+
+func ResetOnce() {
+	lookupOnce = sync.Once{}
+	lookupNid = primitive.NilObjectID
+	errLookup = nil
+}

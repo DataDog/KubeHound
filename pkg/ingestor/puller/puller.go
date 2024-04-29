@@ -68,7 +68,6 @@ func ExtractTarGz(archivePath string, basePath string, maxArchiveSize int64) err
 			return err
 		}
 		cleanPath := filepath.Join(basePath, header.Name) //nolint:gosec // We check the path just above
-		log.I.Infof("Extracting %s", cleanPath)
 
 		switch header.Typeflag {
 		// Handle sub folder containing namespaces

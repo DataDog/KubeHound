@@ -57,11 +57,12 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, oic *converter.ObjectIDConverter, l *log.KubehoundLogger) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildEdge, tracer.Measured(), tracer.ResourceName(e.Label()))
 	span.SetTag(tag.LabelTag, e.Label())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	l.Infof("Building edge %s", label)
 
-	if err := e.Initialize(&b.cfg.Builder.Edge); err != nil {
+	if err = e.Initialize(&b.cfg.Builder.Edge); err != nil {
 		return err
 	}
 
@@ -217,16 +218,17 @@ func (b *Builder) Run(ctx context.Context) error {
 
 // buildGraph will construct the attack graph by calculating and inserting all registered edges in parallel.
 // All I/O operations are performed asynchronously.
-func BuildGraph(ctx context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
+func BuildGraph(outer context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
 	graphdb graphdb.Provider, cache cache.CacheReader) error {
 
 	start := time.Now()
-	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildGraph, tracer.Measured())
-	defer span.Finish()
+	span, ctx := span.SpanIngestRunFromContext(outer, span.BuildGraph)
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	log.I.Info("Loading graph edge definitions")
 	edges := edge.Registered()
-	if err := edges.Verify(); err != nil {
+	if err = edges.Verify(); err != nil {
 		return fmt.Errorf("edge registry verification: %w", err)
 	}
 

@@ -23,7 +23,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 	}
 
 	// Add the base tags
-	for _, t := range tag.BaseTags {
+	for _, t := range tag.GetBaseTags() {
 		const tagSplitLen = 2
 		split := strings.Split(t, ":")
 		if len(split) != tagSplitLen {

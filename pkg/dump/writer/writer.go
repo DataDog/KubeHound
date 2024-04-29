@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	WriterDirChmod = 0700
+	WriterDirMod = 0700
 )
 
 // The DumperWriter handle multiple types of writer (file, tar, ...)

@@ -7,6 +7,7 @@ import (
 
 	embedconfig "github.com/DataDog/KubeHound/configs"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/go-playground/validator/v10"
 	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/viper"
 )
@@ -18,10 +19,13 @@ var (
 const (
 	DefaultConfigType  = "yaml"
 	DefaultClusterName = "unknown"
+
+	GlobalDebug = "debug"
 )
 
 // KubehoundConfig defines the top-level application configuration for KubeHound.
 type KubehoundConfig struct {
+	Debug      bool             `mapstructure:"debug"`      // Debug mode
 	Collector  CollectorConfig  `mapstructure:"collector"`  // Collector configuration
 	MongoDB    MongoDBConfig    `mapstructure:"mongodb"`    // MongoDB configuration
 	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // JanusGraph configuration
@@ -29,12 +33,12 @@ type KubehoundConfig struct {
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
 	Builder    BuilderConfig    `mapstructure:"builder"`    // Graph builder  configuration
 	Ingestor   IngestorConfig   `mapstructure:"ingestor"`   // Ingestor configuration
-	Dynamic    DynamicConfig    // Dynamic (i.e runtime generated) configuration
+	Dynamic    DynamicConfig    `mapstructure:"dynamic"`    // Dynamic (i.e runtime generated) configuration
 }
 
 // MustLoadEmbedConfig loads the embedded default application configuration, treating all errors as fatal.
 func MustLoadEmbedConfig() *KubehoundConfig {
-	cfg, err := NewEmbedConfig(embedconfig.DefaultPath)
+	cfg, err := NewEmbedConfig(viper.GetViper(), embedconfig.DefaultPath)
 	if err != nil {
 		log.I.Fatalf("embed config load: %v", err)
 	}
@@ -44,7 +48,7 @@ func MustLoadEmbedConfig() *KubehoundConfig {
 
 // MustLoadConfig loads the application configuration from the provided path, treating all errors as fatal.
 func MustLoadConfig(configPath string) *KubehoundConfig {
-	cfg, err := NewConfig(configPath)
+	cfg, err := NewConfig(viper.GetViper(), configPath)
 	if err != nil {
 		log.I.Fatalf("config load: %v", err)
 	}
@@ -54,7 +58,7 @@ func MustLoadConfig(configPath string) *KubehoundConfig {
 
 // MustLoadConfig loads the application configuration from the provided path, treating all errors as fatal.
 func MustLoadInlineConfig() *KubehoundConfig {
-	cfg, err := NewInlineConfig()
+	cfg, err := NewInlineConfig(viper.GetViper())
 	if err != nil {
 		log.I.Fatalf("config load: %v", err)
 	}
@@ -70,6 +74,7 @@ func NewKubehoundConfig(configPath string, inLine bool) *KubehoundConfig {
 		log.I.Infof("Loading application configuration from file %s", configPath)
 		cfg = MustLoadConfig(configPath)
 	case inLine:
+		log.I.Info("Loading application from inline command")
 		cfg = MustLoadInlineConfig()
 	default:
 		log.I.Infof("Loading application configuration from default embedded")
@@ -92,7 +97,7 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("storage.retry_delay", DefaultRetryDelay)
 
 	// Disable Datadog telemetry by default
-	c.SetDefault("telemetry.enabled", false)
+	c.SetDefault(TelemetryEnabled, false)
 
 	// Default value for MongoDB
 	c.SetDefault("mongodb.url", DefaultMongoUrl)
@@ -103,8 +108,8 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("janusgraph.connection_timeout", DefaultConnectionTimeout)
 
 	// Profiler values
-	c.SetDefault("telemetry.profiler.period", DefaultProfilerPeriod)
-	c.SetDefault("telemetry.profiler.cpu_duration", DefaultProfilerCPUDuration)
+	c.SetDefault(TelemetryProfilerPeriod, DefaultProfilerPeriod)
+	c.SetDefault(TelemetryProfilerCPUDuration, DefaultProfilerCPUDuration)
 
 	// Default values for graph builder
 	c.SetDefault("builder.vertex.batch_size", DefaultVertexBatchSize)
@@ -116,8 +121,8 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
 	c.SetDefault("builder.stop_on_error", DefaultStopOnError)
 
-	c.SetDefault("ingestor.api.port", DefaultIngestorAPIPort)
-	c.SetDefault("ingestor.api.address", DefaultIngestorAPIAddr)
+	c.SetDefault(IngestorAPIEndpoint, DefaultIngestorAPIEndpoint)
+	c.SetDefault(IngestorAPIInsecure, DefaultIngestorAPIInsecure)
 	c.SetDefault("ingestor.bucket_name", DefaultBucketName)
 	c.SetDefault("ingestor.temp_dir", DefaultTempDir)
 	c.SetDefault("ingestor.max_archive_size", DefaultMaxArchiveSize)
@@ -138,64 +143,81 @@ func SetEnvOverrides(c *viper.Viper) {
 	}
 }
 
+func unmarshalConfig(v *viper.Viper) (*KubehoundConfig, error) {
+	kc := KubehoundConfig{}
+	kc.Dynamic.mu.Lock()
+	defer kc.Dynamic.mu.Unlock()
+
+	err := v.Unmarshal(&kc)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshaling config data: %w", err)
+	}
+
+	// Validating the object
+	validateConfig := validator.New(validator.WithRequiredStructEnabled())
+	err = validateConfig.Struct(&kc)
+	if err != nil {
+		return nil, fmt.Errorf("validating config: %w", err)
+	}
+
+	return &kc, nil
+}
+
 // NewConfig creates a new config instance from the provided file using viper.
-func NewConfig(configPath string) (*KubehoundConfig, error) {
-	c := viper.New()
-	c.SetConfigType(DefaultConfigType)
-	c.SetConfigFile(configPath)
+func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
+	v.SetConfigType(DefaultConfigType)
+	v.SetConfigFile(configPath)
 
 	// Configure default values
-	SetDefaultValues(c)
+	SetDefaultValues(v)
 
 	// Configure environment variable override
-	SetEnvOverrides(c)
-
-	if err := c.ReadInConfig(); err != nil {
+	SetEnvOverrides(v)
+	if err := v.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
 
-	kc := KubehoundConfig{}
-	if err := c.Unmarshal(&kc); err != nil {
+	kc, err := unmarshalConfig(v)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
-	return &kc, nil
+	return kc, nil
 }
 
 // NewConfig creates a new config instance from the provided file using viper.
-func NewInlineConfig() (*KubehoundConfig, error) {
+func NewInlineConfig(v *viper.Viper) (*KubehoundConfig, error) {
 	// Configure environment variable override
-	SetEnvOverrides(viper.GetViper())
-	kc := KubehoundConfig{}
-	if err := viper.Unmarshal(&kc); err != nil {
+	SetEnvOverrides(v)
+	kc, err := unmarshalConfig(v)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
-	return &kc, nil
+	return kc, nil
 }
 
 // NewEmbedConfig creates a new config instance from an embedded config file using viper.
-func NewEmbedConfig(configPath string) (*KubehoundConfig, error) {
-	c := viper.New()
-	c.SetConfigType(DefaultConfigType)
-	SetDefaultValues(c)
+func NewEmbedConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
+	v.SetConfigType(DefaultConfigType)
+	SetDefaultValues(v)
 
 	data, err := embedconfig.F.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("reading embed config: %w", err)
 	}
 
-	err = c.ReadConfig(bytes.NewReader(data))
+	err = viper.ReadConfig(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
 
-	kc := KubehoundConfig{}
-	if err := c.Unmarshal(&kc); err != nil {
+	kc, err := unmarshalConfig(v)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
-	return &kc, nil
+	return kc, nil
 }
 
 // IsCI determines whether the application is running within a CI action
@@ -209,7 +231,7 @@ func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) error {
 	defer kc.Dynamic.mu.Unlock()
 
 	kc.Dynamic.RunID = NewRunID()
-	kc.Dynamic.Cluster = DefaultClusterName
+	kc.Dynamic.ClusterName = DefaultClusterName
 
 	for _, option := range opts {
 		opt, err := option()

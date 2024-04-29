@@ -55,13 +55,11 @@ const (
 type FileCollector struct {
 	cfg  *config.FileCollectorConfig
 	log  *log.KubehoundLogger
-	tags []string
+	tags *collectorTags
 }
 
 // NewFileCollector creates a new instance of the file collector from the provided application config.
 func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	tags := tag.BaseTags
-	tags = append(tags, tag.Collector(FileCollectorName))
 	if cfg.Collector.Type != config.CollectorTypeFile {
 		return nil, fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
 	}
@@ -76,8 +74,13 @@ func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (Collect
 	return &FileCollector{
 		cfg:  cfg.Collector.File,
 		log:  l,
-		tags: tags,
+		tags: newCollectorTags(),
 	}, nil
+}
+
+// TODO: remove this after all PR
+func (c *FileCollector) Tags(ctx context.Context) []string {
+	return nil
 }
 
 func (c *FileCollector) Name() string {
@@ -87,11 +90,11 @@ func (c *FileCollector) Name() string {
 func (c *FileCollector) HealthCheck(_ context.Context) (bool, error) {
 	file, err := os.Stat(c.cfg.Directory)
 	if err != nil {
-		return false, fmt.Errorf("file collector base path: %w", err)
+		return false, fmt.Errorf("file collector base path: %s %w", c.cfg.Directory, err)
 	}
 
 	if !file.IsDir() {
-		return false, fmt.Errorf("file collector base path is not a directory")
+		return false, fmt.Errorf("file collector base path is not a directory: %s", file.Name())
 	}
 
 	if c.cfg.ClusterName == "" {
@@ -101,14 +104,10 @@ func (c *FileCollector) HealthCheck(_ context.Context) (bool, error) {
 	return true, nil
 }
 
-func (c *FileCollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error) {
-	return &ClusterInfo{
+func (c *FileCollector) ClusterInfo(ctx context.Context) (*config.ClusterInfo, error) {
+	return &config.ClusterInfo{
 		Name: c.cfg.ClusterName,
 	}, nil
-}
-
-func (c *FileCollector) Tags(ctx context.Context) []string {
-	return c.tags
 }
 
 func (c *FileCollector) Close(_ context.Context) error {
@@ -124,7 +123,7 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityPods)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.pod, 1)
 		i := item
 		err = ingestor.IngestPod(ctx, &i)
 		if err != nil {
@@ -138,15 +137,23 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityPods)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil
 		}
 
 		fp := filepath.Join(path, PodPath)
+
+		// Check if the file exists
+		if _, err := os.Stat(fp); os.IsNotExist(err) {
+			// Skipping streaming as file does not exist (k8s type not necessary required in a namespace, for instance, an namespace can have no pods)
+			return nil
+		}
+
 		c.log.Debugf("Streaming pods from file %s", fp)
 
 		return c.streamPodsNamespace(ctx, fp, ingestor)
@@ -167,7 +174,7 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityRoles)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.role, 1)
 		i := item
 		err = ingestor.IngestRole(ctx, &i)
 		if err != nil {
@@ -181,15 +188,23 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityRoles)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil
 		}
 
 		f := filepath.Join(path, RolesPath)
+
+		// Check if the file exists
+		if _, err := os.Stat(f); os.IsNotExist(err) {
+			// Skipping streaming as file does not exist (k8s type not necessary required in a namespace, for instance, an namespace can have no roles)
+			return nil
+		}
+
 		c.log.Debugf("Streaming roles from file %s", f)
 
 		return c.streamRolesNamespace(ctx, f, ingestor)
@@ -210,7 +225,7 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityRolebindings)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.rolebinding, 1)
 		i := item
 		err = ingestor.IngestRoleBinding(ctx, &i)
 		if err != nil {
@@ -224,15 +239,23 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityRolebindings)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil
 		}
 
 		fp := filepath.Join(path, RoleBindingsPath)
+
+		// Check if the file exists
+		if _, err := os.Stat(fp); os.IsNotExist(err) {
+			// Skipping streaming as file does not exist (k8s type not necessary required in a namespace, for instance, an namespace can have no rolebindings)
+			return nil
+		}
+
 		c.log.Debugf("Streaming role bindings from file %s", fp)
 
 		return c.streamRoleBindingsNamespace(ctx, fp, ingestor)
@@ -253,7 +276,7 @@ func (c *FileCollector) streamEndpointsNamespace(ctx context.Context, fp string,
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityEndpoints)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.endpoint, 1)
 		i := item
 		err = ingestor.IngestEndpoint(ctx, &i)
 		if err != nil {
@@ -267,15 +290,23 @@ func (c *FileCollector) streamEndpointsNamespace(ctx context.Context, fp string,
 func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	err := filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(c.cfg.Directory, func(path string, d fs.DirEntry, err error) error {
 		if path == c.cfg.Directory || !d.IsDir() {
 			// Skip files
 			return nil
 		}
 
 		fp := filepath.Join(path, EndpointPath)
+
+		// Check if the file exists
+		if _, err := os.Stat(fp); os.IsNotExist(err) {
+			// Skipping streaming as file does not exist (k8s type not necessary required in a namespace, for instance, an namespace can have no endpoints)
+			return nil
+		}
+
 		c.log.Debugf("Streaming endpoint slices from file %s", fp)
 
 		return c.streamEndpointsNamespace(ctx, fp, ingestor)
@@ -291,7 +322,8 @@ func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIn
 func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityNodes)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	fp := filepath.Join(c.cfg.Directory, NodePath)
 	c.log.Debugf("Streaming nodes from file %s", fp)
@@ -302,7 +334,7 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityNodes)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.node, 1)
 		i := item
 		err = ingestor.IngestNode(ctx, &i)
 		if err != nil {
@@ -316,7 +348,8 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityClusterRoles)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	fp := filepath.Join(c.cfg.Directory, ClusterRolesPath)
 	c.log.Debugf("Streaming cluster roles from file %s", fp)
@@ -327,7 +360,7 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityClusterRoles)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrole, 1)
 		i := item
 		err = ingestor.IngestClusterRole(ctx, &i)
 		if err != nil {
@@ -341,7 +374,8 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
 	span.SetTag(tag.EntityTag, tag.EntityClusterRolebindings)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	fp := filepath.Join(c.cfg.Directory, ClusterRoleBindingsPath)
 	c.log.Debugf("Streaming cluster role bindings from file %s", fp)
@@ -352,7 +386,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, append(c.tags, tag.Entity(tag.EntityClusterRolebindings)), 1)
+		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrolebinding, 1)
 		i := item
 		err = ingestor.IngestClusterRoleBinding(ctx, &i)
 		if err != nil {
@@ -367,7 +401,8 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 // NOTE: This implementation reads the entire array of objects from the file into memory at once.
 func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, span.DumperReadFile, tracer.Measured())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	var inputList Tl
 	bytes, err := os.ReadFile(inputPath)
@@ -381,7 +416,7 @@ func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl
 
 	err = json.Unmarshal(bytes, &inputList)
 	if err != nil {
-		return inputList, fmt.Errorf("unmarshalling %T json: %w", inputList, err)
+		return inputList, fmt.Errorf("unmarshalling %T in %s json: %w", inputList, inputPath, err)
 	}
 
 	return inputList, nil

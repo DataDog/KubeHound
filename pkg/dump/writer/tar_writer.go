@@ -8,10 +8,12 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+	"github.com/spf13/afero"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -20,9 +22,11 @@ const (
 	TarWriterChmod     = 0600
 	TarTypeTag         = "tar"
 
-	// 1 means 1 thread (tar/gzip are not multi-threaded)
-	// Using single thread when zipping to avoid concurency issues
-	TarWorkerNumber = 1
+	// Multi-threading the dump with one worker for each types
+	// The number of workers is set to the number of differents entities (roles, pods, ...)
+	// 1 thread per k8s object type to pull from the Kubernetes API
+	// 0 means as many thread as k8s entity types (calculated by the dumper_pipeline)
+	TarWorkerNumber = 0
 )
 
 // TarWriter keeps track of all handlers used to create the tar file
@@ -31,8 +35,9 @@ type TarWriter struct {
 	tarFile    *os.File
 	gzipWriter *gzip.Writer
 	tarWriter  *tar.Writer
-	buffers    map[string]*[]byte
 	tarPath    string
+	mu         sync.Mutex
+	fsWriter   *FSWriter
 }
 
 func NewTarWriter(ctx context.Context, directoryPath string, resName string) (*TarWriter, error) {
@@ -43,18 +48,24 @@ func NewTarWriter(ctx context.Context, directoryPath string, resName string) (*T
 	}
 	gzipWriter := gzip.NewWriter(tarFile)
 
+	fsWriter, err := NewFSWriter(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("creating fs writer: %w", err)
+	}
+
 	return &TarWriter{
 		tarPath:    tarPath,
 		gzipWriter: gzipWriter,
 		tarWriter:  tar.NewWriter(gzipWriter),
-		buffers:    make(map[string]*[]byte),
 		tarFile:    tarFile,
+		fsWriter:   fsWriter,
+		mu:         sync.Mutex{},
 	}, nil
 }
 
 func createTarFile(tarPath string) (*os.File, error) {
 	log.I.Debugf("Creating tar file %s", tarPath)
-	err := os.MkdirAll(filepath.Dir(tarPath), WriterDirChmod)
+	err := os.MkdirAll(filepath.Dir(tarPath), WriterDirMod)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create directories: %w", err)
 	}
@@ -72,13 +83,15 @@ func (f *TarWriter) WorkerNumber() int {
 
 // Write function writes the Kubernetes object to a buffer
 // All buffer are stored in a map which is flushed at the end of every type processed
-func (t *TarWriter) Write(ctx context.Context, object []byte, filePath string) error {
-	buf, ok := t.buffers[filePath]
-	if ok {
-		*buf = append(*buf, object...)
-	} else {
-		buf = &object
-		t.buffers[filePath] = buf
+func (t *TarWriter) Write(ctx context.Context, k8sObj []byte, filePath string) error {
+	log.I.Debugf("Writing to file %s", filePath)
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	// Writing file to Afero memfs
+	err := t.fsWriter.WriteFile(ctx, filePath, k8sObj)
+	if err != nil {
+		return fmt.Errorf("write file %s: %w", filePath, err)
 	}
 
 	return nil
@@ -89,22 +102,22 @@ func (t *TarWriter) Flush(ctx context.Context) error {
 	log.I.Debug("Flushing writers")
 	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterFlush, tracer.Measured())
 	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
-	defer span.Finish()
-	for path, data := range t.buffers {
-		header := &tar.Header{
-			Name: path,
-			Mode: TarWriterChmod,
-			Size: int64(len(*data)),
-		}
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
-		if err := t.tarWriter.WriteHeader(header); err != nil {
-			return err
-		}
+	t.mu.Lock()
+	defer t.mu.Unlock()
 
-		if _, err := t.tarWriter.Write(*data); err != nil {
-			return err
-		}
-		delete(t.buffers, path)
+	fs := afero.NewIOFS(t.fsWriter.vfs)
+
+	err = t.tarWriter.AddFS(fs)
+	if err != nil {
+		return fmt.Errorf("add fs to tar: %w", err)
+	}
+
+	err = t.tarWriter.Flush()
+	if err != nil {
+		return fmt.Errorf("flush tar: %w", err)
 	}
 
 	return nil
@@ -113,11 +126,11 @@ func (t *TarWriter) Flush(ctx context.Context) error {
 // Close all the handler used to write the tar file
 // Need to be closed only when all assets are dumped
 func (t *TarWriter) Close(ctx context.Context) error {
-	var err error
 	log.I.Debug("Closing handlers for tar")
 	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterClose, tracer.Measured())
 	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 	err = t.tarWriter.Close()
 	if err != nil {
 		return err

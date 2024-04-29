@@ -7,6 +7,7 @@ import (
 
 	mocks "github.com/DataDog/KubeHound/pkg/collector/mockingest"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -80,7 +81,8 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cfg, err := config.NewConfig(tt.args.path)
+			v := viper.New()
+			cfg, err := config.NewConfig(v, tt.args.path)
 			assert.NoError(t, err)
 			err = checkK8sAPICollectorConfig(cfg.Collector.Type)
 			if (err != nil) != tt.wantErr {

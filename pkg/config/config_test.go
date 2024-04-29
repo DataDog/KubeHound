@@ -3,6 +3,7 @@ package config
 import (
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,7 +32,8 @@ func TestMustLoadConfig(t *testing.T) {
 				Collector: CollectorConfig{
 					Type: CollectorTypeFile,
 					File: &FileCollectorConfig{
-						Directory: "cluster-data/",
+						Directory:   "cluster-data/",
+						ClusterName: "test-cluster",
 					},
 					// This is always set as the default value
 					Live: &K8SAPICollectorConfig{
@@ -73,8 +75,8 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				Ingestor: IngestorConfig{
 					API: IngestorAPIConfig{
-						Addr: "127.0.0.1",
-						Port: 9000,
+						Endpoint: "127.0.0.1:9000",
+						Insecure: true,
 					},
 					BucketName:     "",
 					TempDir:        "/tmp/kubehound",
@@ -136,8 +138,8 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				Ingestor: IngestorConfig{
 					API: IngestorAPIConfig{
-						Addr: "127.0.0.1",
-						Port: 9000,
+						Endpoint: "127.0.0.1:9000",
+						Insecure: true,
 					},
 					BucketName:     "",
 					TempDir:        "/tmp/kubehound",
@@ -161,7 +163,8 @@ func TestMustLoadConfig(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cfg, err := NewConfig(tt.args.configPath)
+			v := viper.New()
+			cfg, err := NewConfig(v, tt.args.configPath)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, cfg)

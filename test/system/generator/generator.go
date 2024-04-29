@@ -53,8 +53,8 @@ var (
 var (
 	GeneratorConfig = &config.KubehoundConfig{
 		Dynamic: config.DynamicConfig{
-			Cluster: "kind-kubehound",
-			RunID:   config.NewRunID(),
+			ClusterName: "kind-kubehound",
+			RunID:       config.NewRunID(),
 		},
 	}
 )

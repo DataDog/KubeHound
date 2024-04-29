@@ -53,11 +53,12 @@ func (m *MemCacheProvider) Get(ctx context.Context, key cachekey.CacheKey) *Cach
 	defer m.mu.RUnlock()
 	var err error
 	data, ok := m.data[computeKey(key)]
+	tagCacheKey := tag.GetBaseTagsWith(tag.CacheKey(key.Shard()))
 	if !ok {
-		_ = statsd.Incr(metric.CacheMiss, append(tag.BaseTags, tag.CacheKey(key.Shard())), 1)
+		_ = statsd.Incr(metric.CacheMiss, tagCacheKey, 1)
 		log.Trace(ctx).Debugf("entry not found in cache: %s", computeKey(key))
 	} else {
-		_ = statsd.Incr(metric.CacheHit, append(tag.BaseTags, tag.CacheKey(key.Shard())), 1)
+		_ = statsd.Incr(metric.CacheHit, tagCacheKey, 1)
 	}
 
 	return &CacheResult{

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+
+	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
 	"github.com/spf13/cobra"
 )
@@ -15,8 +18,20 @@ var (
 		Short:        "Kubehound Ingestor Service",
 		Long:         `instance of Kubehound that pulls data from cloud storage`,
 		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return core.LaunchRemoteIngestor(cmd.Context(), core.WithConfigPath(cfgFile))
+		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, false)
+		},
+		RunE: func(cobraCmd *cobra.Command, args []string) error {
+			// Passing the Kubehound config from viper
+			khCfg, err := cmd.GetConfig()
+			if err != nil {
+				return fmt.Errorf("get config: %w", err)
+			}
+
+			return core.CoreGrpcApi(cobraCmd.Context(), khCfg)
+		},
+		PersistentPostRunE: func(cobraCmd *cobra.Command, args []string) error {
+			return cmd.CloseKubehoundConfig()
 		},
 	}
 )

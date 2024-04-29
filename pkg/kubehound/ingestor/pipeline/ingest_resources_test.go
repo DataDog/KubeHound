@@ -128,8 +128,8 @@ func TestIngestResources_FlushErrors(t *testing.T) {
 		StoreDB:   sdb,
 		Config: &config.KubehoundConfig{
 			Dynamic: config.DynamicConfig{
-				Cluster: "test-clister",
-				RunID:   config.NewRunID(),
+				ClusterName: "test-clister",
+				RunID:       config.NewRunID(),
 			},
 		},
 	}

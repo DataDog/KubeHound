@@ -15,6 +15,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"gocloud.dev/blob"
+	_ "gocloud.dev/blob/azureblob"
+	_ "gocloud.dev/blob/gcsblob"
 	_ "gocloud.dev/blob/s3blob"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -30,13 +32,13 @@ type BlobStore struct {
 
 var _ puller.DataPuller = (*BlobStore)(nil)
 
-func NewBlobStoragePuller(cfg *config.KubehoundConfig) (*BlobStore, error) {
-	if cfg.Ingestor.BucketName == "" {
+func NewBlobStorage(cfg *config.KubehoundConfig, bucketName string) (*BlobStore, error) {
+	if bucketName == "" {
 		return nil, ErrInvalidBucketName
 	}
 
 	return &BlobStore{
-		bucketName: cfg.Ingestor.BucketName,
+		bucketName: bucketName,
 		cfg:        cfg,
 	}, nil
 }
@@ -54,7 +56,6 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 
 	key := getKeyPath(clusterName, runID)
 	log.I.Infof("Downloading archive (%s) from blob store", key)
-	// key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
 	if err != nil {
 		return err
@@ -93,7 +94,6 @@ func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID strin
 
 	key := getKeyPath(clusterName, runID)
 	log.I.Infof("Downloading archive (%s) from blob store", key)
-	// key := puller.FormatArchiveKey(clusterName, runID, bs.cfg.Ingestor.ArchiveName)
 	b, err := blob.OpenBucket(ctx, bs.bucketName)
 	if err != nil {
 		return "", err
@@ -111,7 +111,7 @@ func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID strin
 	}
 
 	log.I.Infof("Created temporary directory %s", dirname)
-	archivePath := filepath.Join(dirname, "archive.tar.gz")
+	archivePath := filepath.Join(dirname, config.DefaultArchiveName)
 	f, err := os.Create(archivePath)
 	if err != nil {
 		return archivePath, err

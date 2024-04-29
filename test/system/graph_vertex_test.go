@@ -4,7 +4,6 @@ package system
 import (
 	"context"
 	"strings"
-	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
@@ -371,10 +370,6 @@ func (suite *VertexTestSuite) TestVertexClusterProperty() {
 	}
 
 	suite.Subset(present, expected)
-}
-
-func TestVertexTestSuite(t *testing.T) {
-	suite.Run(t, new(VertexTestSuite))
 }
 
 func (suite *VertexTestSuite) TearDownSuite() {
