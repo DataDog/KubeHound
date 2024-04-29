@@ -99,7 +99,8 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 		},
 	}
 
-	// We need to flush the cache to prevent warning/error on the overwriting element in cache the  any conflict with the previous ingestion
+	// We need to flush the cache to prevent warnings/errors when overwriting elements in cache from the previous ingestion
+	// This avoid conflicts from previous ingestion (there is no need to reuse the cache from a previous ingestion)
 	log.I.Info("Preparing cache provider")
 	err = g.providers.CacheProvider.Prepare(runCtx) //nolint: contextcheck
 	if err != nil {
