@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -50,7 +49,7 @@ func (e *ContainerAttach) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()
 }
 
-func (e *ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
+func (e *ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
@@ -59,8 +58,8 @@ func (e *ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ 
 	projection := bson.M{"_id": 1, "pod_id": 1}
 
 	filter := bson.M{
-		"runtime.runID":   runtime.RunID.String(),
-		"runtime.cluster": runtime.ClusterName,
+		"runtime.runID":   e.runtime.RunID.String(),
+		"runtime.cluster": e.runtime.ClusterName,
 	}
 
 	cur, err := containers.Find(ctx, filter, options.Find().SetProjection(projection))

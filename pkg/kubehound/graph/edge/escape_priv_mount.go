@@ -3,7 +3,6 @@ package edge
 import (
 	"context"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -35,7 +34,7 @@ func (e *EscapePrivMount) Processor(ctx context.Context, oic *converter.ObjectID
 	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
 }
 
-func (e *EscapePrivMount) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
+func (e *EscapePrivMount) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
@@ -44,8 +43,8 @@ func (e *EscapePrivMount) Stream(ctx context.Context, store storedb.Provider, _ 
 	// and editing sensitive files e.g SSH keys, cronjobs, etc
 	filter := bson.M{
 		"k8.securitycontext.privileged": true,
-		"runtime.runID":                 runtime.RunID.String(),
-		"runtime.cluster":               runtime.ClusterName,
+		"runtime.runID":                 e.runtime.RunID.String(),
+		"runtime.cluster":               e.runtime.ClusterName,
 	}
 
 	// We just need a 1:1 mapping of the node and container to create this edge

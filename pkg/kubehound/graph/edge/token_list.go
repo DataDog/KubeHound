@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -91,7 +90,7 @@ func (e *TokenList) Traversal() types.EdgeTraversal {
 }
 
 // Stream finds all roles that are NOT namespaced and have secrets/list or equivalent wildcard permissions.
-func (e *TokenList) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
+func (e *TokenList) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
@@ -99,8 +98,8 @@ func (e *TokenList) Stream(ctx context.Context, store storedb.Provider, _ cache.
 		{
 			"$match": bson.M{
 				"is_namespaced":   false,
-				"runtime.runID":   runtime.RunID.String(),
-				"runtime.cluster": runtime.ClusterName,
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{

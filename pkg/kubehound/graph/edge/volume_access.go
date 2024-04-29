@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -46,7 +45,7 @@ func (e *VolumeAccess) Processor(ctx context.Context, oic *converter.ObjectIDCon
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Node, typed.Volume)
 }
 
-func (e *VolumeAccess) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
+func (e *VolumeAccess) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)
@@ -55,8 +54,8 @@ func (e *VolumeAccess) Stream(ctx context.Context, store storedb.Provider, _ cac
 	projection := bson.M{"_id": 1, "node_id": 1}
 
 	filter := bson.M{
-		"runtime.runID":   runtime.RunID.String(),
-		"runtime.cluster": runtime.ClusterName,
+		"runtime.runID":   e.runtime.RunID.String(),
+		"runtime.cluster": e.runtime.ClusterName,
 	}
 
 	cur, err := volumes.Find(ctx, filter, options.Find().SetProjection(projection))

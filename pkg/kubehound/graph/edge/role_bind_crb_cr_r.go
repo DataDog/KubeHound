@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -90,7 +89,7 @@ func (e *RoleBindCrbCrR) Traversal() types.EdgeTraversal {
 	}
 }
 
-func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader, runtime *config.DynamicConfig,
+func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
@@ -100,8 +99,8 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 		{
 			"$match": bson.M{
 				"is_namespaced":   false,
-				"runtime.runID":   runtime.RunID.String(),
-				"runtime.cluster": runtime.ClusterName,
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
 				"$and": []bson.M{
 					// Looking for RBAC objects
 					{
@@ -221,8 +220,8 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, store storedb.Provider, c c
 		{
 			"$match": bson.M{
 				"rb.is_namespaced": false,
-				"runtime.runID":    runtime.RunID.String(),
-				"runtime.cluster":  runtime.ClusterName,
+				"runtime.runID":    e.runtime.RunID.String(),
+				"runtime.cluster":  e.runtime.ClusterName,
 			},
 		},
 		// $project stage

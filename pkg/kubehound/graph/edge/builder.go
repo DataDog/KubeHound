@@ -20,7 +20,7 @@ var P = gremlin.P
 //go:generate mockery --name Builder --output mocks --case underscore --filename edge.go --with-expecter
 type Builder interface {
 	// Initialize intializes an edge builder from the application config
-	Initialize(cfg *config.EdgeBuilderConfig) error
+	Initialize(cfg *config.EdgeBuilderConfig, runtime *config.DynamicConfig) error
 
 	// Name returns the unique name for the edge builder. This must be unique.
 	Name() string
@@ -40,7 +40,7 @@ type Builder interface {
 	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
 	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput via a call to
 	// the edge's Processor function. Invoking the complete callback signals the end of the stream.
-	Stream(ctx context.Context, store storedb.Provider, cache cache.CacheReader, runtime *config.DynamicConfig,
+	Stream(ctx context.Context, store storedb.Provider, cache cache.CacheReader,
 		process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error
 }
 

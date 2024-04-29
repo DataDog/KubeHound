@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -49,7 +48,7 @@ func (e *RoleBindRbRbR) Processor(ctx context.Context, oic *converter.ObjectIDCo
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.FromPerm, typed.ToPerm)
 }
 
-func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader, runtime *config.DynamicConfig,
+func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
@@ -58,8 +57,8 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 			"$match": bson.M{
 				// looking for RB CR/R role only
 				"is_namespaced":   true,
-				"runtime.runID":   runtime.RunID.String(),
-				"runtime.cluster": runtime.ClusterName,
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
 				"$and": []bson.M{
 					// Looking for RBAC objects
 					{
@@ -146,8 +145,8 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 								}},
 								bson.M{"is_namespaced": true},
 							},
-							"runtime.runID":   runtime.RunID.String(),
-							"runtime.cluster": runtime.ClusterName,
+							"runtime.runID":   e.runtime.RunID.String(),
+							"runtime.cluster": e.runtime.ClusterName,
 						},
 					},
 					{

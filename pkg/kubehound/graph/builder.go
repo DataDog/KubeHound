@@ -62,7 +62,7 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 
 	l.Infof("Building edge %s", label)
 
-	if err = e.Initialize(&b.cfg.Builder.Edge); err != nil {
+	if err = e.Initialize(&b.cfg.Builder.Edge, &b.cfg.Dynamic); err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 		return err
 	}
 
-	err = e.Stream(ctx, b.storedb, b.cache, &b.cfg.Dynamic,
+	err = e.Stream(ctx, b.storedb, b.cache,
 		func(ctx context.Context, entry types.DataContainer) error {
 			insert, err := e.Processor(ctx, oic, entry)
 			if err != nil {

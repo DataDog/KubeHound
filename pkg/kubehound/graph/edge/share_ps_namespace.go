@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -49,7 +48,7 @@ func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectI
 	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.ContainerA, typed.ContainerB)
 }
 
-func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader, runtime *config.DynamicConfig,
+func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	coll := adapter.MongoDB(store).Collection(collections.PodName)
@@ -57,8 +56,8 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 		{
 			"$match": bson.M{
 				"k8.spec.shareprocessnamespace": true,
-				"runtime.runID":                 runtime.RunID.String(),
-				"runtime.cluster":               runtime.ClusterName,
+				"runtime.runID":                 e.runtime.RunID.String(),
+				"runtime.cluster":               e.runtime.ClusterName,
 			},
 		},
 		{

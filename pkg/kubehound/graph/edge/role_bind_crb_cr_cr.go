@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -90,7 +89,7 @@ func (e *RoleBindCrbCrCr) Traversal() types.EdgeTraversal {
 	}
 }
 
-func (e *RoleBindCrbCrCr) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader, runtime *config.DynamicConfig,
+func (e *RoleBindCrbCrCr) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
 	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
@@ -101,8 +100,8 @@ func (e *RoleBindCrbCrCr) Stream(ctx context.Context, store storedb.Provider, c 
 			"$match": bson.M{
 				// looking for CRB/CR role only
 				"is_namespaced":   false,
-				"runtime.runID":   runtime.RunID.String(),
-				"runtime.cluster": runtime.ClusterName,
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
 				"$and": []bson.M{
 					// Looking for RBAC objects
 					{
