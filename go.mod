@@ -16,7 +16,7 @@ require (
 	gocloud.dev v0.35.0
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 	google.golang.org/grpc v1.59.0
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.55.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.28.2
