@@ -11,7 +11,7 @@ This is a small PoC that was made specially for Insomnihack 2024 where KubeHound
 
 ## How to run it
 
-The script will connect to the KubeHound to the Janusgraph socket (by default `127.0.0.1:8182` defined in `GREMLIN_SOCKET`) and build the dashboard:
+The script will connect to the Janusgraph socket (by default `127.0.0.1:8182` defined in `GREMLIN_SOCKET`) and build the dashboard:
 
 ```bash
 poetry install
