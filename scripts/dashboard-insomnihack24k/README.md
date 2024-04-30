@@ -6,7 +6,7 @@ This is a small PoC that was made specially for Insomnihack 2024 where KubeHound
 * [https://www.insomnihack.ch/talks-2024/#BZ3UA9](Standing on the Shoulders of Giant(Dog)s: A Kubernetes Attack Graph Model)
 
 > [!NOTE] 
-> **You need install poetry in order to run the PoC**: [[https://python-poetry.org/](https://python-poetry.org/)]
+> **You need to install poetry in order to run the PoC**: [[https://python-poetry.org/](https://python-poetry.org/)]
 
 
 ## How to run it
