@@ -5,7 +5,8 @@ Small dashboard to show how KubeHound can be used to build a custom KPI dashboar
 This is a small PoC that was made specially for Insomnihack 2024 where KubeHound was presented:
 * [https://www.insomnihack.ch/talks-2024/#BZ3UA9](Standing on the Shoulders of Giant(Dog)s: A Kubernetes Attack Graph Model)
 
-> :Note: **You need install poetry in order to run the PoC**: [[https://python-poetry.org/](https://python-poetry.org/)]
+> [!NOTE] 
+> **You need install poetry in order to run the PoC**: [[https://python-poetry.org/](https://python-poetry.org/)]
 
 
 ## How to run it
@@ -19,7 +20,8 @@ poetry run panel serve main.py
 
 It will serve a webpage on [http://http://localhost/:5006/main](http://http://localhost/:5006/main).
 
-> :warning: **It is only serving localhost and not 127.0.0.1**: You can add a specific flag to allow CORS on 127.0.0.1 `BOKEH_ALLOW_WS_ORIGIN=127.0.0.1:5006`
+> [!WARNING]  
+> **It is only serving localhost and not 127.0.0.1**: You can add a specific flag to allow CORS on 127.0.0.1 `BOKEH_ALLOW_WS_ORIGIN=127.0.0.1:5006`
 
 ## Prerequisites
 
