@@ -58,6 +58,7 @@ jobs:
             cdn.amazonlinux.com:443
             rpm.nodesource.com:443
             registry.npmjs.org:443
+            pypi.org:443
             *.pypi.org:443
             api.snapcraft.io:443
             files.pythonhosted.org:443
@@ -66,6 +67,7 @@ jobs:
             productionresultssa8.blob.core.windows.net:443
             results-receiver.actions.githubusercontent.com:443
             vstsmms.actions.githubusercontent.com:443
+            acghubeus1.actions.githubusercontent.com
 
       - name: Checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
