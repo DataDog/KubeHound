@@ -25,6 +25,11 @@ It will serve a webpage on [http://http://localhost/:5006/main](http://http://lo
 
 ## Prerequisites
 
+In order to run the local kind Kubernetes Cluster you need to setup a "dev environment":
+
+* Kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager
+* Kubectl: https://kubernetes.io/docs/tasks/tools/
+
 ### Step by step
 
 You need to have data in KubeHound in order to generate metrics. The best way is to leverage the kind cluster. There is a script that bundle the local deployment of the kind cluster:
@@ -47,7 +52,7 @@ Script using main branch to deploy and ingest sample data from kind cluster:
 git clone https://github.com/DataDog/KubeHound/
 cd KubeHound
 make local-cluster-deploy
-export KUBECONFIG=./kubehound/test/setup/.kube-config
+export KUBECONFIG=./test/setup/.kube-config
 make build
-./cmd/kubehound/kubehound
+./bin/kubehound
 ```
