@@ -18,7 +18,7 @@ poetry install
 poetry run panel serve main.py
 ```
 
-It will serve a webpage on [http://http://localhost/:5006/main](http://http://localhost/:5006/main).
+It will serve a webpage on [http://localhost/:5006/main](http://http://localhost/:5006/main).
 
 > [!WARNING]  
 > **It is only serving localhost and not 127.0.0.1**: You can add a specific flag to allow CORS on 127.0.0.1 `BOKEH_ALLOW_WS_ORIGIN=127.0.0.1:5006`
