@@ -53,6 +53,7 @@ jobs:
             gcr.io:443
             repo.maven.apache.org:443
             amazonlinux.default.amazonaws.com:443
+            amazonlinux.default.amazonaws.com:80
             rpm.nodesource.com:443
 
       - name: Checkout
