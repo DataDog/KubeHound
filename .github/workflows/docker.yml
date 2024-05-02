@@ -37,28 +37,33 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
         with:
-          egress-policy: audit
-          # egress-policy: block
-          # allowed-endpoints: >
-          #   auth.docker.io:443
-          #   dl-cdn.alpinelinux.org:443
-          #   ghcr.io:443
-          #   github.com:443
-          #   pipelines.actions.githubusercontent.com:443
-          #   pkg-containers.githubusercontent.com:443
-          #   production.cloudflare.docker.com:443
-          #   proxy.golang.org:443
-          #   storage.googleapis.com:443
-          #   *.docker.io:443
-          #   *.docker.com:443
-          #   gcr.io:443
-          #   repo.maven.apache.org:443
-          #   amazonlinux.default.amazonaws.com:443
-          #   amazonlinux.default.amazonaws.com:80
-          #   cdn.amazonlinux.com:443
-          #   rpm.nodesource.com:443
-          #   registry.npmjs.org:443
-          #   *.pypi.org:443
+          # egress-policy: audit
+          egress-policy: block
+          allowed-endpoints: >
+            auth.docker.io:443
+            dl-cdn.alpinelinux.org:443
+            ghcr.io:443
+            github.com:443
+            pipelines.actions.githubusercontent.com:443
+            pkg-containers.githubusercontent.com:443
+            production.cloudflare.docker.com:443
+            proxy.golang.org:443
+            storage.googleapis.com:443
+            *.docker.io:443
+            *.docker.com:443
+            gcr.io:443
+            repo.maven.apache.org:443
+            amazonlinux.default.amazonaws.com:443
+            amazonlinux.default.amazonaws.com:80
+            cdn.amazonlinux.com:443
+            rpm.nodesource.com:443
+            registry.npmjs.org:443
+            *.pypi.org:443
+            api.snapcraft.io:443
+            files.pythonhosted.org:443
+
+
+
 
       - name: Checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
