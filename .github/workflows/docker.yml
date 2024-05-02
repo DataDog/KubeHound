@@ -23,6 +23,12 @@ jobs:
             - dockerfile: deployments/kubehound/kubegraph/Dockerfile
               image: graph
               workdir: deployments/kubehound/kubegraph/
+            - dockerfile: deployments/kubehound/notebook/Dockerfile
+              image: ui
+              workdir: deployments/kubehound/notebook/
+            - dockerfile: deployments/kubehound/ingestor/Dockerfile
+              image: ingestor
+              workdir: .
     permissions:
       contents: read
       packages: write
