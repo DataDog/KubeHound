@@ -56,6 +56,7 @@ jobs:
             amazonlinux.default.amazonaws.com:80
             cdn.amazonlinux.com:443
             rpm.nodesource.com:443
+            registry.npmjs.org:443
 
       - name: Checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
