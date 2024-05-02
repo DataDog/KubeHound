@@ -1,4 +1,4 @@
-name: build-kubegraph-image
+name: build-kubehound-images
 
 on:
   workflow_dispatch:
@@ -52,6 +52,8 @@ jobs:
             *.docker.com:443
             gcr.io:443
             repo.maven.apache.org:443
+            amazonlinux.default.amazonaws.com:443
+            rpm.nodesource.com:443
 
       - name: Checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
