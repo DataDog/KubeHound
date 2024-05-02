@@ -56,23 +56,24 @@ endif
 # so we abort
 docker-check:
 # exit early without error if custom docker cmd is provided
-ifeq ("docker", ${DOCKER_CMD})
-	@echo "Using provided docker cmd: ${DOCKER_CMD}"
-	DOCKER_CMD := ${DOCKER_CMD}
-else
+	ifeq ("docker", ${DOCKER_CMD})
+		@echo "Using provided docker cmd: ${DOCKER_CMD}"
+		DOCKER_CMD := ${DOCKER_CMD}
+	else
 # exit early if docker is not found. No point in continuing
-ifeq (, $(shell command -v docker))
-    $(error "Docker not found")
-endif
+	ifeq (, $(shell command -v docker))
+		$(error "Docker not found")
+	endif
 
-ifneq (, $(findstring Server Version,$(shell docker info)))
-    DOCKER_CMD := docker
-else ifneq (, $(findstring Server Version,$(shell sudo docker info)))
-    DOCKER_CMD := sudo docker
-else
-    $(error "We don't have the permission to run docker. Are you root or in the docker group?")
-endif
-endif
+	ifneq (, $(findstring Server Version,$(shell docker info)))
+			DOCKER_CMD := docker
+		else ifneq (, $(findstring Server Version,$(shell sudo docker info)))
+			DOCKER_CMD := sudo docker
+		else
+			$(error "We don't have the permission to run docker. Are you root or in the docker group?")
+		endif
+	endif
+
 
 RACE_FLAG_SYSTEM_TEST := "-race"
 ifeq (${CI},true)
@@ -110,7 +111,7 @@ backend-up: | docker-check ## Spawn the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d 
 
 .PHONY: backend-reset
-backend-reset: ## Restart the kubehound stack
+backend-reset: | docker-check ## Restart the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d
 
