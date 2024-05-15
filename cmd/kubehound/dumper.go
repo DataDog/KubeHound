@@ -1,50 +1,40 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"time"
 
-	"github.com/DataDog/datadog-go/v5/statsd"
-
-	"github.com/DataDog/KubeHound/pkg/collector"
+	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/data/s3"
-	"github.com/DataDog/KubeHound/pkg/dump"
-	"github.com/DataDog/KubeHound/pkg/dump/writer"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
-	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
-	"github.com/DataDog/KubeHound/pkg/telemetry/span"
-	kstatsd "github.com/DataDog/KubeHound/pkg/telemetry/statsd"
-	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var debug bool
-
 var (
 	dumpCmd = &cobra.Command{
-		Use:    "dump",
-		Short:  "Collect Kubernetes resources of a targeted cluster",
-		Long:   `Collect all Kubernetes resources needed to build the attack path. This will be dumped in an offline format (s3 or locally)`,
-		PreRun: toggleDebug,
+		Use:   "dump",
+		Short: "Collect Kubernetes resources of a targeted cluster",
+		Long:  `Collect all Kubernetes resources needed to build the attack path. This will be dumped in an offline format (s3 or locally)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},
 	}
 
-	s3Cmd = &cobra.Command{
-		Use:    "s3",
-		Short:  "Push collected k8s resources to an s3 bucket of a targeted cluster",
-		Long:   `Collect all Kubernetes resources needed to build the attack path in an offline format on a s3 bucket`,
-		PreRun: toggleDebug,
-		RunE: func(cmd *cobra.Command, args []string) error {
+	cloudCmd = &cobra.Command{
+		Use:   "cloud",
+		Short: "Push collected k8s resources to an s3 bucket of a targeted cluster. Run the ingestion on KHaaS if khaas-server is set.",
+		Long:  `Collect all Kubernetes resources needed to build the attack path in an offline format on a s3 bucket. If KubeHound as a Service (KHaaS) is set, then run the ingestion on KHaaS.`,
+		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
+			viper.BindPFlag(config.IngestorAPIEndpoint, cobraCmd.Flags().Lookup("khaas-server")) //nolint: errcheck
+			viper.BindPFlag(config.IngestorAPIInsecure, cobraCmd.Flags().Lookup("insecure"))     //nolint: errcheck
+
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
+		},
+		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// using compress feature
-			viper.Set(config.CollectorLocalCompress, true)
+			viper.Set(config.CollectorFileArchiveFormat, true)
 
 			// Create a temporary directory
 			tmpDir, err := os.MkdirTemp("", "kubehound")
@@ -53,168 +43,53 @@ var (
 			}
 
 			log.I.Debugf("Temporary directory created: %s", tmpDir)
-			viper.Set(config.CollectorLocalOutputDir, tmpDir)
+			viper.Set(config.CollectorFileDirectory, tmpDir)
 
-			return dumpCore(context.Background(), cmd)
+			// Passing the Kubehound config from viper
+			khCfg, err := cmd.GetConfig()
+			if err != nil {
+				return fmt.Errorf("get config: %w", err)
+			}
+
+			_, err = core.DumpCore(cobraCmd.Context(), khCfg, true)
+			if err != nil {
+				return fmt.Errorf("dump core: %w", err)
+			}
+			// Running the ingestion on KHaaS
+			if cobraCmd.Flags().Lookup("khaas-server").Value.String() != "" {
+				return core.CoreClientGRPCIngest(khCfg.Ingestor, khCfg.Dynamic.ClusterName, khCfg.Dynamic.RunID.String())
+			}
+
+			return err
 		},
 	}
-
 	localCmd = &cobra.Command{
-		Use:    "local",
-		Short:  "Dump locally the k8s resources of a targeted cluster",
-		Long:   `Collect all Kubernetes resources needed to build the attack path in an offline format locally (compressed or flat)`,
-		PreRun: toggleDebug,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return dumpCore(context.Background(), cmd)
+		Use:   "local",
+		Short: "Dump locally the k8s resources of a targeted cluster",
+		Long:  `Collect all Kubernetes resources needed to build the attack path in an offline format locally (compressed or flat)`,
+		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
+		},
+		RunE: func(cobraCmd *cobra.Command, args []string) error {
+			// Passing the Kubehound config from viper
+			khCfg, err := cmd.GetConfig()
+			if err != nil {
+				return fmt.Errorf("get config: %w", err)
+			}
+			_, err = core.DumpCore(cobraCmd.Context(), khCfg, false)
+
+			return err
 		},
 	}
 )
 
 func init() {
-	dumpCmd.PersistentFlags().String("statsd", config.DefaultTelemetryStatsdUrl, "URL of the statsd endpoint")
-	viper.BindPFlag(config.TelemetryStatsdUrl, dumpCmd.PersistentFlags().Lookup("statsd")) //nolint: errcheck
+	cmd.InitDumpCmd(dumpCmd)
+	cmd.InitLocalCmd(localCmd)
+	cmd.InitCloudCmd(cloudCmd)
+	cmd.InitGrpcClientCmd(cloudCmd, false)
 
-	dumpCmd.PersistentFlags().String("profiler", config.DefaultTelemetryProfilerUrl, "URL of the profiler endpoint")
-	viper.BindPFlag(config.TelemetryTracerUrl, dumpCmd.PersistentFlags().Lookup("profiler")) //nolint: errcheck
-
-	dumpCmd.PersistentFlags().Bool("telemetry", false, "Enable telemetry with default settings")
-	viper.BindPFlag(config.TelemetryEnabled, dumpCmd.PersistentFlags().Lookup("telemetry")) //nolint: errcheck
-
-	dumpCmd.PersistentFlags().Duration("period", config.DefaultProfilerPeriod, "Period specifies the interval at which to collect profiles")
-	viper.BindPFlag(config.TelemetryProfilerPeriod, dumpCmd.PersistentFlags().Lookup("period")) //nolint: errcheck
-
-	dumpCmd.PersistentFlags().Duration("cpu-duration", config.DefaultProfilerCPUDuration, "CPU Duration specifies the length at which to collect CPU profiles")
-	viper.BindPFlag(config.TelemetryProfilerCPUDuration, dumpCmd.PersistentFlags().Lookup("cpu-duration")) //nolint: errcheck
-
-	dumpCmd.PersistentFlags().Int("rate", config.DefaultK8sAPIRateLimitPerSecond, "Rate limit of requests/second to the Kubernetes API")
-	viper.BindPFlag(config.CollectorLiveRate, dumpCmd.PersistentFlags().Lookup("rate")) //nolint: errcheck
-
-	dumpCmd.PersistentFlags().Int64("page-size", config.DefaultK8sAPIPageSize, "Number of entries retrieved by each call on the API (same for all Kubernetes entry types)")
-	viper.BindPFlag(config.CollectorLivePageSize, dumpCmd.PersistentFlags().Lookup("page-size")) //nolint: errcheck
-
-	dumpCmd.PersistentFlags().Int32("page-buffer-count", config.DefaultK8sAPIPageBufferSize, "Number of pages to buffer")
-	viper.BindPFlag(config.CollectorLivePageBufferSize, dumpCmd.PersistentFlags().Lookup("page-buffer-count")) //nolint: errcheck
-
-	dumpCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Enable debug logs")
-
-	localCmd.Flags().Bool("compress", false, "Enable compression for the dumped data (generates a tar.gz file)")
-	viper.BindPFlag(config.CollectorLocalCompress, localCmd.Flags().Lookup("compress")) //nolint: errcheck
-
-	localCmd.Flags().String("output-dir", "", "Directory to dump the data")
-	viper.BindPFlag(config.CollectorLocalOutputDir, localCmd.Flags().Lookup("output-dir")) //nolint: errcheck
-	localCmd.MarkFlagRequired("output-dir")                                                //nolint: errcheck
-
-	s3Cmd.Flags().String("bucket", "", "Bucket to use to push k8s resources")
-	viper.BindPFlag(config.CollectorS3Bucket, s3Cmd.Flags().Lookup("bucket")) //nolint: errcheck
-	s3Cmd.MarkFlagRequired("bucket")                                          //nolint: errcheck
-
-	s3Cmd.Flags().String("region", "", "Region to use to push k8s resources")
-	viper.BindPFlag(config.CollectorS3Region, s3Cmd.Flags().Lookup("region")) //nolint: errcheck
-	s3Cmd.MarkFlagRequired("region")                                          //nolint: errcheck
-
-	dumpCmd.AddCommand(s3Cmd)
+	dumpCmd.AddCommand(cloudCmd)
 	dumpCmd.AddCommand(localCmd)
 	rootCmd.AddCommand(dumpCmd)
-}
-
-func toggleDebug(cmd *cobra.Command, args []string) {
-	if debug {
-		log.I.Logger.SetLevel(logrus.DebugLevel)
-	}
-}
-
-func dumpCore(ctx context.Context, cmd *cobra.Command) error {
-	start := time.Now()
-
-	// Configuration initialization
-	cfg := config.MustLoadInlineConfig()
-	// Hardcoding the collector type to K8sAPI
-	cfg.Collector.Type = config.CollectorTypeK8sAPI
-
-	lc := core.NewLaunchConfig(cfg, span.DumperLaunch)
-
-	// Getting current clusterName, needed to set as global tag
-	tags := map[string]string{}
-	clusterName, err := collector.GetClusterName(ctx)
-	if err == nil {
-		tags[tag.CollectorCluster] = clusterName
-	} else {
-		log.I.Errorf("collector cluster info: %v", err)
-	}
-
-	// Initiate the telemetry and tags
-	ctx, err = lc.Bootstrap(ctx, tags)
-	if err != nil {
-		return err
-	}
-	defer lc.Close()
-
-	_ = kstatsd.Event(&statsd.Event{
-		Title: fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
-		Text:  fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
-		Tags:  []string{tag.ActionType(events.DumperRun)},
-	})
-
-	// Create the collector instance
-	log.I.Info("Loading Kubernetes data collector client")
-	collect, err := collector.ClientFactory(ctx, cfg)
-	if err != nil {
-		return fmt.Errorf("collector client creation: %w", err)
-	}
-	defer collect.Close(ctx)
-	log.I.Infof("Loaded %s collector client", collect.Name())
-
-	dumpIngestor, err := dump.NewDumpIngestor(ctx, collect, viper.GetBool(config.CollectorLocalCompress), viper.GetString(config.CollectorLocalOutputDir))
-	if err != nil {
-		return fmt.Errorf("create dumper: %w", err)
-	}
-	defer dumpIngestor.Close(ctx)
-
-	// Dumping all k8s objects using the API
-	err = dumpIngestor.DumpK8sObjects(ctx)
-	if err != nil {
-		return fmt.Errorf("dump k8s object: %w", err)
-	}
-
-	if cmd.Use == "s3" {
-		// Clean up the temporary directory when done
-		defer func() {
-			err := os.RemoveAll(viper.GetString(config.CollectorLocalOutputDir))
-			if err != nil {
-				log.I.Errorf("Failed to remove temporary directory: %v", err)
-			}
-		}()
-
-		objectKey := fmt.Sprintf("%s%s", dumpIngestor.ResName, writer.TarWriterExtension)
-		log.I.Infof("Pushing %s to s3", objectKey)
-		err = pushToS3(ctx, dumpIngestor.OutputPath(), objectKey)
-		if err != nil {
-			return fmt.Errorf("push %s to s3: %w", objectKey, err)
-		}
-	}
-	_ = kstatsd.Event(&statsd.Event{
-		Title: fmt.Sprintf("Finish KubeHound dump for %s", clusterName),
-		Text:  fmt.Sprintf("KubeHound dump run has been completed in %s", time.Since(start)),
-		Tags: []string{
-			tag.ActionType(events.DumperRun),
-		},
-	})
-	log.I.Infof("KubeHound dump run has been completed in %s", time.Since(start))
-
-	return nil
-}
-
-// Push results to the s3 bucket
-func pushToS3(ctx context.Context, filePath string, key string) error {
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		return err
-	}
-
-	s3Client, err := s3.NewS3Store(ctx, viper.GetString(config.CollectorS3Region), viper.GetString(config.CollectorS3Bucket))
-	if err != nil {
-		return err
-	}
-
-	return s3Client.Upload(ctx, key, content)
 }

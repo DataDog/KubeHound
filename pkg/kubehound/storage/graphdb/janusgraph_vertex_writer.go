@@ -126,7 +126,8 @@ func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []any) e
 	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphBatchWrite,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
 	span.SetTag(tag.LabelTag, jgv.builder)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 	defer jgv.writingInFlight.Done()
 
 	datalen := len(data)
@@ -145,7 +146,7 @@ func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []any) e
 
 	// Gremlin will return a list of maps containing and vertex id and store id values for each vertex inserted.
 	// We need to parse each map entry and add to our cache.
-	if err := jgv.cacheIds(ctx, raw); err != nil {
+	if err = jgv.cacheIds(ctx, raw); err != nil {
 		return err
 	}
 
@@ -164,7 +165,8 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphFlush,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
 	span.SetTag(tag.LabelTag, jgv.builder)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	jgv.mu.Lock()
 	defer jgv.mu.Unlock()
@@ -177,7 +179,7 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 		_ = statsd.Incr(metric.FlushWriterCall, jgv.tags, 1)
 
 		jgv.writingInFlight.Add(1)
-		err := jgv.batchWrite(ctx, jgv.inserts)
+		err = jgv.batchWrite(ctx, jgv.inserts)
 		if err != nil {
 			log.Trace(ctx).Errorf("batch write %s: %+v", jgv.builder, err)
 			jgv.writingInFlight.Wait()
@@ -191,7 +193,7 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 
 	jgv.writingInFlight.Wait()
 
-	err := jgv.cache.Flush(ctx)
+	err = jgv.cache.Flush(ctx)
 	if err != nil {
 		return fmt.Errorf("vertex id cacheflush: %w", err)
 	}

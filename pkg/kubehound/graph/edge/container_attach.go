@@ -57,7 +57,12 @@ func (e *ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ 
 	// We just need a 1:1 mapping of the container and pod to create this edge
 	projection := bson.M{"_id": 1, "pod_id": 1}
 
-	cur, err := containers.Find(ctx, bson.M{}, options.Find().SetProjection(projection))
+	filter := bson.M{
+		"runtime.runID":   e.runtime.RunID.String(),
+		"runtime.cluster": e.runtime.ClusterName,
+	}
+
+	cur, err := containers.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}

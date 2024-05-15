@@ -109,6 +109,8 @@ func (e *EscapeVarLogSymlink) Stream(ctx context.Context, store storedb.Provider
 						},
 					},
 				},
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
 			},
 		},
 		{

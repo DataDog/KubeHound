@@ -1,4 +1,4 @@
-name: build-kubegraph-image
+name: build-kubehound-images
 
 on:
   workflow_dispatch:
@@ -23,6 +23,12 @@ jobs:
             - dockerfile: deployments/kubehound/kubegraph/Dockerfile
               image: graph
               workdir: deployments/kubehound/kubegraph/
+            - dockerfile: deployments/kubehound/notebook/Dockerfile
+              image: ui
+              workdir: deployments/kubehound/notebook/
+            - dockerfile: deployments/kubehound/ingestor/Dockerfile
+              image: ingestor
+              workdir: .
     permissions:
       contents: read
       packages: write
@@ -31,6 +37,7 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
         with:
+          # egress-policy: audit
           egress-policy: block
           allowed-endpoints: >
             auth.docker.io:443
@@ -46,6 +53,20 @@ jobs:
             *.docker.com:443
             gcr.io:443
             repo.maven.apache.org:443
+            amazonlinux.default.amazonaws.com:443
+            amazonlinux.default.amazonaws.com:80
+            cdn.amazonlinux.com:443
+            rpm.nodesource.com:443
+            registry.npmjs.org:443
+            pypi.org:443
+            *.pypi.org:443
+            api.snapcraft.io:443
+            files.pythonhosted.org:443
+            acghubeus1.actions.githubusercontent.com:443
+            pipelinesghubeus8.actions.githubusercontent.com:443
+            productionresultssa8.blob.core.windows.net:443
+            results-receiver.actions.githubusercontent.com:443
+            vstsmms.actions.githubusercontent.com:443
 
       - name: Checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab

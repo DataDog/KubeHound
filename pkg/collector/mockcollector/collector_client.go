@@ -3,9 +3,10 @@
 package mocks
 
 import (
-	context "context"
-
 	collector "github.com/DataDog/KubeHound/pkg/collector"
+	config "github.com/DataDog/KubeHound/pkg/config"
+
+	context "context"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -66,19 +67,19 @@ func (_c *CollectorClient_Close_Call) RunAndReturn(run func(context.Context) err
 }
 
 // ClusterInfo provides a mock function with given fields: ctx
-func (_m *CollectorClient) ClusterInfo(ctx context.Context) (*collector.ClusterInfo, error) {
+func (_m *CollectorClient) ClusterInfo(ctx context.Context) (*config.ClusterInfo, error) {
 	ret := _m.Called(ctx)
 
-	var r0 *collector.ClusterInfo
+	var r0 *config.ClusterInfo
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*collector.ClusterInfo, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) (*config.ClusterInfo, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) *collector.ClusterInfo); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) *config.ClusterInfo); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*collector.ClusterInfo)
+			r0 = ret.Get(0).(*config.ClusterInfo)
 		}
 	}
 
@@ -109,12 +110,12 @@ func (_c *CollectorClient_ClusterInfo_Call) Run(run func(ctx context.Context)) *
 	return _c
 }
 
-func (_c *CollectorClient_ClusterInfo_Call) Return(_a0 *collector.ClusterInfo, _a1 error) *CollectorClient_ClusterInfo_Call {
+func (_c *CollectorClient_ClusterInfo_Call) Return(_a0 *config.ClusterInfo, _a1 error) *CollectorClient_ClusterInfo_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *CollectorClient_ClusterInfo_Call) RunAndReturn(run func(context.Context) (*collector.ClusterInfo, error)) *CollectorClient_ClusterInfo_Call {
+func (_c *CollectorClient_ClusterInfo_Call) RunAndReturn(run func(context.Context) (*config.ClusterInfo, error)) *CollectorClient_ClusterInfo_Call {
 	_c.Call.Return(run)
 	return _c
 }

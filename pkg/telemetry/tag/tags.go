@@ -1,9 +1,11 @@
 package tag
 
+import "sync"
+
 const (
 	ActionTypeTag         = "action"
 	CollectorTag          = "collector"
-	CollectorCluster      = "cluster"
+	CollectorClusterTag   = "cluster"
 	DumperS3BucketTag     = "s3_bucket"
 	DumperS3keyTag        = "s3_key"
 	DumperFilePathTag     = "file_path"
@@ -12,6 +14,7 @@ const (
 	EntityTag             = "entity"
 	WaitTag               = "wait"
 	RunIdTag              = "run_id"
+	IngestionRunIdTag     = "ingestion_run_id"
 	LabelTag              = "label"
 	CollectionTag         = "collection"
 	BuilderTag            = "builder"
@@ -36,9 +39,41 @@ const (
 	EntityClusterRolebindings = "clusterrolebindings"
 )
 
-var (
-	BaseTags = []string{}
-)
+type BasesTags struct {
+	mu   sync.Mutex
+	tags []string
+}
+
+var currentBaseTag = BasesTags{}
+
+func SetupBaseTags() {
+	currentBaseTag = BasesTags{
+		mu:   sync.Mutex{},
+		tags: []string{},
+	}
+}
+
+func AppendBaseTags(tags ...string) {
+	currentBaseTag.mu.Lock()
+	defer currentBaseTag.mu.Unlock()
+	currentBaseTag.tags = append(currentBaseTag.tags, tags...)
+}
+
+func GetBaseTagsWith(optTags ...string) []string {
+	currentBaseTag.mu.Lock()
+	defer currentBaseTag.mu.Unlock()
+	var tags []string
+	copy(currentBaseTag.tags, tags)
+
+	return append(tags, optTags...)
+}
+
+func GetBaseTags() []string {
+	currentBaseTag.mu.Lock()
+	defer currentBaseTag.mu.Unlock()
+
+	return currentBaseTag.tags
+}
 
 func MakeTag(tag string, value string) string {
 	return tag + ":" + value
@@ -46,6 +81,10 @@ func MakeTag(tag string, value string) string {
 
 func RunID(uuid string) string {
 	return MakeTag(RunIdTag, uuid)
+}
+
+func IngestionRunID(uuid string) string {
+	return MakeTag(IngestionRunIdTag, uuid)
 }
 
 func Collector(collector string) string {
@@ -81,7 +120,7 @@ func EdgeType(et string) string {
 }
 
 func ClusterName(cluster string) string {
-	return MakeTag(CollectorCluster, cluster)
+	return MakeTag(CollectorClusterTag, cluster)
 }
 
 func ActionType(action string) string {

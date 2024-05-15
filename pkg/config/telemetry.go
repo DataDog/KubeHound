@@ -5,8 +5,16 @@ import (
 )
 
 const (
-	DefaultProfilerPeriod      time.Duration = 60 * time.Second
-	DefaultProfilerCPUDuration time.Duration = 15 * time.Second
+	DefaultProfilerPeriod       time.Duration = 60 * time.Second
+	DefaultProfilerCPUDuration  time.Duration = 15 * time.Second
+	DefaultTelemetryStatsdUrl                 = "127.0.0.1:8225"
+	DefaultTelemetryProfilerUrl               = "127.0.0.1:8226"
+
+	TelemetryStatsdUrl           = "telemetry.statsd.url"
+	TelemetryTracerUrl           = "telemetry.tracer.url"
+	TelemetryEnabled             = "telemetry.enabled"
+	TelemetryProfilerCPUDuration = "telemetry.profiler.cpu_duration"
+	TelemetryProfilerPeriod      = "telemetry.profiler.period"
 )
 
 type TelemetryConfig struct {

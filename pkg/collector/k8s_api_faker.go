@@ -15,15 +15,16 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func FakePod(namespace string, image string, status string) *corev1.Pod {
+func FakePod(namespace string, name string, status string) *corev1.Pod {
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
+			Name:      name,
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:  image,
+					Name:  name,
 					Image: "nginx:latest",
 				},
 			},

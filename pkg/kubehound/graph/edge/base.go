@@ -7,11 +7,13 @@ import (
 )
 
 type BaseEdge struct {
-	cfg *config.EdgeBuilderConfig
+	cfg     *config.EdgeBuilderConfig
+	runtime *config.DynamicConfig
 }
 
-func (e *BaseEdge) Initialize(cfg *config.EdgeBuilderConfig) error {
+func (e *BaseEdge) Initialize(cfg *config.EdgeBuilderConfig, runtime *config.DynamicConfig) error {
 	e.cfg = cfg
+	e.runtime = runtime
 
 	return nil
 }

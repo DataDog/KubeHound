@@ -33,7 +33,7 @@ func Setup(cfg *config.KubehoundConfig) error {
 
 		return nil
 	}
-	tags := tag.BaseTags
+	tags := tag.GetBaseTags()
 	for tk, tv := range cfg.Telemetry.Tags {
 		tags = append(tags, tag.MakeTag(tk, tv))
 	}

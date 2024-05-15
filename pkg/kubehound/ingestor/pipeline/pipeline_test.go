@@ -7,7 +7,7 @@ import (
 var testID = config.NewRunID()
 var testConfig = &config.KubehoundConfig{
 	Dynamic: config.DynamicConfig{
-		RunID:   config.NewRunID(),
-		Cluster: "test-cluster",
+		RunID:       config.NewRunID(),
+		ClusterName: "test-cluster",
 	},
 }

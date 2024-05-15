@@ -99,7 +99,8 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphBatchWrite,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
 	span.SetTag(tag.LabelTag, jgv.builder)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 	defer jgv.writingInFlight.Done()
 
 	datalen := len(data)
@@ -109,7 +110,7 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 
 	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()
-	err := <-promise
+	err = <-promise
 	if err != nil {
 		return fmt.Errorf("%s edge insert: %w", jgv.builder, err)
 	}
@@ -129,7 +130,8 @@ func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphFlush,
 		tracer.Measured(), tracer.ServiceName(TracerServicename))
 	span.SetTag(tag.LabelTag, jgv.builder)
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	jgv.mu.Lock()
 	defer jgv.mu.Unlock()
@@ -142,7 +144,7 @@ func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 		_ = statsd.Incr(metric.FlushWriterCall, jgv.tags, 1)
 
 		jgv.writingInFlight.Add(1)
-		err := jgv.batchWrite(ctx, jgv.inserts)
+		err = jgv.batchWrite(ctx, jgv.inserts)
 		if err != nil {
 			log.Trace(ctx).Errorf("batch write %s: %+v", jgv.builder, err)
 			jgv.writingInFlight.Wait()

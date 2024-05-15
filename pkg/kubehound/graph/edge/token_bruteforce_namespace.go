@@ -64,7 +64,9 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_namespaced": true,
+				"is_namespaced":   true,
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{
@@ -92,17 +94,21 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, store storedb.Pro
 				},
 				"pipeline": []bson.M{
 					{
-						"$match": bson.M{"$and": bson.A{
-							bson.M{"$or": bson.A{
-								bson.M{"$expr": bson.M{
-									"$eq": bson.A{
-										"$namespace", "$$roleNamespace",
-									},
+						"$match": bson.M{
+							"$and": bson.A{
+								bson.M{"$or": bson.A{
+									bson.M{"$expr": bson.M{
+										"$eq": bson.A{
+											"$namespace", "$$roleNamespace",
+										},
+									}},
+									bson.M{"is_namespaced": false},
 								}},
-								bson.M{"is_namespaced": false},
-							}},
-							bson.M{"type": "ServiceAccount"},
-						}},
+								bson.M{"type": "ServiceAccount"},
+							},
+							"runtime.runID":   e.runtime.RunID.String(),
+							"runtime.cluster": e.runtime.ClusterName,
+						},
 					},
 					{
 						"$project": bson.M{

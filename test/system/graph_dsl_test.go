@@ -3,7 +3,6 @@ package system
 
 import (
 	"context"
-	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
@@ -327,10 +326,6 @@ func (suite *DslTestSuite) TestTraversal_critical() {
 	suite.NoError(err)
 	suite.True(ok)
 	suite.True(critical.GetBool())
-}
-
-func TestDslTestSuite(t *testing.T) {
-	suite.Run(t, new(DslTestSuite))
 }
 
 func (suite *DslTestSuite) TearDownTest() {

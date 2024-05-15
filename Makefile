@@ -56,23 +56,24 @@ endif
 # so we abort
 docker-check:
 # exit early without error if custom docker cmd is provided
-ifeq ("docker", ${DOCKER_CMD})
-	@echo "Using provided docker cmd: ${DOCKER_CMD}"
-	DOCKER_CMD := ${DOCKER_CMD}
-else
+	ifeq ("docker", ${DOCKER_CMD})
+		@echo "Using provided docker cmd: ${DOCKER_CMD}"
+		DOCKER_CMD := ${DOCKER_CMD}
+	else
 # exit early if docker is not found. No point in continuing
-ifeq (, $(shell command -v docker))
-    $(error "Docker not found")
-endif
+	ifeq (, $(shell command -v docker))
+		$(error "Docker not found")
+	endif
 
-ifneq (, $(findstring Server Version,$(shell docker info)))
-    DOCKER_CMD := docker
-else ifneq (, $(findstring Server Version,$(shell sudo docker info)))
-    DOCKER_CMD := sudo docker
-else
-    $(error "We don't have the permission to run docker. Are you root or in the docker group?")
-endif
-endif
+	ifneq (, $(findstring Server Version,$(shell docker info)))
+			DOCKER_CMD := docker
+		else ifneq (, $(findstring Server Version,$(shell sudo docker info)))
+			DOCKER_CMD := sudo docker
+		else
+			$(error "We don't have the permission to run docker. Are you root or in the docker group?")
+		endif
+	endif
+
 
 RACE_FLAG_SYSTEM_TEST := "-race"
 ifeq (${CI},true)
@@ -93,6 +94,10 @@ generate: ## Generate code for the application
 .PHONY: build
 build: ## Build the application
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
+
+.PHONY: build-ingestor
+build-ingestor: ## Build the ingestor API CLI
+	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound-ingestor kubehound-ingestor/*.go
 
 .PHONY: kubehound
 kubehound: | backend-up build ## Prepare kubehound (deploy backend, build go binary)
@@ -127,7 +132,7 @@ test: ## Run the full suite of unit tests
 
 .PHONY: system-test
 system-test: | backend-reset ## Run the system tests
-	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 -race ./...
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "120s" -count=1 -race ./...
 
 .PHONY: system-test-fast
 system-test-fast: ## Run the system tests WITHOUT recreating the backend

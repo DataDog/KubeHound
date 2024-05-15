@@ -45,7 +45,10 @@ func (e *EscapeSysPtrace) Stream(ctx context.Context, store storedb.Provider, _ 
 			bson.M{"inherited.host_pid": true},
 			bson.M{"k8.securitycontext.capabilities.add": "SYS_PTRACE"},
 			bson.M{"k8.securitycontext.capabilities.add": "SYS_ADMIN"},
-		}}
+		},
+		"runtime.runID":   e.runtime.RunID.String(),
+		"runtime.cluster": e.runtime.ClusterName,
+	}
 
 	// We just need a 1:1 mapping of the node and container to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}

@@ -87,13 +87,14 @@ func (maw *MongoAsyncWriter) startBackgroundWriter(ctx context.Context) {
 func (maw *MongoAsyncWriter) batchWrite(ctx context.Context, ops []mongo.WriteModel) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.MongoDBBatchWrite, tracer.Measured())
 	span.SetTag(tag.CollectionTag, maw.collection.Name())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 	defer maw.writingInFlight.Done()
 
 	_ = statsd.Count(metric.ObjectWrite, int64(len(ops)), maw.tags, 1)
 
 	bulkWriteOpts := options.BulkWrite().SetOrdered(false)
-	_, err := maw.dbWriter.BulkWrite(ctx, ops, bulkWriteOpts)
+	_, err = maw.dbWriter.BulkWrite(ctx, ops, bulkWriteOpts)
 	if err != nil {
 		return fmt.Errorf("could not write in bulk to mongo: %w", err)
 	}
@@ -127,7 +128,8 @@ func (maw *MongoAsyncWriter) Queue(ctx context.Context, model any) error {
 func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.MongoDBFlush, tracer.Measured())
 	span.SetTag(tag.CollectionTag, maw.collection.Name())
-	defer span.Finish()
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	if maw.dbWriter == nil {
 		return fmt.Errorf("mongodb client is not initialized")
@@ -142,7 +144,7 @@ func (maw *MongoAsyncWriter) Flush(ctx context.Context) error {
 
 	if len(maw.ops) != 0 {
 		maw.writingInFlight.Add(1)
-		err := maw.batchWrite(ctx, maw.ops)
+		err = maw.batchWrite(ctx, maw.ops)
 		if err != nil {
 			log.Trace(ctx).Errorf("batch write %s: %+v", maw.collection.Name(), err)
 			maw.writingInFlight.Wait()

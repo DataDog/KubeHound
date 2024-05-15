@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -28,4 +29,15 @@ func (r RunID) String() string {
 // Timestamp returns the timestamp embedded within the run id.
 func (r RunID) Timestamp() time.Time {
 	return time.UnixMilli(int64(r.val.Time()))
+}
+
+func LoadRunID(runid string) (*RunID, error) {
+	val, err := ulid.ParseStrict(runid)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing run id: %w", err)
+	}
+
+	return &RunID{
+		val: val,
+	}, nil
 }

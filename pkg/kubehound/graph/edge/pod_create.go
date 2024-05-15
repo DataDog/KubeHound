@@ -108,6 +108,8 @@ func (e *PodCreate) Stream(ctx context.Context, store storedb.Provider, _ cache.
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{

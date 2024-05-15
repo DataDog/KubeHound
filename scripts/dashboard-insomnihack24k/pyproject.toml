@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "insomnihack24k"
+version = "0.1.0"
+description = ""
+authors = ["jt-dd"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+gremlinpython = "^3.7.2"
+panel = "^1.4.2"
+watchfiles = "^0.21.0"
+async-timeout = "^4.0.3"
+nest-asyncio = "^1.6.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

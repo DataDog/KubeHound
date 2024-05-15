@@ -51,6 +51,12 @@ func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Prov
 	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
 	pipeline := bson.A{
 		bson.M{
+			"$match": bson.M{
+				"runtime.runID":   e.runtime.RunID.String(),
+				"runtime.cluster": e.runtime.ClusterName,
+			},
+		},
+		bson.M{
 			"$lookup": bson.M{
 				"as":   "idc",
 				"from": collections.IdentityName,
@@ -60,19 +66,23 @@ func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Prov
 				},
 				"pipeline": []bson.M{
 					{
-						"$match": bson.M{"$and": bson.A{
-							bson.M{"$expr": bson.M{
-								"$eq": bson.A{
-									"$name", "$$idName",
-								},
-							}},
-							bson.M{"$expr": bson.M{
-								"$eq": bson.A{
-									"$namespace", "$$idNamespace",
-								},
-							}},
-							bson.M{"type": shared.IdentityTypeSA},
-						}},
+						"$match": bson.M{
+							"$and": bson.A{
+								bson.M{"$expr": bson.M{
+									"$eq": bson.A{
+										"$name", "$$idName",
+									},
+								}},
+								bson.M{"$expr": bson.M{
+									"$eq": bson.A{
+										"$namespace", "$$idNamespace",
+									},
+								}},
+								bson.M{"type": shared.IdentityTypeSA},
+							},
+							"runtime.runID":   e.runtime.RunID.String(),
+							"runtime.cluster": e.runtime.ClusterName,
+						},
 					},
 					{
 						"$project": bson.M{

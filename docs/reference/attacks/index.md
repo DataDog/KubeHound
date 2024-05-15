@@ -5,6 +5,11 @@ hide:
 
 # Attack Reference
 
+All edges in the KubeHound graph represent attacks with a net "improvement" in an attacker's position or a lateral movement opportunity.
+
+!!! Note
+    For instance, an assume role or ([IDENTITY_ASSUME](./IDENTITY_ASSUME.md)) is considered as an attack.
+
 |   ID   | Name | MITRE ATT&CK Technique | MITRE ATT&CK Tactic |
 | :----: | :--: | :-----------------: | :--------------------: |
 | [CE_MODULE_LOAD](./CE_MODULE_LOAD.md) | Container escape: Load kernel module | Escape to host | Privilege escalation | 

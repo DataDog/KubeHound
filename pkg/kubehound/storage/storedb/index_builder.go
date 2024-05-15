@@ -1,4 +1,3 @@
-//nolint:govet
 package storedb
 
 import (
@@ -73,12 +72,29 @@ func (ib *IndexBuilder) containers(ctx context.Context) error {
 			Options: options.Index().SetName("byPodName"),
 		},
 		{
-			Keys:    bson.M{"k8.securitycontext.privileged": 1},
+			Keys: bson.D{
+				{Key: "k8.securitycontext.privileged", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
 			Options: options.Index().SetName("byPrivileged"),
 		},
 		{
-			Keys:    bson.M{"k8.securitycontext.capabilities.add": 1},
+			Keys: bson.D{
+				{Key: "k8.securitycontext.capabilities.add", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
 			Options: options.Index().SetName("ByCapabilities"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "inherited.host_pid", Value: 1},
+				{Key: "k8.securitycontext.capabilities.add", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
+			Options: options.Index().SetName("BySharedPID"),
 		},
 		{
 			Keys:    bson.M{"inherited.host_pid": 1},
@@ -94,11 +110,18 @@ func (ib *IndexBuilder) containers(ctx context.Context) error {
 		},
 		{
 			Keys: bson.D{
-				{"inherited.namespace", 1},
-				{"inherited.pod_name", 1},
-				{"k8.ports", 1},
+				{Key: "inherited.namespace", Value: 1},
+				{Key: "inherited.pod_name", Value: 1},
+				{Key: "k8.ports", Value: 1},
 			},
 			Options: options.Index().SetName("bySharedNode"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
+			Options: options.Index().SetName("byRun"),
 		},
 	}
 
@@ -112,8 +135,19 @@ func (ib *IndexBuilder) endpoints(ctx context.Context) error {
 	endpoints := ib.db.Collection(collections.EndpointName)
 	indices := []mongo.IndexModel{
 		{
-			Keys:    bson.M{"has_slice": 1},
+			Keys: bson.D{
+				{Key: "has_slice", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
 			Options: options.Index().SetName("bySliceSet"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
+			Options: options.Index().SetName("byRun"),
 		},
 	}
 
@@ -144,11 +178,18 @@ func (ib *IndexBuilder) identities(ctx context.Context) error {
 		},
 		{
 			Keys: bson.D{
-				{"name", 1},
-				{"namespace", 1},
-				{"type", 1},
+				{Key: "name", Value: 1},
+				{Key: "namespace", Value: 1},
+				{Key: "type", Value: 1},
 			},
 			Options: options.Index().SetName("byLookupFields"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
+			Options: options.Index().SetName("byRun"),
 		},
 	}
 
@@ -162,8 +203,20 @@ func (ib *IndexBuilder) nodes(ctx context.Context) error {
 	nodes := ib.db.Collection(collections.NodeName)
 	indices := []mongo.IndexModel{
 		{
-			Keys:    bson.M{"user_id": 1},
+
+			Keys: bson.D{
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+				{Key: "user_id", Value: 1},
+			},
 			Options: options.Index().SetName("ByUserId"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
+			Options: options.Index().SetName("byRun"),
 		},
 	}
 
@@ -177,28 +230,59 @@ func (ib *IndexBuilder) permissionsets(ctx context.Context) error {
 	permissions := ib.db.Collection(collections.PermissionSetName)
 	indices := []mongo.IndexModel{
 		{
-			Keys:    bson.M{"is_namespaced": 1},
+			Keys: bson.D{
+				{Key: "is_namespaced", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
 			Options: options.Index().SetName("byNamespaceSet"),
 		},
 		{
-			Keys:    bson.M{"namespace": 1},
+			Keys: bson.D{
+				{Key: "namespace", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
 			Options: options.Index().SetName("byNamespace"),
 		},
 		{
-			Keys:    bson.M{"rules.apigroups": 1},
+			Keys: bson.D{
+				{Key: "rules.apigroups", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
 			Options: options.Index().SetName("byApiGroup"),
 		},
 		{
-			Keys:    bson.M{"rules.resources": 1},
+			Keys: bson.D{
+				{Key: "rules.resources", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
 			Options: options.Index().SetName("byResources"),
 		},
 		{
-			Keys:    bson.M{"rules.verbs": 1},
+			Keys: bson.D{
+				{Key: "rules.verbs", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
 			Options: options.Index().SetName("byVerbs"),
 		},
 		{
-			Keys:    bson.M{"rules.resourcenames": 1},
+			Keys: bson.D{
+				{Key: "rules.resourcenames", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
 			Options: options.Index().SetName("byResourceNames"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
+			Options: options.Index().SetName("byRun"),
 		},
 	}
 
@@ -222,6 +306,21 @@ func (ib *IndexBuilder) pods(ctx context.Context) error {
 		{
 			Keys:    bson.M{"k8.objectmeta.namespace": 1},
 			Options: options.Index().SetName("byNamespace"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
+			Options: options.Index().SetName("byRun"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "k8.spec.shareprocessnamespace", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
+			Options: options.Index().SetName("byShareProessNamespace"),
 		},
 	}
 
@@ -264,26 +363,37 @@ func (ib *IndexBuilder) volumes(ctx context.Context) error {
 		},
 		{
 			Keys: bson.D{
-				{"node_id", 1},
-				{"projected_id", 1},
-				{"type", 1},
+				{Key: "node_id", Value: 1},
+				{Key: "projected_id", Value: 1},
+				{Key: "type", Value: 1},
 			},
 			Options: options.Index().SetName("bySharedNode"),
 		},
 		{
 			Keys: bson.D{
-				{"source", 1},
-				{"type", 1},
+				{Key: "source", Value: 1},
+				{Key: "type", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
 			},
 			Options: options.Index().SetName("byMountProperties"),
 		},
 		{
 			Keys: bson.D{
-				{"source", 1},
-				{"readonly", 1},
-				{"type", 1},
+				{Key: "source", Value: 1},
+				{Key: "readonly", Value: 1},
+				{Key: "type", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
 			},
 			Options: options.Index().SetName("byMountPropertiesEx"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
+			Options: options.Index().SetName("byRun"),
 		},
 	}
 

@@ -14,34 +14,30 @@ type State struct {
 
 // Initialize all telemetry required
 // return client to enable clean shutdown
-func Initialize(cfg *config.KubehoundConfig) (*State, error) {
-	if !cfg.Telemetry.Enabled {
+func Initialize(khCfg *config.KubehoundConfig) error {
+	if !khCfg.Telemetry.Enabled {
 		log.I.Warnf("Telemetry disabled via configuration")
 
-		return &State{}, nil
+		return nil
 	}
 
 	// Profiling
-	profiler.Initialize(cfg)
+	profiler.Initialize(khCfg)
 
 	// Tracing
-	tracer.Initialize(cfg)
+	tracer.Initialize(khCfg)
 
 	// Metrics
-	err := statsd.Setup(cfg)
+	err := statsd.Setup(khCfg)
 	if err != nil {
-		return &State{
-			Enabled: true,
-		}, err
+		return err
 	}
 
-	return &State{
-		Enabled: true,
-	}, nil
+	return nil
 }
 
-func Shutdown(ts *State) {
-	if !ts.Enabled {
+func Shutdown(enabled bool) {
+	if enabled {
 		return
 	}
 

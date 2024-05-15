@@ -3,6 +3,7 @@ package config
 import (
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,7 +32,8 @@ func TestMustLoadConfig(t *testing.T) {
 				Collector: CollectorConfig{
 					Type: CollectorTypeFile,
 					File: &FileCollectorConfig{
-						Directory: "cluster-data/",
+						Directory:   "cluster-data/",
+						ClusterName: "test-cluster",
 					},
 					// This is always set as the default value
 					Live: &K8SAPICollectorConfig{
@@ -70,6 +72,16 @@ func TestMustLoadConfig(t *testing.T) {
 						BatchSizeSmall:            100,
 						BatchSizeClusterImpact:    10,
 					},
+				},
+				Ingestor: IngestorConfig{
+					API: IngestorAPIConfig{
+						Endpoint: "127.0.0.1:9000",
+						Insecure: true,
+					},
+					BucketName:     "",
+					TempDir:        "/tmp/kubehound",
+					ArchiveName:    "archive.tar.gz",
+					MaxArchiveSize: 1073741824,
 				},
 			},
 			wantErr: false,
@@ -124,6 +136,16 @@ func TestMustLoadConfig(t *testing.T) {
 						BatchSizeClusterImpact:    5,
 					},
 				},
+				Ingestor: IngestorConfig{
+					API: IngestorAPIConfig{
+						Endpoint: "127.0.0.1:9000",
+						Insecure: true,
+					},
+					BucketName:     "",
+					TempDir:        "/tmp/kubehound",
+					ArchiveName:    "archive.tar.gz",
+					MaxArchiveSize: 1073741824,
+				},
 			},
 			wantErr: false,
 		},
@@ -141,7 +163,8 @@ func TestMustLoadConfig(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			cfg, err := NewConfig(tt.args.configPath)
+			v := viper.New()
+			cfg, err := NewConfig(v, tt.args.configPath)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, cfg)
