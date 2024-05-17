@@ -21,13 +21,11 @@ HELP_MAKEFILE_LIST := $(MAKEFILE_LIST)
 # Loading docker .env file if present
 ifneq (,$(wildcard $(DOCKER_COMPOSE_ENV_FILE_PATH)))
 	include $(DOCKER_COMPOSE_ENV_FILE_PATH)
-    export
 endif
 
 # Loading docker .env file if present
 ifneq (,$(wildcard $(DEV_ENV_FILE_PATH)))
 	include $(DEV_ENV_FILE_PATH)
-    export
 endif
 
 # Set default values if none of the above have set anything
@@ -55,24 +53,24 @@ endif
 # if not we try again with sudo, and if that also fail we assume the docker setup is broken and cannot work
 # so we abort
 docker-check:
-# exit early without error if custom docker cmd is provided
-	ifeq ("docker", ${DOCKER_CMD})
-		@echo "Using provided docker cmd: ${DOCKER_CMD}"
-		DOCKER_CMD := ${DOCKER_CMD}
-	else
-# exit early if docker is not found. No point in continuing
-	ifeq (, $(shell command -v docker))
-		$(error "Docker not found")
-	endif
+ifeq ("docker", ${DOCKER_CMD})
+	@echo "Using provided docker cmd: ${DOCKER_CMD}"
+DOCKER_CMD := ${DOCKER_CMD}
+else
 
-	ifneq (, $(findstring Server Version,$(shell docker info)))
-			DOCKER_CMD := docker
-		else ifneq (, $(findstring Server Version,$(shell sudo docker info)))
-			DOCKER_CMD := sudo docker
-		else
-			$(error "We don't have the permission to run docker. Are you root or in the docker group?")
-		endif
-	endif
+# exit early if docker is not found. No point in continuing
+ifeq (, $(shell command -v docker))
+	$(error "Docker not found")
+endif
+
+ifneq (, $(findstring Server Version,$(shell docker info)))
+DOCKER_CMD := docker
+else ifneq (, $(findstring Server Version,$(shell sudo docker info)))
+DOCKER_CMD := sudo docker
+else
+	$(error "We don't have the permission to run docker. Are you root or in the docker group?")
+endif
+endif
 
 
 RACE_FLAG_SYSTEM_TEST := "-race"
@@ -82,7 +80,7 @@ endif
 
 DOCKER_HOSTNAME := $(shell hostname)
 ifneq (${CI},true)
-	DOCKER_CMD := DOCKER_HOSTNAME=$(DOCKER_HOSTNAME) $(DOCKER_CMD)
+DOCKER_CMD := DOCKER_HOSTNAME=$(DOCKER_HOSTNAME) $(DOCKER_CMD)
 endif
 
 all: build
@@ -111,12 +109,12 @@ backend-up: | docker-check ## Spawn the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d 
 
 .PHONY: backend-reset
-backend-reset: ## Restart the kubehound stack
+backend-reset: | docker-check ## Restart the kubehound stack
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) rm -fvs 
 	$(DOCKER_CMD) compose $(DOCKER_COMPOSE_FILE_PATH) $(DOCKER_COMPOSE_PROFILE) up --force-recreate --build -d
 
 .PHONY: backend-wipe
-backend-wipe: # Wipe the persisted backend data
+backend-wipe: | docker-check ## Wipe the persisted backend data
 ifndef KUBEHOUND_ENV
 	$(error KUBEHOUND_ENV is undefined)
 endif
