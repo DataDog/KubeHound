@@ -21,11 +21,13 @@ HELP_MAKEFILE_LIST := $(MAKEFILE_LIST)
 # Loading docker .env file if present
 ifneq (,$(wildcard $(DOCKER_COMPOSE_ENV_FILE_PATH)))
 	include $(DOCKER_COMPOSE_ENV_FILE_PATH)
+	export
 endif
 
 # Loading docker .env file if present
 ifneq (,$(wildcard $(DEV_ENV_FILE_PATH)))
 	include $(DEV_ENV_FILE_PATH)
+	export
 endif
 
 # Set default values if none of the above have set anything
