@@ -26,13 +26,8 @@ func init() {
 func Setup(cfg *config.KubehoundConfig) error {
 	statsdURL := cfg.Telemetry.Statsd.URL
 	log.I.Infof("Using %s for statsd URL", statsdURL)
-	var err error
-	// In case we don't have a statsd url set, we just want to continue, but log that we aren't going to submit metrics.
-	if statsdURL == "" {
-		log.I.Warn("No metrics collector has been setup. All metrics submission are going to be NOOP.")
 
-		return nil
-	}
+	var err error
 	tags := tag.GetBaseTags()
 	for tk, tv := range cfg.Telemetry.Tags {
 		tags = append(tags, tag.MakeTag(tk, tv))
@@ -40,7 +35,12 @@ func Setup(cfg *config.KubehoundConfig) error {
 
 	statsdClient, err = statsd.New(statsdURL,
 		statsd.WithTags(tags))
-	if err != nil {
+
+	// In case we don't have a statsd url set or DD_DOGSTATSD_URL env var, we just want to continue, but log that we aren't going to submit metrics.
+	if err != nil || statsdClient == nil {
+		log.I.Warn("No metrics collector has been setup. All metrics submission are going to be NOOPmmm.")
+		statsdClient = &NoopClient{}
+
 		return err
 	}
 
