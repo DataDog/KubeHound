@@ -9,11 +9,10 @@ import (
 )
 
 func Initialize(cfg *config.KubehoundConfig) {
-	err := profiler.Start(
+	opts := []profiler.Option{
 		profiler.WithService(globals.DDServiceName),
 		profiler.WithEnv(globals.DDEnv),
 		profiler.WithVersion(config.BuildVersion),
-		profiler.WithAgentAddr(cfg.Telemetry.Tracer.URL),
 		profiler.WithProfileTypes(
 			profiler.CPUProfile,
 			profiler.HeapProfile,
@@ -28,7 +27,12 @@ func Initialize(cfg *config.KubehoundConfig) {
 		profiler.CPUDuration(cfg.Telemetry.Profiler.CPUDuration),
 		profiler.WithLogStartup(false),
 		profiler.WithTags(tag.GetBaseTags()...),
-	)
+	}
+	if cfg.Telemetry.Tracer.URL != "" {
+		opts = append(opts, profiler.WithAgentAddr(cfg.Telemetry.Tracer.URL))
+	}
+
+	err := profiler.Start(opts...)
 	if err != nil {
 		log.I.Errorf("start profiler: %v", err)
 	}
