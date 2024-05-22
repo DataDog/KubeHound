@@ -19,7 +19,7 @@ var (
 			viper.BindPFlag(config.IngestorAPIEndpoint, cobraCmd.Flags().Lookup("khaas-server")) //nolint: errcheck
 			viper.BindPFlag(config.IngestorAPIInsecure, cobraCmd.Flags().Lookup("insecure"))     //nolint: errcheck
 
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", false, false)
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", false, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// Passing the Kubehound config from viper

@@ -2,7 +2,7 @@ package config
 
 const (
 	DefaultIngestorAPIEndpoint = "127.0.0.1:9000"
-	DefaultIngestorAPIInsecure = true
+	DefaultIngestorAPIInsecure = false
 	DefaultBucketName          = "" // we want to let it empty because we can easily abort if it's not configured
 	DefaultTempDir             = "/tmp/kubehound"
 	DefaultArchiveName         = "archive.tar.gz"
