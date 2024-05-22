@@ -15,8 +15,8 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
+	awsv2cfg "github.com/aws/aws-sdk-go-v2/config"
+	s3v2 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"gocloud.dev/blob"
 	_ "gocloud.dev/blob/azureblob"
 	_ "gocloud.dev/blob/fileblob"
@@ -61,7 +61,6 @@ func (bs *BlobStore) openBucket(ctx context.Context) (*blob.Bucket, error) {
 
 	cloudPrefix, bucketName := urlStruct.Scheme, urlStruct.Host
 	var bucket *blob.Bucket
-	var awsSession *session.Session
 	switch cloudPrefix {
 	case "file":
 		bucket, err = blob.OpenBucket(ctx, cloudPrefix+":///"+bucketName)
@@ -70,14 +69,22 @@ func (bs *BlobStore) openBucket(ctx context.Context) (*blob.Bucket, error) {
 		bucketName = urlStruct.User.Username()
 		bucket, err = blob.OpenBucket(ctx, "azblob://"+bucketName)
 	case "s3":
-		// Based off https://pkg.go.dev/gocloud.dev/blob/s3blob#example-OpenBucket
-		awsSession, err = session.NewSession(&aws.Config{
-			Region: aws.String(bs.region),
-		})
+		// Establish a AWS V2 Config.
+		// See https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/ for more info.
+		cfg, err := awsv2cfg.LoadDefaultConfig(
+			ctx,
+			awsv2cfg.WithRegion(bs.region),
+		)
 		if err != nil {
 			return nil, err
 		}
-		bucket, err = s3blob.OpenBucket(ctx, awsSession, bucketName, nil)
+
+		// Create a *blob.Bucket.
+		clientV2 := s3v2.NewFromConfig(cfg)
+		bucket, err = s3blob.OpenBucketV2(ctx, clientV2, bucketName, nil)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		bucket, err = blob.OpenBucket(ctx, cloudPrefix+"://"+bucketName)
 	}
