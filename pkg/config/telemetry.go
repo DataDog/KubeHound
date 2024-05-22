@@ -7,8 +7,8 @@ import (
 const (
 	DefaultProfilerPeriod       time.Duration = 60 * time.Second
 	DefaultProfilerCPUDuration  time.Duration = 15 * time.Second
-	DefaultTelemetryStatsdUrl                 = "127.0.0.1:8225"
-	DefaultTelemetryProfilerUrl               = "127.0.0.1:8226"
+	DefaultTelemetryStatsdUrl                 = "" // 127.0.0.1:8225
+	DefaultTelemetryProfilerUrl               = "" // 127.0.0.1:8226
 
 	TelemetryStatsdUrl           = "telemetry.statsd.url"
 	TelemetryTracerUrl           = "telemetry.tracer.url"
