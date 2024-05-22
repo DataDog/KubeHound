@@ -32,7 +32,7 @@ func CoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) error {
 	defer p.Close(ctx)
 
 	log.I.Info("Creating Blob Storage provider")
-	puller, err := blob.NewBlobStorage(khCfg, khCfg.Ingestor.BucketName)
+	puller, err := blob.NewBlobStorage(khCfg, khCfg.Ingestor.Blob)
 	if err != nil {
 		return err
 	}

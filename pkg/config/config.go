@@ -123,7 +123,7 @@ func SetDefaultValues(c *viper.Viper) {
 
 	c.SetDefault(IngestorAPIEndpoint, DefaultIngestorAPIEndpoint)
 	c.SetDefault(IngestorAPIInsecure, DefaultIngestorAPIInsecure)
-	c.SetDefault("ingestor.bucket_name", DefaultBucketName)
+	c.SetDefault(IngestorBlobBucketName, DefaultBucketName)
 	c.SetDefault("ingestor.temp_dir", DefaultTempDir)
 	c.SetDefault("ingestor.max_archive_size", DefaultMaxArchiveSize)
 	c.SetDefault("ingestor.archive_name", DefaultArchiveName)

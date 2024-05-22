@@ -124,7 +124,9 @@ builder:
   
 # Ingestor configuration (for KHaaS)
 # ingestor:
-#   bucket_name: "<your-bucket>"
+#   blob:
+#    bucket: "" # (i.e.: s3://your-bucket)
+#    region: "" # (i.e.: us-east-1)
 #   temp_dir: "/tmp/kubehound"
 #   archive_name: "archive.tar.gz"
 #   max_archive_size: 1073741824 # 1GB

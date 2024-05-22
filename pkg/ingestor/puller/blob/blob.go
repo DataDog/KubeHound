@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -14,10 +15,13 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
+	awsv2cfg "github.com/aws/aws-sdk-go-v2/config"
+	s3v2 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"gocloud.dev/blob"
 	_ "gocloud.dev/blob/azureblob"
+	_ "gocloud.dev/blob/fileblob"
 	_ "gocloud.dev/blob/gcsblob"
-	_ "gocloud.dev/blob/s3blob"
+	"gocloud.dev/blob/s3blob"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -28,23 +32,68 @@ var (
 type BlobStore struct {
 	bucketName string
 	cfg        *config.KubehoundConfig
+	region     string
 }
 
 var _ puller.DataPuller = (*BlobStore)(nil)
 
-func NewBlobStorage(cfg *config.KubehoundConfig, bucketName string) (*BlobStore, error) {
-	if bucketName == "" {
+func NewBlobStorage(cfg *config.KubehoundConfig, blobConfig *config.BlobConfig) (*BlobStore, error) {
+	if blobConfig.Bucket == "" {
 		return nil, ErrInvalidBucketName
 	}
 
 	return &BlobStore{
-		bucketName: bucketName,
+		bucketName: blobConfig.Bucket,
 		cfg:        cfg,
+		region:     blobConfig.Region,
 	}, nil
 }
 
 func getKeyPath(clusterName, runID string) string {
 	return fmt.Sprintf("%s%s", dump.DumpIngestorResultName(clusterName, runID), writer.TarWriterExtension)
+}
+
+func (bs *BlobStore) openBucket(ctx context.Context) (*blob.Bucket, error) {
+	urlStruct, err := url.Parse(bs.bucketName)
+	if err != nil {
+		return nil, err
+	}
+
+	cloudPrefix, bucketName := urlStruct.Scheme, urlStruct.Host
+	var bucket *blob.Bucket
+	switch cloudPrefix {
+	case "file":
+		bucket, err = blob.OpenBucket(ctx, cloudPrefix+":///"+bucketName)
+	case "wasbs":
+		// AZURE_STORAGE_ACCOUNT env is set in conf/k8s
+		bucketName = urlStruct.User.Username()
+		bucket, err = blob.OpenBucket(ctx, "azblob://"+bucketName)
+	case "s3":
+		// Establish a AWS V2 Config.
+		// See https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/ for more info.
+		cfg, err := awsv2cfg.LoadDefaultConfig(
+			ctx,
+			awsv2cfg.WithRegion(bs.region),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		// Create a *blob.Bucket.
+		clientV2 := s3v2.NewFromConfig(cfg)
+		bucket, err = s3blob.OpenBucketV2(ctx, clientV2, bucketName, nil)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		bucket, err = blob.OpenBucket(ctx, cloudPrefix+"://"+bucketName)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bucket, nil
 }
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
@@ -56,7 +105,7 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 
 	key := getKeyPath(clusterName, runID)
 	log.I.Infof("Downloading archive (%s) from blob store", key)
-	b, err := blob.OpenBucket(ctx, bs.bucketName)
+	b, err := bs.openBucket(ctx)
 	if err != nil {
 		return err
 	}
@@ -94,7 +143,7 @@ func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID strin
 
 	key := getKeyPath(clusterName, runID)
 	log.I.Infof("Downloading archive (%s) from blob store", key)
-	b, err := blob.OpenBucket(ctx, bs.bucketName)
+	b, err := bs.openBucket(ctx)
 	if err != nil {
 		return "", err
 	}

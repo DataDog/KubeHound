@@ -12,11 +12,14 @@ const (
 	IngestorAPIInsecure = "ingestor.api.insecure"
 	IngestorClusterName = "ingestor.cluster_name"
 	IngestorRunID       = "ingestor.run_id"
+
+	IngestorBlobBucketName = "ingestor.blob.bucket_name"
+	IngestorBlobRegion     = "ingestor.blob.region"
 )
 
 type IngestorConfig struct {
 	API            IngestorAPIConfig `mapstructure:"api"`
-	BucketName     string            `mapstructure:"bucket_name"`
+	Blob           *BlobConfig       `mapstructure:"blob"`
 	TempDir        string            `mapstructure:"temp_dir"`
 	ArchiveName    string            `mapstructure:"archive_name"`
 	MaxArchiveSize int64             `mapstructure:"max_archive_size"`
@@ -25,6 +28,6 @@ type IngestorConfig struct {
 }
 
 type IngestorAPIConfig struct {
-	Endpoint string `mapstructure:"endpoint" validate:"omitempty,tcp_addr"`
+	Endpoint string `mapstructure:"endpoint"`
 	Insecure bool   `mapstructure:"insecure" validate:"omitempty,boolean"`
 }

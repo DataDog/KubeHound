@@ -78,7 +78,10 @@ func TestMustLoadConfig(t *testing.T) {
 						Endpoint: "127.0.0.1:9000",
 						Insecure: true,
 					},
-					BucketName:     "",
+					Blob: &BlobConfig{
+						Bucket: "",
+						Region: "",
+					},
 					TempDir:        "/tmp/kubehound",
 					ArchiveName:    "archive.tar.gz",
 					MaxArchiveSize: 1073741824,
@@ -141,7 +144,10 @@ func TestMustLoadConfig(t *testing.T) {
 						Endpoint: "127.0.0.1:9000",
 						Insecure: true,
 					},
-					BucketName:     "",
+					Blob: &BlobConfig{
+						Bucket: "",
+						Region: "",
+					},
 					TempDir:        "/tmp/kubehound",
 					ArchiveName:    "archive.tar.gz",
 					MaxArchiveSize: 1073741824,
