@@ -2,12 +2,14 @@ package core
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	pb "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -16,7 +18,11 @@ func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName strin
 	if ingestorConfig.API.Insecure {
 		dialOpt = grpc.WithTransportCredentials(insecure.NewCredentials())
 	} else {
-		return fmt.Errorf("secure connection is not supported")
+		tlsConfig := &tls.Config{
+			InsecureSkipVerify: false,
+			MinVersion:         tls.VersionTLS12,
+		}
+		dialOpt = grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig))
 	}
 
 	log.I.Infof("Launching ingestion on %s [%s:%s]", ingestorConfig.API.Endpoint, clusteName, runID)
