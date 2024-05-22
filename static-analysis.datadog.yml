@@ -1,0 +1,4 @@
+rulesets:
+  - go-best-practices
+  - go-security
+ignorePaths: []
