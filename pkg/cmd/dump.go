@@ -54,7 +54,7 @@ func InitCloudCmd(cmd *cobra.Command) {
 	viper.BindPFlag(config.CollectorFileBlobBucket, cmd.Flags().Lookup("bucket")) //nolint: errcheck
 	cmd.MarkFlagRequired("bucket")                                                //nolint: errcheck
 
-	cmd.Flags().String("region", "", "Region to retreive the configuration (only for s3) (e.g.: us-east-1)")
+	cmd.Flags().String("region", "", "Region to retrieve the configuration (only for s3) (e.g.: us-east-1)")
 	viper.BindPFlag(config.CollectorFileBlobRegion, cmd.Flags().Lookup("region")) //nolint: errcheck
 }
 
