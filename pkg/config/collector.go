@@ -36,10 +36,10 @@ type K8SAPICollectorConfig struct {
 
 // FileCollectorConfig configures the file collector.
 type FileCollectorConfig struct {
-	ClusterName string               `mapstructure:"cluster_name"` // Target cluster (must be specified in config as not present in JSON files)
-	Directory   string               `mapstructure:"directory"`    // Base directory holding the K8s data JSON files
-	Archive     *FileArchiveConfig   `mapstructure:"archive"`      // Archive configuration
-	Blob        *BlobCollectorConfig `mapstructure:"blob"`         // Blob storage configuration
+	ClusterName string             `mapstructure:"cluster_name"` // Target cluster (must be specified in config as not present in JSON files)
+	Directory   string             `mapstructure:"directory"`    // Base directory holding the K8s data JSON files
+	Archive     *FileArchiveConfig `mapstructure:"archive"`      // Archive configuration
+	Blob        *BlobConfig        `mapstructure:"blob"`         // Blob storage configuration
 }
 
 type FileArchiveConfig struct {
@@ -47,7 +47,7 @@ type FileArchiveConfig struct {
 	Format      bool   `mapstructure:"format"`       // Enable compression for the dumped data (generates a tar.gz file)
 }
 
-type BlobCollectorConfig struct {
+type BlobConfig struct {
 	Bucket string `mapstructure:"bucket"` // Bucket to use to push k8s resources (e.g.: s3://kubehound-dumps)
-	Region string `mapstructure:"region"` // Region to use to push k8s resources
+	Region string `mapstructure:"region"` // Region to use for the bucket (only for s3)
 }
