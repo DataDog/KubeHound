@@ -18,14 +18,10 @@ type LoggerConfig struct {
 	DD   bool          // Whether Datadog integration is enabled.
 }
 
-const (
-	DefaultComponent = "kubehound"
-)
-
 var globalConfig = LoggerConfig{
 	Tags: logrus.Fields{
 		globals.TagService:   globals.DDServiceName,
-		globals.TagComponent: DefaultComponent,
+		globals.TagComponent: globals.DefaultComponent,
 	},
 	Mu: &sync.Mutex{},
 	DD: true,
@@ -59,7 +55,7 @@ func spanID(span tracer.Span) string {
 // Base returns the base logger for the application.
 func Base() *KubehoundLogger {
 	logger := logrus.WithFields(globalConfig.Tags)
-	if globals.ProdEnv() {
+	if globals.IsDDFormat() {
 		logger.Logger.SetFormatter(&logrus.JSONFormatter{})
 	}
 

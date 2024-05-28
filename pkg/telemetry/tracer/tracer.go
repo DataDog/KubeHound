@@ -13,7 +13,7 @@ import (
 func Initialize(cfg *config.KubehoundConfig) {
 	// Default options
 	opts := []tracer.StartOption{
-		tracer.WithEnv(globals.DDEnv),
+		tracer.WithEnv(globals.GetDDEnv()),
 		tracer.WithService(globals.DDServiceName),
 		tracer.WithServiceVersion(config.BuildVersion),
 		tracer.WithLogStartup(false),
