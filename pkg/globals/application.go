@@ -1,6 +1,8 @@
 package globals
 
-import "os"
+import (
+	"os"
+)
 
 const (
 	DDServiceName    = "kubehound"
@@ -15,12 +17,6 @@ func GetDDEnv() string {
 	}
 
 	return env
-}
-
-func IsDDFormat() bool {
-	_, isDDEnv := os.LookupEnv("DD_ENV")
-
-	return isDDEnv
 }
 
 const (
