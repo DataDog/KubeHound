@@ -71,13 +71,13 @@ func (_c *Builder_BatchSize_Call) RunAndReturn(run func() int) *Builder_BatchSiz
 	return _c
 }
 
-// Initialize provides a mock function with given fields: cfg
-func (_m *Builder) Initialize(cfg *config.EdgeBuilderConfig) error {
-	ret := _m.Called(cfg)
+// Initialize provides a mock function with given fields: cfg, runtime
+func (_m *Builder) Initialize(cfg *config.EdgeBuilderConfig, runtime *config.DynamicConfig) error {
+	ret := _m.Called(cfg, runtime)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*config.EdgeBuilderConfig) error); ok {
-		r0 = rf(cfg)
+	if rf, ok := ret.Get(0).(func(*config.EdgeBuilderConfig, *config.DynamicConfig) error); ok {
+		r0 = rf(cfg, runtime)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -92,13 +92,14 @@ type Builder_Initialize_Call struct {
 
 // Initialize is a helper method to define mock.On call
 //   - cfg *config.EdgeBuilderConfig
-func (_e *Builder_Expecter) Initialize(cfg interface{}) *Builder_Initialize_Call {
-	return &Builder_Initialize_Call{Call: _e.mock.On("Initialize", cfg)}
+//   - runtime *config.DynamicConfig
+func (_e *Builder_Expecter) Initialize(cfg interface{}, runtime interface{}) *Builder_Initialize_Call {
+	return &Builder_Initialize_Call{Call: _e.mock.On("Initialize", cfg, runtime)}
 }
 
-func (_c *Builder_Initialize_Call) Run(run func(cfg *config.EdgeBuilderConfig)) *Builder_Initialize_Call {
+func (_c *Builder_Initialize_Call) Run(run func(cfg *config.EdgeBuilderConfig, runtime *config.DynamicConfig)) *Builder_Initialize_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*config.EdgeBuilderConfig))
+		run(args[0].(*config.EdgeBuilderConfig), args[1].(*config.DynamicConfig))
 	})
 	return _c
 }
@@ -108,7 +109,7 @@ func (_c *Builder_Initialize_Call) Return(_a0 error) *Builder_Initialize_Call {
 	return _c
 }
 
-func (_c *Builder_Initialize_Call) RunAndReturn(run func(*config.EdgeBuilderConfig) error) *Builder_Initialize_Call {
+func (_c *Builder_Initialize_Call) RunAndReturn(run func(*config.EdgeBuilderConfig, *config.DynamicConfig) error) *Builder_Initialize_Call {
 	_c.Call.Return(run)
 	return _c
 }

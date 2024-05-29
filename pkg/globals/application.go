@@ -1,12 +1,22 @@
 package globals
 
-const (
-	DDServiceName = "kubehound"
-	DDEnv         = "prod"
+import (
+	"os"
 )
 
-func ProdEnv() bool {
-	return false
+const (
+	DDServiceName    = "kubehound"
+	DefaultDDEnv     = "dev"
+	DefaultComponent = "kubehound-ingestor"
+)
+
+func GetDDEnv() string {
+	env := os.Getenv("DD_ENV")
+	if env == "" {
+		return DefaultDDEnv
+	}
+
+	return env
 }
 
 const (
