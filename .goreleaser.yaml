@@ -13,6 +13,17 @@ builds:
 
     dir: cmd/kubehound
     binary: kubehound
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -X pkg/config.BuildVersion={{.Version}}
+
+    dir: cmd/kubehound-collector
+    binary: kubehound-collector
 archives:
   - name_template: >-
       {{ .ProjectName }}_

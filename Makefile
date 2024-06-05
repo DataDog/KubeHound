@@ -99,6 +99,10 @@ build: ## Build the application
 build-ingestor: ## Build the ingestor API CLI
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound-ingestor kubehound-ingestor/*.go
 
+.PHONY: build-collector
+build-collector: ## Build the collector CLI
+	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound-collector kubehound-collector/*.go
+
 .PHONY: kubehound
 kubehound: | backend-up build ## Prepare kubehound (deploy backend, build go binary)
 
