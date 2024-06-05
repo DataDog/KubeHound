@@ -26,7 +26,7 @@ COPY --from=build --chown=janusgraph:janusgraph /home/app/target/kubehound-1.0.0
 COPY --chown=janusgraph:janusgraph scripts/health-check.groovy ${JANUS_HOME}/scripts/
 
 # DSL support
-COPY --chown=janusgraph:janusgraph kubehound-dsl-init.groovy ${JANUS_HOME}/scripts/
+COPY --chown=janusgraph:janusgraph scripts/kubehound-dsl-init.groovy ${JANUS_HOME}/scripts/
 
 # Set JVM configuration
 ENV JAVA_OPTIONS_FILE ${JANUS_HOME}/conf/jvm.options
@@ -37,7 +37,7 @@ ENV JANUS_PROPS_TEMPLATE=inmemory
 # Optimize for writes
 ENV janusgraph.ids.block-size=1000000000
 ENV janusgraph.ids.renew-percentage 0.3
-ENV storage.batch-loading=true
+ENV janusgraph.storage.batch-loading=true
 
 # Enforce strict schema constraints as per https://docs.janusgraph.org/configs/configuration-reference/#schema
 ENV janusgraph.schema.constraints=true
