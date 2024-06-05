@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"os"
 	"strconv"
 	"sync"
 
@@ -18,14 +19,10 @@ type LoggerConfig struct {
 	DD   bool          // Whether Datadog integration is enabled.
 }
 
-const (
-	DefaultComponent = "kubehound"
-)
-
 var globalConfig = LoggerConfig{
 	Tags: logrus.Fields{
 		globals.TagService:   globals.DDServiceName,
-		globals.TagComponent: DefaultComponent,
+		globals.TagComponent: globals.DefaultComponent,
 	},
 	Mu: &sync.Mutex{},
 	DD: true,
@@ -59,9 +56,7 @@ func spanID(span tracer.Span) string {
 // Base returns the base logger for the application.
 func Base() *KubehoundLogger {
 	logger := logrus.WithFields(globalConfig.Tags)
-	if globals.ProdEnv() {
-		logger.Logger.SetFormatter(&logrus.JSONFormatter{})
-	}
+	logger.Logger.SetFormatter(GetLogrusFormatter())
 
 	return &KubehoundLogger{logger}
 }
@@ -120,4 +115,24 @@ func Trace(ctx context.Context, opts ...LoggerOption) *KubehoundLogger {
 	}
 
 	return &KubehoundLogger{logger}
+}
+
+func GetLogrusFormatter() logrus.Formatter {
+	switch logFormat := os.Getenv("KH_LOG_FORMAT"); {
+	// Datadog require the logged field to be "message" and not "msg"
+	case logFormat == "dd":
+		formatter := &logrus.JSONFormatter{
+			FieldMap: logrus.FieldMap{
+				logrus.FieldKeyMsg: "message",
+			},
+		}
+
+		return formatter
+	case logFormat == "json":
+		return &logrus.JSONFormatter{}
+	case logFormat == "text":
+		return &logrus.TextFormatter{}
+	default:
+		return &logrus.TextFormatter{}
+	}
 }

@@ -11,7 +11,7 @@ import (
 func Initialize(cfg *config.KubehoundConfig) {
 	opts := []profiler.Option{
 		profiler.WithService(globals.DDServiceName),
-		profiler.WithEnv(globals.DDEnv),
+		profiler.WithEnv(globals.GetDDEnv()),
 		profiler.WithVersion(config.BuildVersion),
 		profiler.WithProfileTypes(
 			profiler.CPUProfile,
