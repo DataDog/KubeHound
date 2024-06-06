@@ -60,6 +60,13 @@ var (
 				return err
 			}
 
+			if hard {
+				err = Backend.Wipe(cobraCmd.Context())
+				if err != nil {
+					return err
+				}
+			}
+
 			return Backend.Reset(cobraCmd.Context())
 		},
 	}
