@@ -110,6 +110,9 @@ func (b *Backend) Up(ctx context.Context) error {
 
 	return b.composeService.Up(ctx, b.project, api.UpOptions{
 		Create: api.CreateOptions{
+			Build: &api.BuildOptions{
+				Pull: true,
+			},
 			Services:      b.project.ServiceNames(),
 			Recreate:      api.RecreateForce,
 			RemoveOrphans: true,
