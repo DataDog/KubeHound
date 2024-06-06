@@ -95,10 +95,6 @@ generate: ## Generate code for the application
 build: ## Build the application
 	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
 
-.PHONY: build-ingestor
-build-ingestor: ## Build the ingestor API CLI
-	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound-ingestor kubehound-ingestor/*.go
-
 .PHONY: kubehound
 kubehound: | backend-up build ## Prepare kubehound (deploy backend, build go binary)
 
