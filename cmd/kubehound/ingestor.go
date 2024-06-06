@@ -9,15 +9,12 @@ import (
 )
 
 var (
-	cfgFile = ""
-)
-
-var (
-	rootCmd = &cobra.Command{
-		Use:   "kubehound",
-		Short: "A local Kubehound instance",
-		Long:  `A local instance of Kubehound - a Kubernetes attack path generator`,
-		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
+	ingestorCmd = &cobra.Command{
+		Use:          "ingest",
+		Short:        "Kubehound Ingestor Service - exposes a gRPC API to ingest data from cloud storage",
+		Long:         `instance of Kubehound that pulls data from cloud storage`,
+		SilenceUsage: true,
+		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, false)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
@@ -27,7 +24,7 @@ var (
 				return fmt.Errorf("get config: %w", err)
 			}
 
-			return core.CoreLive(cobraCmd.Context(), khCfg)
+			return core.CoreGrpcApi(cobraCmd.Context(), khCfg)
 		},
 		PersistentPostRunE: func(cobraCmd *cobra.Command, args []string) error {
 			return cmd.CloseKubehoundConfig()
@@ -36,7 +33,6 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", cfgFile, "application config file")
-
-	cmd.InitRootCmd(rootCmd)
+	cmd.InitRootCmd(ingestorCmd)
+	rootCmd.AddCommand(ingestorCmd)
 }
