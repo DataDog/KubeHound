@@ -1,0 +1,56 @@
+name: kubehound
+services:
+  mongodb:
+    image: mongo:6.0.6
+    restart: unless-stopped
+    networks:
+      - kubenet
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "mongodb", "service": "kubehound"}]'
+    ports:
+      - "127.0.0.1:27017:27017"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 2s
+      retries: 10
+    volumes:
+      - mongodb_data:/data/db
+  
+  graphdb:
+    restart: unless-stopped
+    image: ghcr.io/datadog/kubehound-graph:latest
+    networks:
+      - kubenet
+    healthcheck:
+      test: ["CMD", "bin/gremlin.sh", "-e", "scripts/remote-connect.groovy"]
+      interval: 30s 
+      timeout: 30s
+      retries: 3
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "kubegraph", "service": "kubehound"}]'
+    ports:
+      - "127.0.0.1:8182:8182"
+      - "127.0.0.1:8099:8099"
+    volumes:
+      - kubegraph_data:/var/lib/janusgraph
+
+  ui:
+    image: ghcr.io/datadog/kubehound-ui:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8888:8888"
+    networks:
+      - kubenet
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "kubeui", "service": "kubehound"}]'
+    volumes:
+      - kubeui_data:/data/db
+
+volumes:
+  mongodb_data:
+  kubegraph_data:
+  kubeui_data:
+
+networks:
+  kubenet:

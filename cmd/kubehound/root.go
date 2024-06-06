@@ -3,13 +3,16 @@ package main
 import (
 	"fmt"
 
+	"github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/spf13/cobra"
 )
 
 var (
-	cfgFile = ""
+	cfgFile     = ""
+	skipBackend = false
 )
 
 var (
@@ -21,6 +24,26 @@ var (
 			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, false)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
+			// auto spawning the backend stack
+			if !skipBackend {
+				Backend, err := backend.NewBackend(cobraCmd.Context())
+				if err != nil {
+					return err
+				}
+				res, err := Backend.IsStackRunning(cobraCmd.Context())
+				if err != nil {
+					return err
+				}
+				if !res {
+					err = Backend.Up(cobraCmd.Context())
+					if err != nil {
+						return err
+					}
+				} else {
+					log.I.Info("Backend stack is already running")
+				}
+			}
+
 			// Passing the Kubehound config from viper
 			khCfg, err := cmd.GetConfig()
 			if err != nil {
@@ -37,6 +60,8 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", cfgFile, "application config file")
+
+	rootCmd.Flags().BoolVar(&skipBackend, "skip-backend", skipBackend, "skip the auto deployment of the backend stack (janusgraph, mongodb, and UI)")
 
 	cmd.InitRootCmd(rootCmd)
 }
