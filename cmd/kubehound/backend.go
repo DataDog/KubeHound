@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	Backend *docker.Backend
-	hard    bool
+	Backend     *docker.Backend
+	hard        bool
+	composePath []string
 )
 
 var (
@@ -17,7 +18,7 @@ var (
 		Long:  `Handle the kubehound stack - docker compose based stack for kubehound services (mongodb, graphdb and UI)`,
 		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			var err error
-			Backend, err = docker.NewBackend(cobraCmd.Context())
+			Backend, err = docker.NewBackend(cobraCmd.Context(), composePath)
 
 			return err
 		},
@@ -80,5 +81,6 @@ func init() {
 
 	backendCmd.AddCommand(backendDownCmd)
 
+	backendCmd.PersistentFlags().StringSliceVarP(&composePath, "file", "f", composePath, "Compose configuration files")
 	rootCmd.AddCommand(backendCmd)
 }

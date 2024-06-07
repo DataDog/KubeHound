@@ -26,7 +26,8 @@ var (
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// auto spawning the backend stack
 			if !skipBackend {
-				Backend, err := backend.NewBackend(cobraCmd.Context())
+				// Forcing the embed docker config to be loaded
+				Backend, err := backend.NewBackend(cobraCmd.Context(), []string{""})
 				if err != nil {
 					return err
 				}

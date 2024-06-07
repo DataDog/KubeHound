@@ -9,6 +9,7 @@ import (
 
 	embedconfigdocker "github.com/DataDog/KubeHound/deployments/kubehound"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/compose-spec/compose-go/v2/cli"
 	"github.com/compose-spec/compose-go/v2/loader"
 	"github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/cli/cli/command"
@@ -24,8 +25,8 @@ type Backend struct {
 	dockerCli      *command.DockerCli
 }
 
-func NewBackend(ctx context.Context) (*Backend, error) {
-	project, err := loadProject(ctx)
+func NewBackend(ctx context.Context, composeFilePaths []string) (*Backend, error) {
+	project, err := loadProject(ctx, composeFilePaths)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func NewBackend(ctx context.Context) (*Backend, error) {
 	}, nil
 }
 
-func loadProject(ctx context.Context) (*types.Project, error) {
+func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
 	data, err := embedconfigdocker.F.ReadFile(embedconfigdocker.DefaultComposePath)
 	if err != nil {
 		return nil, fmt.Errorf("reading embed config: %w", err)
@@ -58,7 +59,35 @@ func loadProject(ctx context.Context) (*types.Project, error) {
 		},
 	}
 
-	project, err := loader.LoadWithContext(ctx, opts)
+	return loader.LoadWithContext(ctx, opts)
+}
+
+func loadComposeConfig(ctx context.Context, composeFilePaths []string) (*types.Project, error) {
+	options, err := cli.NewProjectOptions(
+		composeFilePaths,
+		cli.WithOsEnv,
+		cli.WithDotEnv,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return cli.ProjectFromOptions(ctx, options)
+}
+
+func loadProject(ctx context.Context, composeFilePaths []string) (*types.Project, error) {
+	var project *types.Project
+	var err error
+
+	switch {
+	case len(composeFilePaths[0]) != 0:
+		log.I.Infof("Loading backend from file %s", composeFilePaths)
+		project, err = loadComposeConfig(ctx, composeFilePaths)
+	default:
+		log.I.Infof("Loading backend from default embedded")
+		project, err = loadEmbeddedConfig(ctx)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +185,7 @@ func (b *Backend) IsStackRunning(ctx context.Context) (bool, error) {
 	}
 
 	for _, container := range containers {
-		if _, ok := containerList[container.Names[0]]; !ok && container.State == "running" {
+		if _, ok := containerList[container.Names[0]]; ok && container.State == "running" {
 			return true, nil
 		}
 	}
