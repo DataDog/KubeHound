@@ -79,7 +79,7 @@ func loadComposeConfig(ctx context.Context, composeFilePaths []string) (*types.P
 func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
 	var dockerComposeFileData map[interface{}]interface{}
 	var err error
-	var hostname = "kubehound"
+	var hostname string
 
 	// Adding datadog setup
 	ddAPIKey, ddAPIKeyOk := os.LookupEnv("DD_API_KEY")
@@ -87,6 +87,10 @@ func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
 	if ddAPIKeyOk && ddAPPKeyOk {
 		DefaultReleaseComposePaths = append(DefaultReleaseComposePaths, DefaultDatadogComposePath)
 		hostname, err = os.Hostname()
+		if err != nil {
+			hostname = "kubehound"
+		}
+
 	}
 
 	for i, filePath := range DefaultReleaseComposePaths {
