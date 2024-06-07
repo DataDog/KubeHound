@@ -9,6 +9,9 @@ var (
 	Backend     *docker.Backend
 	hard        bool
 	composePath []string
+
+	downTesting bool
+	uiTesting   bool
 )
 
 var (
@@ -80,7 +83,6 @@ func init() {
 	backendResetCmd.Flags().BoolVar(&skipBackend, "hard", false, "Also wipe all data before restarting the stack")
 
 	backendCmd.AddCommand(backendDownCmd)
-
 	backendCmd.PersistentFlags().StringSliceVarP(&composePath, "file", "f", composePath, "Compose configuration files")
 	rootCmd.AddCommand(backendCmd)
 }

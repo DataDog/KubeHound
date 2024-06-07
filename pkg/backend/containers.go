@@ -5,18 +5,17 @@ import (
 	"errors"
 	"fmt"
 
-	"strings"
-
-	embedconfigdocker "github.com/DataDog/KubeHound/deployments/kubehound"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
-	"github.com/compose-spec/compose-go/v2/cli"
-	"github.com/compose-spec/compose-go/v2/loader"
 	"github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/compose/v2/pkg/api"
 	"github.com/docker/compose/v2/pkg/compose"
 	"github.com/docker/docker/api/types/container"
+)
+
+var (
+	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml"}
 )
 
 type Backend struct {
@@ -45,80 +44,6 @@ func NewBackend(ctx context.Context, composeFilePaths []string) (*Backend, error
 	}, nil
 }
 
-func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
-	data, err := embedconfigdocker.F.ReadFile(embedconfigdocker.DefaultComposePath)
-	if err != nil {
-		return nil, fmt.Errorf("reading embed config: %w", err)
-	}
-
-	opts := types.ConfigDetails{
-		ConfigFiles: []types.ConfigFile{
-			{
-				Content: data,
-			},
-		},
-	}
-
-	return loader.LoadWithContext(ctx, opts)
-}
-
-func loadComposeConfig(ctx context.Context, composeFilePaths []string) (*types.Project, error) {
-	options, err := cli.NewProjectOptions(
-		composeFilePaths,
-		cli.WithOsEnv,
-		cli.WithDotEnv,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return cli.ProjectFromOptions(ctx, options)
-}
-
-func loadProject(ctx context.Context, composeFilePaths []string) (*types.Project, error) {
-	var project *types.Project
-	var err error
-
-	switch {
-	case len(composeFilePaths[0]) != 0:
-		log.I.Infof("Loading backend from file %s", composeFilePaths)
-		project, err = loadComposeConfig(ctx, composeFilePaths)
-	default:
-		log.I.Infof("Loading backend from default embedded")
-		project, err = loadEmbeddedConfig(ctx)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	// Adding labels to make the project compatible with the Compose API
-	// ref: https://github.com/docker/compose/issues/11210#issuecomment-1820553483
-	for i, s := range project.Services {
-		s.CustomLabels = map[string]string{
-			api.ProjectLabel:     project.Name,
-			api.ServiceLabel:     s.Name,
-			api.VersionLabel:     api.ComposeVersion,
-			api.WorkingDirLabel:  project.WorkingDir,
-			api.ConfigFilesLabel: strings.Join(project.ComposeFiles, ","),
-			api.OneoffLabel:      "False", // default, will be overridden by `run` command
-		}
-
-		project.Services[i] = s
-	}
-	for key, n := range project.Networks {
-		n.Labels = map[string]string{
-			api.ProjectLabel: project.Name,
-			api.NetworkLabel: n.Name,
-			api.VersionLabel: api.ComposeVersion,
-		}
-
-		project.Networks[key] = n
-	}
-
-	return project, nil
-}
-
 func newDockerCli() (*command.DockerCli, error) {
 	dockerCli, err := command.NewDockerCli()
 	if err != nil {
@@ -134,13 +59,27 @@ func newDockerCli() (*command.DockerCli, error) {
 	return dockerCli, nil
 }
 
+func (b *Backend) BuildUp(ctx context.Context) error {
+	log.I.Infof("Building the kubehound stack")
+	err := b.composeService.Build(ctx, b.project, api.BuildOptions{
+		NoCache: true,
+		Pull:    true,
+	})
+	if err != nil {
+		return err
+	}
+
+	return b.Up(ctx)
+}
+
 func (b *Backend) Up(ctx context.Context) error {
 	log.I.Infof("Spawning the kubehound stack")
 
 	return b.composeService.Up(ctx, b.project, api.UpOptions{
 		Create: api.CreateOptions{
 			Build: &api.BuildOptions{
-				Pull: true,
+				NoCache: true,
+				Pull:    true,
 			},
 			Services:      b.project.ServiceNames(),
 			Recreate:      api.RecreateForce,

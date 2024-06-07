@@ -4,9 +4,5 @@ import (
 	"embed"
 )
 
-const (
-	DefaultComposePath = "docker-compose.embed.yaml"
-)
-
-//go:embed docker-compose.embed.yaml
+//go:embed *.yaml
 var F embed.FS
