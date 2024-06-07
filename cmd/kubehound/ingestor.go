@@ -33,6 +33,7 @@ var (
 )
 
 func init() {
+	ingestorCmd.Flags().StringVarP(&cfgFile, "config", "c", cfgFile, "application config file")
 	cmd.InitRootCmd(ingestorCmd)
 	rootCmd.AddCommand(ingestorCmd)
 }
