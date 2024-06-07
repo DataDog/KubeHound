@@ -3,6 +3,7 @@ package backend
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	embedconfigdocker "github.com/DataDog/KubeHound/deployments/kubehound"
@@ -12,6 +13,11 @@ import (
 	"github.com/compose-spec/compose-go/v2/types"
 	"github.com/docker/compose/v2/pkg/api"
 	"gopkg.in/yaml.v2"
+)
+
+var (
+	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml"}
+	DefaultDatadogComposePath  = "docker-compose.datadog.yaml"
 )
 
 func loadProject(ctx context.Context, composeFilePaths []string) (*types.Project, error) {
@@ -73,6 +79,15 @@ func loadComposeConfig(ctx context.Context, composeFilePaths []string) (*types.P
 func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
 	var dockerComposeFileData map[interface{}]interface{}
 	var err error
+	var hostname = "kubehound"
+
+	// Adding datadog setup
+	ddAPIKey, ddAPIKeyOk := os.LookupEnv("DD_API_KEY")
+	ddAPPKey, ddAPPKeyOk := os.LookupEnv("DD_API_KEY")
+	if ddAPIKeyOk && ddAPPKeyOk {
+		DefaultReleaseComposePaths = append(DefaultReleaseComposePaths, DefaultDatadogComposePath)
+		hostname, err = os.Hostname()
+	}
 
 	for i, filePath := range DefaultReleaseComposePaths {
 		dockerComposeFileData, err = loadEmbeddedDockerCompose(ctx, filePath, dockerComposeFileData)
@@ -91,6 +106,11 @@ func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
 			{
 				Content: data,
 			},
+		},
+		Environment: map[string]string{
+			"DD_API_KEY":      ddAPIKey,
+			"DD_APP_KEY":      ddAPPKey,
+			"DOCKER_HOSTNAME": hostname,
 		},
 	}
 

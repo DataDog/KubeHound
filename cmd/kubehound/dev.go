@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	docker "github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/spf13/cobra"
@@ -11,6 +12,7 @@ var (
 	DefaultComposeTestingPath = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.testing.yaml"}
 	DefaultComposeDevPath     = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.dev.yaml"}
 	DefaultComposeDevPathUI   = "./deployments/kubehound/docker-compose.ui.yaml"
+	DefaultDatadogComposePath = "./deployments/kubehound/docker-compose.datadog.yaml"
 )
 
 var (
@@ -27,6 +29,12 @@ var (
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			if uiTesting {
 				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultComposeDevPathUI)
+			}
+			// Adding datadog setup
+			_, ddAPIKeyOk := os.LookupEnv("DD_API_KEY")
+			_, ddAPPKeyOk := os.LookupEnv("DD_API_KEY")
+			if ddAPIKeyOk && ddAPPKeyOk {
+				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultDatadogComposePath)
 			}
 
 			return runEnv(cobraCmd.Context(), DefaultComposeDevPath)

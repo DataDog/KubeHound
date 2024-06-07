@@ -14,10 +14,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 )
 
-var (
-	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml"}
-)
-
 type Backend struct {
 	project        *types.Project
 	composeService api.Service
