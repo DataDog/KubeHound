@@ -17,9 +17,10 @@ var (
 
 var (
 	envCmd = &cobra.Command{
-		Use:   "dev",
-		Short: "[devOnly] Spawn the kubehound testing stack",
-		Long:  `[devOnly] Spawn the kubehound dev stack for the system-tests (build from dockerfile)`,
+		Use:    "dev",
+		Hidden: true,
+		Short:  "[devOnly] Spawn the kubehound testing stack",
+		Long:   `[devOnly] Spawn the kubehound dev stack for the system-tests (build from dockerfile)`,
 		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			var err error
 			Backend, err = docker.NewBackend(cobraCmd.Context(), composePath)
