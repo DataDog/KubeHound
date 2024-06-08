@@ -32,5 +32,4 @@ volumes:
   kubeui_data:
 
 networks:
-  kind:
-    external: true
+  kubenet:
