@@ -89,7 +89,7 @@ func (b *Backend) Up(ctx context.Context) error {
 }
 
 func (b *Backend) Down(ctx context.Context) error {
-	log.I.Infof("Tearing down the kubehound stack")
+	log.I.Info("Tearing down the kubehound stack")
 
 	return b.composeService.Remove(ctx, b.project.Name, api.RemoveOptions{
 		Stop:    true,
