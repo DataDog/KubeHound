@@ -86,7 +86,7 @@ test: ## Run the full suite of unit tests
 
 .PHONY: system-test
 system-test: | build ## Run the system tests
-	./bin/kubehound backend testing
+	./bin/build/kubehound backend testing
 	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "120s" -count=1 -race ./...
 
 .PHONY: system-test-fast
