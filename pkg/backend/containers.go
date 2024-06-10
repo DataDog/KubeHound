@@ -67,10 +67,10 @@ func newDockerCli() (*command.DockerCli, error) {
 }
 
 func BuildUp(ctx context.Context) error {
-	return currentBackend.BuildUp(ctx)
+	return currentBackend.buildUp(ctx)
 }
 
-func (b *Backend) BuildUp(ctx context.Context) error {
+func (b *Backend) buildUp(ctx context.Context) error {
 	log.I.Infof("Building the kubehound stack")
 	err := b.composeService.Build(ctx, b.project, api.BuildOptions{
 		NoCache: true,
@@ -80,14 +80,14 @@ func (b *Backend) BuildUp(ctx context.Context) error {
 		return err
 	}
 
-	return b.Up(ctx)
+	return b.up(ctx)
 }
 
 func Up(ctx context.Context) error {
-	return currentBackend.Up(ctx)
+	return currentBackend.up(ctx)
 }
 
-func (b *Backend) Up(ctx context.Context) error {
+func (b *Backend) up(ctx context.Context) error {
 	log.I.Infof("Spawning the kubehound stack")
 
 	return b.composeService.Up(ctx, b.project, api.UpOptions{
@@ -108,10 +108,10 @@ func (b *Backend) Up(ctx context.Context) error {
 }
 
 func Down(ctx context.Context) error {
-	return currentBackend.Down(ctx)
+	return currentBackend.down(ctx)
 }
 
-func (b *Backend) Down(ctx context.Context) error {
+func (b *Backend) down(ctx context.Context) error {
 	log.I.Info("Tearing down the kubehound stack")
 
 	return b.composeService.Remove(ctx, b.project.Name, api.RemoveOptions{
@@ -126,19 +126,19 @@ func Reset(ctx context.Context) error {
 }
 
 func (b *Backend) Reset(ctx context.Context) error {
-	err := b.Down(ctx)
+	err := b.down(ctx)
 	if err != nil {
 		return err
 	}
 
-	return b.Up(ctx)
+	return b.up(ctx)
 }
 
 func IsStackRunning(ctx context.Context) (bool, error) {
-	return currentBackend.IsStackRunning(ctx)
+	return currentBackend.isStackRunning(ctx)
 }
 
-func (b *Backend) IsStackRunning(ctx context.Context) (bool, error) {
+func (b *Backend) isStackRunning(ctx context.Context) (bool, error) {
 	containers, err := b.dockerCli.Client().ContainerList(ctx, container.ListOptions{})
 	if err != nil {
 		return false, err
@@ -160,10 +160,10 @@ func (b *Backend) IsStackRunning(ctx context.Context) (bool, error) {
 }
 
 func Wipe(ctx context.Context) error {
-	return currentBackend.Wipe(ctx)
+	return currentBackend.wipe(ctx)
 }
 
-func (b *Backend) Wipe(ctx context.Context) error {
+func (b *Backend) wipe(ctx context.Context) error {
 	var err error
 	log.I.Infof("Wipping the persisted backend data")
 
