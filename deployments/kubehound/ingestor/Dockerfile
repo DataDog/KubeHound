@@ -7,17 +7,19 @@ COPY pkg ./pkg
 COPY Makefile .
 COPY cmd ./cmd
 COPY configs ./configs
+COPY deployments ./deployments
 
-RUN make build-ingestor
+RUN make build
 
 FROM gcr.io/distroless/base-debian12 AS build-release-stage
 
 WORKDIR /
 
-COPY --from=build-stage /go/bin/kubehound-ingestor /kubehound-ingestor
+COPY --from=build-stage /go/bin/kubehound /kubehound
 
 EXPOSE 9000
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["./kubehound-ingestor"]
+ENTRYPOINT ["./kubehound"]
+CMD  ["serve"]
