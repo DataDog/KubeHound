@@ -14,13 +14,24 @@ import (
 	"github.com/docker/docker/api/types/container"
 )
 
+var (
+	currentBackend *Backend
+)
+
 type Backend struct {
 	project        *types.Project
 	composeService api.Service
 	dockerCli      *command.DockerCli
 }
 
-func NewBackend(ctx context.Context, composeFilePaths []string) (*Backend, error) {
+func NewBackend(ctx context.Context, composeFilePaths []string) error {
+	var err error
+	currentBackend, err = newBackend(ctx, composeFilePaths)
+
+	return err
+}
+
+func newBackend(ctx context.Context, composeFilePaths []string) (*Backend, error) {
 	project, err := loadProject(ctx, composeFilePaths)
 	if err != nil {
 		return nil, err
@@ -55,6 +66,10 @@ func newDockerCli() (*command.DockerCli, error) {
 	return dockerCli, nil
 }
 
+func BuildUp(ctx context.Context) error {
+	return currentBackend.BuildUp(ctx)
+}
+
 func (b *Backend) BuildUp(ctx context.Context) error {
 	log.I.Infof("Building the kubehound stack")
 	err := b.composeService.Build(ctx, b.project, api.BuildOptions{
@@ -66,6 +81,10 @@ func (b *Backend) BuildUp(ctx context.Context) error {
 	}
 
 	return b.Up(ctx)
+}
+
+func Up(ctx context.Context) error {
+	return currentBackend.Up(ctx)
 }
 
 func (b *Backend) Up(ctx context.Context) error {
@@ -88,6 +107,10 @@ func (b *Backend) Up(ctx context.Context) error {
 	})
 }
 
+func Down(ctx context.Context) error {
+	return currentBackend.Down(ctx)
+}
+
 func (b *Backend) Down(ctx context.Context) error {
 	log.I.Info("Tearing down the kubehound stack")
 
@@ -98,6 +121,10 @@ func (b *Backend) Down(ctx context.Context) error {
 	})
 }
 
+func Reset(ctx context.Context) error {
+	return currentBackend.Reset(ctx)
+}
+
 func (b *Backend) Reset(ctx context.Context) error {
 	err := b.Down(ctx)
 	if err != nil {
@@ -105,6 +132,10 @@ func (b *Backend) Reset(ctx context.Context) error {
 	}
 
 	return b.Up(ctx)
+}
+
+func IsStackRunning(ctx context.Context) (bool, error) {
+	return currentBackend.IsStackRunning(ctx)
 }
 
 func (b *Backend) IsStackRunning(ctx context.Context) (bool, error) {
@@ -126,6 +157,10 @@ func (b *Backend) IsStackRunning(ctx context.Context) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func Wipe(ctx context.Context) error {
+	return currentBackend.Wipe(ctx)
 }
 
 func (b *Backend) Wipe(ctx context.Context) error {
