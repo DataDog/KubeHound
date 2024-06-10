@@ -11,9 +11,8 @@ import (
 )
 
 var (
-	cfgFile      = ""
-	skipBackend  = false
-	printVersion = false
+	cfgFile     = ""
+	skipBackend = false
 )
 
 var (
