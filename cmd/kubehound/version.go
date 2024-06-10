@@ -12,7 +12,7 @@ var (
 		Short: "print Kubehound version",
 		Long:  `print the current version of Kubehound`,
 		Run: func(cobraCmd *cobra.Command, args []string) {
-			log.I.Infof("kubehound version: %s %s/%s", config.BuildVersion, config.BuildArch, config.BuildOs)
+			log.I.Infof("kubehound version: %s (%s/%s)", config.BuildVersion, config.BuildArch, config.BuildOs)
 		},
 	}
 )
