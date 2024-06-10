@@ -86,7 +86,6 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 	}
 
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
 
 	tests := []struct {
 		name    string
@@ -162,7 +161,7 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
 	t.Parallel()
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
+
 	ctx := context.TODO()
 	mockStoreProvider := mocksStore.NewProvider(t)
 
