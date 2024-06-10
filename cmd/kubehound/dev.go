@@ -67,7 +67,7 @@ func runEnv(ctx context.Context, composePaths []string) error {
 func init() {
 	envCmd.AddCommand(envTestingCmd)
 	envCmd.PersistentFlags().BoolVar(&downTesting, "down", false, "Tearing down the kubehound dev stack and deleting the data associated with it")
-	envCmd.Flags().BoolVar(&uiTesting, "ui", false, "Tearing down the kubehound dev stack and deleting the data associated with it")
+	envCmd.Flags().BoolVar(&uiTesting, "ui", false, "Include the UI in the dev stack")
 
 	rootCmd.AddCommand(envCmd)
 }
