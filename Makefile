@@ -8,9 +8,12 @@ SYSTEM_TEST_CMD := system-test system-test-clean
 # get the latest commit hash in the short form
 COMMIT := $(shell git rev-parse --short HEAD)
 DATE := $(shell git log -1 --format=%cd --date=format:"%Y%m%d")
-BUILD_VERSION := $(COMMIT)-$(DATA)
 
-BUILD_FLAGS := -ldflags="-X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION)"
+BUILD_VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty='.m' --always --tags)
+BUILD_ARCH := $(shell go env GOARCH)
+BUILD_OS := $(shell go env GOOS)
+
+BUILD_FLAGS := -ldflags="-X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION) -X github.com/DataDog/KubeHound/pkg/config.BuildArch=$(BUILD_ARCH) -X github.com/DataDog/KubeHound/pkg/config.BuildOs=$(BUILD_OS) -s -w"
 
 # Need to save the MAKEFILE_LIST variable before the including the env var files
 HELP_MAKEFILE_LIST := $(MAKEFILE_LIST)
@@ -31,6 +34,22 @@ ifeq (${CI},true)
 	RACE_FLAG_SYSTEM_TEST := ""
 endif
 
+ifeq ($(OS),Windows_NT)
+    DETECTED_OS = Windows
+    DRIVE_PREFIX=C:
+else
+    DETECTED_OS = $(shell uname -s)
+endif
+
+ifeq ($(DETECTED_OS),Windows)
+	BINARY_EXT=.exe
+endif
+
+# By default, all artifacts go to subdirectories under ./bin/ in the repo root
+DESTDIR ?=
+
+BUILDX_CMD ?= docker buildx
+
 all: build
 
 .PHONY: generate
@@ -39,7 +58,23 @@ generate: ## Generate code for the application
 
 .PHONY: build
 build: ## Build the application
-	cd cmd && go build $(BUILD_FLAGS) -o ../bin/kubehound kubehound/*.go
+	go build $(BUILD_FLAGS) -o "$(or $(DESTDIR),./bin/build)/kubehound$(BINARY_EXT)" ./cmd/kubehound/
+
+.PHONY: binary
+binary:
+	$(BUILDX_CMD) bake binary-with-coverage
+
+.PHONY: lint
+lint:
+	$(BUILDX_CMD) bake lint
+
+.PHONY: cross
+cross: ## Compile the CLI for linux, darwin and windows (not working on M1)
+	$(BUILDX_CMD) bake binary-cross
+
+.PHONY: cache-clear
+cache-clear: ## Clear the builder cache
+	$(BUILDX_CMD) prune --force --filter type=exec.cachemount --filter=unused-for=24h
 
 .PHONY: kubehound
 kubehound: | build ## Prepare kubehound (build go binary, deploy backend)
