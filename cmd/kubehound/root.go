@@ -27,16 +27,16 @@ var (
 			// auto spawning the backend stack
 			if !skipBackend {
 				// Forcing the embed docker config to be loaded
-				Backend, err := backend.NewBackend(cobraCmd.Context(), []string{""})
+				err := backend.NewBackend(cobraCmd.Context(), []string{""})
 				if err != nil {
 					return err
 				}
-				res, err := Backend.IsStackRunning(cobraCmd.Context())
+				res, err := backend.IsStackRunning(cobraCmd.Context())
 				if err != nil {
 					return err
 				}
 				if !res {
-					err = Backend.Up(cobraCmd.Context())
+					err = backend.Up(cobraCmd.Context())
 					if err != nil {
 						return err
 					}

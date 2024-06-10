@@ -20,10 +20,7 @@ var (
 		Short: "Handle the kubehound stack",
 		Long:  `Handle the kubehound stack - docker compose based stack for kubehound services (mongodb, graphdb and UI)`,
 		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
-			var err error
-			Backend, err = docker.NewBackend(cobraCmd.Context(), composePath)
-
-			return err
+			return docker.NewBackend(cobraCmd.Context(), composePath)
 		},
 	}
 
@@ -32,7 +29,7 @@ var (
 		Short: "Spawn the kubehound stack",
 		Long:  `Spawn the kubehound stack`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			return Backend.Up(cobraCmd.Context())
+			return docker.Up(cobraCmd.Context())
 		},
 	}
 
@@ -41,7 +38,7 @@ var (
 		Short: "Wipe the persisted backend data",
 		Long:  `Wipe the persisted backend data`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			return Backend.Wipe(cobraCmd.Context())
+			return docker.Wipe(cobraCmd.Context())
 		},
 	}
 
@@ -50,7 +47,7 @@ var (
 		Short: "Tear down the kubehound stack",
 		Long:  `Tear down the kubehound stack`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			return Backend.Down(cobraCmd.Context())
+			return docker.Down(cobraCmd.Context())
 		},
 	}
 
@@ -59,19 +56,19 @@ var (
 		Short: "Restart the kubehound stack",
 		Long:  `Restart the kubehound stack`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			err := Backend.Down(cobraCmd.Context())
+			err := docker.Down(cobraCmd.Context())
 			if err != nil {
 				return err
 			}
 
 			if hard {
-				err = Backend.Wipe(cobraCmd.Context())
+				err = docker.Wipe(cobraCmd.Context())
 				if err != nil {
 					return err
 				}
 			}
 
-			return Backend.Reset(cobraCmd.Context())
+			return docker.Reset(cobraCmd.Context())
 		},
 	}
 )
