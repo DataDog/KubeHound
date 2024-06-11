@@ -1,4 +1,3 @@
-version: "3.8"
 name: kubehound-dev
 services:
   mongodb:
@@ -6,6 +5,8 @@ services:
       - "127.0.0.1:27017:27017"
     volumes:
       - mongodb_data:/data/db
+    networks:
+      - kind
 
   kubegraph:
     build: ./kubegraph/
@@ -14,6 +15,8 @@ services:
       - "127.0.0.1:8099:8099"
     volumes:
       - kubegraph_data:/var/lib/janusgraph
+    networks:
+      - kind
 
 volumes:
   mongodb_data:

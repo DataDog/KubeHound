@@ -14,6 +14,8 @@ import (
 
 var (
 	BuildVersion string // This should be overwritten by the go build -X flags
+	BuildArch    string // This should be overwritten by the go build -X flags
+	BuildOs      string // This should be overwritten by the go build -X flags
 )
 
 const (

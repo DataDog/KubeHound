@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   datadog:
     image: gcr.io/datadoghq/agent:7-jmx
@@ -10,9 +9,11 @@ services:
       - "127.0.0.1:8226:8126"
     environment:
       - DD_API_KEY=${DD_API_KEY:?error}
+      - DD_APP_KEY=${DD_APP_KEY:?error}
       - DD_HOSTNAME=${DOCKER_HOSTNAME:?error}
       - DD_ENV=${KUBEHOUND_ENV:-dev}
       - DD_TAGS="service:kubehound"
+      - DD_LOG_LEVEL=debug
       - DD_APM_ENABLED=true
       - DD_LOGS_ENABLED=true
       - DD_PROCESS_AGENT_ENABLED=true

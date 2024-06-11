@@ -26,7 +26,7 @@ func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName strin
 	}
 
 	log.I.Infof("Launching ingestion on %s [%s:%s]", ingestorConfig.API.Endpoint, clusteName, runID)
-	conn, err := grpc.Dial(ingestorConfig.API.Endpoint, dialOpt)
+	conn, err := grpc.NewClient(ingestorConfig.API.Endpoint, dialOpt)
 	if err != nil {
 		return fmt.Errorf("connect %s: %w", ingestorConfig.API.Endpoint, err)
 	}

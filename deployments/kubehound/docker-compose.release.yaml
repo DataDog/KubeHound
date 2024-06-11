@@ -1,4 +1,3 @@
-version: "3.8"
 name: kubehound-release
 services:
   mongodb:
@@ -14,11 +13,23 @@ services:
       - "127.0.0.1:8099:8099"
     volumes:
       - kubegraph_data:/var/lib/janusgraph
+  
+  ui:
+    image: ghcr.io/datadog/kubehound-ui:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8888:8888"
+    networks:
+      - kubenet
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "kubeui", "service": "kubehound"}]'
+    volumes:
+      - kubeui_data:/root/notebooks/shared
 
 volumes:
   mongodb_data:
   kubegraph_data:
+  kubeui_data:
 
 networks:
-  kind:
-    external: true
+  kubenet:

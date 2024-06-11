@@ -36,5 +36,5 @@ var (
 func init() {
 	cmd.InitGrpcClientCmd(grpcClientIngestCmd, true)
 
-	ingestorCmd.AddCommand(grpcClientIngestCmd)
+	rootCmd.AddCommand(grpcClientIngestCmd)
 }

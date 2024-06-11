@@ -9,13 +9,9 @@ import (
 )
 
 var (
-	cfgFile = ""
-)
-
-var (
-	rootCmd = &cobra.Command{
-		Use:          "kubehound-ingestor",
-		Short:        "Kubehound Ingestor Service",
+	serverCmd = &cobra.Command{
+		Use:          "serve",
+		Short:        "Kubehound Ingestor Service - exposes a gRPC API to ingest data from cloud storage",
 		Long:         `instance of Kubehound that pulls data from cloud storage`,
 		SilenceUsage: true,
 		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
@@ -37,7 +33,7 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", cfgFile, "application config file")
-
-	cmd.InitRootCmd(rootCmd)
+	serverCmd.Flags().StringVarP(&cfgFile, "config", "c", cfgFile, "application config file")
+	cmd.InitRootCmd(serverCmd)
+	rootCmd.AddCommand(serverCmd)
 }

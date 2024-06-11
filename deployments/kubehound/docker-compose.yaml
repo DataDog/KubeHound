@@ -1,10 +1,7 @@
-version: "3.8"
 services:
   mongodb:
     image: mongo:6.0.6
     restart: unless-stopped
-    profiles: ["infra"]
-    container_name: ${COMPOSE_PROJECT_NAME}-storedb
     networks:
       - kubenet
     depends_on:
@@ -12,18 +9,14 @@ services:
         condition: service_healthy
     labels:
       com.datadoghq.ad.logs: '[{"app": "mongodb", "service": "kubehound"}]'
-    volumes:
-      - ./mongo/docker-healthcheck:/usr/local/bin/docker-healthcheck
     healthcheck:
-      test:  ["CMD", "docker-healthcheck"]
+      test: echo 'db.runCommand("ping").ok' | mongosh 127.0.0.1:27017/test --quiet
       interval: 10s
       timeout: 2s
       retries: 10
 
   kubegraph:
     restart: unless-stopped
-    profiles: ["infra"]
-    container_name: ${COMPOSE_PROJECT_NAME}-graphdb
     networks:
       - kubenet
     healthcheck:
