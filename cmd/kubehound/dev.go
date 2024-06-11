@@ -12,7 +12,14 @@ var (
 	DefaultComposeTestingPath = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.testing.yaml"}
 	DefaultComposeDevPath     = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.dev.yaml"}
 	DefaultComposeDevPathUI   = "./deployments/kubehound/docker-compose.ui.yaml"
+	DefaultComposeDevPathGRPC = "./deployments/kubehound/docker-compose.ingestor.yaml"
 	DefaultDatadogComposePath = "./deployments/kubehound/docker-compose.datadog.yaml"
+)
+
+var (
+	uiTesting   bool
+	grpcTesting bool
+	downTesting bool
 )
 
 var (
@@ -27,6 +34,9 @@ var (
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			if uiTesting {
 				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultComposeDevPathUI)
+			}
+			if grpcTesting {
+				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultComposeDevPathGRPC)
 			}
 			// Adding datadog setup
 			_, ddAPIKeyOk := os.LookupEnv("DD_API_KEY")
@@ -65,6 +75,7 @@ func init() {
 	envCmd.AddCommand(envTestingCmd)
 	envCmd.PersistentFlags().BoolVar(&downTesting, "down", false, "Tearing down the kubehound dev stack and deleting the data associated with it")
 	envCmd.Flags().BoolVar(&uiTesting, "ui", false, "Include the UI in the dev stack")
+	envCmd.Flags().BoolVar(&grpcTesting, "grpc", false, "Include Grpc Server (ingestor) in the dev stack")
 
 	rootCmd.AddCommand(envCmd)
 }
