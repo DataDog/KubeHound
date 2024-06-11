@@ -19,7 +19,7 @@ Represents an attacker within a container discovering a mounted volume.
 
 ## Details
 
-Volumes can contains K8s API tokens or other resources useful to an attacker in building an attack path.
+Volumes can contain K8s API tokens or other resources useful to an attacker in building an attack path.
 
 ## Prerequisites
 
