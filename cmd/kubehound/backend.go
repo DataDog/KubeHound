@@ -9,9 +9,6 @@ var (
 	Backend     *docker.Backend
 	hard        bool
 	composePath []string
-
-	downTesting bool
-	uiTesting   bool
 )
 
 var (

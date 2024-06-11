@@ -9,7 +9,7 @@ SYSTEM_TEST_CMD := system-test system-test-clean
 COMMIT := $(shell git rev-parse --short HEAD)
 DATE := $(shell git log -1 --format=%cd --date=format:"%Y%m%d")
 
-BUILD_VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty='.m' --always --tags)
+BUILD_VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty --always --tags)
 BUILD_ARCH := $(shell go env GOARCH)
 BUILD_OS := $(shell go env GOOS)
 
