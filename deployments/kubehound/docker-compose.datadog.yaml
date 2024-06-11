@@ -2,11 +2,9 @@ services:
   datadog:
     image: gcr.io/datadoghq/agent:7-jmx
     restart: unless-stopped
-    profiles: ["infra"]
-    container_name: ${COMPOSE_PROJECT_NAME}-datadog-agent
     ports:
       - "127.0.0.1:8225:8125/UDP"
-      - "127.0.0.1:8226:8126"
+      - "127.0.0.1:8126:8126"
     environment:
       - DD_API_KEY=${DD_API_KEY:?error}
       - DD_APP_KEY=${DD_APP_KEY:?error}
