@@ -69,8 +69,7 @@ echo 'int main(void) {
 
 Compile the program and copy the binary into the container as crash:
 ```bash
-apt update 
-apt install gcc
+apt update && apt install gcc
 gcc -o crash /tmp/crash.c
 ```
 
