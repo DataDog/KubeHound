@@ -7,7 +7,7 @@ services:
       - mongodb_data:/data/db
 
   kubegraph:
-    image: ghcr.io/datadog/kubehound-graph:latest
+    image: ghcr.io/datadog/kubehound-graph:{{ .VersionTag }}
     ports:
       - "127.0.0.1:8182:8182"
       - "127.0.0.1:8099:8099"
@@ -15,7 +15,7 @@ services:
       - kubegraph_data:/var/lib/janusgraph
   
   ui:
-    image: ghcr.io/datadog/kubehound-ui:latest
+    image: ghcr.io/datadog/kubehound-ui:{{ .VersionTag }}
     restart: unless-stopped
     ports:
       - "127.0.0.1:8888:8888"

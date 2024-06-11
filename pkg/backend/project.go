@@ -1,12 +1,15 @@
 package backend
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"strings"
+	"text/template"
 
 	embedconfigdocker "github.com/DataDog/KubeHound/deployments/kubehound"
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/compose-spec/compose-go/v2/cli"
 	"github.com/compose-spec/compose-go/v2/loader"
@@ -16,7 +19,7 @@ import (
 )
 
 var (
-	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml"}
+	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml.tpl"}
 	DefaultDatadogComposePath  = "docker-compose.datadog.yaml"
 )
 
@@ -84,6 +87,7 @@ func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
 	// Adding datadog setup
 	ddAPIKey, ddAPIKeyOk := os.LookupEnv("DD_API_KEY")
 	ddAPPKey, ddAPPKeyOk := os.LookupEnv("DD_API_KEY")
+
 	if ddAPIKeyOk && ddAPPKeyOk {
 		DefaultReleaseComposePaths = append(DefaultReleaseComposePaths, DefaultDatadogComposePath)
 		hostname, err = os.Hostname()
@@ -123,10 +127,33 @@ func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
 
 func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerComposeFileData map[interface{}]interface{}) (map[interface{}]interface{}, error) {
 	var localYaml map[interface{}]interface{}
+	var localData []byte
+	var err error
 
-	localData, err := embedconfigdocker.F.ReadFile(filepath)
-	if err != nil {
-		return nil, fmt.Errorf("reading embed config: %w", err)
+	// Setting the version tag for the release dynamically
+	// For local version (when the version is "dirty", using latest to have a working binary)
+	version := map[string]string{"VersionTag": "latest"}
+	if !strings.HasSuffix(config.BuildVersion, "dirty") {
+		version["VersionTag"] = config.BuildVersion
+	}
+
+	if strings.HasSuffix(filepath, ".tpl") {
+		tmpl, err := template.New(filepath).ParseFS(embedconfigdocker.F, filepath)
+		if err != nil {
+			return nil, fmt.Errorf("new template :%w", err)
+		}
+
+		var buf bytes.Buffer
+		err = tmpl.Execute(&buf, version)
+		if err != nil {
+			return nil, fmt.Errorf("executing template: %w", err)
+		}
+		localData = buf.Bytes()
+	} else {
+		localData, err = embedconfigdocker.F.ReadFile(filepath)
+		if err != nil {
+			return nil, fmt.Errorf("reading embed config: %w", err)
+		}
 	}
 
 	err = yaml.Unmarshal(localData, &localYaml)
