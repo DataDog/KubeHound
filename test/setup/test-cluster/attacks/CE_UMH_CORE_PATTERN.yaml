@@ -14,6 +14,8 @@ spec:
         name: nodeproc
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
+      securityContext:
+        privileged: true
   volumes:
     - name: nodeproc
       hostPath:
