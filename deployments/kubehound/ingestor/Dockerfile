@@ -15,7 +15,7 @@ FROM gcr.io/distroless/base-debian12 AS build-release-stage
 
 WORKDIR /
 
-COPY --from=build-stage /go/bin/kubehound /kubehound
+COPY --from=build-stage /go/bin/build/kubehound /kubehound
 
 EXPOSE 9000
 
