@@ -140,7 +140,7 @@ func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerCompose
 	if strings.HasSuffix(filepath, ".tpl") {
 		tmpl, err := template.New(filepath).ParseFS(embedconfigdocker.F, filepath)
 		if err != nil {
-			return nil, fmt.Errorf("new template :%w", err)
+			return nil, fmt.Errorf("new template: %w", err)
 		}
 
 		var buf bytes.Buffer
