@@ -56,6 +56,8 @@ var (
 		PersistentPostRunE: func(cobraCmd *cobra.Command, args []string) error {
 			return cmd.CloseKubehoundConfig()
 		},
+		SilenceUsage:  true,
+		SilenceErrors: true,
 	}
 )
 
