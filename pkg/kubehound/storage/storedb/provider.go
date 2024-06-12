@@ -38,6 +38,9 @@ type Provider interface {
 	// Prepare drops all collections from the database (usually to ensure a clean start) and recreates indices.
 	Prepare(ctx context.Context) error
 
+	// Droping all assets from the database (usually to ensure a clean start) from a runID and cluster name
+	Clean(ctx context.Context, runId string, cluster string) error
+
 	// Reader returns a handle to the underlying provider to allow implementation specific queries against the mongo DB
 	Reader() any
 
