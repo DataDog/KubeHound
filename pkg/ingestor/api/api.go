@@ -131,7 +131,7 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 
 	if alreadyIngestedInDB {
 		log.I.Infof("Data already ingested in the database for %s/%s, droping the current data", clusterName, runID)
-		err := g.providers.StoreProvider.Prepare(runCtx) //nolint: contextcheck
+		err := g.providers.StoreProvider.Clean(runCtx, runID, clusterName) //nolint: contextcheck
 		if err != nil {
 			return err
 		}
