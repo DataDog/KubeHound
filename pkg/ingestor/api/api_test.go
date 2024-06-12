@@ -163,7 +163,6 @@ func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
 	ctx := context.TODO()
-	mockStoreProvider := mocksStore.NewProvider(t)
 
 	type fields struct {
 		providers *providers.ProvidersFactoryConfig
@@ -186,7 +185,7 @@ func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
 			fields: fields{
 				mock: mt,
 				providers: &providers.ProvidersFactoryConfig{
-					StoreProvider: mockStoreProvider,
+					StoreProvider: mocksStore.NewProvider(t),
 				},
 			},
 			args: args{
@@ -202,7 +201,7 @@ func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
 			fields: fields{
 				mock: mt,
 				providers: &providers.ProvidersFactoryConfig{
-					StoreProvider: mockStoreProvider,
+					StoreProvider: mocksStore.NewProvider(t),
 				},
 			},
 			args: args{
@@ -223,7 +222,7 @@ func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
 			}
 
 			tt.testfct(mt, g)
-			alreadyIngested, err := g.isAlreadyIngested(ctx, tt.args.clusterName, tt.args.runID)
+			alreadyIngested, err := g.isAlreadyIngestedDB(ctx, tt.args.clusterName, tt.args.runID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%s - IngestorAPI.checkPreviousRun() error = %d, wantErr %v", tt.name, err, tt.wantErr)
 			}
