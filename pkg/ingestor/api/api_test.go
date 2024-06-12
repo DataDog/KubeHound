@@ -158,7 +158,7 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 	}
 }
 
-func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
+func TestIngestorAPI_isAlreadyIngestedInDB(t *testing.T) {
 	t.Parallel()
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
@@ -222,7 +222,7 @@ func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
 			}
 
 			tt.testfct(mt, g)
-			alreadyIngested, err := g.isAlreadyIngestedDB(ctx, tt.args.clusterName, tt.args.runID)
+			alreadyIngested, err := g.isAlreadyIngestedInDB(ctx, tt.args.clusterName, tt.args.runID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%s - IngestorAPI.checkPreviousRun() error = %d, wantErr %v", tt.name, err, tt.wantErr)
 			}
