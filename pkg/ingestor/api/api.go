@@ -19,6 +19,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -68,7 +69,7 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	var err error
 	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 
-	alreadyIngested, err := g.isAlreadyIngestedInDB(runCtx, clusterName, runID) //nolint: contextcheck
+	alreadyIngested, err := g.isAlreadyIngestedInGraph(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
@@ -123,6 +124,19 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 
 	// Run the ingest pipeline
 	log.I.Info("Starting Kubernetes raw data ingest")
+	alreadyIngestedInDB, err := g.isAlreadyIngestedInDB(runCtx, clusterName, runID) //nolint: contextcheck
+	if err != nil {
+		return err
+	}
+
+	if alreadyIngestedInDB {
+		log.I.Infof("Data already ingested in the database for %s/%s, droping the current data", clusterName, runID)
+		err := g.providers.StoreProvider.Prepare(runCtx) //nolint: contextcheck
+		if err != nil {
+			return err
+		}
+	}
+
 	err = ingestor.IngestData(runCtx, runCfg, collect, g.providers.CacheProvider, g.providers.StoreProvider, g.providers.GraphProvider) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("raw data ingest: %w", err)
@@ -138,6 +152,32 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	}
 
 	return nil
+}
+
+func (g *IngestorAPI) isAlreadyIngestedInGraph(_ context.Context, clusterName string, runID string) (bool, error) {
+	var err error
+	gClient, ok := g.providers.GraphProvider.Raw().(*gremlingo.DriverRemoteConnection)
+	if !ok {
+		return false, fmt.Errorf("assert gClient as *gremlingo.DriverRemoteConnection")
+	}
+
+	gQuery := gremlingo.Traversal_().WithRemote(gClient)
+
+	// Using nodes as it should be the "smallest" type of asset in the graph
+	rawCount, err := gQuery.V().Has("runID", runID).Has("cluster", clusterName).Limit(1).Count().Next()
+	if err != nil {
+		return false, fmt.Errorf("getting nodes for %s/%s: %w", runID, clusterName, err)
+	}
+	nodeCount, err := rawCount.GetInt()
+	if err != nil {
+		return false, fmt.Errorf("counting nodes for %s/%s: %w", runID, clusterName, err)
+	}
+
+	if nodeCount != 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName string, runID string) (bool, error) {
