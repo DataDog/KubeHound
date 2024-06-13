@@ -68,7 +68,7 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	var err error
 	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 
-	alreadyIngested, err := g.isAlreadyIngested(runCtx, clusterName, runID) //nolint: contextcheck
+	alreadyIngested, err := g.isAlreadyIngestedInDB(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	return nil
 }
 
-func (g *IngestorAPI) isAlreadyIngested(ctx context.Context, clusterName string, runID string) (bool, error) {
+func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName string, runID string) (bool, error) {
 	var resNum int64
 	var err error
 	for _, collection := range collections.GetCollections() {
@@ -161,7 +161,7 @@ func (g *IngestorAPI) isAlreadyIngested(ctx context.Context, clusterName string,
 
 			return true, nil
 		}
-		log.I.Infof("Found %d element in collection %s", resNum, collection)
+		log.I.Debugf("Found %d element in collection %s", resNum, collection)
 	}
 
 	return false, nil
