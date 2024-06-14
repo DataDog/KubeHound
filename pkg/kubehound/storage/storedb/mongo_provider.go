@@ -7,6 +7,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/hashicorp/go-multierror"
 	"go.mongodb.org/mongo-driver/bson"
@@ -105,6 +106,27 @@ func (mp *MongoProvider) Prepare(ctx context.Context) error {
 
 	if err := ib.BuildAll(ctx); err != nil {
 		return fmt.Errorf("mongo DB index builder run: %w", err)
+	}
+
+	return nil
+}
+
+func (mp *MongoProvider) Clean(ctx context.Context, runId string, cluster string) error {
+	db := mp.writer.Database(MongoDatabaseName)
+	collections, err := db.ListCollectionNames(ctx, bson.M{})
+	if err != nil {
+		return fmt.Errorf("listing mongo DB collections: %w", err)
+	}
+	filter := bson.M{
+		"runtime.runID":   runId,
+		"runtime.cluster": cluster,
+	}
+	for _, collectionName := range collections {
+		res, err := db.Collection(collectionName).DeleteMany(ctx, filter)
+		if err != nil {
+			return fmt.Errorf("deleting mongo DB collection %s: %w", collectionName, err)
+		}
+		log.I.Infof("Deleted %d elements from collection %s", res.DeletedCount, collectionName)
 	}
 
 	return nil
