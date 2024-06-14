@@ -350,7 +350,7 @@ func (s *GRPCTestSuite) TestRun() {
 	RunTestSuites(s.T())
 }
 
-// TODO: needs to add support of runID/cluster in all janusgraph requests system-tests
+// TODO: needs to add support of runID/cluster in all janusgraph requests system-tests to avoid collision
 // func TestMultipleIngestioTestSuite(t *testing.T) {
 // 	suite.Run(t, new(MultipleIngestioTestSuite))
 // }
