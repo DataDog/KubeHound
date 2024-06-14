@@ -3,13 +3,18 @@ package system
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/ingestor/api"
+	"github.com/DataDog/KubeHound/pkg/ingestor/api/grpc"
+	"github.com/DataDog/KubeHound/pkg/ingestor/notifier/noop"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
+	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
 	"github.com/DataDog/KubeHound/pkg/kubehound/libkube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
@@ -64,7 +69,14 @@ func InitSetupTest(ctx context.Context) *providers.ProvidersFactoryConfig {
 	return p
 }
 
-func DumpAndRun(ctx context.Context, compress bool, p *providers.ProvidersFactoryConfig) {
+type runArgs struct {
+	runID         string
+	cluster       string
+	collectorPath string
+	resultPath    string
+}
+
+func Dump(ctx context.Context, compress bool) (*config.KubehoundConfig, string) {
 	var err error
 
 	// Setting the base tags
@@ -102,14 +114,18 @@ func DumpAndRun(ctx context.Context, compress bool, p *providers.ProvidersFactor
 		log.I.Fatalf(err.Error())
 	}
 
+	return khCfg, resultPath
+}
+
+func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers.ProvidersFactoryConfig) {
 	// Saving the clusterName and collectorDir for the ingestion step
 	// Those values are needed to run the ingestion pipeline
-	collectorDir := khCfg.Collector.File.Directory
-	clusterName := khCfg.Dynamic.ClusterName
-	runID := khCfg.Dynamic.RunID
+	collectorDir := runArgs.collectorPath
+	clusterName := runArgs.cluster
+	runID := runArgs.runID
 
 	if compress {
-		err := puller.ExtractTarGz(resultPath, collectorDir, config.DefaultMaxArchiveSize)
+		err := puller.ExtractTarGz(runArgs.resultPath, collectorDir, config.DefaultMaxArchiveSize)
 		if err != nil {
 			log.I.Fatalf(err.Error())
 		}
@@ -127,17 +143,17 @@ func DumpAndRun(ctx context.Context, compress bool, p *providers.ProvidersFactor
 	viper.Set(config.CollectorFileDirectory, collectorDir)
 	viper.Set(config.CollectorFileClusterName, clusterName)
 
-	err = cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
+	err := cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
 	if err != nil {
 		log.I.Fatalf(err.Error())
 	}
 
-	khCfg, err = cmd.GetConfig()
+	khCfg, err := cmd.GetConfig()
 	if err != nil {
 		log.I.Fatal(err.Error())
 	}
 
-	err = khCfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID.String()))
+	err = khCfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID))
 	if err != nil {
 		log.I.Fatalf("collector client creation: %v", err)
 	}
@@ -146,6 +162,64 @@ func DumpAndRun(ctx context.Context, compress bool, p *providers.ProvidersFactor
 	if err != nil {
 		log.I.Fatalf("ingest build data: %v", err)
 	}
+}
+
+func RunGRPC(ctx context.Context, runArgs *runArgs, p *providers.ProvidersFactoryConfig) {
+	// Extracting info from Dump phase
+	runID := runArgs.runID
+	cluster := runArgs.cluster
+	fileFolder := runArgs.collectorPath
+
+	// Reseting the context to simulate a new ingestion from scratch
+	ctx = context.Background()
+	// Reseting the base tags
+	tag.SetupBaseTags()
+	// Reseting the viper config
+	viper.Reset()
+	err := cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
+	if err != nil {
+		log.I.Fatalf(err.Error())
+	}
+
+	khCfg, err := cmd.GetConfig()
+	if err != nil {
+		log.I.Fatal(err.Error())
+	}
+
+	khCfg.Ingestor.Blob.Bucket = fmt.Sprintf("file://%s", fileFolder)
+	log.I.Info("Creating Blob Storage provider")
+	puller, err := blob.NewBlobStorage(khCfg, khCfg.Ingestor.Blob)
+	if err != nil {
+		log.I.Fatalf(err.Error())
+	}
+
+	log.I.Info("Creating Noop Notifier")
+	noopNotifier := noop.NewNoopNotifier()
+
+	log.I.Info("Creating Ingestor API")
+	ingestorApi := api.NewIngestorAPI(khCfg, puller, noopNotifier, p)
+
+	// Start the GRPC server
+	go grpc.Listen(ctx, ingestorApi)
+
+	// Starting ingestion of the dumped data
+	err = core.CoreClientGRPCIngest(khCfg.Ingestor, cluster, runID)
+	if err != nil {
+		log.I.Fatalf(err.Error())
+	}
+}
+func DumpAndRun(ctx context.Context, compress bool, p *providers.ProvidersFactoryConfig) {
+	khCfg, resultPath := Dump(ctx, compress)
+
+	// Extracting info from Dump phase
+	runArgs := &runArgs{
+		runID:         khCfg.Dynamic.RunID.String(),
+		cluster:       khCfg.Dynamic.ClusterName,
+		collectorPath: khCfg.Collector.File.Directory,
+		resultPath:    resultPath,
+	}
+
+	RunLocal(ctx, runArgs, compress, p)
 }
 
 type FlatTestSuite struct {
@@ -204,6 +278,34 @@ func (s *LiveTestSuite) SetupSuite() {
 	core.CoreLive(ctx, khCfg)
 }
 
+type GRPCTestSuite struct {
+	suite.Suite
+}
+
+func (s *GRPCTestSuite) SetupSuite() {
+	// Reseting the context to simulate a new ingestion from scratch
+	ctx := context.Background()
+
+	p := InitSetupTest(ctx)
+	defer p.Close(ctx)
+
+	khCfg, _ := Dump(ctx, true)
+
+	// Extracting info from Dump phase
+	runArgs := &runArgs{
+		runID:         khCfg.Dynamic.RunID.String(),
+		cluster:       khCfg.Dynamic.ClusterName,
+		collectorPath: khCfg.Collector.File.Directory,
+	}
+
+	RunGRPC(ctx, runArgs, p)
+
+}
+
+func (s *GRPCTestSuite) TestRun() {
+	RunTestSuites(s.T())
+}
+
 func (s *LiveTestSuite) TestRun() {
 	RunTestSuites(s.T())
 }
@@ -219,3 +321,8 @@ func TestLiveTestSuite(t *testing.T) {
 func TestFlatTestSuite(t *testing.T) {
 	suite.Run(t, new(FlatTestSuite))
 }
+
+func TestGRPCTestSuite(t *testing.T) {
+	suite.Run(t, new(GRPCTestSuite))
+}
+

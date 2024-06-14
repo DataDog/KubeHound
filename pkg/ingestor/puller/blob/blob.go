@@ -21,6 +21,7 @@ import (
 	_ "gocloud.dev/blob/azureblob"
 	_ "gocloud.dev/blob/fileblob"
 	_ "gocloud.dev/blob/gcsblob"
+	_ "gocloud.dev/blob/memblob"
 	"gocloud.dev/blob/s3blob"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -58,12 +59,12 @@ func (bs *BlobStore) openBucket(ctx context.Context) (*blob.Bucket, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	cloudPrefix, bucketName := urlStruct.Scheme, urlStruct.Host
 	var bucket *blob.Bucket
 	switch cloudPrefix {
 	case "file":
-		bucket, err = blob.OpenBucket(ctx, cloudPrefix+":///"+bucketName)
+		// url Parse not working for local files, using raw name file:///path/to/dir
+		bucket, err = blob.OpenBucket(ctx, bs.bucketName)
 	case "wasbs":
 		// AZURE_STORAGE_ACCOUNT env is set in conf/k8s
 		bucketName = urlStruct.User.Username()
