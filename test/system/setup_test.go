@@ -153,6 +153,12 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 		log.I.Fatal(err.Error())
 	}
 
+	// We need to flush the cache to prevent warning/error on the overwriting element in cache the  any conflict with the previous ingestion
+	err = p.CacheProvider.Prepare(ctx)
+	if err != nil {
+		log.I.Fatalf("preparing cache provider: %v", err)
+	}
+
 	err = khCfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID))
 	if err != nil {
 		log.I.Fatalf("collector client creation: %v", err)
@@ -258,6 +264,26 @@ func (s *CompressTestSuite) TestRun() {
 	RunTestSuites(s.T())
 }
 
+type MultipleIngestioTestSuite struct {
+	suite.Suite
+}
+
+func (s *MultipleIngestioTestSuite) SetupSuite() {
+	// Reseting the context to simulate a new ingestion from scratch
+	ctx := context.Background()
+
+	p := InitSetupTest(ctx)
+	defer p.Close(ctx)
+
+	// Simulating multiple ingestion (twice the same cluster)
+	DumpAndRun(ctx, true, p)
+	DumpAndRun(ctx, false, p)
+}
+
+func (s *MultipleIngestioTestSuite) TestRun() {
+	RunTestSuites(s.T())
+}
+
 type LiveTestSuite struct {
 	suite.Suite
 }
@@ -276,6 +302,10 @@ func (s *LiveTestSuite) SetupSuite() {
 	}
 
 	core.CoreLive(ctx, khCfg)
+}
+
+func (s *LiveTestSuite) TestRun() {
+	RunTestSuites(s.T())
 }
 
 type GRPCTestSuite struct {
@@ -300,15 +330,29 @@ func (s *GRPCTestSuite) SetupSuite() {
 
 	RunGRPC(ctx, runArgs, p)
 
+	// Reingesting the same to trigger the error
+	// Starting ingestion of the dumped data
+	err := cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
+	if err != nil {
+		log.I.Fatalf(err.Error())
+	}
+
+	khCfg, err = cmd.GetConfig()
+	if err != nil {
+		log.I.Fatal(err.Error())
+	}
+
+	err = core.CoreClientGRPCIngest(khCfg.Ingestor, runArgs.cluster, runArgs.runID)
+	s.ErrorContains(err, api.ErrAlreadyIngested.Error())
 }
 
 func (s *GRPCTestSuite) TestRun() {
 	RunTestSuites(s.T())
 }
 
-func (s *LiveTestSuite) TestRun() {
-	RunTestSuites(s.T())
-}
+// func TestMultipleIngestioTestSuite(t *testing.T) {
+// 	suite.Run(t, new(MultipleIngestioTestSuite))
+// }
 
 func TestCompressTestSuite(t *testing.T) {
 	suite.Run(t, new(CompressTestSuite))
@@ -325,4 +369,3 @@ func TestFlatTestSuite(t *testing.T) {
 func TestGRPCTestSuite(t *testing.T) {
 	suite.Run(t, new(GRPCTestSuite))
 }
-
