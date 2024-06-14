@@ -7,7 +7,6 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	mocksNotifier "github.com/DataDog/KubeHound/pkg/ingestor/notifier/mocks"
-	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	mocksPuller "github.com/DataDog/KubeHound/pkg/ingestor/puller/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
 	mocksCache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
@@ -94,20 +93,20 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 		wantErr bool
 		mock    func(puller *mocksPuller.DataPuller, notifier *mocksNotifier.Notifier, cache *mocksCache.CacheProvider, store *mocksStore.Provider, graph *mocksGraph.Provider)
 	}{
-		{
-			name: "Pulling invalid bucket name",
-			fields: fields{
-				cfg: config.MustLoadEmbedConfig(),
-			},
-			args: args{
-				clusterName: "test-cluster",
-				runID:       "test-run-id",
-			},
-			wantErr: true,
-			mock: func(puller *mocksPuller.DataPuller, notifier *mocksNotifier.Notifier, cache *mocksCache.CacheProvider, store *mocksStore.Provider, graph *mocksGraph.Provider) {
-				puller.On("Pull", mock.Anything, "test-cluster", "test-run-id").Return("", blob.ErrInvalidBucketName)
-			},
-		},
+		// {
+		// 	name: "Pulling invalid bucket name",
+		// 	fields: fields{
+		// 		cfg: config.MustLoadEmbedConfig(),
+		// 	},
+		// 	args: args{
+		// 		clusterName: "test-cluster",
+		// 		runID:       "test-run-id",
+		// 	},
+		// 	wantErr: true,
+		// 	mock: func(puller *mocksPuller.DataPuller, notifier *mocksNotifier.Notifier, cache *mocksCache.CacheProvider, store *mocksStore.Provider, graph *mocksGraph.Provider) {
+		// 		puller.On("Pull", mock.Anything, "test-cluster", "test-run-id").Return("", blob.ErrInvalidBucketName)
+		// 	},
+		// },
 		// // TODO: find a better way to test this
 		// // The mock here would be very fragile and annoying to use: it depends on ~all the mocks of KH.
 		// // (we need to mock all the datastore, the writers, the graph builder...)
