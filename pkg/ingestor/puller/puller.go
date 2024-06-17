@@ -81,7 +81,7 @@ func ExtractTarGz(checkOnly bool, archivePath string, basePath string, maxArchiv
 	tarReader := tar.NewReader(io.LimitReader(uncompressedStream, maxArchiveSize))
 	for {
 		header, err := tarReader.Next()
-		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -121,7 +121,7 @@ func ExtractTarGz(checkOnly bool, archivePath string, basePath string, maxArchiv
 			// a third party library (like our internal secure lib)
 			_, err = io.Copy(outFile, tarReader) //nolint:gosec
 			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
-				return fmt.Errorf("archive size exceeds the limit: %d", maxArchiveSize)
+				return fmt.Errorf("archive size exceeds the limit: %d: %w", maxArchiveSize, err)
 			}
 			if err != nil {
 				return fmt.Errorf("copying file %s: %w", cleanPath, err)
