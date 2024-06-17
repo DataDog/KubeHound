@@ -44,6 +44,27 @@ func sanitizeExtractPath(filePath string, destination string) error {
 	return nil
 }
 
+func IsTarGz(filePath string, maxArchiveSize int64) (bool, error) {
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return false, fmt.Errorf("stat %s: %w", filePath, err)
+	}
+
+	switch mod := fileInfo.Mode(); {
+	case mod.IsDir():
+		return false, nil
+	case mod.IsRegular():
+		err = ExtractTarGz(true, filePath, "/tmp", maxArchiveSize)
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	return false, fmt.Errorf("file type not supported")
+}
+
 func ExtractTarGz(checkOnly bool, archivePath string, basePath string, maxArchiveSize int64) error {
 	gzipFileReader, err := os.Open(archivePath)
 	if err != nil {
