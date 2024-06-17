@@ -81,5 +81,5 @@ func InitRemoteIngestCmd(cmd *cobra.Command, standalone bool) {
 func InitLocalIngestCmd(cmd *cobra.Command) {
 	cmd.PersistentFlags().String("cluster", "", "Cluster name to ingest (e.g.: my-cluster-1)")
 	viper.BindPFlag(config.IngestorClusterName, cmd.Flags().Lookup("cluster")) //nolint: errcheck
-	cmd.MarkFlagRequired("cluster")
+	cmd.MarkFlagRequired("cluster")                                            //nolint: errcheck
 }

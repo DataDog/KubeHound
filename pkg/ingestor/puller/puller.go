@@ -65,7 +65,7 @@ func IsTarGz(filePath string, maxArchiveSize int64) (bool, error) {
 	return false, fmt.Errorf("file type not supported")
 }
 
-func ExtractTarGz(checkOnly bool, archivePath string, basePath string, maxArchiveSize int64) error {
+func ExtractTarGz(checkOnly bool, archivePath string, basePath string, maxArchiveSize int64) error { //nolint:gocognit
 	gzipFileReader, err := os.Open(archivePath)
 	if err != nil {
 		return err
