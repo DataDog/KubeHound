@@ -3,6 +3,7 @@ package config
 import (
 	"testing"
 
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
@@ -65,7 +66,7 @@ func TestMustLoadConfig(t *testing.T) {
 						BatchSizeSmall: 100,
 					},
 					Edge: EdgeBuilderConfig{
-						LargeClusterOptimizations: false,
+						LargeClusterOptimizations: config.DefaultLargeClusterOptimizations,
 						WorkerPoolSize:            5,
 						WorkerPoolCapacity:        100,
 						BatchSize:                 500,
@@ -84,7 +85,7 @@ func TestMustLoadConfig(t *testing.T) {
 					},
 					TempDir:        "/tmp/kubehound",
 					ArchiveName:    "archive.tar.gz",
-					MaxArchiveSize: 1073741824,
+					MaxArchiveSize: config.DefaultMaxArchiveSize,
 				},
 			},
 			wantErr: false,
