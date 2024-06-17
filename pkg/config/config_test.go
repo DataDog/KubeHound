@@ -150,7 +150,7 @@ func TestMustLoadConfig(t *testing.T) {
 					},
 					TempDir:        "/tmp/kubehound",
 					ArchiveName:    "archive.tar.gz",
-					MaxArchiveSize: 1073741824,
+					MaxArchiveSize: DefaultMaxArchiveSize,
 				},
 			},
 			wantErr: false,
