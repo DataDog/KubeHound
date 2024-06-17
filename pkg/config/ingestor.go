@@ -6,7 +6,7 @@ const (
 	DefaultBucketName          = "" // we want to let it empty because we can easily abort if it's not configured
 	DefaultTempDir             = "/tmp/kubehound"
 	DefaultArchiveName         = "archive.tar.gz"
-	DefaultMaxArchiveSize      = int64(1 << 30) // 1GB
+	DefaultMaxArchiveSize      = int64(2 << 30) // 1GB
 
 	IngestorAPIEndpoint = "ingestor.api.endpoint"
 	IngestorAPIInsecure = "ingestor.api.insecure"
