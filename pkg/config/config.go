@@ -122,6 +122,7 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault("builder.edge.batch_size_small", DefaultEdgeBatchSizeSmall)
 	c.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
 	c.SetDefault("builder.stop_on_error", DefaultStopOnError)
+	c.SetDefault("builder.edge.large_cluster_optimizations", DefaultLargeClusterOptimizations)
 
 	c.SetDefault(IngestorAPIEndpoint, DefaultIngestorAPIEndpoint)
 	c.SetDefault(IngestorAPIInsecure, DefaultIngestorAPIInsecure)
@@ -189,8 +190,12 @@ func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
 
 // NewConfig creates a new config instance from the provided file using viper.
 func NewInlineConfig(v *viper.Viper) (*KubehoundConfig, error) {
+	// Load default embedded config file
+	SetDefaultValues(v)
+
 	// Configure environment variable override
 	SetEnvOverrides(v)
+
 	kc, err := unmarshalConfig(v)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
