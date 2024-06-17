@@ -44,25 +44,29 @@ func sanitizeExtractPath(filePath string, destination string) error {
 	return nil
 }
 
-func ExtractTarGz(archivePath string, basePath string, maxArchiveSize int64) error {
+func ExtractTarGz(checkOnly bool, archivePath string, basePath string, maxArchiveSize int64) error {
 	gzipFileReader, err := os.Open(archivePath)
 	if err != nil {
 		return err
 	}
+	defer gzipFileReader.Close()
 
 	uncompressedStream, err := gzip.NewReader(gzipFileReader)
 	if err != nil {
 		return err
 	}
+	defer uncompressedStream.Close()
+
 	tarReader := tar.NewReader(io.LimitReader(uncompressedStream, maxArchiveSize))
 	for {
 		header, err := tarReader.Next()
-		if errors.Is(err, io.EOF) {
+		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 			break
 		}
 		if err != nil {
 			return err
 		}
+
 		err = sanitizeExtractPath(basePath, header.Name)
 		if err != nil {
 			return err
@@ -72,11 +76,17 @@ func ExtractTarGz(archivePath string, basePath string, maxArchiveSize int64) err
 		switch header.Typeflag {
 		// Handle sub folder containing namespaces
 		case tar.TypeDir:
+			if checkOnly {
+				continue
+			}
 			err := mkdirIfNotExists(cleanPath)
 			if err != nil {
 				return err
 			}
 		case tar.TypeReg:
+			if checkOnly {
+				continue
+			}
 			err := mkdirIfNotExists(filepath.Dir(cleanPath))
 			if err != nil {
 				return err
@@ -89,6 +99,9 @@ func ExtractTarGz(archivePath string, basePath string, maxArchiveSize int64) err
 			// We don't really have an upper limit of archive size and adding a limited writer is not trivial without importing
 			// a third party library (like our internal secure lib)
 			_, err = io.Copy(outFile, tarReader) //nolint:gosec
+			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+				return fmt.Errorf("archive size exceeds the limit: %d", maxArchiveSize)
+			}
 			if err != nil {
 				return fmt.Errorf("copying file %s: %w", cleanPath, err)
 			}
