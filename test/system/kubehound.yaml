@@ -9,6 +9,9 @@ janusgraph:
 mongodb:
   url: "mongodb://localhost:27018"
   connection_timeout: 60s
+builder:
+  edge:
+    large_cluster_optimizations: false
 telemetry:
   enabled: true
   tags:

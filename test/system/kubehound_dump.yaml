@@ -22,7 +22,9 @@ telemetry:
   profiler:
     period: "5s"
     cpu_duration: "5s"
-    
+builder:
+  edge:
+    large_cluster_optimizations: false
 # Ingestor configuration (for KHaaS)
 ingestor:
   blob:
