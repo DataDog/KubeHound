@@ -22,8 +22,8 @@ var (
 		},
 	}
 
-	cloudCmd = &cobra.Command{
-		Use:   "cloud",
+	dumpRemoteCmd = &cobra.Command{
+		Use:   "remote",
 		Short: "Push collected k8s resources to an s3 bucket of a targeted cluster. Run the ingestion on KHaaS if khaas-server is set.",
 		Long:  `Collect all Kubernetes resources needed to build the attack path in an offline format on a s3 bucket. If KubeHound as a Service (KHaaS) is set, then run the ingestion on KHaaS.`,
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
@@ -63,7 +63,7 @@ var (
 			return err
 		},
 	}
-	localCmd = &cobra.Command{
+	dumpLocalCmd = &cobra.Command{
 		Use:   "local",
 		Short: "Dump locally the k8s resources of a targeted cluster",
 		Long:  `Collect all Kubernetes resources needed to build the attack path in an offline format locally (compressed or flat)`,
@@ -85,11 +85,11 @@ var (
 
 func init() {
 	cmd.InitDumpCmd(dumpCmd)
-	cmd.InitLocalCmd(localCmd)
-	cmd.InitCloudCmd(cloudCmd)
-	cmd.InitGrpcClientCmd(cloudCmd, false)
+	cmd.InitLocalDumpCmd(dumpLocalCmd)
+	cmd.InitRemoteDumpCmd(dumpRemoteCmd)
+	cmd.InitRemoteIngestCmd(dumpRemoteCmd, false)
 
-	dumpCmd.AddCommand(cloudCmd)
-	dumpCmd.AddCommand(localCmd)
+	dumpCmd.AddCommand(dumpRemoteCmd)
+	dumpCmd.AddCommand(dumpLocalCmd)
 	rootCmd.AddCommand(dumpCmd)
 }

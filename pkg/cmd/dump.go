@@ -40,7 +40,7 @@ func InitDumpCmd(cmd *cobra.Command) {
 	viper.BindPFlag(config.GlobalDebug, cmd.PersistentFlags().Lookup("debug")) //nolint: errcheck
 }
 
-func InitLocalCmd(cmd *cobra.Command) {
+func InitLocalDumpCmd(cmd *cobra.Command) {
 	cmd.Flags().Bool("compress", false, "Enable compression for the dumped data (generates a tar.gz file)")
 	viper.BindPFlag(config.CollectorFileArchiveFormat, cmd.Flags().Lookup("compress")) //nolint: errcheck
 
@@ -49,7 +49,7 @@ func InitLocalCmd(cmd *cobra.Command) {
 	cmd.MarkFlagRequired("output-dir")                                               //nolint: errcheck
 }
 
-func InitCloudCmd(cmd *cobra.Command) {
+func InitRemoteDumpCmd(cmd *cobra.Command) {
 	cmd.Flags().String("bucket", "", "Bucket to use to push k8s resources (e.g.: s3://<your_bucket>)")
 	viper.BindPFlag(config.CollectorFileBlobBucket, cmd.Flags().Lookup("bucket")) //nolint: errcheck
 	cmd.MarkFlagRequired("bucket")                                                //nolint: errcheck
@@ -58,7 +58,7 @@ func InitCloudCmd(cmd *cobra.Command) {
 	viper.BindPFlag(config.CollectorFileBlobRegion, cmd.Flags().Lookup("region")) //nolint: errcheck
 }
 
-func InitGrpcClientCmd(cmd *cobra.Command, standalone bool) {
+func InitRemoteIngestCmd(cmd *cobra.Command, standalone bool) {
 
 	cmd.Flags().String("khaas-server", "", "GRPC endpoint exposed by KubeHound as a Service (KHaaS) server (e.g.: localhost:9000)")
 	cmd.Flags().Bool("insecure", config.DefaultIngestorAPIInsecure, "Allow insecure connection to the KHaaS server grpc endpoint")
@@ -76,4 +76,10 @@ func InitGrpcClientCmd(cmd *cobra.Command, standalone bool) {
 		// Reusing the same flags for the dump cloud and ingest command
 		cmd.MarkFlagRequired("khaas-server") //nolint: errcheck
 	}
+}
+
+func InitLocalIngestCmd(cmd *cobra.Command) {
+	cmd.PersistentFlags().String("cluster", "", "Cluster name to ingest (e.g.: my-cluster-1)")
+	viper.BindPFlag(config.IngestorClusterName, cmd.Flags().Lookup("cluster")) //nolint: errcheck
+	cmd.MarkFlagRequired("cluster")
 }
