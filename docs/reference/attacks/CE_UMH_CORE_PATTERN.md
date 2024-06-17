@@ -97,7 +97,7 @@ sleep 5 && ./crash & nc -l -vv -p 9000
 
 ### Monitoring
 
-Use the Datadog agent to monitor for creation of new `usermode_helper` programs via writes to known locations, in this case `/proc/sys/kernel/core_pattern`.
++ Use the Datadog agent to monitor for creation of new `usermode_helper` programs via writes to known locations, in this case `/proc/sys/kernel/core_pattern`.
 
 ### Implement security policies
 
