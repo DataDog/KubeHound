@@ -2,6 +2,7 @@ package edge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -11,6 +12,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -26,7 +28,12 @@ func init() {
 }
 
 type EscapeCorePattern struct {
-	BaseContainerEscape
+	BaseEdge
+}
+
+type escapeCorePatternGroup struct {
+	Volume primitive.ObjectID `bson:"_id" json:"volume"`
+	Node   primitive.ObjectID `bson:"node_id" json:"node"`
 }
 
 func (e *EscapeCorePattern) Label() string {
@@ -39,17 +46,20 @@ func (e *EscapeCorePattern) Name() string {
 
 // Processor delegates the processing tasks to the generic containerEscapeProcessor.
 func (e *EscapeCorePattern) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
+	typed, ok := entry.(*escapeCorePatternGroup)
+	if !ok {
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
+	}
+
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Volume, typed.Node)
 }
 
 func (e *EscapeCorePattern) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)
 
-	// Escape is possible with privileged containers that mount /proc/sys/kernel (or any parent directory)
 	filter := bson.M{
-		"type":                          shared.VolumeTypeHost,
-		"k8.securitycontext.privileged": true,
+		"type": shared.VolumeTypeHost,
 		"source": bson.M{
 			"$in": ProcMountList,
 		},
@@ -60,11 +70,11 @@ func (e *EscapeCorePattern) Stream(ctx context.Context, store storedb.Provider, 
 	// We just need a 1:1 mapping of the node and container to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}
 
-	cur, err := containers.Find(ctx, filter, options.Find().SetProjection(projection))
+	cur, err := volumes.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return err
 	}
 	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[containerEscapeGroup](ctx, cur, callback, complete)
+	return adapter.MongoCursorHandler[escapeCorePatternGroup](ctx, cur, callback, complete)
 }
