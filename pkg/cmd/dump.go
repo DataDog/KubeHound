@@ -36,6 +36,9 @@ func InitDumpCmd(cmd *cobra.Command) {
 	cmd.PersistentFlags().Int32("page-buffer-count", config.DefaultK8sAPIPageBufferSize, "Number of pages to buffer")
 	viper.BindPFlag(config.CollectorLivePageBufferSize, cmd.PersistentFlags().Lookup("page-buffer-count")) //nolint: errcheck
 
+	cmd.PersistentFlags().BoolP("non-interactive", "y", config.DefaultK8sNonInteractive, "Non interactive mode (skip cluster confirmation)")
+	viper.BindPFlag(config.CollectorLiveNonInteractive, cmd.PersistentFlags().Lookup("non-interactive")) //nolint: errcheck
+
 	cmd.PersistentFlags().Bool("debug", false, "Enable debug logs")
 	viper.BindPFlag(config.GlobalDebug, cmd.PersistentFlags().Lookup("debug")) //nolint: errcheck
 }
