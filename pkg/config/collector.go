@@ -9,12 +9,12 @@ const (
 	DefaultK8sAPIPageSize           int64 = 500
 	DefaultK8sAPIPageBufferSize     int32 = 10
 	DefaultK8sAPIRateLimitPerSecond int   = 100
-	DefaultK8sNonInteractive        bool  = false
+	DefaultK8sAPINonInteractive     bool  = false
 
 	CollectorLiveRate           = "collector.live.rate_limit_per_second"
 	CollectorLivePageSize       = "collector.live.page_size"
 	CollectorLivePageBufferSize = "collector.live.page_buffer_size"
-	CollectorLiveNonInteractive = "collector.live.non_interactive"
+	CollectorNonInteractive     = "collector.non_interactive"
 	CollectorFileArchiveFormat  = "collector.file.archive.format"
 	CollectorFileDirectory      = "collector.file.directory"
 	CollectorFileClusterName    = "collector.file.cluster_name"
@@ -24,9 +24,10 @@ const (
 
 // CollectorConfig configures collector specific parameters.
 type CollectorConfig struct {
-	Type string                 `mapstructure:"type"` // Collector type
-	File *FileCollectorConfig   `mapstructure:"file"` // File collector specific configuration
-	Live *K8SAPICollectorConfig `mapstructure:"live"` // File collector specific configuration
+	Type           string                 `mapstructure:"type"`            // Collector type
+	File           *FileCollectorConfig   `mapstructure:"file"`            // File collector specific configuration
+	Live           *K8SAPICollectorConfig `mapstructure:"live"`            // File collector specific configuration
+	NonInteractive bool                   `mapstructure:"non_interactive"` // Skip confirmation
 }
 
 // K8SAPICollectorConfig configures the K8sAPI collector.
@@ -34,7 +35,6 @@ type K8SAPICollectorConfig struct {
 	PageSize           int64 `mapstructure:"page_size"`             // Number of entry being retrieving by each call on the API (same for all Kubernetes entry types)
 	PageBufferSize     int32 `mapstructure:"page_buffer_size"`      // Number of pages to buffer
 	RateLimitPerSecond int   `mapstructure:"rate_limit_per_second"` // Rate limiting per second across all calls (same for all kubernetes entry types) against the Kubernetes API
-	NonInteractive     bool  `mapstructure:"non_interactive"`       // Skip confirmation
 }
 
 // FileCollectorConfig configures the file collector.

@@ -97,6 +97,7 @@ func Dump(ctx context.Context, compress bool) (*config.KubehoundConfig, string) 
 		log.I.Fatalf(err.Error())
 	}
 	viper.Set(config.CollectorFileDirectory, tmpDir)
+	viper.Set(config.CollectorNonInteractive, true)
 
 	// Initialisation of the Kubehound config
 	err = cmd.InitializeKubehoundConfig(ctx, "", true, false)

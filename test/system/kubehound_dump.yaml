@@ -3,6 +3,7 @@ storage:
   retry: 6
 collector:
   type: file-collector
+  non_interactive: true
 janusgraph:
   url: "ws://localhost:8183/gremlin"
   connection_timeout: 60s
