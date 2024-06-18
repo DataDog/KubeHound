@@ -54,7 +54,8 @@ func IsTarGz(filePath string, maxArchiveSize int64) (bool, error) {
 	case mod.IsDir():
 		return false, nil
 	case mod.IsRegular():
-		err = ExtractTarGz(true, filePath, "/tmp", maxArchiveSize)
+		dryRun := true
+		err = ExtractTarGz(dryRun, filePath, "/tmp", maxArchiveSize)
 		if err != nil {
 			return false, err
 		}

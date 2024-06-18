@@ -30,7 +30,8 @@ func CoreLocalIngest(ctx context.Context, khCfg *config.KubehoundConfig, resultP
 		}
 		// Resetting the directory to the temp directory used to extract the data
 		khCfg.Collector.File.Directory = tmpDir
-		err = puller.ExtractTarGz(false, resultPath, tmpDir, config.DefaultMaxArchiveSize)
+		dryRun := false
+		err = puller.ExtractTarGz(dryRun, resultPath, tmpDir, config.DefaultMaxArchiveSize)
 		if err != nil {
 			return err
 		}

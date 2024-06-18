@@ -194,7 +194,8 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 		return fmt.Errorf("Dangerous file path used during extraction, aborting: %w", err)
 	}
 
-	err = puller.ExtractTarGz(false, archivePath, basePath, bs.cfg.Ingestor.MaxArchiveSize)
+	dryRun := false
+	err = puller.ExtractTarGz(dryRun, archivePath, basePath, bs.cfg.Ingestor.MaxArchiveSize)
 	if err != nil {
 		return err
 	}
