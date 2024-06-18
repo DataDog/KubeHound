@@ -130,7 +130,7 @@ func TestExtractTarGz(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			if err := ExtractTarGz("./testdata/archive.tar.gz", tmpPath, tt.args.maxArchiveSize); (err != nil) != tt.wantErr {
+			if err := ExtractTarGz(false, "./testdata/archive.tar.gz", tmpPath, tt.args.maxArchiveSize); (err != nil) != tt.wantErr {
 				t.Errorf("ExtractTarGz() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			for _, file := range tt.expectedFiles {
