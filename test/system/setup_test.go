@@ -125,7 +125,8 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 	runID := runArgs.runID
 
 	if compress {
-		err := puller.ExtractTarGz(false, runArgs.resultPath, collectorDir, config.DefaultMaxArchiveSize)
+		dryRun := false
+		err := puller.ExtractTarGz(dryRun, runArgs.resultPath, collectorDir, config.DefaultMaxArchiveSize)
 		if err != nil {
 			log.I.Fatalf(err.Error())
 		}
