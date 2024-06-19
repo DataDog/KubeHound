@@ -130,6 +130,14 @@ func (suite *EdgeTestSuite) TestEdge_CE_SYS_PTRACE() {
 	suite._testContainerEscape("CE_SYS_PTRACE", DefaultContainerEscapeNodes, containers)
 }
 
+func (suite *EdgeTestSuite) TestEdge_CE_UMH_CORE_PATTERN() {
+	containers := map[string]bool{
+		"umh-core-container": true,
+	}
+
+	suite._testContainerEscape("CE_UMH_CORE_PATTERN", DefaultContainerEscapeNodes, containers)
+}
+
 func (suite *EdgeTestSuite) TestEdge_CONTAINER_ATTACH() {
 	// Every container should have a CONTAINER_ATTACH incoming from a pod
 	rawCount, err := suite.g.V().

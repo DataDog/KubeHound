@@ -7,7 +7,7 @@ metadata:
     app: kubehound-edge-test
 spec:
   containers:
-    - name: umh-core-pod
+    - name: umh-core-container
       image: ubuntu
       volumeMounts:
       - mountPath: /sysproc
