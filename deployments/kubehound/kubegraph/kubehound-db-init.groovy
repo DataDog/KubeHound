@@ -87,8 +87,8 @@ mgmt.addConnection(nsenter, container, node);
 moduleLoad = mgmt.makeEdgeLabel('CE_MODULE_LOAD').multiplicity(MANY2ONE).make();
 mgmt.addConnection(moduleLoad, container, node);
 
-umhCorePattern = mgmt.makeEdgeLabel('CE_UMH_CORE_PATTERN').multiplicity(MULTI).make();
-mgmt.addConnection(umhCorePattern, volume, node);
+umhCorePattern = mgmt.makeEdgeLabel('CE_UMH_CORE_PATTERN').multiplicity(MANY2ONE).make();
+mgmt.addConnection(umhCorePattern, container, node);
 
 privMount = mgmt.makeEdgeLabel('CE_PRIV_MOUNT').multiplicity(MANY2ONE).make();
 mgmt.addConnection(privMount, container, node);

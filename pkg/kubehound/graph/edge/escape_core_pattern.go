@@ -28,12 +28,7 @@ func init() {
 }
 
 type EscapeCorePattern struct {
-	BaseEdge
-}
-
-type escapeCorePatternGroup struct {
-	Volume primitive.ObjectID `bson:"_id" json:"volume"`
-	Node   primitive.ObjectID `bson:"node_id" json:"node"`
+	BaseContainerEscape
 }
 
 func (e *EscapeCorePattern) Label() string {
@@ -44,14 +39,18 @@ func (e *EscapeCorePattern) Name() string {
 	return "ContainerEscapeCorePattern"
 }
 
-// Processor delegates the processing tasks to the generic containerEscapeProcessor.
+type escapeCorePatternGroup struct {
+	Node      primitive.ObjectID `bson:"node_id" json:"node"`
+	Container primitive.ObjectID `bson:"container_id" json:"container"`
+}
+
 func (e *EscapeCorePattern) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*escapeCorePatternGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Volume, typed.Node)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Container, typed.Node)
 }
 
 func (e *EscapeCorePattern) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
@@ -68,7 +67,7 @@ func (e *EscapeCorePattern) Stream(ctx context.Context, store storedb.Provider, 
 	}
 
 	// We just need a 1:1 mapping of the node and container to create this edge
-	projection := bson.M{"_id": 1, "node_id": 1}
+	projection := bson.M{"container_id": 1, "node_id": 1}
 
 	cur, err := volumes.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
