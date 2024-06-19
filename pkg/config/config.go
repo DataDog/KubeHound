@@ -128,9 +128,9 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault(IngestorAPIEndpoint, DefaultIngestorAPIEndpoint)
 	c.SetDefault(IngestorAPIInsecure, DefaultIngestorAPIInsecure)
 	c.SetDefault(IngestorBlobBucketName, DefaultBucketName)
-	c.SetDefault("ingestor.temp_dir", DefaultTempDir)
-	c.SetDefault("ingestor.max_archive_size", DefaultMaxArchiveSize)
-	c.SetDefault("ingestor.archive_name", DefaultArchiveName)
+	c.SetDefault(IngestorTempDir, DefaultTempDir)
+	c.SetDefault(IngestorMaxArchiveSize, DefaultMaxArchiveSize)
+	c.SetDefault(IngestorArchiveName, DefaultArchiveName)
 }
 
 // SetEnvOverrides enables environment variable overrides for the config.

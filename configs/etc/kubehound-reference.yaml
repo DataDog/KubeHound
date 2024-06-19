@@ -9,6 +9,9 @@ collector:
   # Type of collector to use
   type: live-k8s-api-collector
 
+  # Ask for confirmation before collecting the targeted cluster
+  # non_interactive: false
+
   # Live collector configuration
   live:
     # Rate limit of requests/second to the Kubernetes API
@@ -16,10 +19,10 @@ collector:
     # and the bulk of that is spent waiting on rate limit. As such increasing this will improve performance roughly linearly.
     rate_limit_per_second: 60
 
-    # # Number of entries retrieved by each call on the API (same for all Kubernetes entry types)
+    # Number of entries retrieved by each call on the API (same for all Kubernetes entry types)
     # page_size: 500
 
-    # # Number of pages to buffer
+    # Number of pages to buffer
     # page_buffer_size: 10
 
   # Uncomment to use the file collector
@@ -129,7 +132,7 @@ builder:
 #    region: "" # (i.e.: us-east-1)
 #   temp_dir: "/tmp/kubehound"
 #   archive_name: "archive.tar.gz"
-#   max_archive_size: 1073741824 # 1GB
+#  max_archive_size: 2147483648 # 2GB
 #   api: # GRPC endpoint for the ingestor
 #     endpoint: "127.0.0.1:9000"
 #     insecure: true
