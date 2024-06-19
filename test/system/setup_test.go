@@ -208,7 +208,10 @@ func RunGRPC(ctx context.Context, runArgs *runArgs, p *providers.ProvidersFactor
 	ingestorApi := api.NewIngestorAPI(khCfg, puller, noopNotifier, p)
 
 	// Start the GRPC server
-	go grpc.Listen(ctx, ingestorApi)
+	go func() {
+		err := grpc.Listen(ctx, ingestorApi)
+		log.I.Fatalf(err.Error())
+	}()
 
 	// Starting ingestion of the dumped data
 	err = core.CoreClientGRPCIngest(khCfg.Ingestor, cluster, runID)
