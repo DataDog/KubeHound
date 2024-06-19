@@ -97,6 +97,7 @@ func Dump(ctx context.Context, compress bool) (*config.KubehoundConfig, string) 
 		log.I.Fatalf(err.Error())
 	}
 	viper.Set(config.CollectorFileDirectory, tmpDir)
+	viper.Set(config.CollectorNonInteractive, true)
 
 	// Initialisation of the Kubehound config
 	err = cmd.InitializeKubehoundConfig(ctx, "", true, false)
@@ -125,7 +126,8 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 	runID := runArgs.runID
 
 	if compress {
-		err := puller.ExtractTarGz(false, runArgs.resultPath, collectorDir, config.DefaultMaxArchiveSize)
+		dryRun := false
+		err := puller.ExtractTarGz(dryRun, runArgs.resultPath, collectorDir, config.DefaultMaxArchiveSize)
 		if err != nil {
 			log.I.Fatalf(err.Error())
 		}

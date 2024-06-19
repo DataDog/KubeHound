@@ -92,6 +92,7 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault(CollectorLivePageSize, DefaultK8sAPIPageSize)
 	c.SetDefault(CollectorLivePageBufferSize, DefaultK8sAPIPageBufferSize)
 	c.SetDefault(CollectorLiveRate, DefaultK8sAPIRateLimitPerSecond)
+	c.SetDefault(CollectorNonInteractive, DefaultK8sAPINonInteractive)
 
 	// Default values for storage provider
 	c.SetDefault("storage.wipe", true)

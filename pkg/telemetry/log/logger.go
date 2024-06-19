@@ -92,6 +92,13 @@ func WithComponent(name string) LoggerOption {
 	}
 }
 
+// WithCollectedCluster adds a component name tag to the logger.
+func WithCollectedCluster(name string) LoggerOption {
+	return func(l *logrus.Entry) *logrus.Entry {
+		return l.WithField(globals.CollectedClusterComponent, name)
+	}
+}
+
 // Trace creates a logger from the current context, attaching trace and span IDs for use with APM.
 func Trace(ctx context.Context, opts ...LoggerOption) *KubehoundLogger {
 	baseLogger := Base()

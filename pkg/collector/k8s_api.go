@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
@@ -67,9 +68,31 @@ func tunedListOptions() metav1.ListOptions {
 
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	l := log.Trace(ctx, log.WithComponent(K8sAPICollectorName))
+	clusterName, err := config.GetClusterName(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-	err := checkK8sAPICollectorConfig(cfg.Collector.Type)
+	l := log.Trace(ctx,
+		log.WithComponent(K8sAPICollectorName),
+		log.WithCollectedCluster(clusterName),
+	)
+
+	if !cfg.Collector.NonInteractive {
+		l.Warnf("About to dump k8s cluster: %s - Do you want to continue ? [Yes/No]", clusterName)
+		proceed, err := cmd.AskForConfirmation()
+		if err != nil {
+			return nil, err
+		}
+
+		if !proceed {
+			return nil, errors.New("user did not confirm")
+		}
+	} else {
+		l.Warnf("Non-interactive mode enabled, proceeding with k8s cluster dump: %s", clusterName)
+	}
+
+	err = checkK8sAPICollectorConfig(cfg.Collector.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +138,7 @@ func (c *k8sAPICollector) wait(_ context.Context, resourceType string, tags []st
 	// entity := tag.Entity(resourceType)
 	err := statsd.Gauge(metric.CollectorWait, float64(c.waitTime[resourceType]), tags, 1)
 	if err != nil {
-		log.I.Error(err)
+		c.log.Error(err)
 	}
 }
 
@@ -125,7 +148,7 @@ func (c *k8sAPICollector) waitTimeByResource(resourceType string, span ddtrace.S
 
 	waitTime := c.waitTime[resourceType]
 	span.SetTag(tag.WaitTag, waitTime)
-	log.I.Debugf("Wait time for %s: %s", resourceType, waitTime)
+	c.log.Debugf("Wait time for %s: %s", resourceType, waitTime)
 }
 
 func (c *k8sAPICollector) Name() string {
@@ -164,21 +187,21 @@ func (c *k8sAPICollector) computeMetrics(_ context.Context) error {
 	err := statsd.Gauge(metric.CollectorRunWait, float64(runTotalWaitTime), c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
-		log.I.Error(err)
+		c.log.Error(err)
 	}
 	err = statsd.Gauge(metric.CollectorRunDuration, float64(runDuration), c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
-		log.I.Error(err)
+		c.log.Error(err)
 	}
 
 	runThrottlingPercentage := 1 - (float64(runDuration-runTotalWaitTime) / float64(runDuration))
 	err = statsd.Gauge(metric.CollectorRunThrottling, runThrottlingPercentage, c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
-		log.I.Error(err)
+		c.log.Error(err)
 	}
-	log.I.Infof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage) //nolint:gomnd
+	c.log.Infof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage) //nolint:gomnd
 
 	return errMetric
 }
@@ -187,7 +210,7 @@ func (c *k8sAPICollector) Close(ctx context.Context) error {
 	err := c.computeMetrics(ctx)
 	if err != nil {
 		// We don't want to return an error here as it is just metrics and won't affect the collection of data
-		log.I.Errorf("Error computing metrics: %s", err)
+		c.log.Errorf("Error computing metrics: %s", err)
 	}
 
 	return nil
