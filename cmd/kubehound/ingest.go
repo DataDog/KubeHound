@@ -44,11 +44,10 @@ var (
 		Short: "Ingest data remotely on a KHaaS instance",
 		Long:  `Run an ingestion on KHaaS from a bucket to build the attack path`,
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", false, true)
-		},
-		PreRun: func(cobraCmd *cobra.Command, args []string) {
 			viper.BindPFlag(config.IngestorAPIEndpoint, cobraCmd.Flags().Lookup("khaas-server")) //nolint: errcheck
 			viper.BindPFlag(config.IngestorAPIInsecure, cobraCmd.Flags().Lookup("insecure"))     //nolint: errcheck
+
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", false, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// Passing the Kubehound config from viper

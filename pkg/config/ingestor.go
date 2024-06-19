@@ -8,10 +8,13 @@ const (
 	DefaultArchiveName         = "archive.tar.gz"
 	DefaultMaxArchiveSize      = int64(2 << 30) // 2GB
 
-	IngestorAPIEndpoint = "ingestor.api.endpoint"
-	IngestorAPIInsecure = "ingestor.api.insecure"
-	IngestorClusterName = "ingestor.cluster_name"
-	IngestorRunID       = "ingestor.run_id"
+	IngestorAPIEndpoint    = "ingestor.api.endpoint"
+	IngestorAPIInsecure    = "ingestor.api.insecure"
+	IngestorClusterName    = "ingestor.cluster_name"
+	IngestorRunID          = "ingestor.run_id"
+	IngestorMaxArchiveSize = "ingestor.max_archive_size"
+	IngestorTempDir        = "ingestor.temp_dir"
+	IngestorArchiveName    = "ingestor.archive_name"
 
 	IngestorBlobBucketName = "ingestor.blob.bucket_name"
 	IngestorBlobRegion     = "ingestor.blob.region"
