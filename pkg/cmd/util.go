@@ -12,7 +12,7 @@ func AskForConfirmation() (bool, error) {
 	var response string
 
 	_, err := fmt.Scanln(&response)
-	if err.Error() != "unexpected newline" {
+	if err != nil && err.Error() != "unexpected newline" {
 		return false, fmt.Errorf("scanln: %w", err)
 	}
 
