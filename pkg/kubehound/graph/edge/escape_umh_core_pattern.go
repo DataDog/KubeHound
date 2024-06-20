@@ -93,5 +93,6 @@ func (e *EscapeCorePattern) Stream(ctx context.Context, store storedb.Provider, 
 		return err
 	}
 	defer cur.Close(ctx)
+
 	return adapter.MongoCursorHandler[containerEscapeGroup](ctx, cur, callback, complete)
 }
