@@ -51,7 +51,18 @@ var (
 				return fmt.Errorf("get config: %w", err)
 			}
 
-			return core.CoreLive(cobraCmd.Context(), khCfg)
+			err = core.CoreLive(cobraCmd.Context(), khCfg)
+			if err != nil {
+				return err
+			}
+
+			log.I.Warn("KubeHound as finished ingesting and building the graph successfully.")
+			log.I.Warn("Please visit the UI to view the graph by clicking the link below:")
+			log.I.Warnf("http://localhost:8888")
+			// Yes, we should change that :D
+			log.I.Warnf("Password being 'admin'")
+
+			return nil
 		},
 		PersistentPostRunE: func(cobraCmd *cobra.Command, args []string) error {
 			return cmd.CloseKubehoundConfig()
