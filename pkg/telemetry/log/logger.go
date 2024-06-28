@@ -125,6 +125,8 @@ func Trace(ctx context.Context, opts ...LoggerOption) *KubehoundLogger {
 }
 
 func GetLogrusFormatter() logrus.Formatter {
+	customTextFormatter := NewFilteredTextFormatter(DefaultRemovedFields)
+
 	switch logFormat := os.Getenv("KH_LOG_FORMAT"); {
 	// Datadog require the logged field to be "message" and not "msg"
 	case logFormat == "dd":
@@ -138,8 +140,8 @@ func GetLogrusFormatter() logrus.Formatter {
 	case logFormat == "json":
 		return &logrus.JSONFormatter{}
 	case logFormat == "text":
-		return &logrus.TextFormatter{}
+		return customTextFormatter
 	default:
-		return &logrus.TextFormatter{}
+		return customTextFormatter
 	}
 }
