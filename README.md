@@ -11,7 +11,7 @@ Select a target Kubernetes cluster, either:
 * Using [kubectx](https://github.com/ahmetb/kubectx)
 * Using specific kubeconfig file by exporting the env variable: `export KUBECONFIG=/your/path/to/.kube/config`
 
-Download binaries are available for Linux / Windows / Mac OS via the [releases](https://github.com/DataDog/KubeHound/releases) page.
+Download binaries are available for Linux / Windows / Mac OS via the [releases](https://github.com/DataDog/KubeHound/releases) page or by running the following (Mac OS/Linux):
 ```bash
 wget https://github.com/DataDog/KubeHound/releases/download/latest/kubehound-$(uname -o | sed 's/GNU\///g')-$(uname -m) -O kubehound
 chmod +x kubehound
