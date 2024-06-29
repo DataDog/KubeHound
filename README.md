@@ -1,4 +1,4 @@
-# KubeHound  <!-- omit in toc -->
+# KubeHound
 
 <p align="center">
   <img src="./docs/logo.png" alt="KubeHound" width="300" />
@@ -48,20 +48,9 @@ bin/build/kubehound
 For more advanced use case and configuration, see [ADVANCED.md](./ADVANCED.md)
 To view the generated graph see the [Using KubeHound Data](#using-kubehound-data) section.
 
-## Sample Attack Path  <!-- omit in toc -->
+## Sample Attack Path
 
 ![Example Path](./docs/images/example-graph.png)
-
-## Contents  <!-- omit in toc -->
-
-- [Quick Start](#quick-start)
-- [Requirements](#requirements)
-  - [Sample Data](#sample-data)
-- [Using KubeHound Data](#using-kubehound-data)
-  - [Example queries](#example-queries)
-  - [Query data from your scripts](#query-data-from-your-scripts)
-    - [Python](#python)
-- [Acknowledgements](#acknowledgements)
 
 ## Requirements
 
@@ -110,7 +99,7 @@ results = c.submit(KH_QUERY).all().result()
 
 You'll need to install `gremlinpython` as a dependency via: `pip install gremlinpython`
 
-## Further information <!-- omit in toc -->
+## Further information
 
 + For an overview of the application architecture see the [design canvas](./docs/Architecture.excalidraw)
 + To see the attacks covered see the [edge definitions](./docs/reference/attacks)
