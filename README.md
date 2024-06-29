@@ -52,13 +52,13 @@ To view the generated graph see the [Using KubeHound Data](#using-kubehound-data
 - [Quick Start](#quick-start)
 - [Requirements](#requirements)
   - [Application](#application)
-  - [Test (Development only)](#test-development-only)
+  - [Development](#development)
   - [Sample Data](#sample-data)
 - [Using KubeHound Data](#using-kubehound-data)
   - [Example queries](#example-queries)
   - [Query data from your scripts](#query-data-from-your-scripts)
     - [Python](#python)
-- [Development](#development)
+- [Development](#development-1)
   - [Build](#build)
   - [Release build](#release-build)
   - [Unit Testing](#unit-testing)
@@ -72,14 +72,14 @@ To view the generated graph see the [Using KubeHound Data](#using-kubehound-data
 
 ### Application
 
-+ Golang `>= 1.20`: https://go.dev/doc/install
-+ Docker `>= 19.03`: https://docs.docker.com/engine/install/
-+ Docker Compose `V2`: https://docs.docker.com/compose/compose-file/compose-versioning/
++ [Docker](https://docs.docker.com/engine/install/) `>= 19.03` 
++ [Docker Compose](https://docs.docker.com/compose/compose-file/compose-versioning/) `V2`
 
-### Test (Development only)
+### Development
 
-+ Kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager
-+ Kubectl: https://kubernetes.io/docs/tasks/tools/
++ [Golang](https://go.dev/doc/install) `>= 1.22`
++ [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager)
++ [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 
 ### Sample Data
 
