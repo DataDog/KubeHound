@@ -3,13 +3,45 @@
 <p align="center">
   <img src="./docs/logo.png" alt="KubeHound" width="300" />
 </p>
-A Kubernetes attack graph tool allowing automated calculation of attack paths between assets in a cluster
+A Kubernetes attack graph tool allowing automated calculation of attack paths between assets in a cluster.
 
-## Quick Links <!-- omit in toc -->
+## Quick Start
 
-+ For an overview of the application architecture see the [design canvas](./docs/Architecture.excalidraw)
-+ To see the attacks covered see the [edge definitions](./docs/reference/attacks)
-+ To contribute a new attack to the project follow the [contribution guidelines](./CONTRIBUTING.md)
+Select a target Kubernetes cluster, either:
+* Using [kubectx](https://github.com/ahmetb/kubectx)
+* Using specific kubeconfig file by exporting the env variable: `export KUBECONFIG=/your/path/to/.kube/config`
+
+Download binaries are available for Linux / Windows / Mac OS via the [releases](https://github.com/DataDog/KubeHound/releases) page.
+```bash
+wget https://github.com/DataDog/KubeHound/releases/download/latest/kubehound-$(uname -o | sed 's/GNU\///g')-$(uname -m) -O kubehound
+chmod +x kubehound
+```
+
+*NOTE*:
++ If downloading the releases via a browser you must run e.g `xattr -d com.apple.quarantine kubehound` before running to prevent [MacOS blocking execution](https://support.apple.com/en-gb/guide/mac-help/mchleab3a043/mac)
+
+Then, simply run
+```bash
+./kubehound
+```
+<details>
+<summary>To build KubeHound from source instead</summary>
+
+Clone and build this repository:
+```bash
+git clone https://github.com/DataDog/KubeHound.git
+cd KubeHound
+make kubehound
+```
+
+The built binary is now available at:
+```bash
+bin/build/kubehound
+```
+</details>
+
+For more advanced use case and configuration, see [ADVANCED.md](./ADVANCED.md)
+To view the generated graph see the [Using KubeHound Data](#using-kubehound-data) section.
 
 ## Sample Attack Path  <!-- omit in toc -->
 
@@ -17,16 +49,11 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
 
 ## Contents  <!-- omit in toc -->
 
+- [Quick Start](#quick-start)
 - [Requirements](#requirements)
   - [Application](#application)
   - [Test (Development only)](#test-development-only)
-- [Quick Start](#quick-start)
-  - [Prebuilt Releases](#prebuilt-releases)
-  - [From Source](#from-source)
   - [Sample Data](#sample-data)
-- [Advanced Usage](#advanced-usage)
-  - [Infrastructure Setup](#infrastructure-setup)
-  - [Running Kubehound](#running-kubehound)
 - [Using KubeHound Data](#using-kubehound-data)
   - [Example queries](#example-queries)
   - [Query data from your scripts](#query-data-from-your-scripts)
@@ -54,62 +81,6 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
 + Kind: https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager
 + Kubectl: https://kubernetes.io/docs/tasks/tools/
 
-## Quick Start
-
-### Prebuilt Releases
-
-Release binaries are available for Linux / Windows / Mac OS via the [releases](https://github.com/DataDog/KubeHound/releases) page. These provide access to core KubeHound functionality but lack support for the `make` commands detailed in subsequent sections. Once the release archive is downloaded and extracted start the backend via:
-
-```bash
-./kubehound.sh backend-up
-```
-
-*NOTE*:
-+ If downloading the releases via a browser you must run e.g `xattr -d com.apple.quarantine KubeHound_Darwin_arm64.tar.gz` before running to prevent [MacOS blocking execution](https://support.apple.com/en-gb/guide/mac-help/mchleab3a043/mac)
-
-Next choose a target Kubernetes cluster, either:
-
-* Select the targeted cluster via `kubectx` (need to be installed separately)     
-* Use a specific kubeconfig file by exporting the env variable: `export KUBECONFIG=/your/path/to/.kube/config`
-
-Finally run the compiled binary with packaged configuration (`config.yaml`):
-
-```bash
-./kubehound.sh run
-```
-
-### From Source
-
-Clone this repository via git:
-
-```bash
-git clone https://github.com/DataDog/KubeHound.git
-```
-
-KubeHound ships with a sensible default configuration designed to get new users up and running quickly. The first step is to prepare the application:
-
-```bash
-cd KubeHound
-make kubehound
-```
-
-This will do the following:
-* Start the backend services via docker compose (wiping any existing data)
-* Compile the kubehound binary from source
-
-Next choose a target Kubernetes cluster, either:
-
-* Select the targeted cluster via `kubectx` (need to be installed separately)     
-* Use a specific kubeconfig file by exporting the env variable: `export KUBECONFIG=/your/path/to/.kube/config`
-
-Finally run the compiled binary with default configuration:
-
-```bash
-bin/kubehound
-```
-
-To view the generated graph see the [Using KubeHound Data](#using-kubehound-data) section.
-
 ### Sample Data
 
 To view a sample graph demonstrating attacks in a very, very vulnerable cluster you can generate data via running the app against the provided kind cluster:
@@ -120,69 +91,13 @@ make sample-graph
 
 To view the generated graph see the [Using KubeHound Data](#using-kubehound-data) section. 
 
-## Advanced Usage
-
-### Infrastructure Setup
-
-First create and populate a .env file with the required variables:
-
-```bash
-cp deployments/kubehound/.env.tpl deployments/kubehound/.env
-```
-
-Edit the variables (datadog env `DD_*` related and `KUBEHOUND_ENV`):
-
-* `KUBEHOUND_ENV`: `dev` or `release` 
-* `DD_API_KEY`: api key you created from https://app.datadoghq.com/ website
-
-Note:
-* `KUBEHOUND_ENV=dev` will build the images locally
-* `KUBEHOUND_ENV=release` will use prebuilt images from ghcr.io 
-
-### Running Kubehound
-
-To replicate the automated command and run KubeHound step-by-step. First build the application:
-
-```bash
-make build
-```
-
-Next spawn the backend infrastructure
-
-```bash
-make backend-up
-```
-
-Next create a configuration file:
-
-```yaml
-collector:
-  type: live-k8s-api-collector
-telemetry:
-  enabled: true
-```
-
-A tailored sample configuration file can be found [here](./configs/etc/kubehound.yaml), a full configuration reference containing all possible parameters [here](./configs/etc/kubehound-reference.yaml). 
-
-Finally run the KubeHound binary, passing in the desired configuration:
-
-```bash
-bin/kubehound -c <config path>
-```
-
-Remember the targeted cluster must be set via `kubectx` or setting the `KUBECONFIG` environment variable. Additional functionality for managing the application can be found via:
-
-```bash
-make help
-```
-
 ## Using KubeHound Data
 
-To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop.apache.org/gremlin.html) query language via an API call or dedicated graph query UI. A number of fully featured graph query UIs are available (both commercial and open source), but we provide an accompanying Jupyter notebook based on the [AWS Graph Notebook](https://github.com/aws/graph-notebook),to quickly showcase the capabilities of Kubehound. To access the UI:
+To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop.apache.org/gremlin.html) query language via an API call or dedicated graph query UI. A number of fully featured graph query UIs are available (both commercial and open source), but we provide an accompanying Jupyter notebook based on the [AWS Graph Notebook](https://github.com/aws/graph-notebook),to quickly showcase the capabilities of KubeHound. To access the UI:
 
 + Visit [http://localhost:8888/notebooks/KubeHound.ipynb](http://localhost:8888/notebooks/KubeHound.ipynb) in your browser
 + Use the default password `admin` to login (note: this can be changed via the [Dockerfile](./deployments/kubehound/notebook/Dockerfile) or by setting the `NOTEBOOK_PASSWORD` environment variable in the [.env](./deployments/kubehound/.env.tpl) file)
-+ Follow the initial setup instructions in the notebook to connect to the Kubehound graph and configure the rendering
++ Follow the initial setup instructions in the notebook to connect to the KubeHound graph and configure the rendering
 + Start running the queries and exploring the graph!
 
 ### Example queries
@@ -288,6 +203,13 @@ Note: if you are running on Linux but you dont want to run `sudo` for `kind` and
 
 System tests will be run in CI via the [system-test](./.github/workflows/system-test.yml) github action 
 
+
+## Further information <!-- omit in toc -->
+
++ For an overview of the application architecture see the [design canvas](./docs/Architecture.excalidraw)
++ To see the attacks covered see the [edge definitions](./docs/reference/attacks)
++ To contribute a new attack to the project follow the [contribution guidelines](./CONTRIBUTING.md)
++ 
 
 ## Acknowledgements
 

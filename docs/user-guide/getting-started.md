@@ -7,23 +7,17 @@ To get started with KubeHound, you'll need the following pre-requirements on you
 - [Docker](https://docs.docker.com/engine/install/) >= 19.03 (`docker version`)
 - [Docker Compose](https://docs.docker.com/compose/compose-file/compose-versioning/) >= v2.0 (`docker compose version`)
 
+These two are used to start the backend infrastructure required to run KubeHound. It also provides a default user interface via Jupyter notebooks.
+
 ## Running KubeHound
 
 KubeHound ships with a sensible default configuration as well as a pre-built binary, designed to get new users up and running quickly. 
 
-First, download KubeHound:
+Download the latest KubeHound binary for you platform:
 
 ```bash
-wget https://github.com/DataDog/KubeHound/releases/latest/download/KubeHound_$(uname -o | sed 's/GNU\///g')_$(uname -m).tar.gz -O kubehound.tar.gz
-mkdir kubehound
-tar -xf kubehound.tar.gz -C kubehound --strip-components=1
-cd kubehound
-```
-
-Then, prepare the application by running:
-
-```bash
-./kubehound.sh backend-up
+wget https://github.com/DataDog/KubeHound/releases/download/latest/kubehound-$(uname -o | sed 's/GNU\///g')-$(uname -m) -O kubehound
+chmod +x kubehound
 ```
 
 This will start [backend services](../architecture.md) via docker compose (wiping any existing data), and compile the kubehound binary from source.
@@ -43,7 +37,7 @@ kubectl config set-context <name>
 Finally, run KubeHound with the default [configuration](https://github.com/DataDog/KubeHound/blob/main/configs/etc/kubehound.yaml):
 
 ```
-./kubehound.sh run
+kubehound
 ```
 
 Sample output:

@@ -2,32 +2,19 @@
 
 ### Restarting the backend
 
-The backend stack can be restarted via provided script commands. If running from source:
-
+The backend stack can be restarted by using:
 ```bash
-make backend-reset
-```
-
-Otherwise if using binary releases:
-
-```bash
-kubehound.sh backend-reset
+kubehound backend down
 ```
 
 These commands will simply reboot backend services, but persist the data via docker volumes.
 
 ### Wiping the database
 
-The backend data can be wiped via provided script commands. If running from source:
+The backend data can be wiped by using:
 
 ```bash
-make backend-reset-hard
-```
-
-Otherwise if using binary releases:
-
-```bash
-kubehound.sh backend-reset-hard
+kubehound backend wipe
 ```
 
 These commands will reboot backend services and wipe all data.
