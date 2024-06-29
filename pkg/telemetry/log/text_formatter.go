@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	DefaultRemovedFields = []string{"component", "team", "service"}
+	DefaultRemovedFields = []string{"component", "team", "service", "run_id"}
 )
 
 // FilteredTextFormatter is a logrus.TextFormatter that filters out some specific fields that are not needed for humans.
