@@ -17,8 +17,13 @@ wget https://github.com/DataDog/KubeHound/releases/download/latest/kubehound-$(u
 chmod +x kubehound
 ```
 
-*NOTE*:
-+ If downloading the releases via a browser you must run e.g `xattr -d com.apple.quarantine kubehound` before running to prevent [MacOS blocking execution](https://support.apple.com/en-gb/guide/mac-help/mchleab3a043/mac)
+<details>
+<summary>MacOS Notes</summary>
+
+If downloading the releases via a browser you must run e.g `xattr -d com.apple.quarantine kubehound` before running to prevent [MacOS blocking execution](https://support.apple.com/en-gb/guide/mac-help/mchleab3a043/mac)
+
+</details>
+
 
 Then, simply run
 ```bash
@@ -51,35 +56,18 @@ To view the generated graph see the [Using KubeHound Data](#using-kubehound-data
 
 - [Quick Start](#quick-start)
 - [Requirements](#requirements)
-  - [Application](#application)
-  - [Development](#development)
   - [Sample Data](#sample-data)
 - [Using KubeHound Data](#using-kubehound-data)
   - [Example queries](#example-queries)
   - [Query data from your scripts](#query-data-from-your-scripts)
     - [Python](#python)
-- [Development](#development-1)
-  - [Build](#build)
-  - [Release build](#release-build)
-  - [Unit Testing](#unit-testing)
-  - [System Testing](#system-testing)
-    - [Environment variable:](#environment-variable)
-    - [Setup](#setup)
-    - [CI Testing](#ci-testing)
 - [Acknowledgements](#acknowledgements)
 
 ## Requirements
 
-### Application
-
+To run KubeHound, you need a couple dependencies
 + [Docker](https://docs.docker.com/engine/install/) `>= 19.03` 
 + [Docker Compose](https://docs.docker.com/compose/compose-file/compose-versioning/) `V2`
-
-### Development
-
-+ [Golang](https://go.dev/doc/install) `>= 1.22`
-+ [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager)
-+ [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 
 ### Sample Data
 
@@ -122,94 +110,11 @@ results = c.submit(KH_QUERY).all().result()
 
 You'll need to install `gremlinpython` as a dependency via: `pip install gremlinpython`
 
-## Development
-
-### Build
-
-Build the application via:
-
-```bash
-make build
-```
-
-All binaries will be output to the [bin](./bin/) folder
-
-### Release build
-
-Build the release packages locally using [goreleaser](https://goreleaser.com/install):
-
-```bash
-make local-release
-```
-
-### Unit Testing
-
-The full suite of unit tests can be run locally via:
-
-```bash
-make test
-```
-
-### System Testing
-
-The repository includes a suite of system tests that will do the following:
-+ create a local kubernetes cluster
-+ collect kubernetes API data from the cluster
-+ run KubeHound using the file collector to create a working graph database
-+ query the graph database to ensure all expected vertices and edges have been created correctly
-
-The cluster setup and running instances can be found under [test/setup](./test/setup/)
-
-If you need to manually access the system test environment with kubectl and other commands, you'll need to set (assuming you are at the root dir):
-
-```bash
-cd test/setup/ && export KUBECONFIG=$(pwd)/.kube-config
-```
-
-#### Environment variable:
-- `DD_API_KEY` (optional): set to the datadog API key used to submit metrics and other observability data.
-
-#### Setup
-
-Setup the test kind cluster (you only need to do this once!) via:
-
-```bash
-make local-cluster-deploy
-```
-
-Then run the system tests via:
-
-```bash
-make system-test
-```
-
-To cleanup the environment you can destroy the cluster via:
-
-```bash
-make local-cluster-destroy
-```
-
-To list all the available commands, run:
-
-```bash
-make help
-```
-
-Note: if you are running on Linux but you dont want to run `sudo` for `kind` and `docker` command, you can overwrite this behavior by editing the following var in `test/setup/.config`:
-* `DOCKER_CMD="docker"` for docker command
-* `KIND_CMD="kind"` for kind command 
-
-#### CI Testing
-
-System tests will be run in CI via the [system-test](./.github/workflows/system-test.yml) github action 
-
-
 ## Further information <!-- omit in toc -->
 
 + For an overview of the application architecture see the [design canvas](./docs/Architecture.excalidraw)
 + To see the attacks covered see the [edge definitions](./docs/reference/attacks)
 + To contribute a new attack to the project follow the [contribution guidelines](./CONTRIBUTING.md)
-+ 
 
 ## Acknowledgements
 
