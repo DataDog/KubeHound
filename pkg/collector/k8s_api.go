@@ -72,6 +72,9 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	if err != nil {
 		return nil, err
 	}
+	if clusterName == "" {
+		return nil, errors.New("Cluster name is empty. Did you forget to set `KUBECONFIG` or use `kubectx` to select a cluster?")
+	}
 
 	l := log.Trace(ctx,
 		log.WithComponent(K8sAPICollectorName),
@@ -79,7 +82,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	)
 
 	if !cfg.Collector.NonInteractive {
-		l.Warnf("About to dump k8s cluster: %s - Do you want to continue ? [Yes/No]", clusterName)
+		l.Warnf("About to dump k8s cluster: %q - Do you want to continue ? [Yes/No]", clusterName)
 		proceed, err := cmd.AskForConfirmation()
 		if err != nil {
 			return nil, err
