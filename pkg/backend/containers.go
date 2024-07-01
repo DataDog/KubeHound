@@ -90,7 +90,7 @@ func Up(ctx context.Context) error {
 func (b *Backend) up(ctx context.Context) error {
 	log.I.Infof("Spawning the kubehound stack")
 
-	return b.composeService.Up(ctx, b.project, api.UpOptions{
+	err := b.composeService.Up(ctx, b.project, api.UpOptions{
 		Create: api.CreateOptions{
 			Build: &api.BuildOptions{
 				NoCache: true,
@@ -105,6 +105,11 @@ func (b *Backend) up(ctx context.Context) error {
 			Watch: true,
 		},
 	})
+	if err != nil {
+		return fmt.Errorf("error starting the kubehound stack: %w. Please make sure your Docker is correctly installed and that you have enough disk space available. ", err)
+	}
+
+	return nil
 }
 
 func Down(ctx context.Context) error {
@@ -114,11 +119,16 @@ func Down(ctx context.Context) error {
 func (b *Backend) down(ctx context.Context) error {
 	log.I.Info("Tearing down the kubehound stack")
 
-	return b.composeService.Remove(ctx, b.project.Name, api.RemoveOptions{
+	err := b.composeService.Remove(ctx, b.project.Name, api.RemoveOptions{
 		Stop:    true,
 		Volumes: true,
 		Force:   true,
 	})
+	if err != nil {
+		return fmt.Errorf("error shuting down kubehound stack: %w", err)
+	}
+
+	return nil
 }
 
 func Reset(ctx context.Context) error {
@@ -165,7 +175,7 @@ func Wipe(ctx context.Context) error {
 
 func (b *Backend) wipe(ctx context.Context) error {
 	var err error
-	log.I.Infof("Wipping the persisted backend data")
+	log.I.Infof("Wiping the persisted backend data")
 
 	for _, volumeID := range b.project.VolumeNames() {
 		log.I.Infof("Deleting volume %s", volumeID)
