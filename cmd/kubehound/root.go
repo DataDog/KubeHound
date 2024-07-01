@@ -58,9 +58,9 @@ var (
 
 			log.I.Warn("KubeHound as finished ingesting and building the graph successfully.")
 			log.I.Warn("Please visit the UI to view the graph by clicking the link below:")
-			log.I.Warnf("http://localhost:8888")
+			log.I.Warn("http://localhost:8888")
 			// Yes, we should change that :D
-			log.I.Warnf("Password being 'admin'")
+			log.I.Warn("Password being 'admin'")
 
 			return nil
 		},
