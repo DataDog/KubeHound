@@ -113,7 +113,7 @@ local-cluster-destroy: ## Destroy the local kind cluster
 
 .PHONY: sample-graph
 sample-graph: | local-cluster-deploy build ## Create the kind cluster, start the backend, run the application, delete the cluster
-	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && $(ROOT_DIR)/bin/kubehound
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && $(ROOT_DIR)/bin/build/kubehound
 	bash test/setup/manage-cluster.sh destroy
 
 .PHONY: help
