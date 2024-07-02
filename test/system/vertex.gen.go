@@ -1,5 +1,5 @@
 // PLEASE DO NOT EDIT
-// THIS HAS BEEN GENERATED AUTOMATICALLY on 2023-11-01 10:47
+// THIS HAS BEEN GENERATED AUTOMATICALLY on 2024-06-19 15:03
 //
 // Generate it with "go generate ./..."
 //
@@ -967,9 +967,9 @@ var expectedContainers = map[string]graph.Container{
 		// Node:         "",
 		Compromised: 0,
 	},
-	"umh-core-pod": {
+	"umh-core-container": {
 		StoreID:      "",
-		Name:         "umh-core-pod",
+		Name:         "umh-core-container",
 		Image:        "ubuntu",
 		Command:      []string{},
 		Args:         []string{},

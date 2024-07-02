@@ -78,7 +78,7 @@ cache-clear: ## Clear the builder cache
 
 .PHONY: kubehound
 kubehound: | build ## Prepare kubehound (build go binary, deploy backend)
-	./bin/kubehound
+	./bin/build/kubehound
 
 .PHONY: test
 test: ## Run the full suite of unit tests 
