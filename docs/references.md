@@ -40,7 +40,7 @@ Also we showed how the tool has been built and lessons we have learned from the 
 ## 2024 - InsomniHack 2024 presentation
 ### [Standing on the Shoulders of Giant(Dog)s: A Kubernetes Attack Graph Model](https://www.insomnihack.ch/talks-2024/#BZ3UA9) 
 
-[Recording :fontawesome-brands-youtube:{ .youtube } ](https://www.youtube.com/watch?v=sy_ijtW6wmQ){ .md-button  .md-button--youtube } [Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/insomnihack24/Kubehound - Insomni'Hack 2024 - slides.pdf){ .md-button } [Dashboard PoC :fontawesome-brands-python:{ .python } ](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound/scripts/dashboard-demp){ .md-button }
+[Recording :fontawesome-brands-youtube:{ .youtube } ](https://www.youtube.com/watch?v=sy_ijtW6wmQ){ .md-button  .md-button--youtube } [Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/insomnihack24/Kubehound - Insomni'Hack 2024 - slides.pdf){ .md-button } [Dashboard PoC :fontawesome-brands-python:{ .python } ](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound/scripts/dashboard-demo){ .md-button }
 
 This presentation explains why the tool was created and what problem it tries to solve. 2 demos were shown:
 
