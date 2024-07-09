@@ -3,7 +3,7 @@
 ## 2024 - Pass The Salt (PTS) Workshop
 ### [KubeHound: Identifying attack paths in Kubernetes clusters at scale with no hustle](https://cfp.pass-the-salt.org/pts2024/talk/WA99YZ/) 
 
-[Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/PassTheSalt24/Kubehound - PassTheSalt - slides.pdf){ .md-button } [Jupyter notebook :fontawesome-brands-python:{ .python } ](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound/notebook/KubehoundDSL_101.ipynb){ .md-button }
+[Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/PassTheSalt24/Kubehound-Workshop-PassTheSalt_2024.pdf){ .md-button } [Jupyter notebook :fontawesome-brands-python:{ .python } ](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound/notebook/KubehoundDSL_101.ipynb){ .md-button }
 
 The goal of the workshop was to showcase **how to use KubeHound to pinpoint security issues in a Kubernetes cluster and get a concrete security posture**. 
 
@@ -26,7 +26,7 @@ All was done using the following notebook which is a step-by-step KubeHound DSL:
 ## 2024 - Troopers presentation
 ### [Attacking and Defending Kubernetes Cluster with KubeHound, an Attack Graph Model](https://troopers.de/troopers24/talks/t8tc7m/) 
 
-[Recording :fontawesome-brands-youtube:{ .youtube } ](#){ .md-button  .md-button--youtube } [Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/Troopers24/Kubehound-Troopers_2024-slides.pdf){ .md-button } [Dashboard PoC :fontawesome-brands-python:{ .python } ](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound/scripts/dashboard-demo){ .md-button }
+[Recording :fontawesome-brands-youtube:{ .youtube } ](#){ .md-button  .md-button--youtube } [Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/Troopers24/Kubehound-Troopers_2024-slides.pdf){ .md-button } [Dashboard PoC :fontawesome-brands-python:{ .python } ](https://github.com/DataDog/KubeHound/tree/main/scripts/dashboard-demo){ .md-button }
 
 This presentation explains the genesis behind the tool. A specific focus was made on the new version **KubeHound as a Service** or **KHaaS** which allow using KubeHound with a distributed model across multiple Kuberentes Clusters. We also introduce a new command that allows consultants to use KubeHound asynchronously (dumping and rehydration later, in office for instance).
 
@@ -40,7 +40,7 @@ Also we showed how the tool has been built and lessons we have learned from the 
 ## 2024 - InsomniHack 2024 presentation
 ### [Standing on the Shoulders of Giant(Dog)s: A Kubernetes Attack Graph Model](https://www.insomnihack.ch/talks-2024/#BZ3UA9) 
 
-[Recording :fontawesome-brands-youtube:{ .youtube } ](https://www.youtube.com/watch?v=sy_ijtW6wmQ){ .md-button  .md-button--youtube } [Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/insomnihack24/Kubehound - Insomni'Hack 2024 - slides.pdf){ .md-button } [Dashboard PoC :fontawesome-brands-python:{ .python } ](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound/scripts/dashboard-demo){ .md-button }
+[Recording :fontawesome-brands-youtube:{ .youtube } ](https://www.youtube.com/watch?v=sy_ijtW6wmQ){ .md-button  .md-button--youtube } [Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/insomnihack24/Kubehound - Insomni'Hack 2024 - slides.pdf){ .md-button } [Dashboard PoC :fontawesome-brands-python:{ .python } ](https://github.com/DataDog/KubeHound/tree/main/scripts/dashboard-demo){ .md-button }
 
 This presentation explains why the tool was created and what problem it tries to solve. 2 demos were shown:
 
