@@ -3,6 +3,9 @@ name: test-extract
 permissions:
   contents: read
 
+on:
+  pull_request:
+
 jobs:
   extract:
     name: Try to extract secrets
