@@ -18,7 +18,6 @@ services:
       - mongodb_data:/data/db
 
   kubegraph:
-    image: ghcr.io/datadog/kubehound-graph:latest
     restart: unless-stopped
     networks:
       - kubenet
@@ -33,7 +32,6 @@ services:
       - kubegraph_data:/var/lib/janusgraph
 
   ui-jupyter:
-    image: ghcr.io/datadog/kubehound-ui:latest
     restart: unless-stopped
     profiles:
       - jupyter
