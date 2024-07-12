@@ -70,7 +70,7 @@ services:
     ports:
       - 127.0.0.1:8300:8300
     depends_on:
-      - invana-engine
+      - ui-invana-engine
 
 networks:
   kubenet:
