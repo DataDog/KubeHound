@@ -21,19 +21,22 @@ import (
 var (
 	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml.tpl"}
 	DefaultDatadogComposePath  = "docker-compose.datadog.yaml"
+	DefaultUIProfile           = []string{DevUIProfile}
+
+	DevUIProfile = "jupyter"
 )
 
-func loadProject(ctx context.Context, composeFilePaths []string) (*types.Project, error) {
+func loadProject(ctx context.Context, composeFilePaths []string, profiles []string) (*types.Project, error) {
 	var project *types.Project
 	var err error
 
 	switch {
 	case len(composeFilePaths) != 0 && len(composeFilePaths[0]) != 0:
 		log.I.Infof("Loading backend from file %s", composeFilePaths)
-		project, err = loadComposeConfig(ctx, composeFilePaths)
+		project, err = loadComposeConfig(ctx, composeFilePaths, profiles)
 	default:
 		log.I.Infof("Loading backend from default embedded")
-		project, err = loadEmbeddedConfig(ctx)
+		project, err = loadEmbeddedConfig(ctx, profiles)
 	}
 
 	if err != nil {
@@ -66,11 +69,12 @@ func loadProject(ctx context.Context, composeFilePaths []string) (*types.Project
 
 	return project, nil
 }
-func loadComposeConfig(ctx context.Context, composeFilePaths []string) (*types.Project, error) {
+func loadComposeConfig(ctx context.Context, composeFilePaths []string, profiles []string) (*types.Project, error) {
 	options, err := cli.NewProjectOptions(
 		composeFilePaths,
 		cli.WithOsEnv,
 		cli.WithDotEnv,
+		cli.WithProfiles(profiles),
 	)
 	if err != nil {
 		return nil, err
@@ -79,7 +83,7 @@ func loadComposeConfig(ctx context.Context, composeFilePaths []string) (*types.P
 	return cli.ProjectFromOptions(ctx, options)
 }
 
-func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
+func loadEmbeddedConfig(ctx context.Context, profiles []string) (*types.Project, error) {
 	var dockerComposeFileData map[interface{}]interface{}
 	var err error
 	var hostname string
@@ -122,7 +126,7 @@ func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
 		},
 	}
 
-	return loader.LoadWithContext(ctx, opts)
+	return loader.LoadWithContext(ctx, opts, loader.WithProfiles(profiles))
 }
 
 func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerComposeFileData map[interface{}]interface{}) (map[interface{}]interface{}, error) {

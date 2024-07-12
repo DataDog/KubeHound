@@ -1,0 +1,4 @@
+name: kubehound-dev
+services:
+  kubegraph:
+    build: ./kubegraph/

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/DataDog/KubeHound/pkg/backend"
 	docker "github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/spf13/cobra"
 )
@@ -9,6 +10,9 @@ var (
 	Backend     *docker.Backend
 	hard        bool
 	composePath []string
+
+	uiProfile = backend.DefaultUIProfile
+	uiInvana  bool
 )
 
 var (
@@ -17,7 +21,11 @@ var (
 		Short: "Handle the kubehound stack",
 		Long:  `Handle the kubehound stack - docker compose based stack for kubehound services (mongodb, graphdb and UI)`,
 		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
-			return docker.NewBackend(cobraCmd.Context(), composePath)
+			if uiInvana {
+				uiProfile = append(uiProfile, "invana")
+			}
+
+			return docker.NewBackend(cobraCmd.Context(), composePath, uiProfile)
 		},
 	}
 
@@ -78,5 +86,6 @@ func init() {
 
 	backendCmd.AddCommand(backendDownCmd)
 	backendCmd.PersistentFlags().StringSliceVarP(&composePath, "file", "f", composePath, "Compose configuration files")
+	backendCmd.PersistentFlags().BoolVar(&uiInvana, "invana", false, "Activate Invana front end as KubeHound UI alternative")
 	rootCmd.AddCommand(backendCmd)
 }

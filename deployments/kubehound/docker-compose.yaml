@@ -14,8 +14,11 @@ services:
       interval: 10s
       timeout: 2s
       retries: 10
+    volumes:
+      - mongodb_data:/data/db
 
   kubegraph:
+    image: ghcr.io/datadog/kubehound-graph:latest
     restart: unless-stopped
     networks:
       - kubenet
@@ -26,6 +29,53 @@ services:
       retries: 3
     labels:
       com.datadoghq.ad.logs: '[{"app": "kubegraph", "service": "kubehound"}]'
+    volumes:
+      - kubegraph_data:/var/lib/janusgraph
+
+  ui-jupyter:
+    image: ghcr.io/datadog/kubehound-ui:latest
+    restart: unless-stopped
+    profiles:
+      - jupyter
+    ports:
+      - "127.0.0.1:8888:8888"
+    networks:
+      - kubenet
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "kubeui", "service": "kubehound"}]'
+    volumes:
+      - kubeui_data:/root/notebooks/shared
+  
+  ui-invana-engine:
+    image: invanalabs/invana-engine:latest
+    profiles:
+      - invana
+    restart: unless-stopped
+    networks:
+      - kubenet
+    ports:
+      - 127.0.0.1:8200:8200
+    environment:
+      GREMLIN_SERVER_URL: ws://kubegraph:8182/gremlin
+    depends_on:
+      - kubegraph
+
+  ui-invana-studio:
+    image: invanalabs/invana-studio:latest
+    restart: unless-stopped
+    profiles:
+      - invana
+    networks:
+      - kubenet
+    ports:
+      - 127.0.0.1:8300:8300
+    depends_on:
+      - invana-engine
 
 networks:
   kubenet:
+
+volumes:
+  mongodb_data:
+  kubegraph_data:
+  kubeui_data:
