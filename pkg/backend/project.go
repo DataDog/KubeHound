@@ -138,7 +138,7 @@ func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerCompose
 	// For local version (when the version is "dirty", using latest to have a working binary)
 	// For any branch outside of main, using latest image as the current tag will cover (including the commit sha in the tag)
 	version := map[string]string{"VersionTag": "latest"}
-	if !strings.HasSuffix(config.BuildBranch, "dirty") || config.BuildBranch == "main" { {
+	if !strings.HasSuffix(config.BuildBranch, "dirty") || config.BuildBranch == "main" {
 		version["VersionTag"] = config.BuildVersion
 	}
 
