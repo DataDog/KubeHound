@@ -134,17 +134,17 @@ func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerCompose
 	var localData []byte
 	var err error
 
-	// Setting the version tag for the release dynamically
-	version := map[string]string{"VersionTag": config.BuildVersion}
-
-	// For local version (when the version is "dirty", using latest to have a working binary)
-	// For any branch outside of main, using latest image as the current tag will cover (including the commit sha in the tag)
-	if strings.HasSuffix(config.BuildBranch, "dirty") || config.BuildBranch != "main" {
-		log.I.Warnf("Building the kubehound stack with latest tag - dev branch detected")
-		version["VersionTag"] = "latest"
-	}
-
 	if strings.HasSuffix(filepath, ".tpl") {
+		// Setting the version tag for the release dynamically
+		version := map[string]string{"VersionTag": config.BuildVersion}
+
+		// For local version (when the version is "dirty", using latest to have a working binary)
+		// For any branch outside of main, using latest image as the current tag will cover (including the commit sha in the tag)
+		if strings.HasSuffix(config.BuildBranch, "dirty") || config.BuildBranch != "main" {
+			log.I.Warnf("Building the kubehound stack with latest tag - dev branch detected")
+			version["VersionTag"] = "latest"
+		}
+
 		tmpl, err := template.New(filepath).ParseFS(embedconfigdocker.F, filepath)
 		if err != nil {
 			return nil, fmt.Errorf("new template: %w", err)
