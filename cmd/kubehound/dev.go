@@ -4,15 +4,16 @@ import (
 	"context"
 	"os"
 
+	"github.com/DataDog/KubeHound/pkg/backend"
 	docker "github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/spf13/cobra"
 )
 
 var (
 	DefaultComposeTestingPath = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.testing.yaml"}
-	DefaultComposeDevPath     = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.dev.yaml"}
-	DefaultComposeDevPathUI   = "./deployments/kubehound/docker-compose.ui.yaml"
-	DefaultComposeDevPathGRPC = "./deployments/kubehound/docker-compose.ingestor.yaml"
+	DefaultComposeDevPath     = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.dev.graph.yaml"}
+	DefaultComposeDevPathUI   = "./deployments/kubehound/docker-compose.dev.ui.yaml"
+	DefaultComposeDevPathGRPC = "./deployments/kubehound/docker-compose.dev.ingestor.yaml"
 	DefaultDatadogComposePath = "./deployments/kubehound/docker-compose.datadog.yaml"
 )
 
@@ -20,6 +21,7 @@ var (
 	uiTesting   bool
 	grpcTesting bool
 	downTesting bool
+	profiles    []string
 )
 
 var (
@@ -28,9 +30,6 @@ var (
 		Hidden: true,
 		Short:  "[devOnly] Spawn the kubehound testing stack",
 		Long:   `[devOnly] Spawn the kubehound dev stack for the system-tests (build from dockerfile)`,
-		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
-			return docker.NewBackend(cobraCmd.Context(), composePath)
-		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			if uiTesting {
 				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultComposeDevPathUI)
@@ -60,7 +59,11 @@ var (
 )
 
 func runEnv(ctx context.Context, composePaths []string) error {
-	err := docker.NewBackend(ctx, composePaths)
+	if uiTesting {
+		profiles = append(profiles, backend.DevUIProfile)
+	}
+
+	err := docker.NewBackend(ctx, composePaths, profiles)
 	if err != nil {
 		return err
 	}

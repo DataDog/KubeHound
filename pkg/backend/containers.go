@@ -24,15 +24,15 @@ type Backend struct {
 	dockerCli      *command.DockerCli
 }
 
-func NewBackend(ctx context.Context, composeFilePaths []string) error {
+func NewBackend(ctx context.Context, composeFilePaths []string, profiles []string) error {
 	var err error
-	currentBackend, err = newBackend(ctx, composeFilePaths)
+	currentBackend, err = newBackend(ctx, composeFilePaths, profiles)
 
 	return err
 }
 
-func newBackend(ctx context.Context, composeFilePaths []string) (*Backend, error) {
-	project, err := loadProject(ctx, composeFilePaths)
+func newBackend(ctx context.Context, composeFilePaths []string, profiles []string) (*Backend, error) {
+	project, err := loadProject(ctx, composeFilePaths, profiles)
 	if err != nil {
 		return nil, err
 	}

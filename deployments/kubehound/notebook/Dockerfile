@@ -18,7 +18,6 @@ ENV GRAPH_NOTEBOOK_PORT="8182"
 ENV NOTEBOOK_PORT="8888"
 ENV LAB_PORT="8889"
 ENV GRAPH_NOTEBOOK_SSL="True"
-ENV NOTEBOOK_PASSWORD="admin"
 
 # "when the SIGTERM signal is sent to the docker process, it immediately quits and all established connections are closed"
 # "graceful stop is triggered when the SIGUSR1 signal is sent to the docker process"

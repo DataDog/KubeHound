@@ -10,10 +10,11 @@ COMMIT := $(shell git rev-parse --short HEAD)
 DATE := $(shell git log -1 --format=%cd --date=format:"%Y%m%d")
 
 BUILD_VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty --always --tags)
+BUILD_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 BUILD_ARCH := $(shell go env GOARCH)
 BUILD_OS := $(shell go env GOOS)
 
-BUILD_FLAGS := -ldflags="-X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION) -X github.com/DataDog/KubeHound/pkg/config.BuildArch=$(BUILD_ARCH) -X github.com/DataDog/KubeHound/pkg/config.BuildOs=$(BUILD_OS) -s -w"
+BUILD_FLAGS := -ldflags="-X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION) -X github.com/DataDog/KubeHound/pkg/config.BuildBranch=$(BUILD_BRANCH) -X github.com/DataDog/KubeHound/pkg/config.BuildArch=$(BUILD_ARCH) -X github.com/DataDog/KubeHound/pkg/config.BuildOs=$(BUILD_OS) -s -w"
 
 # Need to save the MAKEFILE_LIST variable before the including the env var files
 HELP_MAKEFILE_LIST := $(MAKEFILE_LIST)
