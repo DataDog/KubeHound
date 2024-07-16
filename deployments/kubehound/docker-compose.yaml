@@ -43,6 +43,8 @@ services:
       com.datadoghq.ad.logs: '[{"app": "kubeui", "service": "kubehound"}]'
     volumes:
       - kubeui_data:/root/notebooks/shared
+    environment:
+      - NOTEBOOK_PASSWORD="admin"
   
   ui-invana-engine:
     image: invanalabs/invana-engine:latest

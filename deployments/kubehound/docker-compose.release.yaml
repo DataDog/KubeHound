@@ -1,7 +1,6 @@
 name: kubehound-release
 services:
   mongodb:
-    image: ghcr.io/datadog/kubehound-graph:latest
     ports:
       - "127.0.0.1:27017:27017"
 
