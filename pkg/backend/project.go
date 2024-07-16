@@ -131,9 +131,13 @@ func loadEmbeddedConfig(ctx context.Context, profiles []string) (*types.Project,
 
 func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerComposeFileData map[interface{}]interface{}) (map[interface{}]interface{}, error) {
 	var localYaml map[interface{}]interface{}
-	var localData []byte
-	var err error
 
+	localData, err := embedconfigdocker.F.ReadFile(filepath)
+	if err != nil {
+		return nil, fmt.Errorf("reading embed config: %w", err)
+	}
+
+	// Dynamically setting the version tag for the release using a template file
 	if strings.HasSuffix(filepath, ".tpl") {
 		// Setting the version tag for the release dynamically
 		version := map[string]string{"VersionTag": config.BuildVersion}
@@ -156,11 +160,6 @@ func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerCompose
 			return nil, fmt.Errorf("executing template: %w", err)
 		}
 		localData = buf.Bytes()
-	} else {
-		localData, err = embedconfigdocker.F.ReadFile(filepath)
-		if err != nil {
-			return nil, fmt.Errorf("reading embed config: %w", err)
-		}
 	}
 
 	err = yaml.Unmarshal(localData, &localYaml)
