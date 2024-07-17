@@ -1,0 +1,5 @@
+{
+    "load_extensions": {
+      "init_cell/main": true
+    }
+  }
