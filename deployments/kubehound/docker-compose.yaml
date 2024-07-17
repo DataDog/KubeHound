@@ -46,6 +46,7 @@ services:
       - kubeui_data:/root/notebooks/shared
     environment:
       - NOTEBOOK_PASSWORD=admin
+      - GRAPH_NOTEBOOK_SSL=False
   
   ui-invana-engine:
     image: invanalabs/invana-engine:latest
