@@ -1,14 +1,28 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 package grpc;
+option go_package = "./grpc";
 
 message IngestRequest {
     string run_id = 1;
     string cluster_name = 2;
 }
-
 message IngestResponse {}
+
+message RehydrateLatestRequest {}
+message IngestedCluster {
+    string cluster_name = 1;
+    string run_id = 2;
+    google.protobuf.Timestamp date = 3 ;
+}
+message RehydrateLatestResponse {
+    repeated IngestedCluster ingested_cluster = 1;
+}
+
 
 service API {
     rpc Ingest (IngestRequest) returns (IngestResponse);
+    rpc RehydrateLatest (RehydrateLatestRequest) returns (RehydrateLatestResponse);
 }
