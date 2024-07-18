@@ -14,6 +14,10 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+// On macOS you need to install protobuf (`brew install protobuf`)
+// Need to install: go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+//go:generate protoc --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative ./api.proto
+
 // server is used to implement the GRPC api
 type server struct {
 	// grpc related embeds
