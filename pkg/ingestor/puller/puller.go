@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
@@ -19,6 +20,13 @@ type DataPuller interface {
 	Pull(ctx context.Context, clusterName string, runID string) (string, error)
 	Extract(ctx context.Context, archivePath string) error
 	Close(ctx context.Context, basePath string) error
+	ListFiles(ctx context.Context, prefix string, recursive bool) ([]*ListObject, error)
+}
+
+type ListObject struct {
+	Key string
+	// ModTime is the time the blob was last modified.
+	ModTime time.Time
 }
 
 func FormatArchiveKey(clusterName string, runID string, archiveName string) string {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -95,6 +96,41 @@ func (bs *BlobStore) openBucket(ctx context.Context) (*blob.Bucket, error) {
 	}
 
 	return bucket, nil
+}
+
+func (bs *BlobStore) listFiles(ctx context.Context, b *blob.Bucket, prefix string, recursive bool) ([]*puller.ListObject, error) {
+	objs := []*puller.ListObject{}
+	iter := b.List(&blob.ListOptions{
+		Delimiter: "/",
+		Prefix:    prefix,
+	})
+	for {
+		obj, err := iter.Next(ctx)
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("listing objects: %w", err)
+		}
+		if obj.IsDir && recursive {
+			objs, _ = bs.listFiles(ctx, b, obj.Key, true)
+		}
+		objs = append(objs, &puller.ListObject{
+			Key:     obj.Key,
+			ModTime: obj.ModTime,
+		})
+	}
+
+	return objs, nil
+}
+
+func (bs *BlobStore) ListFiles(ctx context.Context, prefix string, recursive bool) ([]*puller.ListObject, error) {
+	b, err := bs.openBucket(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return bs.listFiles(ctx, b, prefix, recursive)
 }
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
