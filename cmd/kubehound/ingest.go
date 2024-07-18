@@ -59,6 +59,27 @@ var (
 			return core.CoreClientGRPCIngest(khCfg.Ingestor, khCfg.Ingestor.ClusterName, khCfg.Ingestor.RunID)
 		},
 	}
+
+	remoteIngestRehydrateCmd = &cobra.Command{
+		Use:   "rehydrate",
+		Short: "Rehydrate snapshot previously dumped on a KHaaS instance",
+		Long:  `Run an rehydratation on KHaaS from a bucket to build the attack path`,
+		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
+			viper.BindPFlag(config.IngestorAPIEndpoint, cobraCmd.Flags().Lookup("khaas-server")) //nolint: errcheck
+			viper.BindPFlag(config.IngestorAPIInsecure, cobraCmd.Flags().Lookup("insecure"))     //nolint: errcheck
+
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", false, true)
+		},
+		RunE: func(cobraCmd *cobra.Command, args []string) error {
+			// Passing the Kubehound config from viper
+			khCfg, err := cmd.GetConfig()
+			if err != nil {
+				return fmt.Errorf("get config: %w", err)
+			}
+
+			return core.CoreClientGRPCRehydrateLatest(khCfg.Ingestor)
+		},
+	}
 )
 
 func init() {
@@ -69,6 +90,8 @@ func init() {
 
 	ingestCmd.AddCommand(remoteIngestCmd)
 	cmd.InitRemoteIngestCmd(remoteIngestCmd, true)
+
+	remoteIngestCmd.AddCommand(remoteIngestRehydrateCmd)
 
 	rootCmd.AddCommand(ingestCmd)
 }

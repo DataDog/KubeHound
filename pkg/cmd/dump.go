@@ -63,8 +63,8 @@ func InitRemoteDumpCmd(cmd *cobra.Command) {
 
 func InitRemoteIngestCmd(cmd *cobra.Command, standalone bool) {
 
-	cmd.Flags().String("khaas-server", "", "GRPC endpoint exposed by KubeHound as a Service (KHaaS) server (e.g.: localhost:9000)")
-	cmd.Flags().Bool("insecure", config.DefaultIngestorAPIInsecure, "Allow insecure connection to the KHaaS server grpc endpoint")
+	cmd.PersistentFlags().String("khaas-server", "", "GRPC endpoint exposed by KubeHound as a Service (KHaaS) server (e.g.: localhost:9000)")
+	cmd.PersistentFlags().Bool("insecure", config.DefaultIngestorAPIInsecure, "Allow insecure connection to the KHaaS server grpc endpoint")
 
 	// IngestorAPIEndpoint
 	if standalone {
