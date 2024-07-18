@@ -37,6 +37,7 @@ services:
       - jupyter
     ports:
       - "127.0.0.1:8888:8888"
+      - "127.0.0.1:8889:8889"
     networks:
       - kubenet
     labels:
@@ -45,6 +46,7 @@ services:
       - kubeui_data:/root/notebooks/shared
     environment:
       - NOTEBOOK_PASSWORD=admin
+      - GRAPH_NOTEBOOK_SSL=False
   
   ui-invana-engine:
     image: invanalabs/invana-engine:latest
