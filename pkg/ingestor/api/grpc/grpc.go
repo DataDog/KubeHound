@@ -38,6 +38,20 @@ func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestRe
 	return &pb.IngestResponse{}, nil
 }
 
+// RehydrateLatest is just a GRPC wrapper around the RehydrateLatest method from the API package
+func (s *server) RehydrateLatest(ctx context.Context, in *pb.RehydrateLatestRequest) (*pb.RehydrateLatestResponse, error) {
+	res, err := s.api.RehydrateLatest(ctx)
+	if err != nil {
+		log.I.Errorf("Ingest failed: %v", err)
+
+		return nil, err
+	}
+
+	return &pb.RehydrateLatestResponse{
+		IngestedCluster: res,
+	}, nil
+}
+
 // Listen starts the GRPC server with the generic api implementation
 // It uses the config from the passed API for address and ports
 func Listen(ctx context.Context, api *api.IngestorAPI) error {
