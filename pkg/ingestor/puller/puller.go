@@ -29,14 +29,10 @@ type ListObject struct {
 	ModTime time.Time
 }
 
-func FormatArchiveKey(clusterName string, runID string, archiveName string) string {
-	return strings.Join([]string{clusterName, runID, archiveName}, "/")
-}
-
 // checkSanePath just to make sure we don't delete or overwrite somewhere where we are not supposed to
 func CheckSanePath(path string, baseFolder string) error {
 	if path == "/" || path == "" || !strings.HasPrefix(path, baseFolder) {
-		return fmt.Errorf("Invalid path provided: %q", path)
+		return fmt.Errorf("Invalid path provided: %q / base: %q", path, baseFolder)
 	}
 
 	return nil

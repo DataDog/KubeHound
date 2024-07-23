@@ -3,7 +3,6 @@ package dump
 import (
 	"context"
 	"fmt"
-	"path"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -15,23 +14,10 @@ import (
 )
 
 type DumpIngestor struct {
-	directoryOutput string
-	ResultName      string
-	collector       collector.CollectorClient
-	writer          writer.DumperWriter
+	collector collector.CollectorClient
+	writer    writer.DumperWriter
 }
 
-const (
-	OfflineDumpDateFormat = "2006-01-02-15-04-05"
-	OfflineDumpPrefix     = "kubehound_"
-)
-
-// ./<clusterName>/kubehound_<clusterName>_<run_id>
-func DumpIngestorResultName(clusterName string, runID string) string {
-	return path.Join(clusterName, fmt.Sprintf("%s%s_%s", OfflineDumpPrefix, clusterName, runID))
-}
-
-// func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, compression bool, directoryOutput string) (*DumpIngestor, error) {
 func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, compression bool, directoryOutput string, runID *config.RunID) (*DumpIngestor, error) {
 	// Generate path for the dump
 	clusterName, err := getClusterName(ctx, collector)
@@ -39,18 +25,19 @@ func NewDumpIngestor(ctx context.Context, collector collector.CollectorClient, c
 		return nil, err
 	}
 
-	resultName := DumpIngestorResultName(clusterName, runID.String())
+	dumpResult, err := NewDumpResult(clusterName, runID.String(), compression)
+	if err != nil {
+		return nil, fmt.Errorf("create dump result: %w", err)
+	}
 
-	dumpWriter, err := writer.DumperWriterFactory(ctx, compression, directoryOutput, resultName)
+	dumpWriter, err := writer.DumperWriterFactory(ctx, compression, directoryOutput, dumpResult.GetFullPath())
 	if err != nil {
 		return nil, fmt.Errorf("create collector writer: %w", err)
 	}
 
 	return &DumpIngestor{
-		directoryOutput: directoryOutput,
-		collector:       collector,
-		writer:          dumpWriter,
-		ResultName:      resultName,
+		collector: collector,
+		writer:    dumpWriter,
 	}, nil
 }
 

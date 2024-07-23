@@ -51,10 +51,6 @@ func NewBlobStorage(cfg *config.KubehoundConfig, blobConfig *config.BlobConfig) 
 	}, nil
 }
 
-func getKeyPath(clusterName, runID string) string {
-	return fmt.Sprintf("%s%s", dump.DumpIngestorResultName(clusterName, runID), writer.TarWriterExtension)
-}
-
 func (bs *BlobStore) openBucket(ctx context.Context) (*blob.Bucket, error) {
 	urlStruct, err := url.Parse(bs.bucketName)
 	if err != nil {
@@ -140,7 +136,11 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 	var err error
 	defer func() { spanPut.Finish(tracer.WithError(err)) }()
 
-	key := getKeyPath(clusterName, runID)
+	dumpResult, err := dump.NewDumpResult(clusterName, runID, true)
+	if err != nil {
+		return err
+	}
+	key := dumpResult.GetFullPath()
 	log.I.Infof("Downloading archive (%s) from blob store", key)
 	b, err := bs.openBucket(ctx)
 	if err != nil {
@@ -178,7 +178,11 @@ func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID strin
 	var err error
 	defer func() { spanPull.Finish(tracer.WithError(err)) }()
 
-	key := getKeyPath(clusterName, runID)
+	dumpResult, err := dump.NewDumpResult(clusterName, runID, true)
+	if err != nil {
+		return "", err
+	}
+	key := dumpResult.GetFullPath()
 	log.I.Infof("Downloading archive (%s) from blob store", key)
 	b, err := bs.openBucket(ctx)
 	if err != nil {

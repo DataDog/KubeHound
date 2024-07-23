@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"sync"
 
@@ -18,9 +17,8 @@ import (
 )
 
 const (
-	TarWriterExtension = ".tar.gz"
-	TarWriterChmod     = 0600
-	TarTypeTag         = "tar"
+	TarWriterChmod = 0600
+	TarTypeTag     = "tar"
 
 	// Multi-threading the dump with one worker for each types
 	// The number of workers is set to the number of differents entities (roles, pods, ...)
@@ -40,8 +38,7 @@ type TarWriter struct {
 	fsWriter   *FSWriter
 }
 
-func NewTarWriter(ctx context.Context, directoryPath string, resName string) (*TarWriter, error) {
-	tarPath := path.Join(directoryPath, fmt.Sprintf("%s%s", resName, TarWriterExtension))
+func NewTarWriter(ctx context.Context, tarPath string) (*TarWriter, error) {
 	tarFile, err := createTarFile(tarPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create tar file: %w", err)

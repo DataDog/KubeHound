@@ -48,8 +48,6 @@ func TestNewDumpIngestor(t *testing.T) {
 				runID:           config.NewRunID(),
 			},
 			want: &DumpIngestor{
-				directoryOutput: mockDirectoryOutput,
-
 				writer: &writer.FileWriter{},
 			},
 			wantErr: false,
@@ -63,8 +61,7 @@ func TestNewDumpIngestor(t *testing.T) {
 				runID:           config.NewRunID(),
 			},
 			want: &DumpIngestor{
-				directoryOutput: mockDirectoryOutput,
-				writer:          &writer.TarWriter{},
+				writer: &writer.TarWriter{},
 			},
 			wantErr: false,
 		},
@@ -82,10 +79,6 @@ func TestNewDumpIngestor(t *testing.T) {
 
 			if !assert.Equal(t, reflect.TypeOf(got.writer), reflect.TypeOf(tt.want.writer)) {
 				t.Errorf("NewDumpIngestor() = %v, want %v", reflect.TypeOf(got.writer), reflect.TypeOf(tt.want.writer))
-			}
-
-			if !assert.Equal(t, got.directoryOutput, tt.want.directoryOutput) {
-				t.Errorf("NewDumpIngestor() = %v, want %v", got.directoryOutput, tt.want.directoryOutput)
 			}
 		})
 	}
