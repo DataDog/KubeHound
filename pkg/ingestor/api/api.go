@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/dump/writer"
+	"github.com/DataDog/KubeHound/pkg/dump"
 	"github.com/DataDog/KubeHound/pkg/ingestor"
 	grpc "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier"
@@ -76,23 +76,30 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 
 		if l := len(dumpKeys); l > 0 {
 			// extracting the latest runID
-			sort.Slice(dumpKeys, func(a, b int) bool {
-				return dumpKeys[a].ModTime.Before(dumpKeys[b].ModTime)
+			latestDump := slices.MaxFunc(dumpKeys, func(a, b *puller.ListObject) int {
+				// return dumpKeys[a].ModTime.Before(dumpKeys[b].ModTime)
+				return a.ModTime.Compare(b.ModTime)
 			})
-			ingestTime := dumpKeys[l-1].ModTime
-			prefix := fmt.Sprintf("%s/kubehound_%s_", clusterName, clusterName)
-			runID := strings.TrimPrefix(dumpKeys[l-1].Key, prefix)
-			runID = strings.TrimSuffix(runID, writer.TarWriterExtension)
+			latestDumpIngestTime := latestDump.ModTime
+			latestDumpKey := latestDump.Key
+
+			dumpResult, err := dump.ParsePath(latestDumpKey)
+			if err != nil {
+				errRet = errors.Join(errRet, fmt.Errorf("parsing dump path %s: %w", latestDumpKey, err))
+
+				continue
+			}
+			runID := dumpResult.RunID
 
 			clusterErr := g.Ingest(ctx, clusterName, runID)
-			if err != nil {
+			if clusterErr != nil {
 				errRet = errors.Join(errRet, fmt.Errorf("ingesting cluster %s/%s: %w", clusterName, runID, clusterErr))
 			}
-			log.I.Infof("Rehydrated cluster: %s, date: %s, run_id: %s", clusterName, ingestTime.Format("01-02-2006 15:04:05"), runID)
+			log.I.Infof("Rehydrated cluster: %s, date: %s, run_id: %s", clusterName, latestDumpIngestTime.Format("01-02-2006 15:04:05"), runID)
 			ingestedCluster := &grpc.IngestedCluster{
 				ClusterName: clusterName,
 				RunId:       runID,
-				Date:        timestamppb.New(ingestTime),
+				Date:        timestamppb.New(latestDumpIngestTime),
 			}
 			res = append(res, ingestedCluster)
 
@@ -132,10 +139,11 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	if err != nil {
 		return err
 	}
-	err = g.puller.Close(runCtx, archivePath) //nolint: contextcheck
-	if err != nil {
-		return err
-	}
+
+	defer func() {
+		err = errors.Join(err, g.puller.Close(runCtx, archivePath))
+	}()
+
 	err = g.puller.Extract(runCtx, archivePath) //nolint: contextcheck
 	if err != nil {
 		return err
@@ -164,7 +172,10 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	if err != nil {
 		return fmt.Errorf("collector client creation: %w", err)
 	}
-	defer collect.Close(runCtx) //nolint: contextcheck
+
+	defer func() {
+		err = errors.Join(err, collect.Close(runCtx))
+	}()
 	log.I.Infof("Loaded %s collector client", collect.Name())
 
 	err = g.Cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID))
@@ -198,10 +209,11 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 	}
 	err = g.notifier.Notify(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
-		return err
+		return fmt.Errorf("notifying: %w", err)
 	}
 
-	return nil
+	// returning err from the defer functions
+	return err
 }
 
 func (g *IngestorAPI) isAlreadyIngestedInGraph(_ context.Context, clusterName string, runID string) (bool, error) {
