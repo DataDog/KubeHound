@@ -94,8 +94,7 @@ func (bs *BlobStore) openBucket(ctx context.Context) (*blob.Bucket, error) {
 	return bucket, nil
 }
 
-func (bs *BlobStore) listFiles(ctx context.Context, b *blob.Bucket, prefix string, recursive bool) ([]*puller.ListObject, error) {
-	objs := []*puller.ListObject{}
+func (bs *BlobStore) listFiles(ctx context.Context, b *blob.Bucket, prefix string, recursive bool, listObjects []*puller.ListObject) ([]*puller.ListObject, error) {
 	iter := b.List(&blob.ListOptions{
 		Delimiter: "/",
 		Prefix:    prefix,
@@ -108,16 +107,17 @@ func (bs *BlobStore) listFiles(ctx context.Context, b *blob.Bucket, prefix strin
 		if err != nil {
 			return nil, fmt.Errorf("listing objects: %w", err)
 		}
+
 		if obj.IsDir && recursive {
-			objs, _ = bs.listFiles(ctx, b, obj.Key, true)
+			listObjects, _ = bs.listFiles(ctx, b, obj.Key, true, listObjects)
 		}
-		objs = append(objs, &puller.ListObject{
+		listObjects = append(listObjects, &puller.ListObject{
 			Key:     obj.Key,
 			ModTime: obj.ModTime,
 		})
 	}
 
-	return objs, nil
+	return listObjects, nil
 }
 
 func (bs *BlobStore) ListFiles(ctx context.Context, prefix string, recursive bool) ([]*puller.ListObject, error) {
@@ -125,8 +125,9 @@ func (bs *BlobStore) ListFiles(ctx context.Context, prefix string, recursive boo
 	if err != nil {
 		return nil, err
 	}
+	listObjects := []*puller.ListObject{}
 
-	return bs.listFiles(ctx, b, prefix, recursive)
+	return bs.listFiles(ctx, b, prefix, recursive, listObjects)
 }
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
