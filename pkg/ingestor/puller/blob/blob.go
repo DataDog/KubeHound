@@ -229,7 +229,7 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 	defer func() { spanExtract.Finish(tracer.WithError(err)) }()
 
 	basePath := filepath.Dir(archivePath)
-	err = puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
+	err = puller.CheckSanePath(archivePath, basePath)
 	if err != nil {
 		return fmt.Errorf("Dangerous file path used during extraction, aborting: %w", err)
 	}
@@ -250,7 +250,7 @@ func (bs *BlobStore) Close(ctx context.Context, archivePath string) error {
 	var err error
 	defer func() { spanClose.Finish(tracer.WithError(err)) }()
 
-	path := filepath.Base(archivePath)
+	path := filepath.Dir(archivePath)
 	err = puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
 	if err != nil {
 		return fmt.Errorf("Dangerous file path used while closing, aborting: %w", err)
