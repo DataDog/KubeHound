@@ -199,6 +199,7 @@ func TestIsTarGz(t *testing.T) {
 			got, err := IsTarGz(tt.args.filePath, tt.args.maxArchiveSize)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("IsTarGz() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if got != tt.want {

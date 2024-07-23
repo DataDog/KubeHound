@@ -251,7 +251,7 @@ func TestNewDumpResult(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "emtpy clustername",
+			name: "empty clustername",
 			args: args{
 				clusterName: "",
 				runID:       validRunID,
@@ -288,6 +288,7 @@ func TestNewDumpResult(t *testing.T) {
 			got, err := NewDumpResult(tt.args.clusterName, tt.args.runID, tt.args.compressed)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewDumpResult() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
