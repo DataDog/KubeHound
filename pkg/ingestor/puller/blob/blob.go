@@ -141,7 +141,7 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 		return err
 	}
 	key := dumpResult.GetFullPath()
-	log.I.Infof("Downloading archive (%s) from blob store", key)
+	log.I.Infof("Opening bucket: %s", bs.bucketName)
 	b, err := bs.openBucket(ctx)
 	if err != nil {
 		return err
@@ -154,7 +154,7 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 	}
 	defer f.Close()
 
-	log.I.Infof("Downloading archive (%q) from blob store", key)
+	log.I.Infof("Uploading archive (%q) from blob store", key)
 	w := bufio.NewReader(f)
 	err = b.Upload(ctx, key, w, &blob.WriterOptions{
 		ContentType: "application/gzip",
@@ -183,7 +183,7 @@ func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID strin
 		return "", err
 	}
 	key := dumpResult.GetFullPath()
-	log.I.Infof("Downloading archive (%s) from blob store", key)
+	log.I.Infof("Opening bucket: %s", bs.bucketName)
 	b, err := bs.openBucket(ctx)
 	if err != nil {
 		return "", err
