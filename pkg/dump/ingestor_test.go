@@ -66,7 +66,9 @@ func TestNewDumpIngestor(t *testing.T) {
 			wantErr: false,
 		},
 	}
-	for _, tt := range tests {
+	// Can not run parallel tests as the environment variable KUBECONFIG is set
+	// t.Setenv is not compatible with parallel tests
+	for _, tt := range tests { //nolint:paralleltest
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewDumpIngestor(ctx, tt.args.collectorClient, tt.args.compression, tt.args.directoryOutput, tt.args.runID)
