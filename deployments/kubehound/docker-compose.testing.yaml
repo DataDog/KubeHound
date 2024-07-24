@@ -3,17 +3,9 @@ services:
   mongodb:
     ports:
       - "127.0.0.1:27018:27017"
-    networks:
-      - kind
 
   kubegraph:
     build: ./kubegraph/
-    networks:
-      - kind
     ports:
       - "127.0.0.1:8183:8182"
       - "127.0.0.1:8090:8099"
-
-networks:
-  kind:
-    external: true

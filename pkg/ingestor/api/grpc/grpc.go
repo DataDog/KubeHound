@@ -14,6 +14,10 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+// On macOS you need to install protobuf (`brew install protobuf`)
+// Need to install: go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+//go:generate protoc --go_out=./pb --go_opt=paths=source_relative --go-grpc_out=./pb --go-grpc_opt=paths=source_relative ./api.proto
+
 // server is used to implement the GRPC api
 type server struct {
 	// grpc related embeds
@@ -36,6 +40,20 @@ func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestRe
 	}
 
 	return &pb.IngestResponse{}, nil
+}
+
+// RehydrateLatest is just a GRPC wrapper around the RehydrateLatest method from the API package
+func (s *server) RehydrateLatest(ctx context.Context, in *pb.RehydrateLatestRequest) (*pb.RehydrateLatestResponse, error) {
+	res, err := s.api.RehydrateLatest(ctx)
+	if err != nil {
+		log.I.Errorf("Ingest failed: %v", err)
+
+		return nil, err
+	}
+
+	return &pb.RehydrateLatestResponse{
+		IngestedCluster: res,
+	}, nil
 }
 
 // Listen starts the GRPC server with the generic api implementation

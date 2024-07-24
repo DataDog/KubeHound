@@ -142,3 +142,69 @@ func TestExtractTarGz(t *testing.T) {
 		})
 	}
 }
+
+func TestIsTarGz(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		filePath       string
+		maxArchiveSize int64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "dump result compressed",
+			args: args{
+				maxArchiveSize: 10000000,
+				filePath:       "./testdata/archive.tar.gz",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "Unsupported file type",
+			args: args{
+				maxArchiveSize: 100,
+				filePath:       "./testdata/regenerate-testdata.sh",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "wrong path",
+			args: args{
+				maxArchiveSize: 100,
+				filePath:       "./testdata/doesnotexist.tar.gz",
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "dump result not compressed - directory",
+			args: args{
+				maxArchiveSize: 100,
+				filePath:       "./testdata/",
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := IsTarGz(tt.args.filePath, tt.args.maxArchiveSize)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("IsTarGz() error = %v, wantErr %v", err, tt.wantErr)
+
+				return
+			}
+			if got != tt.want {
+				t.Errorf("IsTarGz() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

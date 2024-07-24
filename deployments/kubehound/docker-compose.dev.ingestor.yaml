@@ -1,3 +1,4 @@
+name: kubehound-dev
 services:
   grpc:
     build:

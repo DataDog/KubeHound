@@ -5,13 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path/filepath"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/dump"
-	"github.com/DataDog/KubeHound/pkg/dump/writer"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
@@ -48,10 +48,6 @@ func NewBlobStorage(cfg *config.KubehoundConfig, blobConfig *config.BlobConfig) 
 		cfg:        cfg,
 		region:     blobConfig.Region,
 	}, nil
-}
-
-func getKeyPath(clusterName, runID string) string {
-	return fmt.Sprintf("%s%s", dump.DumpIngestorResultName(clusterName, runID), writer.TarWriterExtension)
 }
 
 func (bs *BlobStore) openBucket(ctx context.Context) (*blob.Bucket, error) {
@@ -97,6 +93,42 @@ func (bs *BlobStore) openBucket(ctx context.Context) (*blob.Bucket, error) {
 	return bucket, nil
 }
 
+func (bs *BlobStore) listFiles(ctx context.Context, b *blob.Bucket, prefix string, recursive bool, listObjects []*puller.ListObject) ([]*puller.ListObject, error) {
+	iter := b.List(&blob.ListOptions{
+		Delimiter: "/",
+		Prefix:    prefix,
+	})
+	for {
+		obj, err := iter.Next(ctx)
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("listing objects: %w", err)
+		}
+
+		if obj.IsDir && recursive {
+			listObjects, _ = bs.listFiles(ctx, b, obj.Key, true, listObjects)
+		}
+		listObjects = append(listObjects, &puller.ListObject{
+			Key:     obj.Key,
+			ModTime: obj.ModTime,
+		})
+	}
+
+	return listObjects, nil
+}
+
+func (bs *BlobStore) ListFiles(ctx context.Context, prefix string, recursive bool) ([]*puller.ListObject, error) {
+	b, err := bs.openBucket(ctx)
+	if err != nil {
+		return nil, err
+	}
+	listObjects := []*puller.ListObject{}
+
+	return bs.listFiles(ctx, b, prefix, recursive, listObjects)
+}
+
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
 func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName string, runID string) error {
 	log.I.Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
@@ -104,8 +136,12 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 	var err error
 	defer func() { spanPut.Finish(tracer.WithError(err)) }()
 
-	key := getKeyPath(clusterName, runID)
-	log.I.Infof("Downloading archive (%s) from blob store", key)
+	dumpResult, err := dump.NewDumpResult(clusterName, runID, true)
+	if err != nil {
+		return err
+	}
+	key := dumpResult.GetFullPath()
+	log.I.Infof("Opening bucket: %s", bs.bucketName)
 	b, err := bs.openBucket(ctx)
 	if err != nil {
 		return err
@@ -118,7 +154,7 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 	}
 	defer f.Close()
 
-	log.I.Infof("Downloading archive (%q) from blob store", key)
+	log.I.Infof("Uploading archive (%q) from blob store", key)
 	w := bufio.NewReader(f)
 	err = b.Upload(ctx, key, w, &blob.WriterOptions{
 		ContentType: "application/gzip",
@@ -142,8 +178,12 @@ func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID strin
 	var err error
 	defer func() { spanPull.Finish(tracer.WithError(err)) }()
 
-	key := getKeyPath(clusterName, runID)
-	log.I.Infof("Downloading archive (%s) from blob store", key)
+	dumpResult, err := dump.NewDumpResult(clusterName, runID, true)
+	if err != nil {
+		return "", err
+	}
+	key := dumpResult.GetFullPath()
+	log.I.Infof("Opening bucket: %s", bs.bucketName)
 	b, err := bs.openBucket(ctx)
 	if err != nil {
 		return "", err
@@ -189,7 +229,7 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 	defer func() { spanExtract.Finish(tracer.WithError(err)) }()
 
 	basePath := filepath.Dir(archivePath)
-	err = puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
+	err = puller.CheckSanePath(archivePath, basePath)
 	if err != nil {
 		return fmt.Errorf("Dangerous file path used during extraction, aborting: %w", err)
 	}
@@ -210,7 +250,7 @@ func (bs *BlobStore) Close(ctx context.Context, archivePath string) error {
 	var err error
 	defer func() { spanClose.Finish(tracer.WithError(err)) }()
 
-	path := filepath.Base(archivePath)
+	path := filepath.Dir(archivePath)
 	err = puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
 	if err != nil {
 		return fmt.Errorf("Dangerous file path used while closing, aborting: %w", err)
