@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
@@ -19,16 +20,19 @@ type DataPuller interface {
 	Pull(ctx context.Context, clusterName string, runID string) (string, error)
 	Extract(ctx context.Context, archivePath string) error
 	Close(ctx context.Context, basePath string) error
+	ListFiles(ctx context.Context, prefix string, recursive bool) ([]*ListObject, error)
 }
 
-func FormatArchiveKey(clusterName string, runID string, archiveName string) string {
-	return strings.Join([]string{clusterName, runID, archiveName}, "/")
+type ListObject struct {
+	Key string
+	// ModTime is the time the blob was last modified.
+	ModTime time.Time
 }
 
 // checkSanePath just to make sure we don't delete or overwrite somewhere where we are not supposed to
 func CheckSanePath(path string, baseFolder string) error {
 	if path == "/" || path == "" || !strings.HasPrefix(path, baseFolder) {
-		return fmt.Errorf("Invalid path provided: %q", path)
+		return fmt.Errorf("Invalid path provided: %q / base: %q", path, baseFolder)
 	}
 
 	return nil

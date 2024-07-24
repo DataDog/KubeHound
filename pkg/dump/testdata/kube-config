@@ -1,0 +1,20 @@
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: AA==
+    server: https://127.0.0.1:59959
+  name: cluster.k8s.local
+contexts:
+- context:
+    cluster: cluster.k8s.local
+    user: cluster.k8s.local
+  name: cluster.k8s.local
+current-context: cluster.k8s.local
+kind: Config
+preferences: {}
+users:
+- name: cluster.k8s.local
+  user:
+    client-certificate-data: AA==
+    client-key-data: AA==
+

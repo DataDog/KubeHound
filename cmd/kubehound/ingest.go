@@ -42,10 +42,16 @@ var (
 	remoteIngestCmd = &cobra.Command{
 		Use:   "remote",
 		Short: "Ingest data remotely on a KHaaS instance",
-		Long:  `Run an ingestion on KHaaS from a bucket to build the attack path`,
+		Long:  `Run an ingestion on KHaaS from a bucket to build the attack path, by default it will rehydrate the latest snapshot previously dumped on a KHaaS instance from all clusters`,
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			viper.BindPFlag(config.IngestorAPIEndpoint, cobraCmd.Flags().Lookup("khaas-server")) //nolint: errcheck
+			cobraCmd.MarkFlagRequired("khaas-server")                                            //nolint: errcheck
 			viper.BindPFlag(config.IngestorAPIInsecure, cobraCmd.Flags().Lookup("insecure"))     //nolint: errcheck
+
+			if !isIngestRemoteDefault() {
+				cobraCmd.MarkFlagRequired("run_id")  //nolint: errcheck
+				cobraCmd.MarkFlagRequired("cluster") //nolint: errcheck
+			}
 
 			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", false, true)
 		},
@@ -56,10 +62,21 @@ var (
 				return fmt.Errorf("get config: %w", err)
 			}
 
+			if isIngestRemoteDefault() {
+				return core.CoreClientGRPCRehydrateLatest(khCfg.Ingestor)
+			}
+
 			return core.CoreClientGRPCIngest(khCfg.Ingestor, khCfg.Ingestor.ClusterName, khCfg.Ingestor.RunID)
 		},
 	}
 )
+
+func isIngestRemoteDefault() bool {
+	runID := viper.GetString(config.IngestorRunID)
+	clusterName := viper.GetString(config.IngestorClusterName)
+
+	return runID == "" && clusterName == ""
+}
 
 func init() {
 

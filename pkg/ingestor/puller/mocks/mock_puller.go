@@ -5,6 +5,7 @@ package mocks
 import (
 	context "context"
 
+	puller "github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -103,6 +104,62 @@ func (_c *DataPuller_Extract_Call) Return(_a0 error) *DataPuller_Extract_Call {
 }
 
 func (_c *DataPuller_Extract_Call) RunAndReturn(run func(context.Context, string) error) *DataPuller_Extract_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListFiles provides a mock function with given fields: ctx, prefix, recursive
+func (_m *DataPuller) ListFiles(ctx context.Context, prefix string, recursive bool) ([]*puller.ListObject, error) {
+	ret := _m.Called(ctx, prefix, recursive)
+
+	var r0 []*puller.ListObject
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) ([]*puller.ListObject, error)); ok {
+		return rf(ctx, prefix, recursive)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) []*puller.ListObject); ok {
+		r0 = rf(ctx, prefix, recursive)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*puller.ListObject)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
+		r1 = rf(ctx, prefix, recursive)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DataPuller_ListFiles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListFiles'
+type DataPuller_ListFiles_Call struct {
+	*mock.Call
+}
+
+// ListFiles is a helper method to define mock.On call
+//   - ctx context.Context
+//   - prefix string
+//   - recursive bool
+func (_e *DataPuller_Expecter) ListFiles(ctx interface{}, prefix interface{}, recursive interface{}) *DataPuller_ListFiles_Call {
+	return &DataPuller_ListFiles_Call{Call: _e.mock.On("ListFiles", ctx, prefix, recursive)}
+}
+
+func (_c *DataPuller_ListFiles_Call) Run(run func(ctx context.Context, prefix string, recursive bool)) *DataPuller_ListFiles_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(bool))
+	})
+	return _c
+}
+
+func (_c *DataPuller_ListFiles_Call) Return(_a0 []*puller.ListObject, _a1 error) *DataPuller_ListFiles_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *DataPuller_ListFiles_Call) RunAndReturn(run func(context.Context, string, bool) ([]*puller.ListObject, error)) *DataPuller_ListFiles_Call {
 	_c.Call.Return(run)
 	return _c
 }
