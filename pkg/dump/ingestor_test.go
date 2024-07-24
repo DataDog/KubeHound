@@ -19,7 +19,7 @@ const (
 	mockDirectoryOutput = "/tmp"
 )
 
-func TestNewDumpIngestor(t *testing.T) {
+func TestNewDumpIngestor(t *testing.T) { //nolint:paralleltest
 	ctx := context.Background()
 
 	t.Setenv("KUBECONFIG", "./testdata/kube-config")
