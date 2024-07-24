@@ -20,9 +20,9 @@ const (
 )
 
 func TestNewDumpIngestor(t *testing.T) {
-	t.Parallel()
 	ctx := context.Background()
 
+	t.Setenv("KUBECONFIG", "./testdata/kube-config")
 	clientset := fake.NewSimpleClientset()
 	collectorClient := collector.NewTestK8sAPICollector(ctx, clientset)
 
@@ -69,7 +69,6 @@ func TestNewDumpIngestor(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			got, err := NewDumpIngestor(ctx, tt.args.collectorClient, tt.args.compression, tt.args.directoryOutput, tt.args.runID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewDumpIngestorsss() error = %v, wantErr %v", err, tt.wantErr)
