@@ -70,14 +70,9 @@ func InitRemoteIngestCmd(cmd *cobra.Command, standalone bool) {
 	if standalone {
 		cmd.Flags().String("run_id", "", "KubeHound run id to ingest (e.g.: 01htdgjj34mcmrrksw4bjy2e94)")
 		viper.BindPFlag(config.IngestorRunID, cmd.Flags().Lookup("run_id")) //nolint: errcheck
-		cmd.MarkFlagRequired("run_id")                                      //nolint: errcheck
 
 		cmd.Flags().String("cluster", "", "Cluster name to ingest (e.g.: my-cluster-1)")
 		viper.BindPFlag(config.IngestorClusterName, cmd.Flags().Lookup("cluster")) //nolint: errcheck
-		cmd.MarkFlagRequired("cluster")                                            //nolint: errcheck
-
-		// Reusing the same flags for the dump cloud and ingest command
-		cmd.MarkFlagRequired("khaas-server") //nolint: errcheck
 	}
 }
 
