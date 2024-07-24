@@ -24,13 +24,13 @@ const (
 	DumpResultTarWriterExtension = "tar.gz"
 )
 
-func NewDumpResult(clusterName, runID string, compressed bool) (*DumpResult, error) {
+func NewDumpResult(clusterName, runID string, isCompressed bool) (*DumpResult, error) {
 	dumpResult := &DumpResult{
 		clusterName: clusterName,
 		RunID:       runID,
 		isDir:       true,
 	}
-	if compressed {
+	if isCompressed {
 		dumpResult.Compressed()
 	}
 
@@ -100,11 +100,11 @@ func ParsePath(path string) (*DumpResult, error) {
 	runID := matches[3]
 	extension := matches[4]
 
-	compressed := false
+	isCompressed := false
 	if extension != "" {
-		compressed = true
+		isCompressed = true
 	}
-	result, err := NewDumpResult(clusterName, runID, compressed)
+	result, err := NewDumpResult(clusterName, runID, isCompressed)
 	if err != nil {
 		return nil, err
 	}

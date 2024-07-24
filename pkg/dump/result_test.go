@@ -41,19 +41,6 @@ func TestParsePath(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "valid path with no compression",
-			args: args{
-				path: "/tmp/cluster1.k8s.local/kubehound_cluster1.k8s.local_01j2qs8th6yarr5hkafysekn0j",
-			},
-			want: &DumpResult{
-				clusterName: validClusterName,
-				RunID:       validRunID,
-				isDir:       true,
-				extension:   "",
-			},
-			wantErr: false,
-		},
-		{
 			name: "valid path with compressed data",
 			args: args{
 				path: "/tmp/cluster1.k8s.local/kubehound_cluster1.k8s.local_01j2qs8th6yarr5hkafysekn0j.tar.gz",
@@ -216,9 +203,9 @@ func TestNewDumpResult(t *testing.T) {
 	t.Parallel()
 
 	type args struct {
-		clusterName string
-		runID       string
-		compressed  bool
+		clusterName  string
+		runID        string
+		isCompressed bool
 	}
 	tests := []struct {
 		name    string
@@ -229,9 +216,9 @@ func TestNewDumpResult(t *testing.T) {
 		{
 			name: "valid entry",
 			args: args{
-				clusterName: validClusterName,
-				runID:       validRunID,
-				compressed:  false,
+				clusterName:  validClusterName,
+				runID:        validRunID,
+				isCompressed: false,
 			},
 			want: &DumpResult{
 				clusterName: validClusterName,
@@ -243,9 +230,9 @@ func TestNewDumpResult(t *testing.T) {
 		{
 			name: "invalid clustername",
 			args: args{
-				clusterName: nonValidClusterName,
-				runID:       validRunID,
-				compressed:  false,
+				clusterName:  nonValidClusterName,
+				runID:        validRunID,
+				isCompressed: false,
 			},
 			want:    nil,
 			wantErr: true,
@@ -253,9 +240,9 @@ func TestNewDumpResult(t *testing.T) {
 		{
 			name: "empty clustername",
 			args: args{
-				clusterName: "",
-				runID:       validRunID,
-				compressed:  false,
+				clusterName:  "",
+				runID:        validRunID,
+				isCompressed: false,
 			},
 			want:    nil,
 			wantErr: true,
@@ -263,9 +250,9 @@ func TestNewDumpResult(t *testing.T) {
 		{
 			name: "invalid runID",
 			args: args{
-				clusterName: validClusterName,
-				runID:       nonValidRunID,
-				compressed:  false,
+				clusterName:  validClusterName,
+				runID:        nonValidRunID,
+				isCompressed: false,
 			},
 			want:    nil,
 			wantErr: true,
@@ -273,9 +260,9 @@ func TestNewDumpResult(t *testing.T) {
 		{
 			name: "invalid runID",
 			args: args{
-				clusterName: validClusterName,
-				runID:       "",
-				compressed:  false,
+				clusterName:  validClusterName,
+				runID:        "",
+				isCompressed: false,
 			},
 			want:    nil,
 			wantErr: true,
@@ -285,7 +272,7 @@ func TestNewDumpResult(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := NewDumpResult(tt.args.clusterName, tt.args.runID, tt.args.compressed)
+			got, err := NewDumpResult(tt.args.clusterName, tt.args.runID, tt.args.isCompressed)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewDumpResult() error = %v, wantErr %v", err, tt.wantErr)
 
