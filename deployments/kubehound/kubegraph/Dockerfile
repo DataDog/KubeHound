@@ -28,6 +28,9 @@ COPY --chown=janusgraph:janusgraph scripts/health-check.groovy ${JANUS_HOME}/scr
 # DSL support
 COPY --chown=janusgraph:janusgraph scripts/kubehound-dsl-init.groovy ${JANUS_HOME}/scripts/
 
+# grpcurl to rehydrate dumps on startup
+COPY --from=fullstorydev/grpcurl:v1.9.1 --chown=janusgraph:janusgraph /bin/grpcurl /usr/local/bin/grpcurl
+
 # Set JVM configuration
 ENV JAVA_OPTIONS_FILE ${JANUS_HOME}/conf/jvm.options
 
