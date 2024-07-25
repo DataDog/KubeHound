@@ -38,7 +38,7 @@ jobs:
         uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
         with:
           # egress-policy: audit
-          egress-policy: audit
+          egress-policy: block
           allowed-endpoints: >
             auth.docker.io:443
             dl-cdn.alpinelinux.org:443
