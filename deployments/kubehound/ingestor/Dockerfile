@@ -21,5 +21,5 @@ EXPOSE 9000
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["./kubehound"]
+ENTRYPOINT ["/kubehound"]
 CMD  ["serve"]
