@@ -11,10 +11,6 @@ import (
 )
 
 var (
-	inputFilePath string
-)
-
-var (
 	ingestCmd = &cobra.Command{
 		Use:   "ingest",
 		Short: "Start an ingestion locally or remotely",
