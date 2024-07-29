@@ -44,12 +44,8 @@ func InitDumpCmd(cmd *cobra.Command) {
 }
 
 func InitLocalDumpCmd(cmd *cobra.Command) {
-	cmd.Flags().Bool("compress", false, "Enable compression for the dumped data (generates a tar.gz file)")
-	viper.BindPFlag(config.CollectorFileArchiveFormat, cmd.Flags().Lookup("compress")) //nolint: errcheck
-
-	cmd.Flags().String("output-dir", "", "Directory to dump the data")
-	viper.BindPFlag(config.CollectorFileDirectory, cmd.Flags().Lookup("output-dir")) //nolint: errcheck
-	cmd.MarkFlagRequired("output-dir")                                               //nolint: errcheck
+	cmd.Flags().Bool("no-compress", false, "Enable compression for the dumped data (generates a tar.gz file)")
+	viper.BindPFlag(config.CollectorFileArchiveNoCompress, cmd.Flags().Lookup("no-compress")) //nolint: errcheck
 }
 
 func InitRemoteDumpCmd(cmd *cobra.Command) {

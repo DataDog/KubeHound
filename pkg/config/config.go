@@ -95,6 +95,9 @@ func SetDefaultValues(c *viper.Viper) {
 	c.SetDefault(CollectorLiveRate, DefaultK8sAPIRateLimitPerSecond)
 	c.SetDefault(CollectorNonInteractive, DefaultK8sAPINonInteractive)
 
+	// File collector module
+	c.SetDefault(CollectorFileArchiveNoCompress, DefaultArchiveNoCompress)
+
 	// Default values for storage provider
 	c.SetDefault("storage.wipe", true)
 	c.SetDefault("storage.retry", DefaultRetry)

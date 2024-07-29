@@ -22,9 +22,10 @@ var (
 	}
 
 	localIngestCmd = &cobra.Command{
-		Use:   "local",
+		Use:   "local [directory or tar.gz path]",
 		Short: "Ingest data locally from a KubeHound dump",
 		Long:  `Run an ingestion locally using a previous dump (directory or tar.gz)`,
+		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
 		},
@@ -35,7 +36,7 @@ var (
 				return fmt.Errorf("get config: %w", err)
 			}
 
-			return core.CoreLocalIngest(cobraCmd.Context(), khCfg, inputFilePath)
+			return core.CoreLocalIngest(cobraCmd.Context(), khCfg, args[0])
 		},
 	}
 
@@ -82,7 +83,6 @@ func init() {
 
 	ingestCmd.AddCommand(localIngestCmd)
 	cmd.InitLocalIngestCmd(localIngestCmd)
-	localIngestCmd.Flags().StringVar(&inputFilePath, "data", "", "Filepath for the data to process (directory or tar.gz path)")
 
 	ingestCmd.AddCommand(remoteIngestCmd)
 	cmd.InitRemoteIngestCmd(remoteIngestCmd, true)

@@ -90,7 +90,7 @@ func Dump(ctx context.Context, compress bool) (*config.KubehoundConfig, string) 
 	}
 	cmd.InitDumpCmd(dumpCmd)
 
-	viper.Set(config.CollectorFileArchiveFormat, compress)
+	viper.Set(config.CollectorFileArchiveNoCompress, !compress)
 
 	tmpDir, err := os.MkdirTemp("/tmp/", "kh-system-tests-*")
 	if err != nil {
