@@ -34,6 +34,9 @@ func TestMustLoadConfig(t *testing.T) {
 					File: &FileCollectorConfig{
 						Directory:   "cluster-data/",
 						ClusterName: "test-cluster",
+						Archive: &FileArchiveConfig{
+							NoCompress: DefaultArchiveNoCompress,
+						},
 					},
 					// This is always set as the default value
 					Live: &K8SAPICollectorConfig{
@@ -102,6 +105,11 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				Collector: CollectorConfig{
 					Type: CollectorTypeK8sAPI,
+					File: &FileCollectorConfig{
+						Archive: &FileArchiveConfig{
+							NoCompress: DefaultArchiveNoCompress,
+						},
+					},
 					Live: &K8SAPICollectorConfig{
 						PageSize:           500,
 						PageBufferSize:     10,
