@@ -12,20 +12,8 @@ func InitRootCmd(cmd *cobra.Command) {
 }
 
 func InitDumpCmd(cmd *cobra.Command) {
-	cmd.PersistentFlags().String("statsd", config.DefaultTelemetryStatsdUrl, "URL of the statsd endpoint")
-	viper.BindPFlag(config.TelemetryStatsdUrl, cmd.PersistentFlags().Lookup("statsd")) //nolint: errcheck
-
-	cmd.PersistentFlags().String("profiler", config.DefaultTelemetryProfilerUrl, "URL of the profiler endpoint")
-	viper.BindPFlag(config.TelemetryTracerUrl, cmd.PersistentFlags().Lookup("profiler")) //nolint: errcheck
-
 	cmd.PersistentFlags().Bool("telemetry", false, "Enable telemetry with default settings")
 	viper.BindPFlag(config.TelemetryEnabled, cmd.PersistentFlags().Lookup("telemetry")) //nolint: errcheck
-
-	cmd.PersistentFlags().Duration("period", config.DefaultProfilerPeriod, "Period specifies the interval at which to collect profiles")
-	viper.BindPFlag(config.TelemetryProfilerPeriod, cmd.PersistentFlags().Lookup("period")) //nolint: errcheck
-
-	cmd.PersistentFlags().Duration("cpu-duration", config.DefaultProfilerCPUDuration, "CPU Duration specifies the length at which to collect CPU profiles")
-	viper.BindPFlag(config.TelemetryProfilerCPUDuration, cmd.PersistentFlags().Lookup("cpu-duration")) //nolint: errcheck
 
 	cmd.PersistentFlags().Int("rate", config.DefaultK8sAPIRateLimitPerSecond, "Rate limit of requests/second to the Kubernetes API")
 	viper.BindPFlag(config.CollectorLiveRate, cmd.PersistentFlags().Lookup("rate")) //nolint: errcheck
