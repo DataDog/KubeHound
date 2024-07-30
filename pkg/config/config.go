@@ -179,6 +179,7 @@ func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
 	// Configure default values
 	SetDefaultValues(v)
 
+	// Loading inLine config path
 	v.SetConfigType(DefaultConfigType)
 	v.SetConfigFile(configPath)
 
