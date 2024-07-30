@@ -128,11 +128,14 @@ builder:
 # Ingestor configuration (for KHaaS)
 # ingestor:
 #   blob:
-#    bucket: "" # (i.e.: s3://your-bucket)
-#    region: "" # (i.e.: us-east-1)
+#     # (i.e.: s3://<your-bucket>)
+#     bucket: ""
+#     # (i.e.: us-east-1)
+#     region: "" 
 #   temp_dir: "/tmp/kubehound"
 #   archive_name: "archive.tar.gz"
-#  max_archive_size: 2147483648 # 2GB
-#   api: # GRPC endpoint for the ingestor
+#   max_archive_size: 2147483648 # 2GB
+#   # GRPC endpoint for the ingestor
+#   api: 
 #     endpoint: "127.0.0.1:9000"
 #     insecure: true

@@ -56,3 +56,18 @@ builder:
     
     # Enable for large clusters to prevent number of edges growing exponentially
     large_cluster_optimizations: true
+
+# Ingestor configuration (for KHaaS)
+ingestor:
+  blob:
+    # (i.e.: s3://<your-bucket>)
+    bucket: ""
+    # (i.e.: us-east-1)
+    region: "" 
+  temp_dir: "/tmp/kubehound"
+  archive_name: "archive.tar.gz"
+  max_archive_size: 2147483648 # 2GB
+  # GRPC endpoint for the ingestor
+  api: 
+    endpoint: "127.0.0.1:9000"
+    insecure: true

@@ -42,7 +42,6 @@ var (
 		Long:  `Run an ingestion on KHaaS from a bucket to build the attack path, by default it will rehydrate the latest snapshot previously dumped on a KHaaS instance from all clusters`,
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			viper.BindPFlag(config.IngestorAPIEndpoint, cobraCmd.Flags().Lookup("khaas-server")) //nolint: errcheck
-			cobraCmd.MarkFlagRequired("khaas-server")                                            //nolint: errcheck
 			viper.BindPFlag(config.IngestorAPIInsecure, cobraCmd.Flags().Lookup("insecure"))     //nolint: errcheck
 
 			if !isIngestRemoteDefault() {
