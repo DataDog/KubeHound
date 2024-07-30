@@ -10,16 +10,17 @@ const (
 	DefaultK8sAPIPageBufferSize     int32 = 10
 	DefaultK8sAPIRateLimitPerSecond int   = 100
 	DefaultK8sAPINonInteractive     bool  = false
+	DefaultArchiveNoCompress        bool  = false
 
-	CollectorLiveRate           = "collector.live.rate_limit_per_second"
-	CollectorLivePageSize       = "collector.live.page_size"
-	CollectorLivePageBufferSize = "collector.live.page_buffer_size"
-	CollectorNonInteractive     = "collector.non_interactive"
-	CollectorFileArchiveFormat  = "collector.file.archive.format"
-	CollectorFileDirectory      = "collector.file.directory"
-	CollectorFileClusterName    = "collector.file.cluster_name"
-	CollectorFileBlobRegion     = "collector.file.blob.region"
-	CollectorFileBlobBucket     = "collector.file.blob.bucket"
+	CollectorLiveRate              = "collector.live.rate_limit_per_second"
+	CollectorLivePageSize          = "collector.live.page_size"
+	CollectorLivePageBufferSize    = "collector.live.page_buffer_size"
+	CollectorNonInteractive        = "collector.non_interactive"
+	CollectorFileArchiveNoCompress = "collector.file.archive.no_compress"
+	CollectorFileDirectory         = "collector.file.directory"
+	CollectorFileClusterName       = "collector.file.cluster_name"
+	CollectorFileBlobRegion        = "collector.file.blob.region"
+	CollectorFileBlobBucket        = "collector.file.blob.bucket"
 )
 
 // CollectorConfig configures collector specific parameters.
@@ -47,7 +48,7 @@ type FileCollectorConfig struct {
 
 type FileArchiveConfig struct {
 	ArchiveName string `mapstructure:"archive_name"` // Name of the output archive
-	Format      bool   `mapstructure:"format"`       // Enable compression for the dumped data (generates a tar.gz file)
+	NoCompress  bool   `mapstructure:"no_compress"`  // Disable compression for the dumped data (generates a tar.gz file)
 }
 
 type BlobConfig struct {
