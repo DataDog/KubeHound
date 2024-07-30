@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ $.Chart.Name }}-ingestor"
+  namespace: {{ $.Release.Namespace }}
+spec:
+  selector:
+    app: "{{ $.Chart.Name }}-ingestor"
+  clusterIP: None
+  ports:
+    - name: ingestor
+      port: {{ $.Values.services.ingestor.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ $.Chart.Name }}-graph"
+  namespace: {{ $.Release.Namespace }}
+spec:
+  selector:
+    app: "{{ $.Chart.Name }}-graph"
+  clusterIP: None
+  ports:
+    - name: graph
+      port: {{ $.Values.services.graph.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ $.Chart.Name }}-db"
+  namespace: {{ $.Release.Namespace }}
+spec:
+  selector:
+    app: "{{ $.Chart.Name }}-db"
+  clusterIP: None
+  ports:
+    - name: db
+      port: {{ $.Values.services.db.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ $.Chart.Name }}-ui"
+  namespace: {{ $.Release.Namespace }}
+spec:
+  selector:
+    app: "{{ $.Chart.Name }}-ui"
+  clusterIP: None
+  ports:
+    - name: ui-tree
+      port: {{ $.Values.services.ui.ports.tree }}
+    - name: ui-lab
+      port: {{ $.Values.services.ui.ports.lab }}
