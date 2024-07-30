@@ -176,11 +176,11 @@ func unmarshalConfig(v *viper.Viper) (*KubehoundConfig, error) {
 
 // NewConfig creates a new config instance from the provided file using viper.
 func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
-	v.SetConfigType(DefaultConfigType)
-	v.SetConfigFile(configPath)
-
 	// Configure default values
 	SetDefaultValues(v)
+
+	v.SetConfigType(DefaultConfigType)
+	v.SetConfigFile(configPath)
 
 	// Configure environment variable override
 	SetEnvOverrides(v)
@@ -223,7 +223,7 @@ func SetLocalConfig(v *viper.Viper) {
 	err := v.ReadInConfig()
 	if err != nil {
 		log.I.Warnf("No local config file was found (%s.%s)", DefaultConfigName, DefaultConfigType)
-		log.I.Debugf("Error reading config: %v", err)
+		// log.I.Debugf("Error reading config: %v", err)
 	}
 	log.I.Infof("Using %s for default config\n", viper.ConfigFileUsed())
 }
