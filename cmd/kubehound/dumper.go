@@ -34,7 +34,7 @@ var (
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// using compress feature
-			viper.Set(config.CollectorFileArchiveFormat, true)
+			viper.Set(config.CollectorFileArchiveNoCompress, false)
 
 			// Create a temporary directory
 			tmpDir, err := os.MkdirTemp("", "kubehound")
@@ -64,10 +64,13 @@ var (
 		},
 	}
 	dumpLocalCmd = &cobra.Command{
-		Use:   "local",
+		Use:   "local [directory to dump the data]",
 		Short: "Dump locally the k8s resources of a targeted cluster",
+		Args:  cobra.ExactArgs(1),
 		Long:  `Collect all Kubernetes resources needed to build the attack path in an offline format locally (compressed or flat)`,
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
+			viper.Set(config.CollectorFileDirectory, args[0])
+
 			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
