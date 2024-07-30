@@ -48,7 +48,7 @@ type FileCollectorConfig struct {
 
 type FileArchiveConfig struct {
 	ArchiveName string `mapstructure:"archive_name"` // Name of the output archive
-	NoCompress  bool   `mapstructure:"no_compress"`  // Enable compression for the dumped data (generates a tar.gz file)
+	NoCompress  bool   `mapstructure:"no_compress"`  // Disable compression for the dumped data (generates a tar.gz file)
 }
 
 type BlobConfig struct {
