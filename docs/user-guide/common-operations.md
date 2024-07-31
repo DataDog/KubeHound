@@ -6,7 +6,7 @@ When running `./kubehound`, it will execute the 3 following action:
 * `dump` the kubernetes resources needed to build the graph
 * `ingest` the dumped data and generate the attack path for the targeted Kubernetes cluster.
 
-All those 3 steps can be run separatly.
+All those 3 steps can be run separately.
 
 [![](../images/kubehound-local-commands.png)](../images/kubehound-local-commands.png)
 
