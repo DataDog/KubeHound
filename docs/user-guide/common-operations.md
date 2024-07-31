@@ -2,7 +2,7 @@
 
 When running `./kubehound`, it will execute the 3 following action:
 
-* run the `backend` (graphdb, datadb and UI)
+* run the `backend` (graphdb, storedb and UI)
 * `dump` the kubernetes resources needed to build the graph
 * `ingest` the dumped data and generate the attack path for the targeted Kubernetes cluster.
 
@@ -19,7 +19,7 @@ In order to run, KubeHound needs some docker containers to be running. Every com
 
 ### Starting the backend
 
-The backend stack can be restarted by using:
+The backend stack can be started by using:
 ```bash
 kubehound backend up
 ```
@@ -49,7 +49,7 @@ kubehound backend wipe
 ```
 
 !!! Warning
-    This command will **wipe ALL DATA and will not be recoverable**.
+    This command will **wipe ALL docker DATA (docker volume and containers) and will not be recoverable**.
 
 ## Dump
 
