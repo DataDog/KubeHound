@@ -4,7 +4,7 @@ KubeHound is running under the hood docker containers for the storedb, graphdb a
 
 ## KubeHound backend
 
-The docker backend can be handled directly from `kubehound` binary. To see the commands please refer to [Backend](https://kubehound.io/user-guide/common-operations/#backend).
+The docker backend can be handled directly with the `kubehound` binary. Check the [Backend](https://kubehound.io/user-guide/common-operations/#backend) documentation.
 
 If you want you can also use directly the compose files without `kubehound` binary (running `docker compose ...` commands).
 
