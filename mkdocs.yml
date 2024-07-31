@@ -83,7 +83,8 @@ nav:
       - References: references.md
   - User Guide:
       - Getting Started: user-guide/getting-started.md
-      - Common Operations: user-guide/common-operations.md
+      - Local Common Operations: user-guide/common-operations.md
+      - KubeHound as a Service: user-guide/khaas-101.md
       - Troubleshooting: user-guide/troubleshooting.md
   - Attack Techniques Reference:
       - ... |reference/*/*.md

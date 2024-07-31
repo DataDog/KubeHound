@@ -8,7 +8,7 @@ KubeHound works in 3 steps:
 
 After the initial ingestion is done, you use a compatible client  or the provided [Jupyter Notebook](../../deployments/kubehound/notebook/KubeHound.ipynb) to visualize and query attack paths in your cluster.
 
-[![KubeHound architecture  (click to enlarge)](./images/kubehound-high-level-v2.png)](./images/kubehound-high-level.png)
+[![KubeHound architecture  (click to enlarge)](./images/kubehound-high-level-v2.png)](./images/kubehound-high-level-v2.png)
 
 Under the hood, KubeHound leverages a caching and persistence layer (Redis and MongoDB) while computing attack paths. As an end user, this is mostly transparent to you.
 
