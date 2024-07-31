@@ -70,7 +70,7 @@ If for some reasons you need to have the raw data, you can add `--no-compress` f
 
 ### Ingest a local dump
 
-To ingest manually, an extraction made by KubeHound, just specific where the dump is being located and the associated cluster name.
+To ingest manually an extraction made by KubeHound, just specify where the dump is being located and the associated cluster name.
 
 ```bash
 kubehound ingest local [directory or tar.gz path] --cluster <cluster_name> 
