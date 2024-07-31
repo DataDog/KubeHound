@@ -1,6 +1,6 @@
 # KubeHound docker stack
 
-KubeHound is running under the hood docker containers for the storedb, graphdb and UI.
+Under the hood, KubeHound is running dockers for the storedb, graphdb and UI.
 
 ## KubeHound backend
 
