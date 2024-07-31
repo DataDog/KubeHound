@@ -1,7 +1,7 @@
 team: <your_team>
 services:
   ingestor:
-    name: ghcr.io/datadog/kubehound-ingestor
+    image: ghcr.io/datadog/kubehound-ingestor
     version: latest
     bucket: s3://<your_bucket>
     region: "us-east-1"
@@ -17,7 +17,7 @@ services:
   graph:
     host: kubehound-graph
     db_name: kubehound
-    name: ghcr.io/datadog/kubehound-graph
+    image: ghcr.io/datadog/kubehound-graph
     version: latest
     resources:
       requests:
@@ -28,7 +28,7 @@ services:
         memory: "16Gi"
     port: 8182
   ui:
-    name: ghcr.io/datadog/kubehound-ui
+    image: ghcr.io/datadog/kubehound-ui
     version: latest
     resources:
       requests:
@@ -42,7 +42,7 @@ services:
       tree: 8889
   db:
     host: kubehound-db
-    name: mongo
+    image: mongo
     version: 6.0.6
     port: 27017
     resources:

@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
       - name: {{ $.Chart.Name }}-ui
-        image: "{{ $.Values.services.ui.name }}:{{ $.Values.services.ui.version }}"
+        image: "{{ $.Values.services.ui.image }}:{{ $.Values.services.ui.version }}"
         imagePullPolicy: Always
         resources:
           requests:
