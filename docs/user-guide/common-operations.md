@@ -15,7 +15,7 @@ All those 3 steps can be run separately.
 
 ## Backend
 
-In order to run KubeHound needs some docker to be run. Every commands has been embedded into KubeHound to simplify the user experience. You can find all the docker-compose used [here](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound).
+In order to run, KubeHound needs some docker containers to be running. Every commands has been embedded into KubeHound to simplify the user experience. You can find all the docker-compose used [here](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound).
 
 ### Starting the backend
 
