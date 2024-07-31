@@ -11,7 +11,7 @@ All those 3 steps can be run separatly.
 [![](../images/kubehound-local-commands.png)](../images/kubehound-local-commands.png)
 
 !!! Note
-    if you want to skip the interactive mode, you can provide `-y` or `--non-interactive` to skil the cluster confirmation.
+    if you want to skip the interactive mode, you can provide `-y` or `--non-interactive` to skip the cluster confirmation.
 
 ## Backend
 
