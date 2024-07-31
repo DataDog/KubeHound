@@ -2,7 +2,7 @@
 
 KHaaS enables you to use KubeHound in a distributive way. It is being splitted in 2 main categories:
 
-* The ingestor stack which includes the `graphdb`, `datadb`, `UI` and `grpc endpoint`.
+* The ingestor stack which includes the `graphdb`, `storedb`, `UI` and `grpc endpoint`.
 * The collector (the kubehound binary) which will dump and send the k8s resources to the KHaaS `grpc endpoint`.
 
 [![](../images/khaas-architecture.png)](../images/khaas-architecture.png)
@@ -33,7 +33,6 @@ By default the endpoints are only exposed locally:
 ### k8s deployment
 
 To run the KubeHound as a Service on Kubernetes just use the following [helm files](https://github.com/DataDog/KubeHound/tree/main/deployments/k8s):
-
 
 ```bash
 cd ./deployments/k8s
