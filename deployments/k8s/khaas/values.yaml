@@ -32,11 +32,11 @@ services:
     version: latest
     resources:
       requests:
-        cpu: "4"
-        memory: "16Gi"
+        cpu: "2"
+        memory: "4Gi"
       limits:
-        cpu: "4"
-        memory: "16Gi"
+        cpu: "2"
+        memory: "4Gi"
     ports: 
       lab: 8888
       tree: 8889
@@ -47,9 +47,9 @@ services:
     port: 27017
     resources:
       requests:
-        cpu: "2"
-        memory: "4Gi"
+        cpu: "4"
+        memory: "16Gi"
       limits:
-        cpu: "2"
-        memory: "4Gi"
+        cpu: "4"
+        memory: "16Gi"
     port: 27017
