@@ -4,12 +4,19 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/DataDog/KubeHound/pkg/backend"
+	docker "github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+var (
+	runLocalIngest bool
+	startBackend   bool
 )
 
 var (
@@ -79,7 +86,25 @@ var (
 			if err != nil {
 				return fmt.Errorf("get config: %w", err)
 			}
-			_, err = core.DumpCore(cobraCmd.Context(), khCfg, false)
+			resultPath, err := core.DumpCore(cobraCmd.Context(), khCfg, false)
+			if err != nil {
+				return fmt.Errorf("dump core: %w", err)
+			}
+
+			if startBackend {
+				err = docker.NewBackend(cobraCmd.Context(), composePath, backend.DefaultUIProfile)
+				if err != nil {
+					return fmt.Errorf("new backend: %w", err)
+				}
+				err = docker.Up(cobraCmd.Context())
+				if err != nil {
+					return fmt.Errorf("docker up: %w", err)
+				}
+			}
+
+			if runLocalIngest {
+				err = core.CoreLocalIngest(cobraCmd.Context(), khCfg, resultPath)
+			}
 
 			return err
 		},
@@ -91,6 +116,9 @@ func init() {
 	cmd.InitLocalDumpCmd(dumpLocalCmd)
 	cmd.InitRemoteDumpCmd(dumpRemoteCmd)
 	cmd.InitRemoteIngestCmd(dumpRemoteCmd, false)
+
+	dumpLocalCmd.Flags().BoolVar(&runLocalIngest, "ingest", false, "Run the ingestion after the dump")
+	dumpLocalCmd.Flags().BoolVar(&startBackend, "backend", false, "Start the backend after the dump")
 
 	dumpCmd.AddCommand(dumpRemoteCmd)
 	dumpCmd.AddCommand(dumpLocalCmd)
