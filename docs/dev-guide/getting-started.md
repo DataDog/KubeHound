@@ -12,7 +12,10 @@ The backend is built with Dockerfile `docker-compose.dev.[graph|ingestor|mongo|u
 
 ### Building the minimum dev stack
 
-To spin up the minimum stack is `mongo`, `graph` can spwaned by `kubehound dev` which is an equivalent of `docker compose -f docker-compose.yaml -f docker-compose.dev.graph.yaml -f docker-compose.dev.mongo.yaml`. By default it will always rebuild everything (no cache is being used).
+To spin up the minimum stack is `mongo`, `graph` can spwaned by
+
+* `kubehound dev` which is an equivalent of 
+* `docker compose -f docker-compose.yaml -f docker-compose.dev.graph.yaml -f docker-compose.dev.mongo.yaml`. By default it will always rebuild everything (no cache is being used).
 
 ### Building dev options
 
