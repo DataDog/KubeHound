@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/DataDog/KubeHound/pkg/backend"
 	docker "github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -92,7 +91,7 @@ var (
 			}
 
 			if startBackend {
-				err = docker.NewBackend(cobraCmd.Context(), composePath, backend.DefaultUIProfile)
+				err = docker.NewBackend(cobraCmd.Context(), composePath, docker.DefaultUIProfile)
 				if err != nil {
 					return fmt.Errorf("new backend: %w", err)
 				}
