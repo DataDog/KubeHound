@@ -97,7 +97,8 @@ RUN --mount=from=binary \
     mkdir -p /out && \
     # TODO: should just use standard arch
     TARGETARCH=$([ "$TARGETARCH" = "amd64" ] && echo "x86_64" || echo "$TARGETARCH"); \
-    TARGETARCH=$([ "$TARGETARCH" = "arm64" ] && echo "aarch64" || echo "$TARGETARCH"); \
+    # Use arm64 for darwin
+    TARGETARCH=$([ "$TARGETARCH" = "arm64" ] && [ "$TARGETOS" != "darwin" ] && echo "aarch64" || echo "$TARGETARCH"); \
     cp kubehound* "/out/kubehound-${TARGETOS}-${TARGETARCH}${TARGETVARIANT}$(ls kubehound* | sed -e 's/^kubehound//')"
 
 FROM scratch AS release
