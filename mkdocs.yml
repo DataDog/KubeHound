@@ -88,6 +88,7 @@ nav:
       - Troubleshooting: user-guide/troubleshooting.md
   - Developper Guide:
       - Getting Started: dev-guide/getting-started.md
+      - Wiki: dev-guide/wiki.md
   - Attack Techniques Reference:
       - ... |reference/*/*.md
       #- Attacks: reference/attacks/index.md
@@ -100,4 +101,4 @@ nav:
       - queries/metrics.md
       - "Sample queries": queries/gremlin.md
 
-copyright: Copyright 2023-Present Datadog, Inc.
+copyright: Copyright 2024-Present Datadog, Inc.
