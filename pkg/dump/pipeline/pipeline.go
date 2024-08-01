@@ -149,6 +149,7 @@ func dumpK8sObjs(ctx context.Context, operationName string, entity string, strea
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 	err = streamFunc(ctx)
+	log.I.Infof("Dumping %s done", entity)
 
 	return ctx, err
 }
