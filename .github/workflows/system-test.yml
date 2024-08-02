@@ -19,6 +19,7 @@ jobs:
           DD_TRACE_DEBUG: 1
           DD_LOGS_ENABLED: true
           DD_APM_ENABLED: true
+          DD_HOSTNAME: "kubehound-github-action"
         ports:
           - 8126:8126
     steps:
