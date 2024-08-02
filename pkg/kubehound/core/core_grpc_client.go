@@ -41,6 +41,8 @@ func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName strin
 	defer conn.Close()
 	client := pb.NewAPIClient(conn)
 
+	log.I.Infof("Launching ingestion on %s [rundID: %s]", ingestorConfig.API.Endpoint, runID)
+
 	_, err = client.Ingest(context.Background(), &pb.IngestRequest{
 		RunId:       runID,
 		ClusterName: clusteName,

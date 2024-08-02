@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/DataDog/KubeHound/pkg/backend"
 	docker "github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/spf13/cobra"
 )
@@ -11,7 +10,7 @@ var (
 	hard        bool
 	composePath []string
 
-	uiProfile = backend.DefaultUIProfile
+	uiProfile = docker.DefaultUIProfile
 	uiInvana  bool
 )
 

@@ -31,14 +31,15 @@ import (
 
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
 type k8sAPICollector struct {
-	clientset kubernetes.Interface
-	log       *log.KubehoundLogger
-	rl        ratelimit.Limiter
-	cfg       *config.K8SAPICollectorConfig
-	tags      collectorTags
-	waitTime  map[string]time.Duration
-	startTime time.Time
-	mu        *sync.Mutex
+	clientset   kubernetes.Interface
+	log         *log.KubehoundLogger
+	rl          ratelimit.Limiter
+	cfg         *config.K8SAPICollectorConfig
+	tags        collectorTags
+	waitTime    map[string]time.Duration
+	startTime   time.Time
+	mu          *sync.Mutex
+	isStreaming bool
 }
 
 const (
@@ -137,6 +138,12 @@ func (c *k8sAPICollector) wait(_ context.Context, resourceType string, tags []st
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.waitTime[resourceType] += waitTime
+
+	// Display a message to tell the user the streaming has started (only once after the approval has been made)
+	if !c.isStreaming {
+		log.I.Info("Streaming data from the K8s API")
+		c.isStreaming = true
+	}
 
 	// entity := tag.Entity(resourceType)
 	err := statsd.Gauge(metric.CollectorWait, float64(c.waitTime[resourceType]), tags, 1)
