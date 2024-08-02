@@ -11,6 +11,16 @@ jobs:
     runs-on:
       group: Large Runner Shared Public 
       labels: ubuntu-8-core-latest
+    services:
+      dd-agent:
+        image: gcr.io/datadoghq/agent:7
+        env:
+          DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          DD_TRACE_DEBUG: 1
+          DD_LOGS_ENABLED: true
+          DD_APM_ENABLED: true
+        ports:
+          - 8126:8126
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
@@ -32,12 +42,6 @@ jobs:
             gcr.io:443
             repo.maven.apache.org:443
             *.datadoghq.com:443
-
-      - uses: datadog/agent-github-action@8240b406d73cb84cd5085a3919a78f59c258da3a
-        continue-on-error: true  # external contributors will not have access to the secret, but everything else should still work
-        with:
-          api_key: ${{ secrets.DD_API_KEY }}
-          extra_env: DD_TRACE_DEBUG=1,DD_LOGS_ENABLED=true,DD_APM_ENABLED=true
           
       - name: Checkout Git Repo
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
