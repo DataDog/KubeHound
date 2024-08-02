@@ -53,7 +53,7 @@ All binaries will be output to the [bin](./bin/build) folder
 
 ### Releases
 
-To release a new version of KubeHound, we are using `buildx` to have cross platform compatibility. We have to use as we are embedding docker compose library to enable KubeHound to spin up the KubeHound stack directly from the binary. It avoids user to take care of this part. The build relies on 2 files [docker-bake.hcl](https://github.com/DataDog/KubeHound/blob/main/docker-bake.hcl) and [Dockerfile](https://github.com/DataDog/KubeHound/blob/main/Dockerfile). The following bake targets are available:
+We use `buildx` to release new versions of KubeHound, for cross platform compatibility and because we are embedding the docker compose library (to enable KubeHound to spin up the KubeHound stack directly from the binary). This saves the user from having to take care of this part. The build relies on 2 files [docker-bake.hcl](https://github.com/DataDog/KubeHound/blob/main/docker-bake.hcl) and [Dockerfile](https://github.com/DataDog/KubeHound/blob/main/Dockerfile). The following bake targets are available:
 
 * `validate` or `lint`: run the release CI linter
 * `binary` (default option):   build kubehound just for the local architecture
