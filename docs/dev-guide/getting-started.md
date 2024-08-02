@@ -32,11 +32,14 @@ kubehound dev --ui
 
 ### Tearing down the dev stack 
 
-To tear down the KubeHound dev stack, just add `--down` to your previous command. For instant to stop the dev stack with the `ui`:
+To tear down the KubeHound dev stack, just use `--down` flag:
 
 ```bash
-kubehound dev --ui --down
+kubehound dev --down
 ```
+
+!!! Note
+    It will stop all the component from the dev stack (including the `ui` and `grpc endpoint` if started)
 
 ## Build the binary
 

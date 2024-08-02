@@ -31,10 +31,10 @@ var (
 		Short:  "[devOnly] Spawn the kubehound testing stack",
 		Long:   `[devOnly] Spawn the kubehound dev stack for the system-tests (build from dockerfile)`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			if uiTesting {
+			if uiTesting || downTesting {
 				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultComposeDevPathUI)
 			}
-			if grpcTesting {
+			if grpcTesting || downTesting {
 				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultComposeDevPathGRPC)
 			}
 			// Adding datadog setup
@@ -59,7 +59,7 @@ var (
 )
 
 func runEnv(ctx context.Context, composePaths []string) error {
-	if uiTesting {
+	if uiTesting || downTesting {
 		profiles = append(profiles, backend.DevUIProfile)
 	}
 
