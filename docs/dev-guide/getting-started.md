@@ -12,7 +12,7 @@ The backend images are built with the Dockerfiles `docker-compose.dev.[graph|ing
 
 ### Building the minimum dev stack
 
-To spin up the minimum stack is `mongo`, `graph` can spwaned by
+The minimum stack (`mongo` & `graph`) can be spawned with
 
 * `kubehound dev` which is an equivalent of 
 * `docker compose -f docker-compose.yaml -f docker-compose.dev.graph.yaml -f docker-compose.dev.mongo.yaml`. By default it will always rebuild everything (no cache is being used).
