@@ -48,7 +48,7 @@ To build KubeHound locally from the sources, use the Makefile:
 make build
 ```
 
-All binaries will be output to the [bin](./bin/build) folder
+KubeHound binary will be output to `./bin/build/kubehound`.
 
 
 ### Releases
