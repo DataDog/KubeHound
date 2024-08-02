@@ -99,6 +99,9 @@ RUN --mount=from=binary \
     TARGETARCH=$([ "$TARGETARCH" = "amd64" ] && echo "x86_64" || echo "$TARGETARCH"); \
     # Use arm64 for darwin
     TARGETARCH=$([ "$TARGETARCH" = "arm64" ] && [ "$TARGETOS" != "darwin" ] && echo "aarch64" || echo "$TARGETARCH"); \
+    # Upper case first letter to match the uname -o output
+    TARGETOS=$([ "$TARGETOS" = "darwin" ] && echo "Darwin" || echo "$TARGETOS"); \
+    TARGETOS=$([ "$TARGETOS" = "linux" ] && echo "Linux" || echo "$TARGETOS"); \
     cp kubehound* "/out/kubehound-${TARGETOS}-${TARGETARCH}${TARGETVARIANT}$(ls kubehound* | sed -e 's/^kubehound//')"
 
 FROM scratch AS release
