@@ -8,7 +8,7 @@
 
 ## Backend
 
-The backend is built with Dockerfile `docker-compose.dev.[graph|ingestor|mongo|ui].yaml`. There are listed in [deployment directory](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound). To avoid running it manually, there is an hidden command `kubehound dev --help`. The backend stack will be flagged as `kubehound-dev-` in the name of each component.
+The backend images are built with the Dockerfiles `docker-compose.dev.[graph|ingestor|mongo|ui].yaml`. There are listed in [deployment directory](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound). To avoid running docker-compose it manually, there is an hidden command `kubehound dev --help`. The backend stack will be flagged as `kubehound-dev-` in the name of each component.
 
 ### Building the minimum dev stack
 
