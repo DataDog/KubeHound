@@ -15,7 +15,7 @@ jobs:
       dd-agent:
         image: gcr.io/datadoghq/agent:7
         env:
-          DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
           DD_TRACE_DEBUG: 1
           DD_LOGS_ENABLED: true
           DD_APM_ENABLED: true
