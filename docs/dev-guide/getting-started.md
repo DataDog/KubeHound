@@ -76,7 +76,7 @@ docker buildx bake release
 
 ## Push a new release
 
-The CI will release a set of new images and binary when a tag is created. The goal is to set a new tag on the main branch:
+The CI releases a set of new images and binaries when a tag is created. To set a new tag on the main branch:
 
 ```bash
 git tag vX.X.X
