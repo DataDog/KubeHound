@@ -86,7 +86,7 @@ nav:
       - Local Common Operations: user-guide/common-operations.md
       - KubeHound as a Service: user-guide/khaas-101.md
       - Troubleshooting: user-guide/troubleshooting.md
-  - Developper Guide:
+  - Developer Guide:
       - Getting Started: dev-guide/getting-started.md
       - Wiki: dev-guide/wiki.md
   - Attack Techniques Reference:
