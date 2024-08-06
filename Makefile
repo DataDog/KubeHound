@@ -79,7 +79,7 @@ cache-clear: ## Clear the builder cache
 
 .PHONY: kubehound
 kubehound: | build ## Prepare kubehound (build go binary, deploy backend)
-	./bin/kubehound
+	./bin/build/kubehound
 
 .PHONY: test
 test: ## Run the full suite of unit tests 
@@ -133,7 +133,3 @@ thirdparty-licenses: ## Generate the list of 3rd party dependencies and write to
 local-wiki: ## Generate and serve the mkdocs wiki on localhost
 	poetry install || pip install mkdocs-material mkdocs-awesome-pages-plugin markdown-captions
 	poetry run mkdocs serve || mkdocs serve
-
-.PHONY: local-release
-local-release: ## Generate release packages locally via goreleaser
-	goreleaser release --snapshot --clean --config .goreleaser.yaml
