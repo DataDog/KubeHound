@@ -78,7 +78,7 @@ By default, KubeHound will optimize the attack paths for large cluster by using 
 * If the `large_cluster_optimizations` is activated, KubeHound will use the default `batch_size` (by default `500).
 * If the `large_cluster_optimizations` is deactivated, KubeHound will use a specific batch size configured through `batch_size_cluster_impact` for all attacks that make the graph grow exponentially.
 
-Lastly, the graph builder is using [pond]() library under the hood to handle the asynchronous tasks of inserting edges: 
+Lastly, the graph builder is using [pond](https://github.com/alitto/pond) library under the hood to handle the asynchronous tasks of inserting edges: 
 
 * `worker_pool_size` (by default `5`): parallels ingestion process running at the same time (number of workers).
 * `worker_pool_capacity` (by default `100`): number of cached elements in the worker pool.
