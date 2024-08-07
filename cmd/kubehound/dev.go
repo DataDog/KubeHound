@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	DefaultComposeTestingPath = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.testing.yaml"}
-	DefaultComposeDevPath     = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.dev.graph.yaml", "./deployments/kubehound/docker-compose.dev.mongo.yaml"}
-	DefaultComposeDevPathUI   = "./deployments/kubehound/docker-compose.dev.ui.yaml"
-	DefaultComposeDevPathGRPC = "./deployments/kubehound/docker-compose.dev.ingestor.yaml"
-	DefaultDatadogComposePath = "./deployments/kubehound/docker-compose.datadog.yaml"
+	DefaultComposeTestingPath    = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.testing.yaml"}
+	DefaultComposeDevPath        = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.dev.graph.yaml", "./deployments/kubehound/docker-compose.dev.mongo.yaml"}
+	DefaultComposeDevPathUI      = "./deployments/kubehound/docker-compose.dev.ui.yaml"
+	DefaultComposeDevPathGRPC    = "./deployments/kubehound/docker-compose.dev.ingestor.yaml"
+	DefaultComposeDevPathDatadog = "./deployments/kubehound/docker-compose.dev.datadog.yaml"
 )
 
 var (
@@ -41,7 +41,7 @@ var (
 			_, ddAPIKeyOk := os.LookupEnv("DD_API_KEY")
 			_, ddAPPKeyOk := os.LookupEnv("DD_API_KEY")
 			if ddAPIKeyOk && ddAPPKeyOk {
-				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultDatadogComposePath)
+				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultComposeDevPathDatadog)
 			}
 
 			return runEnv(cobraCmd.Context(), DefaultComposeDevPath)
