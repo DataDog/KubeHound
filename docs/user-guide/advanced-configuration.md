@@ -73,7 +73,7 @@ For the vertices builder, there is 2 options:
 
 #### Edges builder
 
-By default, KubeHound will optimize the attack paths for large `large_cluster_optimizations` (by default `true`). This will limit the number of attack paths being build in the targetted cluster. Using this optimisation will remove some attack paths. For instance, for the token based attacks (i.e. `TOKEN_BRUTEFORCE`), the optimisation will build only edges (between permissionSet and Identity) only if the targetted identity is `system:masters` group. This will reduce redundant attack paths:
+By default, KubeHound will optimize the attack paths for large cluster by using `large_cluster_optimizations` (by default `true`). This will limit the number of attack paths being build in the targetted cluster. Using this optimisation will remove some attack paths. For instance, for the token based attacks (i.e. `TOKEN_BRUTEFORCE`), the optimisation will build only edges (between permissionSet and Identity) only if the targetted identity is `system:masters` group. This will reduce redundant attack paths:
 
 * If the `large_cluster_optimizations` is activated, KubeHound will use the default `batch_size` (by default `500).
 * If the `large_cluster_optimizations` is deactivated, KubeHound will use a specific batch size configured through `batch_size_cluster_impact` for all attacks that make the graph grow exponentially.
