@@ -7,13 +7,21 @@ A Kubernetes attack graph tool allowing automated calculation of attack paths be
 
 ## Quick Start
 
+### Requirements
+
+To run KubeHound, you need a couple dependencies
++ [Docker](https://docs.docker.com/engine/install/) `>= 19.03` 
++ [Docker Compose](https://docs.docker.com/compose/compose-file/compose-versioning/) `V2`
+
+### Install and run
+
 Select a target Kubernetes cluster, either:
 * Using [kubectx](https://github.com/ahmetb/kubectx)
 * Using specific kubeconfig file by exporting the env variable: `export KUBECONFIG=/your/path/to/.kube/config`
 
 Download binaries are available for Linux / Windows / Mac OS via the [releases](https://github.com/DataDog/KubeHound/releases) page or by running the following (Mac OS/Linux):
 ```bash
-wget https://github.com/DataDog/KubeHound/releases/download/latest/kubehound-$(uname -o | sed 's/GNU\///g')-$(uname -m) -O kubehound
+wget https://github.com/DataDog/KubeHound/releases/latest/download/kubehound-$(uname -o | sed 's/GNU\///g')-$(uname -m) -O kubehound
 chmod +x kubehound
 ```
 
@@ -29,44 +37,15 @@ Then, simply run
 ```bash
 ./kubehound
 ```
-<details>
-<summary>To build KubeHound from source instead</summary>
 
-Clone and build this repository:
-```bash
-git clone https://github.com/DataDog/KubeHound.git
-cd KubeHound
-make kubehound
-```
+For more advanced use case and configuration, see 
 
-The built binary is now available at:
-```bash
-bin/build/kubehound
-```
-</details>
+* [advanced configuration](https://kubehound.io/user-guide/advanced-configuration/): all the settings available through the configuration file.
+* [common operations](https://kubehound.io/user-guide/common-operations/): the commands available from the KubeHound binary (`dump` / `ingest`).
+* [common errors](https://kubehound.io/user-guide/troubleshooting/): troubleshooting guide.
 
-For more advanced use case and configuration, see [ADVANCED.md](./ADVANCED.md)
-To view the generated graph see the [Using KubeHound Data](#using-kubehound-data) section.
-
-## Sample Attack Path
-
-![Example Path](./docs/images/example-graph.png)
-
-## Requirements
-
-To run KubeHound, you need a couple dependencies
-+ [Docker](https://docs.docker.com/engine/install/) `>= 19.03` 
-+ [Docker Compose](https://docs.docker.com/compose/compose-file/compose-versioning/) `V2`
-
-### Sample Data
-
-To view a sample graph demonstrating attacks in a very, very vulnerable cluster you can generate data via running the app against the provided kind cluster:
-
-```bash
-make sample-graph
-```
-
-To view the generated graph see the [Using KubeHound Data](#using-kubehound-data) section. 
+> Note: 
+  KubeHound can be deployed as a serivce (KHaaS), [for more information](https://kubehound.io/user-guide/khaas-101/).
 
 ## Using KubeHound Data
 
@@ -79,11 +58,27 @@ To query the KubeHound graph data requires using the [Gremlin](https://tinkerpop
 
 ### Example queries
 
-We have documented a few sample queries to execute on the database in [our documentation](https://kubehound.io/queries/gremlin/).
+We have documented a few sample queries to execute on the database in [our documentation](https://kubehound.io/queries/gremlin/). A specific DSL has been developped to query the Graph for the most basic use cases ([KubeHound DSL](https://kubehound.io/queries/dsl/)).
 
-### Query data from your scripts
+## Sample Attack Path
 
-#### Python
+![Example Path](./docs/images/example-graph.png)
+
+### Sample Data
+
+To view a sample graph demonstrating attacks in a very, very vulnerable cluster you can generate data via running the app against the provided kind cluster:
+
+```bash
+make sample-graph
+```
+
+To view the generated graph see the [Using KubeHound Data](#using-kubehound-data) section. 
+
+## Query data from your scripts
+
+If you expose the graph endpoint you can automate some queries to gather some KPI and metadata for instance. 
+
+### Python
 
 You can query the database data in your python script by using the following snippet:
 

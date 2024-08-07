@@ -20,7 +20,7 @@ import (
 
 var (
 	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml.tpl"}
-	DefaultDatadogComposePath  = "docker-compose.datadog.yaml"
+	DefaultDatadogComposePath  = "docker-compose.release.datadog.yaml"
 	DefaultUIProfile           = []string{DevUIProfile}
 
 	DevUIProfile = "jupyter"
