@@ -25,7 +25,7 @@ A pod running as root and with a mount point to the node’s `/var/log` director
 
 Execution as root within a container process with the host `/var/log/` (or any parent directory) mounted inside the container.
 
-See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/TOKEN_VAR_LOG_SYMLINK.yaml).
+See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/CE_VAR_LOG_SYMLINK.yaml).
 
 ## Checks
 
