@@ -20,7 +20,7 @@ wget https://github.com/DataDog/KubeHound/releases/latest/download/kubehound-$(u
 chmod +x kubehound
 ```
 
-Then just run `./kubehound`, it will start [backend services](../architecture.md) via docker compose (wiping any existing data), and compile the kubehound binary from source.
+Then just run `./kubehound`, it will start [backend services](../architecture.md) via docker compose v2 API.
 
 Next, make sure your current kubectl context points at the target cluster:
 
