@@ -81,4 +81,4 @@ By default, KubeHound will optimize the attack paths for large cluster by using 
 Lastly, the graph builder is using [pond]() library under the hood to handle the asynchronous tasks of inserting edges: 
 
 * `worker_pool_size` (by default `5`): parallels ingestion process running at the same time (number of workers).
-* `worker_pool_capacity` (by default `100`): number of cached element in the worker pool.
+* `worker_pool_capacity` (by default `100`): number of cached elements in the worker pool.
