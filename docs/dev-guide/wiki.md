@@ -13,3 +13,6 @@ make local-wiki
 ## Push new version
 
 The website will get automatically updated everytime there is changemement in [docs](https://github.com/DataDog/KubeHound/tree/main/docs) directory or the [mkdocs.yml](https://github.com/DataDog/KubeHound/blob/main/mkdocs.yml) file. This is being handled by [docs](https://github.com/DataDog/KubeHound/blob/main/.github/workflows/docs.yml) workflow.
+
+!!! Note
+    The domain for the wiki is being setup in the [CNAME](https://github.com/DataDog/KubeHound/tree/main/docs/CNAME) file.

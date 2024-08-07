@@ -83,12 +83,15 @@ nav:
       - References: references.md
   - User Guide:
       - Getting Started: user-guide/getting-started.md
+      - Advanced config: user-guide/advanced-configuration.md
       - Local Common Operations: user-guide/common-operations.md
       - KubeHound as a Service: user-guide/khaas-101.md
       - Troubleshooting: user-guide/troubleshooting.md
   - Developper Guide:
       - Getting Started: dev-guide/getting-started.md
+      - Testing: dev-guide/testing.md
       - Wiki: dev-guide/wiki.md
+      - Datadog setup: dev-guide/datadog.md
   - Attack Techniques Reference:
       - ... |reference/*/*.md
       #- Attacks: reference/attacks/index.md
