@@ -51,7 +51,7 @@ var (
 				return nil
 			}
 
-			fmt.Println(" --- YAML ---")  //nolint:forbidigo
+			fmt.Println("---")            //nolint:forbidigo
 			fmt.Println(string(yamlData)) //nolint:forbidigo
 
 			return nil
