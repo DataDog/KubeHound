@@ -2,7 +2,10 @@ package dump
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -50,8 +53,28 @@ func getClusterName(ctx context.Context, collector collector.CollectorClient) (s
 	return cluster.Name, nil
 }
 
+func (d *DumpIngestor) Metadata() (Metadata, error) {
+	path := filepath.Join(d.writer.OutputPath(), "metadata.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return Metadata{}, err
+	}
+
+	md := Metadata{}
+	err = json.Unmarshal(data, &md)
+	if err != nil {
+		return Metadata{}, err
+	}
+
+	return md, nil
+}
+
 func (d *DumpIngestor) OutputPath() string {
 	return d.writer.OutputPath()
+}
+
+func (d *DumpIngestor) SaveMetadata(ctx context.Context) error {
+	return d.writer.WriteMetadata(ctx)
 }
 
 func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {

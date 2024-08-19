@@ -109,5 +109,10 @@ func runLocalDump(ctx context.Context, khCfg *config.KubehoundConfig) (string, e
 		return "", fmt.Errorf("dump k8s object: %w", err)
 	}
 
+	err = dumpIngestor.SaveMetadata(ctx)
+	if err != nil {
+		return "", fmt.Errorf("save metadata file: %w", err)
+	}
+
 	return dumpIngestor.OutputPath(), nil
 }

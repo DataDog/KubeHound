@@ -18,6 +18,7 @@ const (
 //go:generate mockery --name DumperWriter --output mockwriter --case underscore --filename writer.go --with-expecter
 type DumperWriter interface {
 	Write(context.Context, []byte, string) error
+	WriteMetadata(context.Context) error
 	Flush(context.Context) error
 	Close(context.Context) error
 

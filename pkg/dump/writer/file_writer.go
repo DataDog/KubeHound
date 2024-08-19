@@ -56,6 +56,10 @@ func (f *FileWriter) WorkerNumber() int {
 	return FileWriterWorkerNumber
 }
 
+func (f *FileWriter) WriteMetadata(ctx context.Context) error {
+	return nil
+}
+
 // Write function writes the Kubernetes object to a buffer
 // All buffer are stored in a map which is flushed at the end of every type processed
 func (f *FileWriter) Write(ctx context.Context, k8sObj []byte, pathObj string) error {
