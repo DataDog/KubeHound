@@ -7,7 +7,7 @@ import (
 )
 
 type DumpResult struct {
-	clusterName string
+	ClusterName string
 	RunID       string
 	isDir       bool
 	extension   string
@@ -26,7 +26,7 @@ const (
 
 func NewDumpResult(clusterName, runID string, isCompressed bool) (*DumpResult, error) {
 	dumpResult := &DumpResult{
-		clusterName: clusterName,
+		ClusterName: clusterName,
 		RunID:       runID,
 		isDir:       true,
 	}
@@ -44,13 +44,13 @@ func NewDumpResult(clusterName, runID string, isCompressed bool) (*DumpResult, e
 
 func (i *DumpResult) Validate() error {
 	re := regexp.MustCompile(DumpResultClusterNameRegex)
-	if !re.MatchString(i.clusterName) {
-		return fmt.Errorf("Invalid clustername: %q", i.clusterName)
+	if !re.MatchString(i.ClusterName) {
+		return fmt.Errorf("Invalid clustername: %q", i.ClusterName)
 	}
 
-	matches := re.FindStringSubmatch(i.clusterName)
-	if len(matches) == 2 && matches[1] != i.clusterName {
-		return fmt.Errorf("Invalid clustername: %q", i.clusterName)
+	matches := re.FindStringSubmatch(i.ClusterName)
+	if len(matches) == 2 && matches[1] != i.ClusterName {
+		return fmt.Errorf("Invalid clustername: %q", i.ClusterName)
 	}
 
 	re = regexp.MustCompile(DumpResultRunIDRegex)
@@ -70,11 +70,11 @@ func (i *DumpResult) Compressed() {
 func (i *DumpResult) GetFullPath() string {
 	filename := i.GetFilename()
 
-	return path.Join(i.clusterName, filename)
+	return path.Join(i.ClusterName, filename)
 }
 
 func (i *DumpResult) GetFilename() string {
-	filename := fmt.Sprintf("%s%s_%s", DumpResultPrefix, i.clusterName, i.RunID)
+	filename := fmt.Sprintf("%s%s_%s", DumpResultPrefix, i.ClusterName, i.RunID)
 	if i.isDir {
 		return filename
 	}

@@ -33,7 +33,7 @@ func TestParsePath(t *testing.T) {
 				path: "/tmp/cluster1.k8s.local/kubehound_cluster1.k8s.local_01j2qs8th6yarr5hkafysekn0j",
 			},
 			want: &DumpResult{
-				clusterName: validClusterName,
+				ClusterName: validClusterName,
 				RunID:       validRunID,
 				isDir:       true,
 				extension:   "",
@@ -46,7 +46,7 @@ func TestParsePath(t *testing.T) {
 				path: "/tmp/cluster1.k8s.local/kubehound_cluster1.k8s.local_01j2qs8th6yarr5hkafysekn0j.tar.gz",
 			},
 			want: &DumpResult{
-				clusterName: validClusterName,
+				ClusterName: validClusterName,
 				RunID:       validRunID,
 				isDir:       false,
 				extension:   "tar.gz",
@@ -135,7 +135,7 @@ func TestDumpResult_GetFilename(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
-				clusterName: tt.fields.ClusterName,
+				ClusterName: tt.fields.ClusterName,
 				RunID:       tt.fields.RunID,
 				isDir:       tt.fields.IsDir,
 				extension:   tt.fields.Extension,
@@ -187,7 +187,7 @@ func TestDumpResult_GetFullPath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
-				clusterName: tt.fields.ClusterName,
+				ClusterName: tt.fields.ClusterName,
 				RunID:       tt.fields.RunID,
 				isDir:       tt.fields.IsDir,
 				extension:   tt.fields.Extension,
@@ -221,7 +221,7 @@ func TestNewDumpResult(t *testing.T) {
 				isCompressed: false,
 			},
 			want: &DumpResult{
-				clusterName: validClusterName,
+				ClusterName: validClusterName,
 				RunID:       validRunID,
 				isDir:       true,
 			},
