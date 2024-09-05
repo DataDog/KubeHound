@@ -8,7 +8,6 @@ bin/
 *.dll
 *.so
 *.dylib
-*.jar
 *.class
 *.lst
 
