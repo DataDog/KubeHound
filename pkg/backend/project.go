@@ -20,7 +20,6 @@ import (
 
 var (
 	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml.tpl"}
-	DefaultDatadogComposePath  = "docker-compose.release.datadog.yaml"
 	DefaultUIProfile           = []string{DevUIProfile}
 
 	DevUIProfile = "jupyter"
@@ -89,17 +88,8 @@ func loadEmbeddedConfig(ctx context.Context, profiles []string) (*types.Project,
 	var hostname string
 
 	// Adding datadog setup
-	ddAPIKey, ddAPIKeyOk := os.LookupEnv("DD_API_KEY")
-	ddAPPKey, ddAPPKeyOk := os.LookupEnv("DD_API_KEY")
-
-	if ddAPIKeyOk && ddAPPKeyOk {
-		DefaultReleaseComposePaths = append(DefaultReleaseComposePaths, DefaultDatadogComposePath)
-		hostname, err = os.Hostname()
-		if err != nil {
-			hostname = "kubehound"
-		}
-
-	}
+	ddAPIKey, _ := os.LookupEnv("DD_API_KEY")
+	ddAPPKey, _ := os.LookupEnv("DD_API_KEY")
 
 	for i, filePath := range DefaultReleaseComposePaths {
 		dockerComposeFileData, err = loadEmbeddedDockerCompose(ctx, filePath, dockerComposeFileData)
