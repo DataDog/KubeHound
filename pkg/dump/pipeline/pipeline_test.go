@@ -29,6 +29,20 @@ func newFakeDumpIngestorPipeline(ctx context.Context, t *testing.T, mockCollecto
 
 }
 
+func closingSequence(ctx context.Context, t *testing.T, mDumpWriter *mockwriter.DumperWriter, mCollectorClient *mockcollector.CollectorClient) (*mockwriter.DumperWriter, *mockcollector.CollectorClient) {
+	t.Helper()
+
+	closingSequence := dumpIngestorClosingSequence(mCollectorClient, mDumpWriter)
+	for _, step := range closingSequence {
+		switch step.entity {
+		case "Metadata":
+			mCollectorClient.EXPECT().ComputeMetadata(mock.Anything, NewMetadataIngestor(ctx, mDumpWriter)).Return(nil).Once()
+		}
+	}
+
+	return mDumpWriter, mCollectorClient
+}
+
 func TestPipelineDumpIngestor_Run(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
@@ -65,6 +79,8 @@ func TestPipelineDumpIngestor_Run(t *testing.T) {
 			}
 		}
 
+		mDumpWriter, mCollectorClient = closingSequence(ctx, t, mDumpWriter, mCollectorClient)
+
 		return mDumpWriter, mCollectorClient
 	}
 
@@ -98,6 +114,8 @@ func TestPipelineDumpIngestor_Run(t *testing.T) {
 				mCollectorClient.EXPECT().StreamEndpoints(mock.Anything, NewEndpointIngestor(ctx, mDumpWriter)).Return(nil).Once()
 			}
 		}
+
+		mDumpWriter, mCollectorClient = closingSequence(ctx, t, mDumpWriter, mCollectorClient)
 
 		return mDumpWriter, mCollectorClient
 	}

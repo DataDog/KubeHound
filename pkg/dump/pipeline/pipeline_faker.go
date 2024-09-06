@@ -74,6 +74,8 @@ func PipelineLiveTest(ctx context.Context, t *testing.T, workerNum int) (*mockwr
 		mDumpWriter.EXPECT().Write(mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 	}
 
+	mDumpWriter.EXPECT().Write(mock.Anything, mock.Anything, collector.MetadataPath).Return(nil).Once()
+
 	return mDumpWriter, collectorClient
 }
 
