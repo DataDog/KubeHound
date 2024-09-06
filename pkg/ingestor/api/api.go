@@ -119,7 +119,7 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 		return err
 	}
 
-	metadataFilePath := filepath.Join(archivePath, collector.MetadataPath)
+	metadataFilePath := filepath.Join(filepath.Dir(archivePath), collector.MetadataPath)
 	md, err := dump.GetDumpMetadata(runCtx, metadataFilePath)
 	if err != nil {
 		return err
