@@ -5,7 +5,7 @@ services:
       - "127.0.0.1:27018:27017"
 
   kubegraph:
-    build: ./kubegraph/
+    build: ./graph/
     ports:
       - "127.0.0.1:8183:8182"
       - "127.0.0.1:8090:8099"

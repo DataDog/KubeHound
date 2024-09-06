@@ -1,6 +1,5 @@
 services:
   datadog:
-    image: gcr.io/datadoghq/agent:7-jmx
     build:
       context: datadog
       dockerfile: Dockerfile
