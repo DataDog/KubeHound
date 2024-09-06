@@ -60,6 +60,10 @@ target "binary-cross" {
 }
 
 target "release" {
+  # Overrinding the branch as this target is only being used in the CI
+  args = {
+    BUILD_BRANCH = "main"
+  }
   inherits = ["binary-cross"]
   target = "release"
   output = [outdir("./bin/release")]
