@@ -161,11 +161,15 @@ func newCollectorTags() *collectorTags {
 	}
 }
 
-type Metadata struct {
-	RunID                string        `json:"run_id"`
-	ClusterName          string        `json:"cluster"`
+type Metrics struct {
 	DumpTime             time.Time     `json:"dump_time"`
 	RunDuration          time.Duration `json:"run_duration"`
 	TotalWaitTime        time.Duration `json:"total_wait_time"`
 	ThrottlingPercentage float64       `json:"throttling_percentage"`
+}
+
+type Metadata struct {
+	RunID                string        `json:"run_id"`
+	ClusterName          string        `json:"cluster"`
+	Metrics			  Metrics       `json:"metrics"`
 }

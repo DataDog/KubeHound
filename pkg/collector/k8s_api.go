@@ -130,9 +130,16 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 }
 
 func (c *k8sAPICollector) ComputeMetadata(ctx context.Context, ingestor MetadataIngestor) error {
-	err, metadata := c.computeMetrics(ctx)
+	
+	err, metrics := c.computeMetrics(ctx)
 	if err != nil {
 		return fmt.Errorf("error computing metrics: %w", err)
+	}
+
+	metadata := Metadata{
+		ClusterName: c.clusterName,
+		RunID:       c.runID,
+		Metrics:     metrics,
 	}
 
 	err = ingestor.DumpMetadata(ctx, metadata)
@@ -198,7 +205,7 @@ func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*config.ClusterInfo,
 }
 
 // Generate metrics for k8sAPI collector
-func (c *k8sAPICollector) computeMetrics(_ context.Context) (error, Metadata) {
+func (c *k8sAPICollector) computeMetrics(_ context.Context) (error, Metrics) {
 	var errMetric error
 	var runTotalWaitTime time.Duration
 	for _, wait := range c.waitTime {
@@ -226,9 +233,7 @@ func (c *k8sAPICollector) computeMetrics(_ context.Context) (error, Metadata) {
 	c.log.Infof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage) //nolint:gomnd
 
 	// SaveMetadata
-	metadata := Metadata{
-		RunID:                c.runID,
-		ClusterName:          c.clusterName,
+	metadata := Metrics{
 		DumpTime:             time.Now(),
 		RunDuration:          runDuration,
 		TotalWaitTime:        runTotalWaitTime,
