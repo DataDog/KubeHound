@@ -54,7 +54,7 @@ func getClusterName(ctx context.Context, collector collector.CollectorClient) (s
 }
 
 func (d *DumpIngestor) Metadata() (collector.Metadata, error) {
-	path := filepath.Join(d.writer.OutputPath(), collector.MetadatPath)
+	path := filepath.Join(d.writer.OutputPath(), collector.MetadataPath)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return collector.Metadata{}, err

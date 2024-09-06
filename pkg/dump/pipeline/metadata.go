@@ -21,7 +21,7 @@ func NewMetadataIngestor(ctx context.Context, dumpWriter writer.DumperWriter) *M
 
 func (d *MetadataIngestor) DumpMetadata(ctx context.Context, metadata collector.Metadata) error {
 	data := make(map[string]*collector.Metadata)
-	data[collector.MetadatPath] = &metadata
+	data[collector.MetadataPath] = &metadata
 
 	return dumpObj[*collector.Metadata](ctx, data, d.writer)
 

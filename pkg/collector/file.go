@@ -45,7 +45,7 @@ const (
 	PodPath                 = "pods.json"
 	RolesPath               = "roles.rbac.authorization.k8s.io.json"
 	RoleBindingsPath        = "rolebindings.rbac.authorization.k8s.io.json"
-	MetadatPath             = "metadata.json"
+	MetadataPath            = "metadata.json"
 )
 
 const (

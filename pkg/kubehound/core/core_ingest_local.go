@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 )
@@ -24,7 +25,7 @@ func CoreLocalIngest(ctx context.Context, khCfg *config.KubehoundConfig, resultP
 	if err != nil {
 		return err
 	}
-	metadataFilePath := filepath.Join(resultPath, "metadata.json")
+	metadataFilePath := filepath.Join(resultPath, collector.MetadataPath)
 	if compress {
 		tmpDir, err := os.MkdirTemp("/tmp/", "kh-local-ingest-*")
 		if err != nil {
