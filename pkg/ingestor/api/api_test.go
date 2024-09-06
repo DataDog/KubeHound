@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/dump"
 	mocksNotifier "github.com/DataDog/KubeHound/pkg/ingestor/notifier/mocks"
 	mocksPuller "github.com/DataDog/KubeHound/pkg/ingestor/puller/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
@@ -150,7 +151,17 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 			g := NewIngestorAPI(tt.fields.cfg, mockedPuller, mockedNotifier, mockedProvider)
 			noPreviousScan(mt, g)
 			tt.mock(mockedPuller, mockedNotifier, mockedCache, mockedStoreDB, mockedGraphDB)
-			if err := g.Ingest(context.TODO(), tt.args.clusterName, tt.args.runID); (err != nil) != tt.wantErr {
+
+			// Construct dump result path
+			dumpResult, err := dump.NewDumpResult(tt.args.clusterName, tt.args.runID, true)
+			if err != nil {
+				t.Errorf("dump.NewDumpResult() error = %v, wantErr %v", err, tt.wantErr)
+
+				return
+			}
+			dumpResultPath := dumpResult.GetFullPath()
+
+			if err := g.Ingest(context.TODO(), dumpResultPath); (err != nil) != tt.wantErr {
 				t.Errorf("IngestorAPI.Ingest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
