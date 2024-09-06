@@ -78,10 +78,6 @@ func (f *TarWriter) WorkerNumber() int {
 	return TarWorkerNumber
 }
 
-func (f *TarWriter) WriteMetadata(ctx context.Context) error {
-	return nil
-}
-
 // Write function writes the Kubernetes object to a buffer
 // All buffer are stored in a map which is flushed at the end of every type processed
 func (t *TarWriter) Write(ctx context.Context, k8sObj []byte, filePath string) error {
