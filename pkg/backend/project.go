@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"text/template"
 
@@ -20,7 +19,6 @@ import (
 
 var (
 	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml.tpl"}
-	DefaultDatadogComposePath  = "docker-compose.release.datadog.yaml"
 	DefaultUIProfile           = []string{DevUIProfile}
 
 	DevUIProfile = "jupyter"
@@ -86,20 +84,6 @@ func loadComposeConfig(ctx context.Context, composeFilePaths []string, profiles 
 func loadEmbeddedConfig(ctx context.Context, profiles []string) (*types.Project, error) {
 	var dockerComposeFileData map[interface{}]interface{}
 	var err error
-	var hostname string
-
-	// Adding datadog setup
-	ddAPIKey, ddAPIKeyOk := os.LookupEnv("DD_API_KEY")
-	ddAPPKey, ddAPPKeyOk := os.LookupEnv("DD_API_KEY")
-
-	if ddAPIKeyOk && ddAPPKeyOk {
-		DefaultReleaseComposePaths = append(DefaultReleaseComposePaths, DefaultDatadogComposePath)
-		hostname, err = os.Hostname()
-		if err != nil {
-			hostname = "kubehound"
-		}
-
-	}
 
 	for i, filePath := range DefaultReleaseComposePaths {
 		dockerComposeFileData, err = loadEmbeddedDockerCompose(ctx, filePath, dockerComposeFileData)
@@ -118,11 +102,6 @@ func loadEmbeddedConfig(ctx context.Context, profiles []string) (*types.Project,
 			{
 				Content: data,
 			},
-		},
-		Environment: map[string]string{
-			"DD_API_KEY":      ddAPIKey,
-			"DD_APP_KEY":      ddAPPKey,
-			"DOCKER_HOSTNAME": hostname,
 		},
 	}
 
