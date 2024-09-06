@@ -130,8 +130,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 }
 
 func (c *k8sAPICollector) ComputeMetadata(ctx context.Context, ingestor MetadataIngestor) error {
-	
-	err, metrics := c.computeMetrics(ctx)
+	metrics, err := c.computeMetrics(ctx)
 	if err != nil {
 		return fmt.Errorf("error computing metrics: %w", err)
 	}
@@ -205,7 +204,7 @@ func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*config.ClusterInfo,
 }
 
 // Generate metrics for k8sAPI collector
-func (c *k8sAPICollector) computeMetrics(_ context.Context) (error, Metrics) {
+func (c *k8sAPICollector) computeMetrics(_ context.Context) (Metrics, error) {
 	var errMetric error
 	var runTotalWaitTime time.Duration
 	for _, wait := range c.waitTime {
@@ -240,7 +239,7 @@ func (c *k8sAPICollector) computeMetrics(_ context.Context) (error, Metrics) {
 		ThrottlingPercentage: runThrottlingPercentage,
 	}
 
-	return errMetric, metadata
+	return metadata, errMetric
 }
 
 func (c *k8sAPICollector) Close(ctx context.Context) error {
