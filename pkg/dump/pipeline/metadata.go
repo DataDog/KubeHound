@@ -8,13 +8,13 @@ import (
 )
 
 type MetadataIngestor struct {
-	buffer map[string]*collector.Metadata
+	buffer map[string]collector.Metadata
 	writer writer.DumperWriter
 }
 
 func NewMetadataIngestor(ctx context.Context, dumpWriter writer.DumperWriter) *MetadataIngestor {
 	return &MetadataIngestor{
-		buffer: make(map[string]*collector.Metadata),
+		buffer: make(map[string]collector.Metadata),
 		writer: dumpWriter,
 	}
 }
