@@ -15,8 +15,6 @@ import (
 func CoreLocalIngest(ctx context.Context, khCfg *config.KubehoundConfig, resultPath string) error {
 	// Using the collector config to ingest the data
 	khCfg.Collector.Type = config.CollectorTypeFile
-	// Applying the clusterName from the dynamic config (from CLI or env var) to the collector config
-	// khCfg.Collector.File.ClusterName = khCfg.Dynamic.ClusterName
 
 	// Treating by default as data not compressed (directory of the results)
 	khCfg.Collector.File.Directory = resultPath
@@ -42,7 +40,7 @@ func CoreLocalIngest(ctx context.Context, khCfg *config.KubehoundConfig, resultP
 		metadataFilePath = filepath.Join(tmpDir, collector.MetadataPath)
 	}
 	// Getting the metadata from the metadata file
-	md, err := dump.GetDumpMetadata(ctx, metadataFilePath)
+	md, err := dump.ParseMetadata(ctx, metadataFilePath)
 	if err != nil {
 		return err
 	}

@@ -35,7 +35,7 @@ type k8sAPICollector struct {
 	log         *log.KubehoundLogger
 	rl          ratelimit.Limiter
 	cfg         *config.K8SAPICollectorConfig
-	tags        collectorTags
+	tags        *collectorTags
 	waitTime    map[string]time.Duration
 	startTime   time.Time
 	mu          *sync.Mutex
@@ -120,7 +120,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		clientset:   clientset,
 		log:         l,
 		rl:          ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
-		tags:        *newCollectorTags(),
+		tags:        newCollectorTags(),
 		waitTime:    map[string]time.Duration{},
 		startTime:   time.Now(),
 		mu:          &sync.Mutex{},

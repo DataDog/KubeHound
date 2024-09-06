@@ -86,7 +86,7 @@ func (i *DumpResult) GetFilename() string {
 	return fmt.Sprintf("%s.%s", filename, i.extension)
 }
 
-func GetDumpMetadata(ctx context.Context, metadataFilePath string) (collector.Metadata, error) {
+func ParseMetadata(ctx context.Context, metadataFilePath string) (collector.Metadata, error) {
 	var metadata collector.Metadata
 
 	bytes, err := os.ReadFile(metadataFilePath)
