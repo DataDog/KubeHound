@@ -34,7 +34,7 @@ func closingSequence(ctx context.Context, t *testing.T, mDumpWriter *mockwriter.
 
 	closingSequence := dumpIngestorClosingSequence(mCollectorClient, mDumpWriter)
 	for _, step := range closingSequence {
-		switch step.entity {
+		switch step.entity { //nolint: gocritic
 		case "Metadata":
 			mCollectorClient.EXPECT().ComputeMetadata(mock.Anything, NewMetadataIngestor(ctx, mDumpWriter)).Return(nil).Once()
 		}
