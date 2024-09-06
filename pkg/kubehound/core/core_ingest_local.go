@@ -8,6 +8,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/dump"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 )
 
@@ -38,12 +39,14 @@ func CoreLocalIngest(ctx context.Context, khCfg *config.KubehoundConfig, resultP
 		if err != nil {
 			return err
 		}
-		metadataFilePath = filepath.Join(tmpDir, "metadata.json")
+		metadataFilePath = filepath.Join(tmpDir, collector.MetadataPath)
 	}
-	md, err := GetDumpMetadata(metadataFilePath)
+	// Getting the metadata from the metadata file
+	md, err := dump.GetDumpMetadata(ctx, metadataFilePath)
 	if err != nil {
 		return err
 	}
+	khCfg.Collector.File.ClusterName = md.ClusterName
 
 	return CoreLive(ctx, khCfg)
 }

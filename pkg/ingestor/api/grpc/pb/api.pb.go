@@ -158,7 +158,7 @@ type IngestedCluster struct {
 	unknownFields protoimpl.UnknownFields
 
 	ClusterName string                 `protobuf:"bytes,1,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
-	RunId       string                 `protobuf:"bytes,2,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
+	Key       string                 `protobuf:"bytes,2,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
 	Date        *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=date,proto3" json:"date,omitempty"`
 }
 
@@ -203,7 +203,7 @@ func (x *IngestedCluster) GetClusterName() string {
 
 func (x *IngestedCluster) GetRunId() string {
 	if x != nil {
-		return x.RunId
+		return x.Key
 	}
 	return ""
 }

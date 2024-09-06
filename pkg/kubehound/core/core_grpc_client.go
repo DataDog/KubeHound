@@ -69,7 +69,7 @@ func CoreClientGRPCRehydrateLatest(ingestorConfig config.IngestorConfig) error {
 	}
 
 	for _, res := range results.IngestedCluster {
-		log.I.Infof("Rehydrated cluster: %s, date: %s, run_id: %s", res.ClusterName, res.Date.AsTime().Format("01-02-2006 15:04:05"), res.RunId)
+		log.I.Infof("Rehydrated cluster: %s, date: %s, run_id: %s", res.ClusterName, res.Date.AsTime().Format("01-02-2006 15:04:05"), res.Key)
 	}
 
 	return nil

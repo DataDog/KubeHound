@@ -1,7 +1,10 @@
 package dump
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"path"
 	"regexp"
 
@@ -81,4 +84,24 @@ func (i *DumpResult) GetFilename() string {
 	}
 
 	return fmt.Sprintf("%s.%s", filename, i.extension)
+}
+
+func GetDumpMetadata(ctx context.Context, metadataFilePath string) (collector.Metadata, error) {
+	var metadata collector.Metadata
+
+	bytes, err := os.ReadFile(metadataFilePath)
+	if err != nil {
+		return metadata, fmt.Errorf("read file %s: %w", metadataFilePath, err)
+	}
+
+	if len(bytes) == 0 {
+		return metadata, nil
+	}
+
+	err = json.Unmarshal(bytes, &metadata)
+	if err != nil {
+		return metadata, fmt.Errorf("unmarshalling %T in %s: %w", metadata, metadataFilePath, err)
+	}
+
+	return metadata, nil
 }

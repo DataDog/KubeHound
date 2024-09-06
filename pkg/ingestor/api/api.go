@@ -30,7 +30,7 @@ import (
 )
 
 type API interface {
-	Ingest(ctx context.Context, clusterName string, runID string) error
+	Ingest(ctx context.Context, path string) error
 	Notify(ctx context.Context, clusterName string, runID string) error
 }
 
@@ -83,22 +83,14 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 			latestDumpIngestTime := latestDump.ModTime
 			latestDumpKey := latestDump.Key
 
-			dumpResult, err := dump.ParsePath(latestDumpKey)
-			if err != nil {
-				errRet = errors.Join(errRet, fmt.Errorf("parsing dump path %s: %w", latestDumpKey, err))
-
-				continue
-			}
-			runID := dumpResult.RunID
-
-			clusterErr := g.Ingest(ctx, clusterName, runID)
+			clusterErr := g.Ingest(ctx, latestDumpKey)
 			if clusterErr != nil {
-				errRet = errors.Join(errRet, fmt.Errorf("ingesting cluster %s/%s: %w", clusterName, runID, clusterErr))
+				errRet = errors.Join(errRet, fmt.Errorf("ingesting cluster %s: %w", latestDumpKey, clusterErr))
 			}
-			log.I.Infof("Rehydrated cluster: %s, date: %s, run_id: %s", clusterName, latestDumpIngestTime.Format("01-02-2006 15:04:05"), runID)
+			log.I.Infof("Rehydrated cluster: %s, date: %s, key: %s", clusterName, latestDumpIngestTime.Format("01-02-2006 15:04:05"), latestDumpKey)
 			ingestedCluster := &grpc.IngestedCluster{
 				ClusterName: clusterName,
-				RunId:       runID,
+				Key:         latestDumpKey,
 				Date:        timestamppb.New(latestDumpIngestTime),
 			}
 			res = append(res, ingestedCluster)
@@ -109,33 +101,11 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 	return res, errRet
 }
 
-func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string) error {
-	events.PushEvent(
-		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
-		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
-		[]string{
-			tag.IngestionRunID(runID),
-		},
-	)
+func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 	// Settings global variables for the run in the context to propagate them to the spans
 	runCtx := context.Background()
-	runCtx = context.WithValue(runCtx, span.ContextLogFieldClusterName, clusterName)
-	runCtx = context.WithValue(runCtx, span.ContextLogFieldRunID, runID)
 
-	spanJob, runCtx := span.SpanIngestRunFromContext(runCtx, span.IngestorStartJob)
-	var err error
-	defer func() { spanJob.Finish(tracer.WithError(err)) }()
-
-	alreadyIngested, err := g.isAlreadyIngestedInGraph(runCtx, clusterName, runID) //nolint: contextcheck
-	if err != nil {
-		return err
-	}
-
-	if alreadyIngested {
-		return fmt.Errorf("%w [%s:%s]", ErrAlreadyIngested, clusterName, runID)
-	}
-
-	archivePath, err := g.puller.Pull(runCtx, clusterName, runID) //nolint: contextcheck
+	archivePath, err := g.puller.Pull(runCtx, path) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
@@ -149,6 +119,14 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 		return err
 	}
 
+	metadataFilePath := filepath.Join(archivePath, collector.MetadataPath)
+	md, err := dump.GetDumpMetadata(runCtx, metadataFilePath)
+	if err != nil {
+		return err
+	}
+	clusterName := md.ClusterName
+	runID := md.RunID
+
 	runCfg := g.Cfg
 	runCfg.Collector = config.CollectorConfig{
 		Type: config.CollectorTypeFile,
@@ -156,6 +134,29 @@ func (g *IngestorAPI) Ingest(_ context.Context, clusterName string, runID string
 			Directory:   filepath.Dir(archivePath),
 			ClusterName: clusterName,
 		},
+	}
+
+	events.PushEvent(
+		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
+		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
+		[]string{
+			tag.IngestionRunID(runID),
+		},
+	)
+
+	runCtx = context.WithValue(runCtx, span.ContextLogFieldClusterName, clusterName)
+	runCtx = context.WithValue(runCtx, span.ContextLogFieldRunID, runID)
+
+	spanJob, runCtx := span.SpanIngestRunFromContext(runCtx, span.IngestorStartJob)
+	defer func() { spanJob.Finish(tracer.WithError(err)) }()
+
+	alreadyIngested, err := g.isAlreadyIngestedInGraph(runCtx, clusterName, runID) //nolint: contextcheck
+	if err != nil {
+		return err
+	}
+
+	if alreadyIngested {
+		return fmt.Errorf("%w [%s:%s]", ErrAlreadyIngested, clusterName, runID)
 	}
 
 	// We need to flush the cache to prevent warnings/errors when overwriting elements in cache from the previous ingestion
