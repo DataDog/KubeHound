@@ -151,7 +151,7 @@ func TestPipelineDumpIngestor_Run(t *testing.T) {
 				t.Errorf("PipelineDumpIngestor.Run() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if err := pipeline.Wait(ctx); (err != nil) != tt.wantErr {
+			if err := pipeline.WaitAndClose(ctx); (err != nil) != tt.wantErr {
 				t.Errorf("PipelineDumpIngestor.Wait() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

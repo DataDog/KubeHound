@@ -5,6 +5,8 @@ import (
 	"path"
 	"reflect"
 	"testing"
+
+	"github.com/DataDog/KubeHound/pkg/collector"
 )
 
 const (
@@ -56,7 +58,7 @@ func TestDumpResult_GetFilename(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
-				Metadata: Metadata{
+				Metadata: collector.Metadata{
 					ClusterName: tt.fields.ClusterName,
 					RunID:       tt.fields.RunID,
 				},
@@ -110,7 +112,7 @@ func TestDumpResult_GetFullPath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
-				Metadata: Metadata{
+				Metadata: collector.Metadata{
 					ClusterName: tt.fields.ClusterName,
 					RunID:       tt.fields.RunID,
 				},
@@ -146,7 +148,7 @@ func TestNewDumpResult(t *testing.T) {
 				isCompressed: false,
 			},
 			want: &DumpResult{
-				Metadata: Metadata{
+				Metadata: collector.Metadata{
 					ClusterName: validClusterName,
 					RunID:       validRunID,
 				},

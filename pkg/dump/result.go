@@ -4,19 +4,14 @@ import (
 	"fmt"
 	"path"
 	"regexp"
-	"time"
+
+	"github.com/DataDog/KubeHound/pkg/collector"
 )
 
 type DumpResult struct {
 	isDir     bool
 	extension string
-	Metadata  Metadata
-}
-
-type Metadata struct {
-	RunID       string    `json:"run_id"`
-	ClusterName string    `json:"cluster"`
-	DumpTime    time.Time `json:"dump_time"`
+	Metadata  collector.Metadata
 }
 
 const (
@@ -30,7 +25,7 @@ const (
 
 func NewDumpResult(clusterName, runID string, isCompressed bool) (*DumpResult, error) {
 	dumpResult := &DumpResult{
-		Metadata: Metadata{
+		Metadata: collector.Metadata{
 			ClusterName: clusterName,
 			RunID:       runID,
 		},

@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
@@ -77,6 +78,11 @@ type EndpointIngestor interface {
 	Complete(context.Context) error
 }
 
+// MetadataIngestor defines the interface to allow an ingestor to computed metrics and metadata from a collector.
+type MetadataIngestor interface {
+	DumpMetadata(context.Context, Metadata) error
+}
+
 //go:generate mockery --name CollectorClient --output mockcollector --case underscore --filename collector_client.go --with-expecter
 type CollectorClient interface { //nolint: interfacebloat
 	services.Dependency
@@ -84,8 +90,8 @@ type CollectorClient interface { //nolint: interfacebloat
 	// ClusterInfo returns the target cluster information for the current run.
 	ClusterInfo(ctx context.Context) (*config.ClusterInfo, error)
 
-	// Tags return the tags for the current run.
-	Tags(ctx context.Context) []string
+	// Compute the metrics and gather all the metadata and dump it through the ingestor.DumpMetadata
+	ComputeMetadata(ctx context.Context, ingestor MetadataIngestor) error
 
 	// StreamNodes will iterate through all NodeType objects collected by the collector and invoke the ingestor.IngestNode method on each.
 	// Once all the NodeType objects have been exhausted the ingestor.Complete method will be invoked to signal the end of the stream.
@@ -153,4 +159,13 @@ func newCollectorTags() *collectorTags {
 		clusterrolebinding: tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityClusterRolebindings)),
 		baseTags:           tag.GetBaseTags(),
 	}
+}
+
+type Metadata struct {
+	RunID                string        `json:"run_id"`
+	ClusterName          string        `json:"cluster"`
+	DumpTime             time.Time     `json:"dump_time"`
+	RunDuration          time.Duration `json:"run_duration"`
+	TotalWaitTime        time.Duration `json:"total_wait_time"`
+	ThrottlingPercentage float64       `json:"throttling_percentage"`
 }

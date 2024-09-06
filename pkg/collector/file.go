@@ -45,6 +45,7 @@ const (
 	PodPath                 = "pods.json"
 	RolesPath               = "roles.rbac.authorization.k8s.io.json"
 	RoleBindingsPath        = "rolebindings.rbac.authorization.k8s.io.json"
+	MetadatPath             = "metadata.json"
 )
 
 const (
@@ -78,8 +79,8 @@ func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (Collect
 	}, nil
 }
 
-// TODO: remove this after all PR
-func (c *FileCollector) Tags(ctx context.Context) []string {
+// This function has no meaning in the file collector as it should already have all the metadata gathered in the dumped files.
+func (c *FileCollector) ComputeMetadata(ctx context.Context, ingestor MetadataIngestor) error {
 	return nil
 }
 

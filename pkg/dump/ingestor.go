@@ -53,17 +53,17 @@ func getClusterName(ctx context.Context, collector collector.CollectorClient) (s
 	return cluster.Name, nil
 }
 
-func (d *DumpIngestor) Metadata() (Metadata, error) {
-	path := filepath.Join(d.writer.OutputPath(), "metadata.json")
+func (d *DumpIngestor) Metadata() (collector.Metadata, error) {
+	path := filepath.Join(d.writer.OutputPath(), collector.MetadatPath)
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return Metadata{}, err
+		return collector.Metadata{}, err
 	}
 
-	md := Metadata{}
+	md := collector.Metadata{}
 	err = json.Unmarshal(data, &md)
 	if err != nil {
-		return Metadata{}, err
+		return collector.Metadata{}, err
 	}
 
 	return md, nil
@@ -71,10 +71,6 @@ func (d *DumpIngestor) Metadata() (Metadata, error) {
 
 func (d *DumpIngestor) OutputPath() string {
 	return d.writer.OutputPath()
-}
-
-func (d *DumpIngestor) SaveMetadata(ctx context.Context) error {
-	return d.writer.WriteMetadata(ctx)
 }
 
 func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
@@ -94,7 +90,7 @@ func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
 		return fmt.Errorf("run pipeline ingestor: %w", err)
 	}
 
-	return pipeline.Wait(ctx)
+	return pipeline.WaitAndClose(ctx)
 }
 
 // Close() is invoked by the collector to close all handlers used to dump k8s objects.
