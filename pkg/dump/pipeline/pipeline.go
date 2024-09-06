@@ -141,7 +141,7 @@ func (p *PipelineDumpIngestor) Run(ctx context.Context) error {
 	for _, v := range p.sequence {
 		v := v
 		p.wp.Submit(func() error {
-			_, errDump := dumpK8sObjs(ctx, v.operationName, v.entity, v.streamFunc)
+			errDump := dumpK8sObjs(ctx, v.operationName, v.entity, v.streamFunc)
 			if errDump != nil {
 				err = errors.Join(err, errDump)
 			}
@@ -161,7 +161,7 @@ func (p *PipelineDumpIngestor) WaitAndClose(ctx context.Context) error {
 
 	for _, v := range p.closingSequence {
 		v := v
-		_, errDump := dumpK8sObjs(ctx, v.operationName, v.entity, v.streamFunc)
+		errDump := dumpK8sObjs(ctx, v.operationName, v.entity, v.streamFunc)
 		if errDump != nil {
 			err = errors.Join(err, errDump)
 		}
@@ -171,7 +171,7 @@ func (p *PipelineDumpIngestor) WaitAndClose(ctx context.Context) error {
 }
 
 // Static wrapper to dump k8s object dynamically (streams Kubernetes objects to the collector writer).
-func dumpK8sObjs(ctx context.Context, operationName string, entity string, streamFunc StreamFunc) (context.Context, error) {
+func dumpK8sObjs(ctx context.Context, operationName string, entity string, streamFunc StreamFunc) error {
 	log.I.Infof("Dumping %s", entity)
 	span, ctx := tracer.StartSpanFromContext(ctx, operationName, tracer.Measured())
 	span.SetTag(tag.EntityTag, entity)
@@ -180,5 +180,5 @@ func dumpK8sObjs(ctx context.Context, operationName string, entity string, strea
 	err = streamFunc(ctx)
 	log.I.Infof("Dumping %s done", entity)
 
-	return ctx, err
+	return err
 }

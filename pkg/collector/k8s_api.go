@@ -145,6 +145,7 @@ func (c *k8sAPICollector) ComputeMetadata(ctx context.Context, ingestor Metadata
 	if err != nil {
 		return fmt.Errorf("ingesting metadata: %w", err)
 	}
+
 	return nil
 }
 
