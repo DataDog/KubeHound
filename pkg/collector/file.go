@@ -56,7 +56,7 @@ const (
 type FileCollector struct {
 	cfg  *config.FileCollectorConfig
 	log  *log.KubehoundLogger
-	tags *collectorTags
+	tags collectorTags
 }
 
 // NewFileCollector creates a new instance of the file collector from the provided application config.

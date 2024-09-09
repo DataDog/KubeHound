@@ -148,8 +148,8 @@ type collectorTags struct {
 	baseTags           []string
 }
 
-func newCollectorTags() *collectorTags {
-	return &collectorTags{
+func newCollectorTags() collectorTags {
+	return collectorTags{
 		pod:                tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityPods)),
 		role:               tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityRoles)),
 		rolebinding:        tag.GetBaseTagsWith(tag.Collector(FileCollectorName), tag.Entity(tag.EntityRolebindings)),

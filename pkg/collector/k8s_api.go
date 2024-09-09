@@ -35,7 +35,7 @@ type k8sAPICollector struct {
 	log         *log.KubehoundLogger
 	rl          ratelimit.Limiter
 	cfg         *config.K8SAPICollectorConfig
-	tags        *collectorTags
+	tags        collectorTags
 	waitTime    map[string]time.Duration
 	startTime   time.Time
 	mu          *sync.Mutex
