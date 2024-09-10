@@ -164,23 +164,23 @@ func (_c *DataPuller_ListFiles_Call) RunAndReturn(run func(context.Context, stri
 	return _c
 }
 
-// Pull provides a mock function with given fields: ctx, clusterName, runID
-func (_m *DataPuller) Pull(ctx context.Context, clusterName string, runID string) (string, error) {
-	ret := _m.Called(ctx, clusterName, runID)
+// Pull provides a mock function with given fields: ctx, path
+func (_m *DataPuller) Pull(ctx context.Context, path string) (string, error) {
+	ret := _m.Called(ctx, path)
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (string, error)); ok {
-		return rf(ctx, clusterName, runID)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, path)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) string); ok {
-		r0 = rf(ctx, clusterName, runID)
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, path)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, clusterName, runID)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, path)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -195,15 +195,14 @@ type DataPuller_Pull_Call struct {
 
 // Pull is a helper method to define mock.On call
 //   - ctx context.Context
-//   - clusterName string
-//   - runID string
-func (_e *DataPuller_Expecter) Pull(ctx interface{}, clusterName interface{}, runID interface{}) *DataPuller_Pull_Call {
-	return &DataPuller_Pull_Call{Call: _e.mock.On("Pull", ctx, clusterName, runID)}
+//   - path string
+func (_e *DataPuller_Expecter) Pull(ctx interface{}, path interface{}) *DataPuller_Pull_Call {
+	return &DataPuller_Pull_Call{Call: _e.mock.On("Pull", ctx, path)}
 }
 
-func (_c *DataPuller_Pull_Call) Run(run func(ctx context.Context, clusterName string, runID string)) *DataPuller_Pull_Call {
+func (_c *DataPuller_Pull_Call) Run(run func(ctx context.Context, path string)) *DataPuller_Pull_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -213,7 +212,7 @@ func (_c *DataPuller_Pull_Call) Return(_a0 string, _a1 error) *DataPuller_Pull_C
 	return _c
 }
 
-func (_c *DataPuller_Pull_Call) RunAndReturn(run func(context.Context, string, string) (string, error)) *DataPuller_Pull_Call {
+func (_c *DataPuller_Pull_Call) RunAndReturn(run func(context.Context, string) (string, error)) *DataPuller_Pull_Call {
 	_c.Call.Return(run)
 	return _c
 }

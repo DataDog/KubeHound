@@ -289,7 +289,14 @@ func TestBlobStore_Pull(t *testing.T) {
 				cfg:        tt.fields.cfg,
 				region:     tt.fields.region,
 			}
-			got, err := bs.Pull(ctx, tt.args.clusterName, tt.args.runID)
+			dumpResult, err := dump.NewDumpResult(tt.args.clusterName, tt.args.runID, true)
+			if err != nil {
+				t.Errorf("dump.NewDumpResult() error = %v, wantErr %v", err, tt.wantErr)
+
+				return
+			}
+			key := dumpResult.GetFullPath()
+			got, err := bs.Pull(ctx, key)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("BlobStore.Pull() error = %v, wantErr %v", err, tt.wantErr)
 

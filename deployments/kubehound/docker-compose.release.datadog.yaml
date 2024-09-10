@@ -1,9 +1,6 @@
 services:
   datadog:
     image: gcr.io/datadoghq/agent:7-jmx
-    build:
-      context: datadog
-      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "127.0.0.1:8225:8125/UDP"

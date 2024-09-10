@@ -3,8 +3,7 @@ name: Datadog Static Analysis
 on:
   push:
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   static-analysis:

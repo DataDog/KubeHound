@@ -6,6 +6,9 @@ on:
       - main
   pull_request:
 
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
 jobs:
   system-test:
     runs-on:

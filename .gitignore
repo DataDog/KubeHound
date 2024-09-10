@@ -8,7 +8,6 @@ bin/
 *.dll
 *.so
 *.dylib
-*.jar
 *.class
 *.lst
 
@@ -53,7 +52,7 @@ test/system/generator/generator
 scripts/collectors/
 
 # java
-deployments/kubehound/kubegraph/dsl/kubehound/target
+deployments/kubehound/graph/dsl/kubehound/target
 
 # personal settings
 .vscode/settings.json

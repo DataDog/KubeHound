@@ -3,7 +3,7 @@ services:
   grpc:
     build:
       context: ../../
-      dockerfile: deployments/kubehound/ingestor/Dockerfile
+      dockerfile: deployments/kubehound/kubehound/Dockerfile
     restart: unless-stopped
     ports:
       - "127.0.0.1:9000:9000"

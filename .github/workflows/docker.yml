@@ -17,18 +17,18 @@ jobs:
   docker-build-push:
     runs-on: ubuntu-latest
     strategy:
-        # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
-        matrix:
-          include:
-            - dockerfile: deployments/kubehound/kubegraph/Dockerfile
-              image: graph
-              workdir: deployments/kubehound/kubegraph/
-            - dockerfile: deployments/kubehound/notebook/Dockerfile
-              image: ui
-              workdir: deployments/kubehound/notebook/
-            - dockerfile: deployments/kubehound/ingestor/Dockerfile
-              image: ingestor
-              workdir: .
+      # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
+      matrix:
+        include:
+          - dockerfile: deployments/kubehound/graph/Dockerfile
+            image: graph
+            workdir: deployments/kubehound/graph/
+          - dockerfile: deployments/kubehound/ui/Dockerfile
+            image: ui
+            workdir: deployments/kubehound/ui/
+          - dockerfile: deployments/kubehound/kubehound/Dockerfile
+            image: kubehound
+            workdir: .
     permissions:
       contents: read
       packages: write
@@ -97,8 +97,8 @@ jobs:
           build-args: |
             VERSION=${{ github.ref_name }}
           tags: |
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:${{ github.ref_name }}
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:${{ github.ref_name }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest
 
       - name: Build and push Docker image
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -111,5 +111,5 @@ jobs:
           build-args: |
             VERSION=${{ github.sha }}
           tags: |
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:snapshot-${{ github.sha }}
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:snapshot-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest

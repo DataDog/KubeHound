@@ -40,6 +40,8 @@ type k8sAPICollector struct {
 	startTime   time.Time
 	mu          *sync.Mutex
 	isStreaming bool
+	clusterName string
+	runID       string
 }
 
 const (
@@ -114,19 +116,36 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	}
 
 	return &k8sAPICollector{
-		cfg:       cfg.Collector.Live,
-		clientset: clientset,
-		log:       l,
-		rl:        ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
-		tags:      *newCollectorTags(),
-		waitTime:  map[string]time.Duration{},
-		startTime: time.Now(),
-		mu:        &sync.Mutex{},
+		cfg:         cfg.Collector.Live,
+		clientset:   clientset,
+		log:         l,
+		rl:          ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
+		tags:        newCollectorTags(),
+		waitTime:    map[string]time.Duration{},
+		startTime:   time.Now(),
+		mu:          &sync.Mutex{},
+		clusterName: clusterName,
+		runID:       cfg.Dynamic.RunID.String(),
 	}, nil
 }
 
-// TODO: remove this after all PR
-func (c *k8sAPICollector) Tags(ctx context.Context) []string {
+func (c *k8sAPICollector) ComputeMetadata(ctx context.Context, ingestor MetadataIngestor) error {
+	metrics, err := c.computeMetrics(ctx)
+	if err != nil {
+		return fmt.Errorf("error computing metrics: %w", err)
+	}
+
+	metadata := Metadata{
+		ClusterName: c.clusterName,
+		RunID:       c.runID,
+		Metrics:     metrics,
+	}
+
+	err = ingestor.DumpMetadata(ctx, metadata)
+	if err != nil {
+		return fmt.Errorf("ingesting metadata: %w", err)
+	}
+
 	return nil
 }
 
@@ -186,7 +205,7 @@ func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*config.ClusterInfo,
 }
 
 // Generate metrics for k8sAPI collector
-func (c *k8sAPICollector) computeMetrics(_ context.Context) error {
+func (c *k8sAPICollector) computeMetrics(_ context.Context) (Metrics, error) {
 	var errMetric error
 	var runTotalWaitTime time.Duration
 	for _, wait := range c.waitTime {
@@ -213,16 +232,18 @@ func (c *k8sAPICollector) computeMetrics(_ context.Context) error {
 	}
 	c.log.Infof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage) //nolint:gomnd
 
-	return errMetric
+	// SaveMetadata
+	metadata := Metrics{
+		DumpTime:             time.Now(),
+		RunDuration:          runDuration,
+		TotalWaitTime:        runTotalWaitTime,
+		ThrottlingPercentage: runThrottlingPercentage,
+	}
+
+	return metadata, errMetric
 }
 
 func (c *k8sAPICollector) Close(ctx context.Context) error {
-	err := c.computeMetrics(ctx)
-	if err != nil {
-		// We don't want to return an error here as it is just metrics and won't affect the collection of data
-		c.log.Errorf("Error computing metrics: %s", err)
-	}
-
 	return nil
 }
 

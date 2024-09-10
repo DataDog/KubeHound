@@ -172,17 +172,12 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 }
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
-func (bs *BlobStore) Pull(outer context.Context, clusterName string, runID string) (string, error) {
-	log.I.Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
+func (bs *BlobStore) Pull(outer context.Context, key string) (string, error) {
+	log.I.Infof("Pulling data from blob store bucket %s, %s", bs.bucketName, key)
 	spanPull, ctx := span.SpanIngestRunFromContext(outer, span.IngestorBlobPull)
 	var err error
 	defer func() { spanPull.Finish(tracer.WithError(err)) }()
 
-	dumpResult, err := dump.NewDumpResult(clusterName, runID, true)
-	if err != nil {
-		return "", err
-	}
-	key := dumpResult.GetFullPath()
 	log.I.Infof("Opening bucket: %s", bs.bucketName)
 	b, err := bs.openBucket(ctx)
 	if err != nil {

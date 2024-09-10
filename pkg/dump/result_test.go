@@ -5,6 +5,8 @@ import (
 	"path"
 	"reflect"
 	"testing"
+
+	"github.com/DataDog/KubeHound/pkg/collector"
 )
 
 const (
@@ -38,6 +40,15 @@ func TestParsePath(t *testing.T) {
 				isDir:       true,
 				extension:   "",
 			},
+			want: &DumpResult{
+				Metadata: collector.Metadata{
+					ClusterName: validClusterName,
+					RunID:       validRunID,
+				},
+				isDir:     true,
+				extension: "",
+			}
+			isDir: true,
 			wantErr: false,
 		},
 		{
@@ -135,10 +146,12 @@ func TestDumpResult_GetFilename(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
-				ClusterName: tt.fields.ClusterName,
-				RunID:       tt.fields.RunID,
-				isDir:       tt.fields.IsDir,
-				extension:   tt.fields.Extension,
+				Metadata: collector.Metadata{
+					ClusterName: tt.fields.ClusterName,
+					RunID:       tt.fields.RunID,
+				},
+				isDir:     tt.fields.IsDir,
+				extension: tt.fields.Extension,
 			}
 			if got := i.GetFilename(); got != tt.want {
 				t.Errorf("DumpResult.GetFilename() = %v, want %v", got, tt.want)
@@ -221,9 +234,11 @@ func TestNewDumpResult(t *testing.T) {
 				isCompressed: false,
 			},
 			want: &DumpResult{
-				ClusterName: validClusterName,
-				RunID:       validRunID,
-				isDir:       true,
+				Metadata: collector.Metadata{
+					ClusterName: validClusterName,
+					RunID:       validRunID,
+				},
+				isDir: true,
 			},
 			wantErr: false,
 		},
