@@ -2,4 +2,5 @@ collector:
   type: file-collector
   file:
     directory: testdata/test-cluster/
-    cluster_name: test-cluster
+dynamic:
+  cluster_name: test-cluster

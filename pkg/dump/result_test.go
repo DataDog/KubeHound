@@ -35,20 +35,13 @@ func TestParsePath(t *testing.T) {
 				path: "/tmp/cluster1.k8s.local/kubehound_cluster1.k8s.local_01j2qs8th6yarr5hkafysekn0j",
 			},
 			want: &DumpResult{
-				ClusterName: validClusterName,
-				RunID:       validRunID,
-				isDir:       true,
-				extension:   "",
-			},
-			want: &DumpResult{
 				Metadata: collector.Metadata{
 					ClusterName: validClusterName,
 					RunID:       validRunID,
 				},
 				isDir:     true,
 				extension: "",
-			}
-			isDir: true,
+			},
 			wantErr: false,
 		},
 		{
@@ -57,10 +50,12 @@ func TestParsePath(t *testing.T) {
 				path: "/tmp/cluster1.k8s.local/kubehound_cluster1.k8s.local_01j2qs8th6yarr5hkafysekn0j.tar.gz",
 			},
 			want: &DumpResult{
-				ClusterName: validClusterName,
-				RunID:       validRunID,
-				isDir:       false,
-				extension:   "tar.gz",
+				Metadata: collector.Metadata{
+					ClusterName: validClusterName,
+					RunID:       validRunID,
+				},
+				isDir:     false,
+				extension: "tar.gz",
 			},
 			wantErr: false,
 		},
@@ -200,10 +195,12 @@ func TestDumpResult_GetFullPath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
-				ClusterName: tt.fields.ClusterName,
-				RunID:       tt.fields.RunID,
-				isDir:       tt.fields.IsDir,
-				extension:   tt.fields.Extension,
+				Metadata: collector.Metadata{
+					ClusterName: tt.fields.ClusterName,
+					RunID:       tt.fields.RunID,
+				},
+				isDir:     tt.fields.IsDir,
+				extension: tt.fields.Extension,
 			}
 			if got := i.GetFullPath(); got != tt.want {
 				t.Errorf("DumpResult.GetFullPath() = %v, want %v", got, tt.want)

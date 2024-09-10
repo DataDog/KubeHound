@@ -14,22 +14,9 @@ import (
 )
 
 func CoreLocalIngest(ctx context.Context, khCfg *config.KubehoundConfig, resultPath string) error {
-	// TODO: migrate to Metadata.json file instead of relying on the file path
-	// See PR https://github.com/DataDog/KubeHound/pull/247
-	dumpMetadata, err := dump.ParsePath(resultPath)
-	if err != nil {
-		log.I.Warn("parsing path failed", err)
-	}
-	khCfg.Dynamic.ClusterName = dumpMetadata.ClusterName
-	khCfg.Dynamic.RunID, err = config.LoadRunID(dumpMetadata.RunID)
-	if err != nil {
-		log.I.Warn("parsing run id from file path", err)
-	}
-	khCfg.Ingestor.ClusterName = dumpMetadata.ClusterName
-	khCfg.Ingestor.RunID = dumpMetadata.RunID
 	// Using the collector config to ingest the data
-	khCfg.Collector.File.ClusterName = dumpMetadata.ClusterName
 	khCfg.Collector.Type = config.CollectorTypeFile
+
 	// Treating by default as data not compressed (directory of the results)
 	khCfg.Collector.File.Directory = resultPath
 
@@ -56,9 +43,21 @@ func CoreLocalIngest(ctx context.Context, khCfg *config.KubehoundConfig, resultP
 	// Getting the metadata from the metadata file
 	md, err := dump.ParseMetadata(ctx, metadataFilePath)
 	if err != nil {
-		return err
+		// Backward Compatibility: not returning error for now as the metadata feature is new
+		log.I.Warnf("no metadata has been parsed (old dump format from v1.4.0 or below do not embed metadata information): %v", err)
+	} else {
+		khCfg.Dynamic.ClusterName = md.ClusterName
 	}
-	khCfg.Collector.File.ClusterName = md.ClusterName
+
+	// Backward Compatibility: Extracting the metadata from the path or input args
+	// If the cluster name is not provided by the command args (deprecated flag), we try to get it from the path
+	if khCfg.Dynamic.ClusterName == "" {
+		dumpMetadata, err := dump.ParsePath(resultPath)
+		if err != nil {
+			log.I.Warnf("parsing path for metadata: %v", err)
+		}
+		khCfg.Dynamic.ClusterName = dumpMetadata.Metadata.ClusterName
+	}
 
 	return CoreLive(ctx, khCfg)
 }

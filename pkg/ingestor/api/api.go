@@ -122,17 +122,29 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 	metadataFilePath := filepath.Join(filepath.Dir(archivePath), collector.MetadataPath)
 	md, err := dump.ParseMetadata(runCtx, metadataFilePath) //nolint: contextcheck
 	if err != nil {
-		return err
+		log.I.Warnf("no metadata has been parsed (old dump format from v1.4.0 or below do not embed metadata information): %v", err)
+		// Backward Compatibility: Extracting the metadata from the path
+		dumpMetadata, err := dump.ParsePath(archivePath)
+		if err != nil {
+			log.I.Warn("parsing path for metadata", err)
+
+			return err
+		}
+		md = dumpMetadata.Metadata
 	}
 	clusterName := md.ClusterName
 	runID := md.RunID
+
+	err = g.Cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID))
+	if err != nil {
+		return err
+	}
 
 	runCfg := g.Cfg
 	runCfg.Collector = config.CollectorConfig{
 		Type: config.CollectorTypeFile,
 		File: &config.FileCollectorConfig{
-			Directory:   filepath.Dir(archivePath),
-			ClusterName: clusterName,
+			Directory: filepath.Dir(archivePath),
 		},
 	}
 
@@ -178,11 +190,6 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 		err = errors.Join(err, collect.Close(runCtx))
 	}()
 	log.I.Infof("Loaded %s collector client", collect.Name())
-
-	err = g.Cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID))
-	if err != nil {
-		return err
-	}
 
 	// Run the ingest pipeline
 	log.I.Info("Starting Kubernetes raw data ingest")

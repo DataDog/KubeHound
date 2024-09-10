@@ -36,6 +36,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 	if err != nil {
 		return "", fmt.Errorf("collector cluster info: %w", err)
 	}
+	khCfg.Dynamic.ClusterName = clusterName
 
 	events.PushEvent(
 		fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
