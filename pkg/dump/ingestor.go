@@ -2,7 +2,10 @@ package dump
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -50,6 +53,22 @@ func getClusterName(ctx context.Context, collector collector.CollectorClient) (s
 	return cluster.Name, nil
 }
 
+func (d *DumpIngestor) Metadata() (collector.Metadata, error) {
+	path := filepath.Join(d.writer.OutputPath(), collector.MetadataPath)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return collector.Metadata{}, err
+	}
+
+	md := collector.Metadata{}
+	err = json.Unmarshal(data, &md)
+	if err != nil {
+		return collector.Metadata{}, err
+	}
+
+	return md, nil
+}
+
 func (d *DumpIngestor) OutputPath() string {
 	return d.writer.OutputPath()
 }
@@ -71,7 +90,7 @@ func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
 		return fmt.Errorf("run pipeline ingestor: %w", err)
 	}
 
-	return pipeline.Wait(ctx)
+	return pipeline.WaitAndClose(ctx)
 }
 
 // Close() is invoked by the collector to close all handlers used to dump k8s objects.

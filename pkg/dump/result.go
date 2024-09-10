@@ -1,16 +1,20 @@
 package dump
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"path"
 	"regexp"
+
+	"github.com/DataDog/KubeHound/pkg/collector"
 )
 
 type DumpResult struct {
-	clusterName string
-	RunID       string
-	isDir       bool
-	extension   string
+	isDir     bool
+	extension string
+	Metadata  collector.Metadata
 }
 
 const (
@@ -18,17 +22,17 @@ const (
 	DumpResultRunIDRegex       = `([a-z0-9]{26})`
 	DumpResultExtensionRegex   = `\.?([a-z0-9\.]+)?`
 	DumpResultPrefix           = "kubehound_"
-	DumpResultFilenameRegex    = DumpResultPrefix + DumpResultClusterNameRegex + "_" + DumpResultRunIDRegex + DumpResultExtensionRegex
-	DumpResultPathRegex        = DumpResultClusterNameRegex + "/" + DumpResultFilenameRegex
 
 	DumpResultTarWriterExtension = "tar.gz"
 )
 
 func NewDumpResult(clusterName, runID string, isCompressed bool) (*DumpResult, error) {
 	dumpResult := &DumpResult{
-		clusterName: clusterName,
-		RunID:       runID,
-		isDir:       true,
+		Metadata: collector.Metadata{
+			ClusterName: clusterName,
+			RunID:       runID,
+		},
+		isDir: true,
 	}
 	if isCompressed {
 		dumpResult.Compressed()
@@ -44,18 +48,18 @@ func NewDumpResult(clusterName, runID string, isCompressed bool) (*DumpResult, e
 
 func (i *DumpResult) Validate() error {
 	re := regexp.MustCompile(DumpResultClusterNameRegex)
-	if !re.MatchString(i.clusterName) {
-		return fmt.Errorf("Invalid clustername: %q", i.clusterName)
+	if !re.MatchString(i.Metadata.ClusterName) {
+		return fmt.Errorf("Invalid clustername: %q", i.Metadata.ClusterName)
 	}
 
-	matches := re.FindStringSubmatch(i.clusterName)
-	if len(matches) == 2 && matches[1] != i.clusterName {
-		return fmt.Errorf("Invalid clustername: %q", i.clusterName)
+	matches := re.FindStringSubmatch(i.Metadata.ClusterName)
+	if len(matches) == 2 && matches[1] != i.Metadata.ClusterName {
+		return fmt.Errorf("Invalid clustername: %q", i.Metadata.ClusterName)
 	}
 
 	re = regexp.MustCompile(DumpResultRunIDRegex)
-	if !re.MatchString(i.RunID) {
-		return fmt.Errorf("Invalid runID: %q", i.RunID)
+	if !re.MatchString(i.Metadata.RunID) {
+		return fmt.Errorf("Invalid runID: %q", i.Metadata.RunID)
 	}
 
 	return nil
@@ -70,11 +74,11 @@ func (i *DumpResult) Compressed() {
 func (i *DumpResult) GetFullPath() string {
 	filename := i.GetFilename()
 
-	return path.Join(i.clusterName, filename)
+	return path.Join(i.Metadata.ClusterName, filename)
 }
 
 func (i *DumpResult) GetFilename() string {
-	filename := fmt.Sprintf("%s%s_%s", DumpResultPrefix, i.clusterName, i.RunID)
+	filename := fmt.Sprintf("%s%s_%s", DumpResultPrefix, i.Metadata.ClusterName, i.Metadata.RunID)
 	if i.isDir {
 		return filename
 	}
@@ -82,32 +86,22 @@ func (i *DumpResult) GetFilename() string {
 	return fmt.Sprintf("%s.%s", filename, i.extension)
 }
 
-func ParsePath(path string) (*DumpResult, error) {
-	// ./<clusterName>/kubehound_<clusterName>_<run_id>[.tar.gz]
-	// re := regexp.MustCompile(`([a-z0-9\.\-_]+)/kubehound_([a-z0-9\.-_]+)_([a-z0-9]{26})\.?([a-z0-9\.]+)?`)
-	re := regexp.MustCompile(DumpResultPathRegex)
-	if !re.MatchString(path) {
-		return nil, fmt.Errorf("Invalid path provided: %q", path)
-	}
+func ParseMetadata(ctx context.Context, metadataFilePath string) (collector.Metadata, error) {
+	var metadata collector.Metadata
 
-	matches := re.FindStringSubmatch(path)
-	// The cluster name should match (parent dir and in the filename)
-	if matches[1] != matches[2] {
-		return nil, fmt.Errorf("Cluster name does not match in the path provided: %q", path)
-	}
-
-	clusterName := matches[1]
-	runID := matches[3]
-	extension := matches[4]
-
-	isCompressed := false
-	if extension != "" {
-		isCompressed = true
-	}
-	result, err := NewDumpResult(clusterName, runID, isCompressed)
+	bytes, err := os.ReadFile(metadataFilePath)
 	if err != nil {
-		return nil, err
+		return metadata, fmt.Errorf("read file %s: %w", metadataFilePath, err)
 	}
 
-	return result, nil
+	if len(bytes) == 0 {
+		return metadata, nil
+	}
+
+	err = json.Unmarshal(bytes, &metadata)
+	if err != nil {
+		return metadata, fmt.Errorf("unmarshalling %T in %s: %w", metadata, metadataFilePath, err)
+	}
+
+	return metadata, nil
 }

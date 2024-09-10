@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 
+	"github.com/DataDog/KubeHound/pkg/dump"
 	"github.com/DataDog/KubeHound/pkg/ingestor/api"
 	pb "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -32,7 +33,14 @@ type server struct {
 
 // Ingest is just a GRPC wrapper around the Ingest method from the API package
 func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestResponse, error) {
-	err := s.api.Ingest(ctx, in.GetClusterName(), in.GetRunId())
+	// Rebuilding the path for the dump archive file
+	dumpResult, err := dump.NewDumpResult(in.GetClusterName(), in.GetRunId(), true)
+	if err != nil {
+		return nil, err
+	}
+	key := dumpResult.GetFullPath()
+
+	err = s.api.Ingest(ctx, key)
 	if err != nil {
 		log.I.Errorf("Ingest failed: %v", err)
 

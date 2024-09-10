@@ -77,15 +77,30 @@ func dumpIngestorSequence(collector collector.CollectorClient, writer writer.Dum
 	}
 }
 
+// dumpIngestorClosingSequence returns the pipeline sequence for closing the dumping sequence (this pipeline is single-threaded)
+func dumpIngestorClosingSequence(collector collector.CollectorClient, writer writer.DumperWriter) []DumpIngestorPipeline {
+	return []DumpIngestorPipeline{
+		{
+			operationName: span.DumperMetadata,
+			entity:        "Metadata",
+			streamFunc: func(ctx context.Context) error {
+				return collector.ComputeMetadata(ctx, NewMetadataIngestor(ctx, writer))
+			},
+		},
+	}
+}
+
 // PipelineDumpIngestor is a parallelized pipeline based ingestor implementation.
 type PipelineDumpIngestor struct {
-	sequence     []DumpIngestorPipeline
-	wp           worker.WorkerPool
-	WorkerNumber int
+	sequence        []DumpIngestorPipeline
+	closingSequence []DumpIngestorPipeline
+	wp              worker.WorkerPool
+	WorkerNumber    int
 }
 
 func NewPipelineDumpIngestor(ctx context.Context, collector collector.CollectorClient, writer writer.DumperWriter) (context.Context, *PipelineDumpIngestor, error) {
 	sequence := dumpIngestorSequence(collector, writer)
+	cleanupSequence := dumpIngestorClosingSequence(collector, writer)
 
 	// Getting the number of workers from the writer to setup multi-threading if possible
 	workerNumber := writer.WorkerNumber()
@@ -113,9 +128,10 @@ func NewPipelineDumpIngestor(ctx context.Context, collector collector.CollectorC
 	}
 
 	return ctx, &PipelineDumpIngestor{
-		wp:           wp,
-		sequence:     sequence,
-		WorkerNumber: workerNumber,
+		wp:              wp,
+		sequence:        sequence,
+		closingSequence: cleanupSequence,
+		WorkerNumber:    workerNumber,
 	}, nil
 
 }
@@ -125,7 +141,7 @@ func (p *PipelineDumpIngestor) Run(ctx context.Context) error {
 	for _, v := range p.sequence {
 		v := v
 		p.wp.Submit(func() error {
-			_, errDump := dumpK8sObjs(ctx, v.operationName, v.entity, v.streamFunc)
+			errDump := dumpK8sObjs(ctx, v.operationName, v.entity, v.streamFunc)
 			if errDump != nil {
 				err = errors.Join(err, errDump)
 			}
@@ -137,12 +153,25 @@ func (p *PipelineDumpIngestor) Run(ctx context.Context) error {
 	return err
 }
 
-func (p *PipelineDumpIngestor) Wait(ctx context.Context) error {
-	return p.wp.WaitForComplete()
+func (p *PipelineDumpIngestor) WaitAndClose(ctx context.Context) error {
+	err := p.wp.WaitForComplete()
+	if err != nil {
+		return fmt.Errorf("wait for complete: %w", err)
+	}
+
+	for _, v := range p.closingSequence {
+		v := v
+		errDump := dumpK8sObjs(ctx, v.operationName, v.entity, v.streamFunc)
+		if errDump != nil {
+			err = errors.Join(err, errDump)
+		}
+	}
+
+	return err
 }
 
 // Static wrapper to dump k8s object dynamically (streams Kubernetes objects to the collector writer).
-func dumpK8sObjs(ctx context.Context, operationName string, entity string, streamFunc StreamFunc) (context.Context, error) {
+func dumpK8sObjs(ctx context.Context, operationName string, entity string, streamFunc StreamFunc) error {
 	log.I.Infof("Dumping %s", entity)
 	span, ctx := tracer.StartSpanFromContext(ctx, operationName, tracer.Measured())
 	span.SetTag(tag.EntityTag, entity)
@@ -151,5 +180,5 @@ func dumpK8sObjs(ctx context.Context, operationName string, entity string, strea
 	err = streamFunc(ctx)
 	log.I.Infof("Dumping %s done", entity)
 
-	return ctx, err
+	return err
 }
