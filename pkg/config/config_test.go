@@ -32,8 +32,7 @@ func TestMustLoadConfig(t *testing.T) {
 				Collector: CollectorConfig{
 					Type: CollectorTypeFile,
 					File: &FileCollectorConfig{
-						Directory:   "cluster-data/",
-						ClusterName: "test-cluster",
+						Directory: "cluster-data/",
 						Archive: &FileArchiveConfig{
 							NoCompress: DefaultArchiveNoCompress,
 						},
@@ -88,6 +87,9 @@ func TestMustLoadConfig(t *testing.T) {
 					TempDir:        "/tmp/kubehound",
 					ArchiveName:    "archive.tar.gz",
 					MaxArchiveSize: DefaultMaxArchiveSize,
+				},
+				Dynamic: DynamicConfig{
+					ClusterName: "test-cluster",
 				},
 			},
 			wantErr: false,

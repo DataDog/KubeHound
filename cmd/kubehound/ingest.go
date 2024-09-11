@@ -11,6 +11,10 @@ import (
 )
 
 var (
+	runID string
+)
+
+var (
 	ingestCmd = &cobra.Command{
 		Use:   "ingest",
 		Short: "Start an ingestion locally or remotely",
@@ -23,6 +27,8 @@ var (
 		Long:  `Run an ingestion locally using a previous dump (directory or tar.gz)`,
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
+			cmd.BindFlagCluster(cobraCmd)
+
 			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
@@ -41,6 +47,7 @@ var (
 		Short: "Ingest data remotely on a KHaaS instance",
 		Long:  `Run an ingestion on KHaaS from a bucket to build the attack path, by default it will rehydrate the latest snapshot previously dumped on a KHaaS instance from all clusters`,
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
+			cmd.BindFlagCluster(cobraCmd)
 			viper.BindPFlag(config.IngestorAPIEndpoint, cobraCmd.Flags().Lookup("khaas-server")) //nolint: errcheck
 			viper.BindPFlag(config.IngestorAPIInsecure, cobraCmd.Flags().Lookup("insecure"))     //nolint: errcheck
 
@@ -62,7 +69,7 @@ var (
 				return core.CoreClientGRPCRehydrateLatest(khCfg.Ingestor)
 			}
 
-			return core.CoreClientGRPCIngest(khCfg.Ingestor, khCfg.Ingestor.ClusterName, khCfg.Ingestor.RunID)
+			return core.CoreClientGRPCIngest(khCfg.Ingestor, khCfg.Dynamic.ClusterName, runID)
 		},
 	}
 )
@@ -81,6 +88,7 @@ func init() {
 
 	ingestCmd.AddCommand(remoteIngestCmd)
 	cmd.InitRemoteIngestCmd(remoteIngestCmd, true)
+	remoteIngestCmd.Flags().StringVar(&runID, "run_id", "", "KubeHound run id to ingest (e.g.: 01htdgjj34mcmrrksw4bjy2e94)")
 
 	rootCmd.AddCommand(ingestCmd)
 }

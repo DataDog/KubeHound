@@ -17,6 +17,18 @@ type DynamicConfig struct {
 	ClusterName string `mapstructure:"cluster_name"`
 }
 
+func (d *DynamicConfig) HealthCheck() error {
+	if d.ClusterName == "" {
+		return fmt.Errorf("missing cluster name")
+	}
+
+	if d.RunID == nil {
+		return fmt.Errorf("missing run id")
+	}
+
+	return nil
+}
+
 // DynamicOption is a functional option for configuring the dynamic config.
 type DynamicOption func() (func(*DynamicConfig), error)
 

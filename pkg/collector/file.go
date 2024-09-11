@@ -54,9 +54,10 @@ const (
 
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
 type FileCollector struct {
-	cfg  *config.FileCollectorConfig
-	log  *log.KubehoundLogger
-	tags collectorTags
+	cfg         *config.FileCollectorConfig
+	log         *log.KubehoundLogger
+	tags        collectorTags
+	clusterName string
 }
 
 // NewFileCollector creates a new instance of the file collector from the provided application config.
@@ -73,9 +74,10 @@ func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (Collect
 	l.Infof("Creating file collector from directory %s", cfg.Collector.File.Directory)
 
 	return &FileCollector{
-		cfg:  cfg.Collector.File,
-		log:  l,
-		tags: newCollectorTags(),
+		cfg:         cfg.Collector.File,
+		log:         l,
+		tags:        newCollectorTags(),
+		clusterName: cfg.Dynamic.ClusterName,
 	}, nil
 }
 
@@ -98,7 +100,7 @@ func (c *FileCollector) HealthCheck(_ context.Context) (bool, error) {
 		return false, fmt.Errorf("file collector base path is not a directory: %s", file.Name())
 	}
 
-	if c.cfg.ClusterName == "" {
+	if c.clusterName == "" {
 		return false, errors.New("file collector cluster name not provided")
 	}
 
@@ -107,7 +109,7 @@ func (c *FileCollector) HealthCheck(_ context.Context) (bool, error) {
 
 func (c *FileCollector) ClusterInfo(ctx context.Context) (*config.ClusterInfo, error) {
 	return &config.ClusterInfo{
-		Name: c.cfg.ClusterName,
+		Name: c.clusterName,
 	}, nil
 }
 

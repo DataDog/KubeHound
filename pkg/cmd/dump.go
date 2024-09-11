@@ -44,6 +44,11 @@ func InitRemoteDumpCmd(cmd *cobra.Command) {
 	viper.BindPFlag(config.CollectorFileBlobRegion, cmd.Flags().Lookup("region")) //nolint: errcheck
 }
 
+func InitLocalIngestCmd(cmd *cobra.Command) {
+	InitCluster(cmd)
+	cmd.Flags().MarkDeprecated(flagCluster, "Since v1.4.1, KubeHound dump archive contains a metadata file holding the clustername") //nolint: errcheck
+}
+
 func InitRemoteIngestCmd(cmd *cobra.Command, standalone bool) {
 
 	cmd.PersistentFlags().String("khaas-server", "", "GRPC endpoint exposed by KubeHound as a Service (KHaaS) server (e.g.: localhost:9000)")
@@ -51,16 +56,18 @@ func InitRemoteIngestCmd(cmd *cobra.Command, standalone bool) {
 
 	// IngestorAPIEndpoint
 	if standalone {
-		cmd.Flags().String("run_id", "", "KubeHound run id to ingest (e.g.: 01htdgjj34mcmrrksw4bjy2e94)")
-		viper.BindPFlag(config.IngestorRunID, cmd.Flags().Lookup("run_id")) //nolint: errcheck
-
-		cmd.Flags().String("cluster", "", "Cluster name to ingest (e.g.: my-cluster-1)")
-		viper.BindPFlag(config.IngestorClusterName, cmd.Flags().Lookup("cluster")) //nolint: errcheck
+		InitCluster(cmd)
 	}
 }
 
-func InitLocalIngestCmd(cmd *cobra.Command) {
-	cmd.PersistentFlags().String("cluster", "", "Cluster name to ingest (e.g.: my-cluster-1)")
-	viper.BindPFlag(config.IngestorClusterName, cmd.PersistentFlags().Lookup("cluster")) //nolint: errcheck
-	cmd.MarkFlagRequired("cluster")                                                      //nolint: errcheck
+const (
+	flagCluster = "cluster"
+)
+
+func InitCluster(cmd *cobra.Command) {
+	cmd.Flags().String(flagCluster, "", "Cluster name to ingest (e.g.: my-cluster-1)")
+}
+
+func BindFlagCluster(cmd *cobra.Command) {
+	viper.BindPFlag(config.DynamicClusterName, cmd.Flags().Lookup(flagCluster)) //nolint: errcheck
 }

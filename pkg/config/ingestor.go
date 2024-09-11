@@ -26,8 +26,6 @@ type IngestorConfig struct {
 	TempDir        string            `mapstructure:"temp_dir"`
 	ArchiveName    string            `mapstructure:"archive_name"`
 	MaxArchiveSize int64             `mapstructure:"max_archive_size"`
-	ClusterName    string            `mapstructure:"cluster_name"`
-	RunID          string            `mapstructure:"run_id"`
 }
 
 type IngestorAPIConfig struct {

@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/dump/pipeline"
 	"github.com/DataDog/KubeHound/pkg/dump/writer"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -102,4 +104,42 @@ func (d *DumpIngestor) Close(ctx context.Context) error {
 	}
 
 	return d.writer.Close(ctx)
+}
+
+// Backward Compatibility: Extracting the metadata from the path
+const (
+	DumpResultFilenameRegex = DumpResultPrefix + DumpResultClusterNameRegex + "_" + DumpResultRunIDRegex + DumpResultExtensionRegex
+	DumpResultPathRegex     = DumpResultClusterNameRegex + "/" + DumpResultFilenameRegex
+)
+
+func ParsePath(path string) (*DumpResult, error) {
+	log.I.Warnf("[Backward Compatibility] Extracting the metadata from the path: %s", path)
+
+	// ./<clusterName>/kubehound_<clusterName>_<run_id>[.tar.gz]
+	// re := regexp.MustCompile(`([a-z0-9\.\-_]+)/kubehound_([a-z0-9\.-_]+)_([a-z0-9]{26})\.?([a-z0-9\.]+)?`)
+	re := regexp.MustCompile(DumpResultPathRegex)
+	if !re.MatchString(path) {
+		return nil, fmt.Errorf("Invalid path provided: %q", path)
+	}
+
+	matches := re.FindStringSubmatch(path)
+	// The cluster name should match (parent dir and in the filename)
+	if matches[1] != matches[2] {
+		return nil, fmt.Errorf("Cluster name does not match in the path provided: %q", path)
+	}
+
+	clusterName := matches[1]
+	runID := matches[3]
+	extension := matches[4]
+
+	isCompressed := false
+	if extension != "" {
+		isCompressed = true
+	}
+	result, err := NewDumpResult(clusterName, runID, isCompressed)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

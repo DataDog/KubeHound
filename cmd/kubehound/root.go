@@ -51,6 +51,11 @@ var (
 				return fmt.Errorf("get config: %w", err)
 			}
 
+			err = core.CoreInitLive(cobraCmd.Context(), khCfg)
+			if err != nil {
+				return err
+			}
+
 			err = core.CoreLive(cobraCmd.Context(), khCfg)
 			if err != nil {
 				return err
