@@ -18,7 +18,7 @@ var (
 	configCmd = &cobra.Command{
 		Use:   "config",
 		Short: "Show the current configuration",
-		Long:  `[devOnly] Spawn the kubehound dev stack for the system-tests (build from dockerfile)`,
+		Long:  `[devOnly] Show the current configuration`,
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
 		},
@@ -32,18 +32,18 @@ var (
 			yamlData, err := yaml.Marshal(&khCfg)
 
 			if err != nil {
-				return fmt.Errorf("marshaling khCfg: %v", err)
+				return fmt.Errorf("marshaling khCfg: %w", err)
 			}
 
 			if configPath != "" {
 				f, err := os.Create(configPath)
 				if err != nil {
-					return fmt.Errorf("creating file: %v", err)
+					return fmt.Errorf("creating file: %w", err)
 				}
 
 				_, err = f.Write(yamlData)
 				if err != nil {
-					return fmt.Errorf("writing to file: %v", err)
+					return fmt.Errorf("writing to file: %w", err)
 				}
 
 				log.I.Infof("Configuration saved to %s\n", configPath)
