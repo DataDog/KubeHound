@@ -46,7 +46,7 @@ func InitRemoteDumpCmd(cmd *cobra.Command) {
 
 func InitLocalIngestCmd(cmd *cobra.Command) {
 	InitCluster(cmd)
-	cmd.Flags().MarkDeprecated(flagCluster, "KubeHound dump file starting from v1.4.1 embeds a metadata file which constains the clustername") //nolint: errcheck
+	cmd.Flags().MarkDeprecated(flagCluster, "Since v1.4.1, KubeHound dump archive contains a metadata file holding the clustername") //nolint: errcheck
 }
 
 func InitRemoteIngestCmd(cmd *cobra.Command, standalone bool) {
