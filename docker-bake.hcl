@@ -52,18 +52,18 @@ target "binary-cross" {
     "darwin/amd64",
     "darwin/arm64",
     "linux/amd64",
-    "linux/arm/v6",
     "linux/arm/v7",
     "linux/arm64",
-    "linux/ppc64le",
-    "linux/riscv64",
-    "linux/s390x",
     "windows/amd64",
     "windows/arm64"
   ]
 }
 
 target "release" {
+  # Overrinding the branch as this target is only being used in the CI
+  args = {
+    BUILD_BRANCH = "main"
+  }
   inherits = ["binary-cross"]
   target = "release"
   output = [outdir("./bin/release")]

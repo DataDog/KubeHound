@@ -17,18 +17,18 @@ jobs:
   docker-build-push:
     runs-on: ubuntu-latest
     strategy:
-        # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
-        matrix:
-          include:
-            - dockerfile: deployments/kubehound/kubegraph/Dockerfile
-              image: graph
-              workdir: deployments/kubehound/kubegraph/
-            - dockerfile: deployments/kubehound/notebook/Dockerfile
-              image: ui
-              workdir: deployments/kubehound/notebook/
-            - dockerfile: deployments/kubehound/ingestor/Dockerfile
-              image: ingestor
-              workdir: .
+      # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
+      matrix:
+        include:
+          - dockerfile: deployments/kubehound/graph/Dockerfile
+            image: graph
+            workdir: deployments/kubehound/graph/
+          - dockerfile: deployments/kubehound/ui/Dockerfile
+            image: ui
+            workdir: deployments/kubehound/ui/
+          - dockerfile: deployments/kubehound/binary/Dockerfile
+            image: binary
+            workdir: .
     permissions:
       contents: read
       packages: write
@@ -67,6 +67,9 @@ jobs:
             productionresultssa8.blob.core.windows.net:443
             results-receiver.actions.githubusercontent.com:443
             vstsmms.actions.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            nodejs.org:443
+            iojs.org:443
 
       - name: Checkout
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
@@ -94,8 +97,8 @@ jobs:
           build-args: |
             VERSION=${{ github.ref_name }}
           tags: |
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:${{ github.ref_name }}
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:${{ github.ref_name }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest
 
       - name: Build and push Docker image
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -108,5 +111,5 @@ jobs:
           build-args: |
             VERSION=${{ github.sha }}
           tags: |
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:snapshot-${{ github.sha }}
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:snapshot-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image }}:latest

@@ -9,11 +9,12 @@ SYSTEM_TEST_CMD := system-test system-test-clean
 COMMIT := $(shell git rev-parse --short HEAD)
 DATE := $(shell git log -1 --format=%cd --date=format:"%Y%m%d")
 
-BUILD_VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty='.m' --always --tags)
+BUILD_VERSION ?= $(shell git describe --match 'v[0-9]*' --dirty --always --tags)
+BUILD_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 BUILD_ARCH := $(shell go env GOARCH)
 BUILD_OS := $(shell go env GOOS)
 
-BUILD_FLAGS := -ldflags="-X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION) -X github.com/DataDog/KubeHound/pkg/config.BuildArch=$(BUILD_ARCH) -X github.com/DataDog/KubeHound/pkg/config.BuildOs=$(BUILD_OS) -s -w"
+BUILD_FLAGS := -ldflags="${GO_BUILDTAGS} -X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION) -X github.com/DataDog/KubeHound/pkg/config.BuildBranch=$(BUILD_BRANCH) -X github.com/DataDog/KubeHound/pkg/config.BuildArch=$(BUILD_ARCH) -X github.com/DataDog/KubeHound/pkg/config.BuildOs=$(BUILD_OS)"
 
 # Need to save the MAKEFILE_LIST variable before the including the env var files
 HELP_MAKEFILE_LIST := $(MAKEFILE_LIST)
@@ -113,7 +114,7 @@ local-cluster-destroy: ## Destroy the local kind cluster
 
 .PHONY: sample-graph
 sample-graph: | local-cluster-deploy build ## Create the kind cluster, start the backend, run the application, delete the cluster
-	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && $(ROOT_DIR)/bin/kubehound
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && $(ROOT_DIR)/bin/build/kubehound
 	bash test/setup/manage-cluster.sh destroy
 
 .PHONY: help
@@ -131,8 +132,4 @@ thirdparty-licenses: ## Generate the list of 3rd party dependencies and write to
 .PHONY: local-wiki
 local-wiki: ## Generate and serve the mkdocs wiki on localhost
 	poetry install || pip install mkdocs-material mkdocs-awesome-pages-plugin markdown-captions
-	poetry run mkdocs serve || mksdocs serve
-
-.PHONY: local-release
-local-release: ## Generate release packages locally via goreleaser
-	goreleaser release --snapshot --clean --config .goreleaser.yaml
+	poetry run mkdocs serve || mkdocs serve

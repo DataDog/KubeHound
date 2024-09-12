@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ $.Chart.Name }}-ui"
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: "{{ $.Chart.Name }}-ui"
+    service: {{ $.Chart.Name }}
+    chart_version: {{ $.Chart.Version }}
+    chart_name: {{ $.Chart.Name }}
+    team: {{ $.Values.team }}
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ $.Chart.Name }}-ui"
+  template:
+    metadata:
+      labels:
+        app: "{{ $.Chart.Name }}-ui"
+        service: {{ $.Chart.Name }}
+        team: {{ $.Values.team }}
+        chart_name: {{ $.Chart.Name }}
+    spec:
+      containers:
+      - name: {{ $.Chart.Name }}-ui
+        image: "{{ $.Values.services.ui.image }}:{{ $.Values.services.ui.version }}"
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: {{ $.Values.services.ui.resources.requests.cpu }}
+            memory: {{ $.Values.services.ui.resources.requests.memory }}
+          limits:
+            cpu: {{ $.Values.services.ui.resources.limits.cpu }}
+            memory: {{ $.Values.services.ui.resources.limits.memory }}
+        ports:
+          - name: ui-tree
+            containerPort: {{ $.Values.services.ui.ports.tree }}
+          - name: ui-lab
+            containerPort: {{ $.Values.services.ui.ports.lab }}

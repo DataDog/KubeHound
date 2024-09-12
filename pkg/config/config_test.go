@@ -32,8 +32,10 @@ func TestMustLoadConfig(t *testing.T) {
 				Collector: CollectorConfig{
 					Type: CollectorTypeFile,
 					File: &FileCollectorConfig{
-						Directory:   "cluster-data/",
-						ClusterName: "test-cluster",
+						Directory: "cluster-data/",
+						Archive: &FileArchiveConfig{
+							NoCompress: DefaultArchiveNoCompress,
+						},
 					},
 					// This is always set as the default value
 					Live: &K8SAPICollectorConfig{
@@ -65,7 +67,7 @@ func TestMustLoadConfig(t *testing.T) {
 						BatchSizeSmall: 100,
 					},
 					Edge: EdgeBuilderConfig{
-						LargeClusterOptimizations: false,
+						LargeClusterOptimizations: DefaultLargeClusterOptimizations,
 						WorkerPoolSize:            5,
 						WorkerPoolCapacity:        100,
 						BatchSize:                 500,
@@ -84,7 +86,10 @@ func TestMustLoadConfig(t *testing.T) {
 					},
 					TempDir:        "/tmp/kubehound",
 					ArchiveName:    "archive.tar.gz",
-					MaxArchiveSize: 1073741824,
+					MaxArchiveSize: DefaultMaxArchiveSize,
+				},
+				Dynamic: DynamicConfig{
+					ClusterName: "test-cluster",
 				},
 			},
 			wantErr: false,
@@ -102,6 +107,11 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				Collector: CollectorConfig{
 					Type: CollectorTypeK8sAPI,
+					File: &FileCollectorConfig{
+						Archive: &FileArchiveConfig{
+							NoCompress: DefaultArchiveNoCompress,
+						},
+					},
 					Live: &K8SAPICollectorConfig{
 						PageSize:           500,
 						PageBufferSize:     10,
@@ -150,7 +160,7 @@ func TestMustLoadConfig(t *testing.T) {
 					},
 					TempDir:        "/tmp/kubehound",
 					ArchiveName:    "archive.tar.gz",
-					MaxArchiveSize: 1073741824,
+					MaxArchiveSize: DefaultMaxArchiveSize,
 				},
 			},
 			wantErr: false,

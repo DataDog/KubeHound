@@ -48,6 +48,7 @@ const (
 	DumperClusterRoles        = "kubehound.dumper.clusterroles"
 	DumperRoleBindings        = "kubehound.dumper.rolebindings"
 	DumperClusterRoleBindings = "kubehound.dumper.clusterrolebindings"
+	DumperMetadata            = "kubehound.dumper.metadata"
 
 	DumperReadFile    = "kubehound.dumper.readFile"
 	DumperS3Push      = "kubehound.dumper.s3_push"

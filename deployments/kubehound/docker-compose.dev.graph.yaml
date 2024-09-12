@@ -1,0 +1,7 @@
+name: kubehound-dev
+services:
+  kubegraph:
+    build: ./graph/
+    ports:
+      - "127.0.0.1:8182:8182"
+      - "127.0.0.1:8099:8099"

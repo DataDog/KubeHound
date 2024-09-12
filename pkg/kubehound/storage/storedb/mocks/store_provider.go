@@ -95,6 +95,50 @@ func (_c *Provider_BulkWriter_Call) RunAndReturn(run func(context.Context, colle
 	return _c
 }
 
+// Clean provides a mock function with given fields: ctx, runId, cluster
+func (_m *Provider) Clean(ctx context.Context, runId string, cluster string) error {
+	ret := _m.Called(ctx, runId, cluster)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, runId, cluster)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Provider_Clean_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Clean'
+type Provider_Clean_Call struct {
+	*mock.Call
+}
+
+// Clean is a helper method to define mock.On call
+//   - ctx context.Context
+//   - runId string
+//   - cluster string
+func (_e *Provider_Expecter) Clean(ctx interface{}, runId interface{}, cluster interface{}) *Provider_Clean_Call {
+	return &Provider_Clean_Call{Call: _e.mock.On("Clean", ctx, runId, cluster)}
+}
+
+func (_c *Provider_Clean_Call) Run(run func(ctx context.Context, runId string, cluster string)) *Provider_Clean_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *Provider_Clean_Call) Return(_a0 error) *Provider_Clean_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Provider_Clean_Call) RunAndReturn(run func(context.Context, string, string) error) *Provider_Clean_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Close provides a mock function with given fields: ctx
 func (_m *Provider) Close(ctx context.Context) error {
 	ret := _m.Called(ctx)

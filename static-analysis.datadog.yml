@@ -1,4 +1,7 @@
 rulesets:
   - go-best-practices
   - go-security
+  - sit-ci-best-practices:
+    only:
+      - ".github/workflows"
 ignorePaths: []

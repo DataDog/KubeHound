@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName string, runID string) error {
+func getGrpcConn(ingestorConfig config.IngestorConfig) (*grpc.ClientConn, error) {
 	var dialOpt grpc.DialOption
 	if ingestorConfig.API.Insecure {
 		dialOpt = grpc.WithTransportCredentials(insecure.NewCredentials())
@@ -25,14 +25,23 @@ func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName strin
 		dialOpt = grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig))
 	}
 
-	log.I.Infof("Launching ingestion on %s [%s:%s]", ingestorConfig.API.Endpoint, clusteName, runID)
 	conn, err := grpc.NewClient(ingestorConfig.API.Endpoint, dialOpt)
 	if err != nil {
-		return fmt.Errorf("connect %s: %w", ingestorConfig.API.Endpoint, err)
+		return nil, fmt.Errorf("connect %s: %w", ingestorConfig.API.Endpoint, err)
+	}
+
+	return conn, nil
+}
+
+func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName string, runID string) error {
+	conn, err := getGrpcConn(ingestorConfig)
+	if err != nil {
+		return fmt.Errorf("getGrpcClient: %w", err)
 	}
 	defer conn.Close()
-
 	client := pb.NewAPIClient(conn)
+
+	log.I.Infof("Launching ingestion on %s [rundID: %s]", ingestorConfig.API.Endpoint, runID)
 
 	_, err = client.Ingest(context.Background(), &pb.IngestRequest{
 		RunId:       runID,
@@ -40,6 +49,27 @@ func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName strin
 	})
 	if err != nil {
 		return fmt.Errorf("call Ingest (%s:%s): %w", clusteName, runID, err)
+	}
+
+	return nil
+}
+
+func CoreClientGRPCRehydrateLatest(ingestorConfig config.IngestorConfig) error {
+	conn, err := getGrpcConn(ingestorConfig)
+	if err != nil {
+		return fmt.Errorf("getGrpcClient: %w", err)
+	}
+	defer conn.Close()
+	client := pb.NewAPIClient(conn)
+
+	log.I.Infof("Launching rehydratation on %s [latest]", ingestorConfig.API.Endpoint)
+	results, err := client.RehydrateLatest(context.Background(), &pb.RehydrateLatestRequest{})
+	if err != nil {
+		return fmt.Errorf("call rehydratation (latest): %w", err)
+	}
+
+	for _, res := range results.IngestedCluster {
+		log.I.Infof("Rehydrated cluster: %s, date: %s, run_id: %s", res.ClusterName, res.Date.AsTime().Format("01-02-2006 15:04:05"), res.Key)
 	}
 
 	return nil

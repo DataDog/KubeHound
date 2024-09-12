@@ -1,12 +1,14 @@
 package backend
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"strings"
+	"text/template"
 
 	embedconfigdocker "github.com/DataDog/KubeHound/deployments/kubehound"
+	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/compose-spec/compose-go/v2/cli"
 	"github.com/compose-spec/compose-go/v2/loader"
@@ -16,21 +18,23 @@ import (
 )
 
 var (
-	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml"}
-	DefaultDatadogComposePath  = "docker-compose.datadog.yaml"
+	DefaultReleaseComposePaths = []string{"docker-compose.yaml", "docker-compose.release.yaml.tpl"}
+	DefaultUIProfile           = []string{DevUIProfile}
+
+	DevUIProfile = "jupyter"
 )
 
-func loadProject(ctx context.Context, composeFilePaths []string) (*types.Project, error) {
+func loadProject(ctx context.Context, composeFilePaths []string, profiles []string) (*types.Project, error) {
 	var project *types.Project
 	var err error
 
 	switch {
 	case len(composeFilePaths) != 0 && len(composeFilePaths[0]) != 0:
 		log.I.Infof("Loading backend from file %s", composeFilePaths)
-		project, err = loadComposeConfig(ctx, composeFilePaths)
+		project, err = loadComposeConfig(ctx, composeFilePaths, profiles)
 	default:
 		log.I.Infof("Loading backend from default embedded")
-		project, err = loadEmbeddedConfig(ctx)
+		project, err = loadEmbeddedConfig(ctx, profiles)
 	}
 
 	if err != nil {
@@ -63,11 +67,12 @@ func loadProject(ctx context.Context, composeFilePaths []string) (*types.Project
 
 	return project, nil
 }
-func loadComposeConfig(ctx context.Context, composeFilePaths []string) (*types.Project, error) {
+func loadComposeConfig(ctx context.Context, composeFilePaths []string, profiles []string) (*types.Project, error) {
 	options, err := cli.NewProjectOptions(
 		composeFilePaths,
 		cli.WithOsEnv,
 		cli.WithDotEnv,
+		cli.WithProfiles(profiles),
 	)
 	if err != nil {
 		return nil, err
@@ -76,22 +81,9 @@ func loadComposeConfig(ctx context.Context, composeFilePaths []string) (*types.P
 	return cli.ProjectFromOptions(ctx, options)
 }
 
-func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
+func loadEmbeddedConfig(ctx context.Context, profiles []string) (*types.Project, error) {
 	var dockerComposeFileData map[interface{}]interface{}
 	var err error
-	var hostname string
-
-	// Adding datadog setup
-	ddAPIKey, ddAPIKeyOk := os.LookupEnv("DD_API_KEY")
-	ddAPPKey, ddAPPKeyOk := os.LookupEnv("DD_API_KEY")
-	if ddAPIKeyOk && ddAPPKeyOk {
-		DefaultReleaseComposePaths = append(DefaultReleaseComposePaths, DefaultDatadogComposePath)
-		hostname, err = os.Hostname()
-		if err != nil {
-			hostname = "kubehound"
-		}
-
-	}
 
 	for i, filePath := range DefaultReleaseComposePaths {
 		dockerComposeFileData, err = loadEmbeddedDockerCompose(ctx, filePath, dockerComposeFileData)
@@ -111,14 +103,9 @@ func loadEmbeddedConfig(ctx context.Context) (*types.Project, error) {
 				Content: data,
 			},
 		},
-		Environment: map[string]string{
-			"DD_API_KEY":      ddAPIKey,
-			"DD_APP_KEY":      ddAPPKey,
-			"DOCKER_HOSTNAME": hostname,
-		},
 	}
 
-	return loader.LoadWithContext(ctx, opts)
+	return loader.LoadWithContext(ctx, opts, loader.WithProfiles(profiles))
 }
 
 func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerComposeFileData map[interface{}]interface{}) (map[interface{}]interface{}, error) {
@@ -127,6 +114,31 @@ func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerCompose
 	localData, err := embedconfigdocker.F.ReadFile(filepath)
 	if err != nil {
 		return nil, fmt.Errorf("reading embed config: %w", err)
+	}
+
+	// Dynamically setting the version tag for the release using a template file
+	if strings.HasSuffix(filepath, ".tpl") {
+		// Setting the version tag for the release dynamically
+		version := map[string]string{"VersionTag": config.BuildVersion}
+
+		// For local version (when the version is "dirty", using latest to have a working binary)
+		// For any branch outside of main, using latest image as the current tag will cover (including the commit sha in the tag)
+		if strings.HasSuffix(config.BuildBranch, "dirty") || config.BuildBranch != "main" {
+			log.I.Warnf("Loading the kubehound images with tag latest - dev branch detected")
+			version["VersionTag"] = "latest"
+		}
+
+		tmpl, err := template.New(filepath).ParseFS(embedconfigdocker.F, filepath)
+		if err != nil {
+			return nil, fmt.Errorf("new template: %w", err)
+		}
+
+		var buf bytes.Buffer
+		err = tmpl.Execute(&buf, version)
+		if err != nil {
+			return nil, fmt.Errorf("executing template: %w", err)
+		}
+		localData = buf.Bytes()
 	}
 
 	err = yaml.Unmarshal(localData, &localYaml)

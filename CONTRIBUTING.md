@@ -40,5 +40,4 @@ To add a new attack to KubeHound, please do the following:
 + Create the [resources](./test/setup/test-cluster/attacks/) file in the test cluster that will introduce an instance of the attack into the test cluster 
 + Add an [edge system test](./test/system/graph_edge_test.go) that verifies the attack is correctly created by KubeHound
   
-  See [here](https://github.com/DataDog/KubeHound/pull/68/files) for a previous example PR.
-  
+See [here](https://github.com/DataDog/KubeHound/pull/68/files) for a previous example PR.

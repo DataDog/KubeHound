@@ -1,0 +1,4 @@
+apiVersion: v1
+description: KubeHound as a Service Deployment
+name: khaas
+version: 0.0.1

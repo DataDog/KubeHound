@@ -2,22 +2,59 @@
 
 The KubeHound graph ships with a custom DSL that simplifies queries for the most common use cases
 
-```groovy
-// Example returning all attacks from containers running the cilium 1.11.18 image
-kh.containers().has("image", "eu.gcr.io/internal/cilium:1.11.18").attacks()
-```
-
 ## Using the KubeHound graph
 
-The KubeHound DSL can be used by starting a traversal with `kh` vs the traditional `g`. All gremlin queries will work exactly as normal, but a number of additional steps specific to KubeHound will be available.
+The KubeHound DSL can be used by starting a traversal with `kh` instead of the traditional `g`. All gremlin queries will work exactly as normal, but a number of additional methods, specific to KubeHound, will be available.
 
 ```groovy
 // First 100 vertices in the kubehound graph
 kh.V().limit(100)
 ```
 
-## KubeHound Constants
+## List of available methods
 
+_DSL definition code available [here](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/kubegraph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/)._
+
+### Retrieve cluster data
+
+| Method                      | Gremlin equivalent                                    |
+| --------------------------- | ----------------------------------------------------- |
+| `.cluster([string...])`     | `.hasLabel("Cluster")`                                |
+| `.containers([string...])`  | `.hasLabel("Container")`                              |
+| `.endpoints([int])`         | `.hasLabel("Endpoint")`                               |
+| `.groups([string...])`      | `.hasLabel("Group")`                                  |
+| `.hostMounts([string...])`  | `.hasLabel("Volume").has("type", "HostPath")`         |
+| `.nodes([string...])`       | `.hasLabel("Node")`                                   |
+| `.permissions([string...])` | `.hasLabel("PermissionSet")`                          |
+| `.pods([string...])`        | `.hasLabel("Pod")`                                    |
+| `.run([string...])`         | `.has("runID", P.within(ids)`                         |
+| `.sas([string...])`         | `.hasLabel("Identity").has("type", "ServiceAccount")` |
+| `.services([string...])`    | `.hasLabel("Endpoint").has("exposure", EXTERNAL)`     |
+| `.users([string...])`       | `.hasLabel("Identity").has("type", "User")`           |
+| `.volumes([string...])`     | `.hasLabel("Volume")`                                 |
+
+### Retrieving attack oriented data
+
+| Method                                 | Gremlin equivalent                                                                                                                                                                                |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.attacks()`                           | `.outE().inV().path()`                                                                                                                                                                            |
+| `.critical()`                          | `.has("critical", true)`                                                                                                                                                                          |
+| `.criticalPaths(int)`                  | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/kubegraph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
+| `.criticalPathsFilter(int, string...)` | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/kubegraph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
+| `.criticalPathsFreq([maxHops])`        | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/kubegraph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
+| `.hasCriticalPath()`                   | `.where(__.criticalPaths().limit(1))`                                                                                                                                                             |
+| `.minHopsToCritical([maxHops])`        | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/kubegraph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
+
+For more detailed explanation, please see below.
+
+Example of a kubehound DSL capabilities:
+
+```groovy
+// Example returning all attacks from containers running the cilium 1.11.18 image
+kh.containers().has("image", "eu.gcr.io/internal/cilium:1.11.18").attacks()
+```
+
+## KubeHound Constants
 
 ### Endpoint Exposure
 
@@ -26,7 +63,7 @@ Represents the exposure level of endpoints in the KubeHound graph
 ```java
 // Defines the exposure of an endpoint within the KubeHound model
 public enum EndpointExposure {
-  None,      
+  None,
 	ClusterIP,                      // Container port exposed to cluster
 	NodeIP,                         // Kubernetes endpoint exposed outside the cluster
 	External,                       // Kubernetes endpoint exposed outside the cluster
@@ -55,6 +92,7 @@ kh.run("01he5ebh73tah762qgdd5k4wqp", "01he5eagzbnhtfnwzg7xxbyfz4")
 // All containers in the graph from a single run
 kh.run("01he5ebh73tah762qgdd5k4wqp").containers()
 ```
+
 ### Cluster Step
 
 Starts a traversal that finds all vertices from the specified cluster(s).
@@ -99,7 +137,7 @@ kh.containers().has("namespace", "ns1").limit(10)
 Starts a traversal that finds all vertices with a "Pod" label and optionally allows filtering of those vertices on the "name" property.
 
 ```java
-GraphTraversal<Vertex, Vertex> pods(String... names) 
+GraphTraversal<Vertex, Vertex> pods(String... names)
 ```
 
 Example usage:
@@ -120,7 +158,7 @@ kh.pods().has("namespace", "ns1").limit(10)
 Starts a traversal that finds all vertices with a "Node" label and optionally allows filtering of those vertices on the "name" property.
 
 ```java
-GraphTraversal<Vertex, Vertex> nodes(String... names) 
+GraphTraversal<Vertex, Vertex> nodes(String... names)
 ```
 
 Example usage:
@@ -141,7 +179,7 @@ kh.nodes().has("team", "sre").limit(10)
 Starts a traversal that finds all container escape edges from a Container vertex to a Node vertex and optionally allows filtering of those vertices on the "nodeNames" property.
 
 ```java
-GraphTraversal<Vertex, Path> escapes(String... nodeNames) 
+GraphTraversal<Vertex, Path> escapes(String... nodeNames)
 ```
 
 Example usage:
@@ -178,10 +216,10 @@ kh.endpoints(EndpointExposure.External)
 
 ### Services Step
 
-Starts a traversal that finds all vertices with a "Endpoint" label representing K8s services. 
+Starts a traversal that finds all vertices with a "Endpoint" label representing K8s services.
 
 ```java
-GraphTraversal<Vertex, Vertex> services(String... portNames) 
+GraphTraversal<Vertex, Vertex> services(String... portNames)
 ```
 
 Example usage:
@@ -199,7 +237,7 @@ kh.services().has("port", 9999).limit(10)
 
 ### Volumes Step
 
-Starts a traversal that finds all vertices with a "Volume" label and optionally allows filtering of those vertices on the "name" property. 
+Starts a traversal that finds all vertices with a "Volume" label and optionally allows filtering of those vertices on the "name" property.
 
 ```java
 GraphTraversal<Vertex, Vertex> volumes(String... names)
@@ -351,7 +389,7 @@ kh.permissions().has("app", "web-app").limit(10)
 From a Vertex traverse immediate edges to display the next set of possible attacks and targets
 
 ```java
-GraphTraversal<S, Path> attacks() 
+GraphTraversal<S, Path> attacks()
 ```
 
 Example usage:
@@ -400,7 +438,7 @@ kh.group("engineering").criticalPaths(5)
 
 ### CriticalPathsFilter Step
 
-From a Vertex traverse edges EXCLUDING labels provided in `exclusions` until `maxHops` is exceeded or a critical asset is reached and return all paths. 
+From a Vertex traverse edges EXCLUDING labels provided in `exclusions` until `maxHops` is exceeded or a critical asset is reached and return all paths.
 
 ```java
 GraphTraversal<S, Path> criticalPathsFilter(int maxHops, String... exclusions)
@@ -470,10 +508,10 @@ Sample output:
 
 ```json
 {
-  "path[Endpoint, ENDPOINT_EXPLOIT, Container, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 6,
-  "path[Endpoint, ENDPOINT_EXPLOIT, Container, VOLUME_DISCOVER, Volume, TOKEN_STEAL, Identity, PERMISSION_DISCOVER, PermissionSet]" : 6,
-  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_NSENTER, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 1,
-  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_MODULE_LOAD, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 1,
-  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_PRIV_MOUNT, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]" : 1
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]": 6,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, VOLUME_DISCOVER, Volume, TOKEN_STEAL, Identity, PERMISSION_DISCOVER, PermissionSet]": 6,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_NSENTER, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]": 1,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_MODULE_LOAD, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]": 1,
+  "path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_PRIV_MOUNT, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]": 1
 }
 ```

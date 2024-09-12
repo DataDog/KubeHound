@@ -14,6 +14,7 @@ import (
 
 var (
 	BuildVersion string // This should be overwritten by the go build -X flags
+	BuildBranch  string // This should be overwritten by the go build -X flags
 	BuildArch    string // This should be overwritten by the go build -X flags
 	BuildOs      string // This should be overwritten by the go build -X flags
 )
@@ -21,6 +22,7 @@ var (
 const (
 	DefaultConfigType  = "yaml"
 	DefaultClusterName = "unknown"
+	DefaultConfigName  = "kubehound"
 
 	GlobalDebug = "debug"
 )
@@ -87,48 +89,55 @@ func NewKubehoundConfig(configPath string, inLine bool) *KubehoundConfig {
 }
 
 // SetDefaultValues loads the default value from the different modules
-func SetDefaultValues(c *viper.Viper) {
+func SetDefaultValues(v *viper.Viper) {
 	// K8s Live collector module
-	c.SetDefault(CollectorLivePageSize, DefaultK8sAPIPageSize)
-	c.SetDefault(CollectorLivePageBufferSize, DefaultK8sAPIPageBufferSize)
-	c.SetDefault(CollectorLiveRate, DefaultK8sAPIRateLimitPerSecond)
+	v.SetDefault(CollectorLivePageSize, DefaultK8sAPIPageSize)
+	v.SetDefault(CollectorLivePageBufferSize, DefaultK8sAPIPageBufferSize)
+	v.SetDefault(CollectorLiveRate, DefaultK8sAPIRateLimitPerSecond)
+	v.SetDefault(CollectorNonInteractive, DefaultK8sAPINonInteractive)
+
+	// File collector module
+	v.SetDefault(CollectorFileArchiveNoCompress, DefaultArchiveNoCompress)
 
 	// Default values for storage provider
-	c.SetDefault("storage.wipe", true)
-	c.SetDefault("storage.retry", DefaultRetry)
-	c.SetDefault("storage.retry_delay", DefaultRetryDelay)
+	v.SetDefault("storage.wipe", true)
+	v.SetDefault("storage.retry", DefaultRetry)
+	v.SetDefault("storage.retry_delay", DefaultRetryDelay)
 
 	// Disable Datadog telemetry by default
-	c.SetDefault(TelemetryEnabled, false)
+	v.SetDefault(TelemetryEnabled, false)
 
 	// Default value for MongoDB
-	c.SetDefault("mongodb.url", DefaultMongoUrl)
-	c.SetDefault("mongodb.connection_timeout", DefaultConnectionTimeout)
+	v.SetDefault("mongodb.url", DefaultMongoUrl)
+	v.SetDefault("mongodb.connection_timeout", DefaultConnectionTimeout)
 
 	// Defaults values for JanusGraph
-	c.SetDefault("janusgraph.url", DefaultJanusGraphUrl)
-	c.SetDefault("janusgraph.connection_timeout", DefaultConnectionTimeout)
+	v.SetDefault("janusgraph.url", DefaultJanusGraphUrl)
+	v.SetDefault("janusgraph.connection_timeout", DefaultConnectionTimeout)
 
 	// Profiler values
-	c.SetDefault(TelemetryProfilerPeriod, DefaultProfilerPeriod)
-	c.SetDefault(TelemetryProfilerCPUDuration, DefaultProfilerCPUDuration)
+	v.SetDefault(TelemetryProfilerPeriod, DefaultProfilerPeriod)
+	v.SetDefault(TelemetryProfilerCPUDuration, DefaultProfilerCPUDuration)
 
 	// Default values for graph builder
-	c.SetDefault("builder.vertex.batch_size", DefaultVertexBatchSize)
-	c.SetDefault("builder.vertex.batch_size_small", DefaultVertexBatchSizeSmall)
-	c.SetDefault("builder.edge.worker_pool_size", DefaultEdgeWorkerPoolSize)
-	c.SetDefault("builder.edge.worker_pool_capacity", DefaultEdgeWorkerPoolCapacity)
-	c.SetDefault("builder.edge.batch_size", DefaultEdgeBatchSize)
-	c.SetDefault("builder.edge.batch_size_small", DefaultEdgeBatchSizeSmall)
-	c.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
-	c.SetDefault("builder.stop_on_error", DefaultStopOnError)
+	v.SetDefault("builder.vertex.batch_size", DefaultVertexBatchSize)
+	v.SetDefault("builder.vertex.batch_size_small", DefaultVertexBatchSizeSmall)
+	v.SetDefault("builder.edge.worker_pool_size", DefaultEdgeWorkerPoolSize)
+	v.SetDefault("builder.edge.worker_pool_capacity", DefaultEdgeWorkerPoolCapacity)
+	v.SetDefault("builder.edge.batch_size", DefaultEdgeBatchSize)
+	v.SetDefault("builder.edge.batch_size_small", DefaultEdgeBatchSizeSmall)
+	v.SetDefault("builder.edge.batch_size_cluster_impact", DefaultEdgeBatchSizeClusterImpact)
+	v.SetDefault("builder.stop_on_error", DefaultStopOnError)
+	v.SetDefault("builder.edge.large_cluster_optimizations", DefaultLargeClusterOptimizations)
 
-	c.SetDefault(IngestorAPIEndpoint, DefaultIngestorAPIEndpoint)
-	c.SetDefault(IngestorAPIInsecure, DefaultIngestorAPIInsecure)
-	c.SetDefault(IngestorBlobBucketName, DefaultBucketName)
-	c.SetDefault("ingestor.temp_dir", DefaultTempDir)
-	c.SetDefault("ingestor.max_archive_size", DefaultMaxArchiveSize)
-	c.SetDefault("ingestor.archive_name", DefaultArchiveName)
+	v.SetDefault(IngestorAPIEndpoint, DefaultIngestorAPIEndpoint)
+	v.SetDefault(IngestorAPIInsecure, DefaultIngestorAPIInsecure)
+	v.SetDefault(IngestorBlobBucketName, DefaultBucketName)
+	v.SetDefault(IngestorTempDir, DefaultTempDir)
+	v.SetDefault(IngestorMaxArchiveSize, DefaultMaxArchiveSize)
+	v.SetDefault(IngestorArchiveName, DefaultArchiveName)
+
+	SetLocalConfig(v)
 }
 
 // SetEnvOverrides enables environment variable overrides for the config.
@@ -167,11 +176,12 @@ func unmarshalConfig(v *viper.Viper) (*KubehoundConfig, error) {
 
 // NewConfig creates a new config instance from the provided file using viper.
 func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
-	v.SetConfigType(DefaultConfigType)
-	v.SetConfigFile(configPath)
-
 	// Configure default values
 	SetDefaultValues(v)
+
+	// Loading inLine config path
+	v.SetConfigType(DefaultConfigType)
+	v.SetConfigFile(configPath)
 
 	// Configure environment variable override
 	SetEnvOverrides(v)
@@ -189,14 +199,34 @@ func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
 
 // NewConfig creates a new config instance from the provided file using viper.
 func NewInlineConfig(v *viper.Viper) (*KubehoundConfig, error) {
+	// Load default embedded config file
+	SetDefaultValues(v)
+
 	// Configure environment variable override
 	SetEnvOverrides(v)
+
 	kc, err := unmarshalConfig(v)
 	if err != nil {
 		return nil, fmt.Errorf("unmarshaling config data: %w", err)
 	}
 
 	return kc, nil
+}
+
+// Load local config file if it exists, check for local file in current dir or in $HOME/.config/
+// Not returning any error as it is not mandatory to have a local config file
+func SetLocalConfig(v *viper.Viper) {
+	v.SetConfigName(DefaultConfigName) // name of config file (without extension)
+	v.SetConfigType(DefaultConfigType) // REQUIRED if the config file does not have the extension in the name
+	v.AddConfigPath("$HOME/.config/")  // call multiple times to add many search paths
+	v.AddConfigPath(".")               // optionally look for config in the working directory
+
+	err := v.ReadInConfig()
+	if err != nil {
+		log.I.Warnf("No local config file was found (%s.%s)", DefaultConfigName, DefaultConfigType)
+		// log.I.Debugf("Error reading config: %v", err)
+	}
+	log.I.Infof("Using %s for default config\n", viper.ConfigFileUsed())
 }
 
 // NewEmbedConfig creates a new config instance from an embedded config file using viper.

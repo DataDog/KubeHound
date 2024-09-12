@@ -35,7 +35,7 @@ type FileWriter struct {
 	fsWriter        *FSWriter
 }
 
-func NewFileWriter(ctx context.Context, directoryOutput string, resName string) (*FileWriter, error) {
+func NewFileWriter(ctx context.Context, directoryOutput string) (*FileWriter, error) {
 	fsWriter, err := NewFSWriter(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("creating fs writer: %w", err)

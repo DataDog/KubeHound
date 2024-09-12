@@ -10,25 +10,29 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 //go:generate mockery --name DataPuller --output mocks --case underscore --filename mock_puller.go --with-expecter
 type DataPuller interface {
-	Pull(ctx context.Context, clusterName string, runID string) (string, error)
+	Pull(ctx context.Context, path string) (string, error)
 	Extract(ctx context.Context, archivePath string) error
 	Close(ctx context.Context, basePath string) error
+	ListFiles(ctx context.Context, prefix string, recursive bool) ([]*ListObject, error)
 }
 
-func FormatArchiveKey(clusterName string, runID string, archiveName string) string {
-	return strings.Join([]string{clusterName, runID, archiveName}, "/")
+type ListObject struct {
+	Key string
+	// ModTime is the time the blob was last modified.
+	ModTime time.Time
 }
 
 // checkSanePath just to make sure we don't delete or overwrite somewhere where we are not supposed to
 func CheckSanePath(path string, baseFolder string) error {
 	if path == "/" || path == "" || !strings.HasPrefix(path, baseFolder) {
-		return fmt.Errorf("Invalid path provided: %q", path)
+		return fmt.Errorf("Invalid path provided: %q / base: %q", path, baseFolder)
 	}
 
 	return nil
@@ -44,16 +48,41 @@ func sanitizeExtractPath(filePath string, destination string) error {
 	return nil
 }
 
-func ExtractTarGz(archivePath string, basePath string, maxArchiveSize int64) error {
+func IsTarGz(filePath string, maxArchiveSize int64) (bool, error) {
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return false, fmt.Errorf("stat %s: %w", filePath, err)
+	}
+
+	switch mod := fileInfo.Mode(); {
+	case mod.IsDir():
+		return false, nil
+	case mod.IsRegular():
+		dryRun := true
+		err = ExtractTarGz(dryRun, filePath, "/tmp", maxArchiveSize)
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	return false, fmt.Errorf("file type not supported")
+}
+
+func ExtractTarGz(checkOnly bool, archivePath string, basePath string, maxArchiveSize int64) error { //nolint:gocognit
 	gzipFileReader, err := os.Open(archivePath)
 	if err != nil {
 		return err
 	}
+	defer gzipFileReader.Close()
 
 	uncompressedStream, err := gzip.NewReader(gzipFileReader)
 	if err != nil {
 		return err
 	}
+	defer uncompressedStream.Close()
+
 	tarReader := tar.NewReader(io.LimitReader(uncompressedStream, maxArchiveSize))
 	for {
 		header, err := tarReader.Next()
@@ -63,6 +92,7 @@ func ExtractTarGz(archivePath string, basePath string, maxArchiveSize int64) err
 		if err != nil {
 			return err
 		}
+
 		err = sanitizeExtractPath(basePath, header.Name)
 		if err != nil {
 			return err
@@ -72,11 +102,17 @@ func ExtractTarGz(archivePath string, basePath string, maxArchiveSize int64) err
 		switch header.Typeflag {
 		// Handle sub folder containing namespaces
 		case tar.TypeDir:
+			if checkOnly {
+				continue
+			}
 			err := mkdirIfNotExists(cleanPath)
 			if err != nil {
 				return err
 			}
 		case tar.TypeReg:
+			if checkOnly {
+				continue
+			}
 			err := mkdirIfNotExists(filepath.Dir(cleanPath))
 			if err != nil {
 				return err
@@ -89,6 +125,9 @@ func ExtractTarGz(archivePath string, basePath string, maxArchiveSize int64) err
 			// We don't really have an upper limit of archive size and adding a limited writer is not trivial without importing
 			// a third party library (like our internal secure lib)
 			_, err = io.Copy(outFile, tarReader) //nolint:gosec
+			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+				return fmt.Errorf("archive size exceeds the limit: %d: %w", maxArchiveSize, err)
+			}
 			if err != nil {
 				return fmt.Errorf("copying file %s: %w", cleanPath, err)
 			}

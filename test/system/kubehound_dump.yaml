@@ -3,6 +3,7 @@ storage:
   retry: 6
 collector:
   type: file-collector
+  non_interactive: true
 janusgraph:
   url: "ws://localhost:8183/gremlin"
   connection_timeout: 60s
@@ -22,3 +23,17 @@ telemetry:
   profiler:
     period: "5s"
     cpu_duration: "5s"
+builder:
+  edge:
+    large_cluster_optimizations: false
+# Ingestor configuration (for KHaaS)
+ingestor:
+  blob:
+    bucket: "" # (i.e.: s3://<your_bucket>)
+    region: "" # (i.e.: us-west-2)
+  temp_dir: "/tmp/kubehound"
+  archive_name: "archive.tar.gz"
+  max_archive_size: 2147483648 # 2GB
+  api: # GRPC endpoint for the ingestor
+    endpoint: "127.0.0.1:9000"
+    insecure: true

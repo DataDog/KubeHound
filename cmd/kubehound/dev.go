@@ -4,15 +4,24 @@ import (
 	"context"
 	"os"
 
+	"github.com/DataDog/KubeHound/pkg/backend"
 	docker "github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/spf13/cobra"
 )
 
 var (
-	DefaultComposeTestingPath = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.testing.yaml"}
-	DefaultComposeDevPath     = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.dev.yaml"}
-	DefaultComposeDevPathUI   = "./deployments/kubehound/docker-compose.ui.yaml"
-	DefaultDatadogComposePath = "./deployments/kubehound/docker-compose.datadog.yaml"
+	DefaultComposeTestingPath    = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.testing.yaml"}
+	DefaultComposeDevPath        = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.dev.graph.yaml", "./deployments/kubehound/docker-compose.dev.mongo.yaml"}
+	DefaultComposeDevPathUI      = "./deployments/kubehound/docker-compose.dev.ui.yaml"
+	DefaultComposeDevPathGRPC    = "./deployments/kubehound/docker-compose.dev.ingestor.yaml"
+	DefaultComposeDevPathDatadog = "./deployments/kubehound/docker-compose.dev.datadog.yaml"
+)
+
+var (
+	uiTesting   bool
+	grpcTesting bool
+	downTesting bool
+	profiles    []string
 )
 
 var (
@@ -21,18 +30,18 @@ var (
 		Hidden: true,
 		Short:  "[devOnly] Spawn the kubehound testing stack",
 		Long:   `[devOnly] Spawn the kubehound dev stack for the system-tests (build from dockerfile)`,
-		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
-			return docker.NewBackend(cobraCmd.Context(), composePath)
-		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			if uiTesting {
+			if uiTesting || downTesting {
 				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultComposeDevPathUI)
+			}
+			if grpcTesting || downTesting {
+				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultComposeDevPathGRPC)
 			}
 			// Adding datadog setup
 			_, ddAPIKeyOk := os.LookupEnv("DD_API_KEY")
 			_, ddAPPKeyOk := os.LookupEnv("DD_API_KEY")
 			if ddAPIKeyOk && ddAPPKeyOk {
-				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultDatadogComposePath)
+				DefaultComposeDevPath = append(DefaultComposeDevPath, DefaultComposeDevPathDatadog)
 			}
 
 			return runEnv(cobraCmd.Context(), DefaultComposeDevPath)
@@ -50,7 +59,11 @@ var (
 )
 
 func runEnv(ctx context.Context, composePaths []string) error {
-	err := docker.NewBackend(ctx, composePaths)
+	if uiTesting || downTesting {
+		profiles = append(profiles, backend.DevUIProfile)
+	}
+
+	err := docker.NewBackend(ctx, composePaths, profiles)
 	if err != nil {
 		return err
 	}
@@ -65,6 +78,7 @@ func init() {
 	envCmd.AddCommand(envTestingCmd)
 	envCmd.PersistentFlags().BoolVar(&downTesting, "down", false, "Tearing down the kubehound dev stack and deleting the data associated with it")
 	envCmd.Flags().BoolVar(&uiTesting, "ui", false, "Include the UI in the dev stack")
+	envCmd.Flags().BoolVar(&grpcTesting, "grpc", false, "Include Grpc Server (ingestor) in the dev stack")
 
 	rootCmd.AddCommand(envCmd)
 }

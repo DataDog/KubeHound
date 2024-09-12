@@ -1,0 +1,80 @@
+#
+# Default Datadog KubeHound configuration
+# NOTE: this is optimized for large clusters in the Datadog environment
+#
+
+# K8s collector configuration
+collector:
+  # Type of collector to use
+  type: live-k8s-api-collector
+
+  # Live collector configuration
+  live:
+    # Rate limit of requests/second to the Kubernetes API
+    rate_limit_per_second: 150
+
+    # Number of pages to buffer
+    page_buffer_size: 50
+
+# General storage configuration
+storage:
+  # Whether or not to wipe all data on startup 
+  wipe: false
+
+  # Number of connection retries before declaring an error
+  retry: 5
+
+  # Delay between connection retries
+  retry_delay: 10s
+
+# Store database configuration
+mongodb:
+  # Connection URL to the mongo DB instance
+  url: "mongodb://{{ $.Values.services.db.host }}:{{ $.Values.services.db.port }}"
+
+  # Timeout on requests to the mongo DB instance
+  connection_timeout: 30s
+
+# Graph database configuration
+janusgraph:
+  # Connection URL to the JanusGraph DB instance
+  url: "ws://{{ $.Values.services.graph.host }}:{{ $.Values.services.graph.port }}/gremlin"
+
+  # Timeout on requests to the JanusGraph DB instance
+  connection_timeout: 30s
+
+# Datadog telemetry configuration
+telemetry:
+  # Whether to enable Datadog telemetry (default false)
+  enabled: false
+
+# Graph builder configuration
+builder:
+  # Vertex builder configuration
+  vertex:
+    # Batch size for vertex inserts
+    batch_size: 500
+
+  # Edge builder configuration
+  edge:
+    worker_pool_size: 5
+
+    # Batch size for edge inserts
+    batch_size: 1000
+    
+    # Cluster impact batch size for edge inserts
+    batch_size_cluster_impact: 10
+
+    # Enable for large clusters to prevent number of edges growing exponentially
+    large_cluster_optimizations: true
+
+ingestor:
+  blob:
+    bucket: "{{ $.Values.services.ingestor.bucket }}"
+    region: "{{ $.Values.services.ingestor.region }}"
+  temp_dir: "/tmp/kubehound"
+  archive_name: "archive.tar.gz"
+  max_archive_size: 2073741824 # 2GB
+  api: # GRPC endpoint for the ingestor
+    endpoint: "0.0.0.0:{{ $.Values.services.ingestor.port }}"
+    insecure: true

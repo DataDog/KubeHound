@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Chart.Name }}-ingestor
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: {{ $.Chart.Name | quote }}
+    chart_name: {{ $.Chart.Name | quote }}
+    chart_version: {{ $.Chart.Version }}
+    service: {{ $.Chart.Name | quote }}
+    team: {{ $.Values.team }}
+data:
+{{ tpl (.Files.Glob "conf/ingestor/*").AsConfig . | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Chart.Name }}-graph
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: {{ $.Chart.Name | quote }}
+    chart_name: {{ $.Chart.Name | quote }} 
+    chart_version: {{ $.Chart.Version }}
+    service: {{ $.Chart.Name | quote }}
+    team: {{ $.Values.team }}
+data:
+{{ tpl (.Files.Glob "conf/graph/*").AsConfig . | indent 2 -}}

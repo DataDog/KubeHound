@@ -1,0 +1,7 @@
+name: kubehound-dev
+services:
+  ui-jupyter:
+    build: ./notebook/
+    restart: unless-stopped
+    volumes:
+      - ./notebook/shared:/root/notebooks/shared

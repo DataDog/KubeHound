@@ -1,0 +1,55 @@
+team: <your_team>
+services:
+  ingestor:
+    image: ghcr.io/datadog/kubehound-ingestor
+    version: latest
+    bucket: s3://<your_bucket>
+    region: "us-east-1"
+    resources:
+      requests:
+        cpu: "4"
+        memory: "8Gi"
+      limits:
+        cpu: "4"
+        memory: "8Gi"
+    port: 9000
+    host: 0.0.0.0
+  graph:
+    host: kubehound-graph
+    db_name: kubehound
+    image: ghcr.io/datadog/kubehound-graph
+    version: latest
+    resources:
+      requests:
+        cpu: "4"
+        memory: "16Gi"
+      limits:
+        cpu: "4"
+        memory: "16Gi"
+    port: 8182
+  ui:
+    image: ghcr.io/datadog/kubehound-ui
+    version: latest
+    resources:
+      requests:
+        cpu: "2"
+        memory: "4Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+    ports: 
+      lab: 8888
+      tree: 8889
+  db:
+    host: kubehound-db
+    image: mongo
+    version: 6.0.6
+    port: 27017
+    resources:
+      requests:
+        cpu: "4"
+        memory: "16Gi"
+      limits:
+        cpu: "4"
+        memory: "16Gi"
+    port: 27017

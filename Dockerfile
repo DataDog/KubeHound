@@ -15,14 +15,14 @@ FROM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
 FROM --platform=${BUILDPLATFORM} golang:${GO_VERSION}-alpine AS base
 COPY --from=xx / /
 RUN apk add --no-cache \
-      clang \
-      docker \
-      file \
-      findutils \
-      git \
-      make \
-      protoc \
-      protobuf-dev
+    clang \
+    docker \
+    file \
+    findutils \
+    git \
+    make \
+    protoc \
+    protobuf-dev
 WORKDIR /src
 ENV CGO_ENABLED=0
 
@@ -49,14 +49,18 @@ RUN --mount=type=bind,target=.,rw \
 
 FROM build-base AS build
 ARG BUILD_TAGS
+ARG BUILD_BRANCH
 ARG BUILD_FLAGS
 ARG TARGETPLATFORM
+ENV BUILD_BRANCH="${BUILD_BRANCH}"
 RUN --mount=type=bind,target=. \
     --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=bind,from=osxcross,src=/osxsdk,target=/xx-sdk \
     xx-go --wrap && \
-    if [ "$(xx-info os)" == "darwin" ]; then export CGO_ENABLED=1; fi && \
+    # Removing DWARD symbol on Darwin as it causes the following error:
+    # /usr/local/go/pkg/tool/linux_arm64/link: /usr/local/go/pkg/tool/linux_arm64/link: running dsymutil failed: exec: "dsymutil": executable file not found in $PATH
+    if [ "$(xx-info os)" == "darwin" ]; then export CGO_ENABLED=1; export BUILD_TAGS="-w $BUILD_TAGS"; fi && \
     make build GO_BUILDTAGS="$BUILD_TAGS" DESTDIR=/out && \
     xx-verify --static /out/kubehound
 
@@ -97,7 +101,11 @@ RUN --mount=from=binary \
     mkdir -p /out && \
     # TODO: should just use standard arch
     TARGETARCH=$([ "$TARGETARCH" = "amd64" ] && echo "x86_64" || echo "$TARGETARCH"); \
-    TARGETARCH=$([ "$TARGETARCH" = "arm64" ] && echo "aarch64" || echo "$TARGETARCH"); \
+    # Use arm64 for darwin
+    TARGETARCH=$([ "$TARGETARCH" = "arm64" ] && [ "$TARGETOS" != "darwin" ] && echo "aarch64" || echo "$TARGETARCH"); \
+    # Upper case first letter to match the uname -o output
+    TARGETOS=$([ "$TARGETOS" = "darwin" ] && echo "Darwin" || echo "$TARGETOS"); \
+    TARGETOS=$([ "$TARGETOS" = "linux" ] && echo "Linux" || echo "$TARGETOS"); \
     cp kubehound* "/out/kubehound-${TARGETOS}-${TARGETARCH}${TARGETVARIANT}$(ls kubehound* | sed -e 's/^kubehound//')"
 
 FROM scratch AS release

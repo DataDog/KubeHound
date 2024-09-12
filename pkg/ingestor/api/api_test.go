@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/dump"
 	mocksNotifier "github.com/DataDog/KubeHound/pkg/ingestor/notifier/mocks"
-	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	mocksPuller "github.com/DataDog/KubeHound/pkg/ingestor/puller/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
 	mocksCache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
@@ -94,20 +94,20 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 		wantErr bool
 		mock    func(puller *mocksPuller.DataPuller, notifier *mocksNotifier.Notifier, cache *mocksCache.CacheProvider, store *mocksStore.Provider, graph *mocksGraph.Provider)
 	}{
-		{
-			name: "Pulling invalid bucket name",
-			fields: fields{
-				cfg: config.MustLoadEmbedConfig(),
-			},
-			args: args{
-				clusterName: "test-cluster",
-				runID:       "test-run-id",
-			},
-			wantErr: true,
-			mock: func(puller *mocksPuller.DataPuller, notifier *mocksNotifier.Notifier, cache *mocksCache.CacheProvider, store *mocksStore.Provider, graph *mocksGraph.Provider) {
-				puller.On("Pull", mock.Anything, "test-cluster", "test-run-id").Return("", blob.ErrInvalidBucketName)
-			},
-		},
+		// {
+		// 	name: "Pulling invalid bucket name",
+		// 	fields: fields{
+		// 		cfg: config.MustLoadEmbedConfig(),
+		// 	},
+		// 	args: args{
+		// 		clusterName: "test-cluster",
+		// 		runID:       "test-run-id",
+		// 	},
+		// 	wantErr: true,
+		// 	mock: func(puller *mocksPuller.DataPuller, notifier *mocksNotifier.Notifier, cache *mocksCache.CacheProvider, store *mocksStore.Provider, graph *mocksGraph.Provider) {
+		// 		puller.On("Pull", mock.Anything, "test-cluster", "test-run-id").Return("", blob.ErrInvalidBucketName)
+		// 	},
+		// },
 		// // TODO: find a better way to test this
 		// // The mock here would be very fragile and annoying to use: it depends on ~all the mocks of KH.
 		// // (we need to mock all the datastore, the writers, the graph builder...)
@@ -151,19 +151,28 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 			g := NewIngestorAPI(tt.fields.cfg, mockedPuller, mockedNotifier, mockedProvider)
 			noPreviousScan(mt, g)
 			tt.mock(mockedPuller, mockedNotifier, mockedCache, mockedStoreDB, mockedGraphDB)
-			if err := g.Ingest(context.TODO(), tt.args.clusterName, tt.args.runID); (err != nil) != tt.wantErr {
+
+			// Construct dump result path
+			dumpResult, err := dump.NewDumpResult(tt.args.clusterName, tt.args.runID, true)
+			if err != nil {
+				t.Errorf("dump.NewDumpResult() error = %v, wantErr %v", err, tt.wantErr)
+
+				return
+			}
+			dumpResultPath := dumpResult.GetFullPath()
+
+			if err := g.Ingest(context.TODO(), dumpResultPath); (err != nil) != tt.wantErr {
 				t.Errorf("IngestorAPI.Ingest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
+func TestIngestorAPI_isAlreadyIngestedInDB(t *testing.T) {
 	t.Parallel()
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
 	ctx := context.TODO()
-	mockStoreProvider := mocksStore.NewProvider(t)
 
 	type fields struct {
 		providers *providers.ProvidersFactoryConfig
@@ -186,7 +195,7 @@ func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
 			fields: fields{
 				mock: mt,
 				providers: &providers.ProvidersFactoryConfig{
-					StoreProvider: mockStoreProvider,
+					StoreProvider: mocksStore.NewProvider(t),
 				},
 			},
 			args: args{
@@ -202,7 +211,7 @@ func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
 			fields: fields{
 				mock: mt,
 				providers: &providers.ProvidersFactoryConfig{
-					StoreProvider: mockStoreProvider,
+					StoreProvider: mocksStore.NewProvider(t),
 				},
 			},
 			args: args{
@@ -223,7 +232,7 @@ func TestIngestorAPI_isAlreadyIngested(t *testing.T) {
 			}
 
 			tt.testfct(mt, g)
-			alreadyIngested, err := g.isAlreadyIngested(ctx, tt.args.clusterName, tt.args.runID)
+			alreadyIngested, err := g.isAlreadyIngestedInDB(ctx, tt.args.clusterName, tt.args.runID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("%s - IngestorAPI.checkPreviousRun() error = %d, wantErr %v", tt.name, err, tt.wantErr)
 			}

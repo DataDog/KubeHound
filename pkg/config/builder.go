@@ -11,6 +11,8 @@ const (
 	DefaultVertexBatchSizeSmall = DefaultVertexBatchSize / 5
 
 	DefaultStopOnError = false
+
+	DefaultLargeClusterOptimizations = true
 )
 
 // VertexBuilderConfig configures vertex builder parameters.

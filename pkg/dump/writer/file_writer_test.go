@@ -33,7 +33,8 @@ func TestFileWriter_Write(t *testing.T) {
 		collector.FakeEndpoint("name2", dummyNamespace, []int32{int32(443)}),
 	}
 
-	writer, err := NewFileWriter(ctx, tmpDir, fileNameK8sObject)
+	directoryOutput := path.Join(tmpDir, fileNameK8sObject)
+	writer, err := NewFileWriter(ctx, directoryOutput)
 	if err != nil {
 		t.Fatalf("failed to create file writer: %v", err)
 	}

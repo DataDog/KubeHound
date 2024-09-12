@@ -3,12 +3,16 @@ storage:
   retry: 6
 collector:
   type: live-k8s-api-collector
+  non_interactive: true
 janusgraph:
   url: "ws://localhost:8183/gremlin"
   connection_timeout: 60s
 mongodb:
   url: "mongodb://localhost:27018"
   connection_timeout: 60s
+builder:
+  edge:
+    large_cluster_optimizations: false
 telemetry:
   enabled: true
   tags:
