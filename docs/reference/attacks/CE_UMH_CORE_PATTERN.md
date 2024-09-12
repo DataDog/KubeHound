@@ -52,7 +52,7 @@ $ OVERLAY_PATH=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapsh
 Oneliner alternative:
 
 ```bash
-export OVERLAY_PATH=$(cat /proc/mounts | grep -oe upperdir=[^,]*, | cut -d = -f 2 | tr -d , | head -n 1)
+export OVERLAY_PATH=$(cat /proc/mounts | grep -oe upperdir="[^,]*," | cut -d = -f 2 | tr -d , | head -n 1)
 ```
 
 Next create a mini program that will crash immediately and generate a kernel coredump. For example:
