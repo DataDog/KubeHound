@@ -105,7 +105,7 @@ Next choose a target Kubernetes cluster, either:
 Finally run the compiled binary with default configuration:
 
 ```bash
-bin/build/kubehound
+bin/kubehound
 ```
 
 To view the generated graph see the [Using KubeHound Data](#using-kubehound-data) section.
