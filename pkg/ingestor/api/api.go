@@ -124,7 +124,7 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 	if err != nil {
 		log.I.Warnf("no metadata has been parsed (old dump format from v1.4.0 or below do not embed metadata information): %v", err)
 		// Backward Compatibility: Extracting the metadata from the path
-		dumpMetadata, err := dump.ParsePath(archivePath)
+		dumpMetadata, err := dump.ParsePath(path)
 		if err != nil {
 			log.I.Warn("parsing path for metadata", err)
 
