@@ -26,8 +26,8 @@ jobs:
           - dockerfile: deployments/kubehound/ui/Dockerfile
             image: ui
             workdir: deployments/kubehound/ui/
-          - dockerfile: deployments/kubehound/kubehound/Dockerfile
-            image: kubehound
+          - dockerfile: deployments/kubehound/binary/Dockerfile
+            image: binary
             workdir: .
     permissions:
       contents: read
