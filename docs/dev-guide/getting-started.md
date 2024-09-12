@@ -100,7 +100,7 @@ New tags will trigger the 2 following jobs:
 
 !!! warning "deprecated"
 
-    The `kubehound-ingestor` has been deprecated since **v1.5.0** and renamed to `kubehound-binary`.
+    The `kubehound-ingestor` image has been deprecated since **v1.5.0** and renamed to `kubehound-binary`.
 
 The CI will draft a new release that **will need manual validation**. In order to get published, an admin has to to validate the new draft from the UI.
 
