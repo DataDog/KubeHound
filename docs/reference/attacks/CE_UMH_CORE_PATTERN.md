@@ -28,7 +28,7 @@ See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/s
 Determine mounted volumes within the container as per [VOLUME_DISCOVER](./VOLUME_DISCOVER.md#checks). If the host `/proc/sys/kernel` (or any parent directory) is mounted, this attack will be possible. Example below.
 
 ```bash
-$ cat /proc/self/mounts  # or `cat /proc/mounts` depending on the system
+$ cat /etc/mtab  # or `cat /proc/mounts` depending on the system
 
 ...
 proc /hostproc proc rw,nosuid,nodev,noexec,relatime 0 0
