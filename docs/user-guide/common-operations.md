@@ -2,15 +2,16 @@
 
 When running `./kubehound`, it will execute the 3 following action:
 
-* run the `backend` (graphdb, storedb and UI)
-* `dump` the kubernetes resources needed to build the graph
-* `ingest` the dumped data and generate the attack path for the targeted Kubernetes cluster.
+- run the `backend` (graphdb, storedb and UI)
+- `dump` the kubernetes resources needed to build the graph
+- `ingest` the dumped data and generate the attack path for the targeted Kubernetes cluster.
 
 All those 3 steps can be run separately.
 
 [![](../images/kubehound-local-commands.png)](../images/kubehound-local-commands.png)
 
-!!! Note
+!!! note
+
     if you want to skip the interactive mode, you can provide `-y` or `--non-interactive` to skip the cluster confirmation.
 
 ## Backend
@@ -20,6 +21,7 @@ In order to run, KubeHound needs some docker containers to be running. Every com
 ### Starting the backend
 
 The backend stack can be started by using:
+
 ```bash
 kubehound backend up
 ```
@@ -29,11 +31,13 @@ It will use the latest [kubehound images releases](https://github.com/orgs/DataD
 ### Restarting/stopping the backend
 
 The backend stack can be restarted by using:
+
 ```bash
 kubehound backend reset
 ```
 
 or just stopped:
+
 ```bash
 kubehound backend down
 ```
@@ -48,7 +52,8 @@ The backend data can be wiped by using:
 kubehound backend wipe
 ```
 
-!!! Warning
+!!! warning
+
     This command will **wipe ALL docker DATA (docker volume and containers) and will not be recoverable**.
 
 ## Dump
@@ -63,7 +68,8 @@ kubehound dump local [directory to dump the data]
 
 If for some reasons you need to have the raw data, you can add `--no-compress` flag to have a raw extract.
 
-!!! Note
+!!! note
+
     This step does not require any backend as it only automate grabbing k8s resources from the k8s api.
 
 ## Ingest
@@ -73,8 +79,13 @@ If for some reasons you need to have the raw data, you can add `--no-compress` f
 To ingest manually an extraction made by KubeHound, just specify where the dump is being located and the associated cluster name.
 
 ```bash
-kubehound ingest local [directory or tar.gz path] --cluster <cluster_name> 
+kubehound ingest local [directory or tar.gz path]
 ```
 
-!!! Warning
-    This step requires the backend to be started, it will start it for you.
+!!! warning
+
+    This step requires the backend to be started, it will not start it for you.
+
+!!! warning "deprecated"
+
+    The `--cluster` is deprecated since v1.5.0. Now a metadata.json is being embeded with the cluster name. If you are using old dump you can either still use the `--cluster` flag or auto detect it from the path.

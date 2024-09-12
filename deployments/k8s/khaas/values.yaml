@@ -1,7 +1,7 @@
 team: <your_team>
 services:
   ingestor:
-    image: ghcr.io/datadog/kubehound-ingestor
+    image: ghcr.io/datadog/kubehound-binary
     version: latest
     bucket: s3://<your_bucket>
     region: "us-east-1"

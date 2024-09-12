@@ -6,7 +6,7 @@ KubeHound works in 3 steps:
 2. Compute attack paths
 3. Write the results to a local graph database (JanusGraph)
 
-After the initial ingestion is done, you use a compatible client  or the provided [Jupyter Notebook](../../deployments/kubehound/notebook/KubeHound.ipynb) to visualize and query attack paths in your cluster.
+After the initial ingestion is done, you use a compatible client or the provided [Jupyter Notebook](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/ui/KubeHound.ipynb) to visualize and query attack paths in your cluster.
 
 [![KubeHound architecture  (click to enlarge)](./images/kubehound-high-level-v2.png)](./images/kubehound-high-level-v2.png)
 
