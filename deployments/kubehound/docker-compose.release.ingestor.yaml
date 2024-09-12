@@ -1,7 +1,7 @@
 name: kubehound-release
 services:
   grpc:
-    image: ghcr.io/datadog/kubehound-ingestor:latest
+    image: ghcr.io/datadog/kubehound-binary:latest
     restart: unless-stopped
     ports:
       - "127.0.0.1:9000:9000"
