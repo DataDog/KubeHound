@@ -18,7 +18,6 @@ const (
 	CollectorNonInteractive        = "collector.non_interactive"
 	CollectorFileArchiveNoCompress = "collector.file.archive.no_compress"
 	CollectorFileDirectory         = "collector.file.directory"
-	CollectorFileClusterName       = "collector.file.cluster_name"
 	CollectorFileBlobRegion        = "collector.file.blob.region"
 	CollectorFileBlobBucket        = "collector.file.blob.bucket"
 )
