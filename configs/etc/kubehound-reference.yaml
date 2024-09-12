@@ -32,9 +32,6 @@ collector:
   # file:
   #   # Directory holding the K8s json data files
   #   directory: /path/to/directory
-  #
-  #   # Target cluster name
-  #   cluster: <cluster name>
 
 #
 # General storage configuration
@@ -42,7 +39,7 @@ collector:
 storage:
   # Whether or not to wipe all data on startup
   wipe: true
-  
+
   # Number of connection retries before declaring an error
   retry: 5
 
@@ -74,8 +71,8 @@ telemetry:
 
   # Default tags to add to all telemetry (free form key-value map)
   # tags:
-  #   team: ase 
-  
+  #   team: ase
+
   # Statsd configuration for metics support
   statsd:
     # URL to send statsd data to the Datadog agent
@@ -90,7 +87,7 @@ telemetry:
 # Graph builder configuration
 #
 # NOTE: increasing batch sizes can have some performance improvements by reducing network latency in transferring data
-# between KubeGraph and the application. However, increasing it past a certain level can overload the backend leading 
+# between KubeGraph and the application. However, increasing it past a certain level can overload the backend leading
 # to instability and eventually exceed the size limits of the websocket buffer used to transfer the data. Changing this
 # is not recommended.
 #
@@ -99,7 +96,7 @@ builder:
   # vertex:
   #   # Batch size for vertex inserts
   #   batch_size: 500
-  # 
+  #
   #   # Small batch size for vertex inserts
   #   batch_size_small: 100
 
@@ -124,18 +121,26 @@ builder:
 
     #  # Cluster impact batch size for edge inserts
     # batch_size_cluster_impact: 1
-  
+
 # Ingestor configuration (for KHaaS)
 # ingestor:
 #   blob:
 #     # (i.e.: s3://<your-bucket>)
 #     bucket: ""
 #     # (i.e.: us-east-1)
-#     region: "" 
+#     region: ""
 #   temp_dir: "/tmp/kubehound"
 #   archive_name: "archive.tar.gz"
 #   max_archive_size: 2147483648 # 2GB
 #   # GRPC endpoint for the ingestor
-#   api: 
+#   api:
 #     endpoint: "127.0.0.1:9000"
 #     insecure: true
+
+#
+# Dynamic info (optionnal - auto injected by KubeHound)
+#
+dynamic:
+  #
+  #   # Target cluster name
+  #   cluster: <cluster name>

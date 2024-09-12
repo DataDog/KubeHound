@@ -11,7 +11,7 @@ These two are used to start the backend infrastructure required to run KubeHound
 
 ## Running KubeHound
 
-KubeHound ships with a sensible default configuration as well as a pre-built binary, designed to get new users up and running quickly. 
+KubeHound ships with a sensible default configuration as well as a pre-built binary, designed to get new users up and running quickly.
 
 Download the latest KubeHound binary for you platform:
 
@@ -116,13 +116,13 @@ WARN[01:43:36] Password being 'admin'
 
 ## Access the KubeHound data
 
-At this point, the KubeHound data has been ingested in KubeHound's [graph database](../architecture.md). 
-You can use any client that supports accessing JanusGraph - a comprehensive list is available on the [JanusGraph home page](https://janusgraph.org/). 
-We also provide a showcase [Jupyter Notebook](../../deployments/kubehound/notebook/KubeHound.ipynb) to get you started. This is accessible on [http://locahost:8888](http://locahost:8888) after starting KubeHound backend. The default password is `admin` but you can change this by setting the `NOTEBOOK_PASSWORD` environment variable in your `.env file`.
+At this point, the KubeHound data has been ingested in KubeHound's [graph database](../architecture.md).
+You can use any client that supports accessing JanusGraph - a comprehensive list is available on the [JanusGraph home page](https://janusgraph.org/).
+We also provide a showcase [Jupyter Notebook](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/ui/KubeHound.ipynb) to get you started. This is accessible on [http://locahost:8888](http://locahost:8888) after starting KubeHound backend. The default password is `admin` but you can change this by setting the `NOTEBOOK_PASSWORD` environment variable in your `.env file`.
 
 ## Visualize and query the KubeHound data
 
-Once the data is loaded in the graph database, it's time to visualize and query it! 
+Once the data is loaded in the graph database, it's time to visualize and query it!
 
 You can explore it interactively in your graph client. Then, refer to KubeHound's [query library](../queries/index.md) to start asking questions to your data.
 
@@ -135,4 +135,3 @@ make sample-graph
 ```
 
 This will spin up a temporary local kind cluster, run KubeHound on it, and destroy the cluster.
-
