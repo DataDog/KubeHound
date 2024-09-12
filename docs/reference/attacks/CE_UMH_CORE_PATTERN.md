@@ -28,7 +28,7 @@ See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/s
 Determine mounted volumes within the container as per [VOLUME_DISCOVER](./VOLUME_DISCOVER.md#checks). If the host `/proc/sys/kernel` (or any parent directory) is mounted, this attack will be possible. Example below.
 
 ```bash
-$ cat /etc/mtab  # or `cat /proc/mounts` depending on the system
+$ cat /proc/self/mounts 
 
 ...
 proc /hostproc proc rw,nosuid,nodev,noexec,relatime 0 0
@@ -40,7 +40,7 @@ proc /hostproc proc rw,nosuid,nodev,noexec,relatime 0 0
 First find the path of the container’s filesystem on the host. This can be done by retrieving the current mounts (see [VOLUME_DISCOVER](./VOLUME_DISCOVER.md#checks)). Looks for the `upperdir` value of the overlayfs entry associated with containerd:
 
 ```bash
-$ cat /proc/mounts
+$ cat /etc/mtab  # or `cat /proc/mounts` depending on the system
 ...
 overlay / overlay rw,relatime,lowerdir=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/27/fs,upperdir=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/71/fs,workdir=/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/71/work 0 0
 ...
