@@ -14,7 +14,7 @@ BUILD_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 BUILD_ARCH := $(shell go env GOARCH)
 BUILD_OS := $(shell go env GOOS)
 
-BUILD_FLAGS := -ldflags="-X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION) -X github.com/DataDog/KubeHound/pkg/config.BuildBranch=$(BUILD_BRANCH) -X github.com/DataDog/KubeHound/pkg/config.BuildArch=$(BUILD_ARCH) -X github.com/DataDog/KubeHound/pkg/config.BuildOs=$(BUILD_OS)"
+BUILD_FLAGS := -ldflags="${GO_BUILDTAGS} -X github.com/DataDog/KubeHound/pkg/config.BuildVersion=$(BUILD_VERSION) -X github.com/DataDog/KubeHound/pkg/config.BuildBranch=$(BUILD_BRANCH) -X github.com/DataDog/KubeHound/pkg/config.BuildArch=$(BUILD_ARCH) -X github.com/DataDog/KubeHound/pkg/config.BuildOs=$(BUILD_OS)"
 
 # Need to save the MAKEFILE_LIST variable before the including the env var files
 HELP_MAKEFILE_LIST := $(MAKEFILE_LIST)
