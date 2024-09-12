@@ -121,7 +121,6 @@ builder:
 
     #  # Cluster impact batch size for edge inserts
     # batch_size_cluster_impact: 1
-
 # Ingestor configuration (for KHaaS)
 # ingestor:
 #   blob:
@@ -140,7 +139,7 @@ builder:
 #
 # Dynamic info (optionnal - auto injected by KubeHound)
 #
-dynamic:
-  #
-  #   # Target cluster name
-  #   cluster: <cluster name>
+# dynamic:
+#
+#   # Target cluster name
+#   cluster: <cluster name>
