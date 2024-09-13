@@ -18,7 +18,7 @@ services:
       - KH_INGESTOR_ARCHIVE_NAME=archive.tar.gz
       # AWS Bucket configuration
       - KH_INGESTOR_REGION=us-east-1
-      - KH_INGESTOR_BUCKET_NAME= # s3://<your_bucket>
+      - KH_INGESTOR_BUCKET_URL= # s3://<your_bucket>
       - AWS_ACCESS_KEY_ID=
       - AWS_SECRET_ACCESS_KEY=
       - AWS_SESSION_TOKEN= # for aws-vault generated credentials
