@@ -18,7 +18,7 @@ func Retrier[T any](connector Connector[T], retries int, delay time.Duration) Co
 			if err == nil || r >= retries {
 				return provider, err
 			}
-			log.I.Warnf("Retrying to connect [%d/%d]", r, retries)
+			log.I.Warnf("Retrying to connect [%d/%d]", r+1, retries)
 
 			select {
 			case <-time.After(delay):
