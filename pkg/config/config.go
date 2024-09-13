@@ -132,7 +132,7 @@ func SetDefaultValues(v *viper.Viper) {
 
 	v.SetDefault(IngestorAPIEndpoint, DefaultIngestorAPIEndpoint)
 	v.SetDefault(IngestorAPIInsecure, DefaultIngestorAPIInsecure)
-	v.SetDefault(IngestorBlobBucketName, DefaultBucketName)
+	v.SetDefault(IngestorBlobBucketURL, DefaultBucketName)
 	v.SetDefault(IngestorTempDir, DefaultTempDir)
 	v.SetDefault(IngestorMaxArchiveSize, DefaultMaxArchiveSize)
 	v.SetDefault(IngestorArchiveName, DefaultArchiveName)
@@ -154,7 +154,7 @@ func SetEnvOverrides(c *viper.Viper) {
 
 	res = multierror.Append(res, c.BindEnv(IngestorAPIEndpoint, "KH_INGESTOR_API_ENDPOINT"))
 	res = multierror.Append(res, c.BindEnv(IngestorAPIInsecure, "KH_INGESTOR_API_INSECURE"))
-	res = multierror.Append(res, c.BindEnv(IngestorBlobBucketName, "KH_INGESTOR_BUCKET_NAME"))
+	res = multierror.Append(res, c.BindEnv(IngestorBlobBucketURL, "KH_INGESTOR_BUCKET_URL"))
 	res = multierror.Append(res, c.BindEnv(IngestorTempDir, "KH_INGESTOR_TEMP_DIR"))
 	res = multierror.Append(res, c.BindEnv(IngestorMaxArchiveSize, "KH_INGESTOR_MAX_ARCHIVE_SIZE"))
 	res = multierror.Append(res, c.BindEnv(IngestorArchiveName, "KH_INGESTOR_ARCHIVE_NAME"))

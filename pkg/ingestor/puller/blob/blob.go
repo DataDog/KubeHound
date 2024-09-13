@@ -39,12 +39,12 @@ type BlobStore struct {
 var _ puller.DataPuller = (*BlobStore)(nil)
 
 func NewBlobStorage(cfg *config.KubehoundConfig, blobConfig *config.BlobConfig) (*BlobStore, error) {
-	if blobConfig.BucketName == "" {
+	if blobConfig.BucketUrl == "" {
 		return nil, ErrInvalidBucketName
 	}
 
 	return &BlobStore{
-		bucketName: blobConfig.BucketName,
+		bucketName: blobConfig.BucketUrl,
 		cfg:        cfg,
 		region:     blobConfig.Region,
 	}, nil

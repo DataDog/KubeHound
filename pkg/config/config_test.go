@@ -81,8 +81,8 @@ func TestMustLoadConfig(t *testing.T) {
 						Insecure: false,
 					},
 					Blob: &BlobConfig{
-						BucketName: "",
-						Region:     "",
+						BucketUrl: "",
+						Region:    "",
 					},
 					TempDir:        "/tmp/kubehound",
 					ArchiveName:    "archive.tar.gz",
@@ -155,8 +155,8 @@ func TestMustLoadConfig(t *testing.T) {
 						Insecure: false,
 					},
 					Blob: &BlobConfig{
-						BucketName: "",
-						Region:     "",
+						BucketUrl: "",
+						Region:    "",
 					},
 					TempDir:        "/tmp/kubehound",
 					ArchiveName:    "archive.tar.gz",
