@@ -74,9 +74,9 @@ var (
 	}
 )
 
+// If no arg is provided, run the reHydration of the latest snapshots (stored in KHaaS / S3 Bucket)
 func isIngestRemoteDefault() bool {
-	runID := viper.GetString(config.IngestorRunID)
-	clusterName := viper.GetString(config.IngestorClusterName)
+	clusterName := viper.GetString(config.DynamicClusterName)
 
 	return runID == "" && clusterName == ""
 }

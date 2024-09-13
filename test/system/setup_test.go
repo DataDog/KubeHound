@@ -143,7 +143,6 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 	// Setting the collectorDir, clusterName and runID needed for the ingestion step
 	// This information is used by the grpc server to run the ingestion
 	viper.Set(config.CollectorFileDirectory, collectorDir)
-	viper.Set(config.CollectorFileClusterName, clusterName)
 
 	err := cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
 	if err != nil {
