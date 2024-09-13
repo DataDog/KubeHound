@@ -339,7 +339,7 @@ func TestNewBlobStorage(t *testing.T) {
 			name: "empty bucket name",
 			args: args{
 				blobConfig: &config.BlobConfig{
-					Bucket: "",
+					BucketUrl: "",
 				},
 				cfg: &config.KubehoundConfig{
 					Ingestor: config.IngestorConfig{
@@ -353,7 +353,7 @@ func TestNewBlobStorage(t *testing.T) {
 			name: "valid blob storage",
 			args: args{
 				blobConfig: &config.BlobConfig{
-					Bucket: "fakeBlobStorage",
+					BucketUrl: "fakeBlobStorage",
 				},
 				cfg: &config.KubehoundConfig{
 					Ingestor: config.IngestorConfig{

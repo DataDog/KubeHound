@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 type Connector[T any] func(ctx context.Context, cfg *config.KubehoundConfig) (T, error)
@@ -17,6 +18,7 @@ func Retrier[T any](connector Connector[T], retries int, delay time.Duration) Co
 			if err == nil || r >= retries {
 				return provider, err
 			}
+			log.I.Warnf("Retrying to connect [%d/%d]", r+1, retries)
 
 			select {
 			case <-time.After(delay):

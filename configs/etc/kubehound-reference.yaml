@@ -125,7 +125,7 @@ builder:
 # ingestor:
 #   blob:
 #     # (i.e.: s3://<your-bucket>)
-#     bucket: ""
+#     bucket_url: ""
 #     # (i.e.: us-east-1)
 #     region: ""
 #   temp_dir: "/tmp/kubehound"

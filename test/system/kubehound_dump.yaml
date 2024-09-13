@@ -29,7 +29,7 @@ builder:
 # Ingestor configuration (for KHaaS)
 ingestor:
   blob:
-    bucket: "" # (i.e.: s3://<your_bucket>)
+    bucket_url: "" # (i.e.: s3://<your_bucket>)
     region: "" # (i.e.: us-west-2)
   temp_dir: "/tmp/kubehound"
   archive_name: "archive.tar.gz"

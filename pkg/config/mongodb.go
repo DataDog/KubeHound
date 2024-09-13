@@ -6,6 +6,9 @@ import (
 
 const (
 	DefaultMongoUrl = "mongodb://localhost:27017"
+
+	MongoUrl               = "mongodb.url"
+	MongoConnectionTimeout = "mongodb.connection_timeout"
 )
 
 // MongoDBConfig configures mongodb specific parameters.

@@ -3,7 +3,7 @@ services:
   ingestor:
     image: ghcr.io/datadog/kubehound-binary
     version: latest
-    bucket: s3://<your_bucket>
+    bucket_url: s3://<your_bucket>
     region: "us-east-1"
     resources:
       requests:

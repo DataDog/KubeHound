@@ -14,8 +14,8 @@ const (
 	IngestorTempDir        = "ingestor.temp_dir"
 	IngestorArchiveName    = "ingestor.archive_name"
 
-	IngestorBlobBucketName = "ingestor.blob.bucket_name"
-	IngestorBlobRegion     = "ingestor.blob.region"
+	IngestorBlobBucketURL = "ingestor.blob.bucket_url"
+	IngestorBlobRegion    = "ingestor.blob.region"
 )
 
 type IngestorConfig struct {

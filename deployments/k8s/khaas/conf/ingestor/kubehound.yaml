@@ -18,7 +18,7 @@ collector:
 
 # General storage configuration
 storage:
-  # Whether or not to wipe all data on startup 
+  # Whether or not to wipe all data on startup
   wipe: false
 
   # Number of connection retries before declaring an error
@@ -61,7 +61,7 @@ builder:
 
     # Batch size for edge inserts
     batch_size: 1000
-    
+
     # Cluster impact batch size for edge inserts
     batch_size_cluster_impact: 10
 
@@ -70,7 +70,7 @@ builder:
 
 ingestor:
   blob:
-    bucket: "{{ $.Values.services.ingestor.bucket }}"
+    bucket_url: "{{ $.Values.services.ingestor.bucket_url }}"
     region: "{{ $.Values.services.ingestor.region }}"
   temp_dir: "/tmp/kubehound"
   archive_name: "archive.tar.gz"

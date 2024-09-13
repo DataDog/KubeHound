@@ -93,7 +93,7 @@ If you don't want to specify the bucket every time, you can set it up in your lo
 ingestor:
   blob:
     # (i.e.: s3://<your-bucket>)
-    bucket: ""
+    bucket_url: ""
     # (i.e.: us-east-1)
     region: ""
 ```

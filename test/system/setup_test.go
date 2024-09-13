@@ -193,7 +193,7 @@ func RunGRPC(ctx context.Context, runArgs *runArgs, p *providers.ProvidersFactor
 		log.I.Fatal(err.Error())
 	}
 
-	khCfg.Ingestor.Blob.Bucket = fmt.Sprintf("file://%s", fileFolder)
+	khCfg.Ingestor.Blob.BucketUrl = fmt.Sprintf("file://%s", fileFolder)
 	log.I.Info("Creating Blob Storage provider")
 	puller, err := blob.NewBlobStorage(khCfg, khCfg.Ingestor.Blob)
 	if err != nil {

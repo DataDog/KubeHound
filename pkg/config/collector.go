@@ -50,6 +50,6 @@ type FileArchiveConfig struct {
 }
 
 type BlobConfig struct {
-	Bucket string `mapstructure:"bucket"` // Bucket to use to push k8s resources (e.g.: s3://<your_bucket>)
-	Region string `mapstructure:"region"` // Region to use for the bucket (only for s3)
+	BucketUrl string `mapstructure:"bucket_url"` // Bucket to use to push k8s resources (e.g.: s3://<your_bucket>)
+	Region    string `mapstructure:"region"`     // Region to use for the bucket (only for s3)
 }

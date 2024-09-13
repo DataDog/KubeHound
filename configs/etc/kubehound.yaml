@@ -50,10 +50,10 @@ builder:
 
     # Batch size for edge inserts
     batch_size: 500
-    
+
     # Cluster impact batch size for edge inserts
     batch_size_cluster_impact: 10
-    
+
     # Enable for large clusters to prevent number of edges growing exponentially
     large_cluster_optimizations: true
 
@@ -61,13 +61,13 @@ builder:
 ingestor:
   blob:
     # (i.e.: s3://<your-bucket>)
-    bucket: ""
+    bucket_url: ""
     # (i.e.: us-east-1)
-    region: "" 
+    region: ""
   temp_dir: "/tmp/kubehound"
   archive_name: "archive.tar.gz"
   max_archive_size: 2147483648 # 2GB
   # GRPC endpoint for the ingestor
-  api: 
+  api:
     endpoint: "127.0.0.1:9000"
     insecure: true
