@@ -108,12 +108,12 @@ func SetDefaultValues(v *viper.Viper) {
 	v.SetDefault(TelemetryEnabled, false)
 
 	// Default value for MongoDB
-	v.SetDefault("mongodb.url", DefaultMongoUrl)
-	v.SetDefault("mongodb.connection_timeout", DefaultConnectionTimeout)
+	v.SetDefault(MongoUrl, DefaultMongoUrl)
+	v.SetDefault(MongoConnectionTimeout, DefaultConnectionTimeout)
 
 	// Defaults values for JanusGraph
-	v.SetDefault("janusgraph.url", DefaultJanusGraphUrl)
-	v.SetDefault("janusgraph.connection_timeout", DefaultConnectionTimeout)
+	v.SetDefault(JanusGraphUrl, DefaultJanusGraphUrl)
+	v.SetDefault(JanusGrapTimeout, DefaultConnectionTimeout)
 
 	// Profiler values
 	v.SetDefault(TelemetryProfilerPeriod, DefaultProfilerPeriod)
@@ -148,6 +148,17 @@ func SetEnvOverrides(c *viper.Viper) {
 	res = multierror.Append(res, c.BindEnv("collector.type", "KH_COLLECTOR"))
 	res = multierror.Append(res, c.BindEnv("collector.file.directory", "KH_COLLECTOR_DIR"))
 	res = multierror.Append(res, c.BindEnv("collector.file.cluster", "KH_COLLECTOR_TARGET"))
+
+	res = multierror.Append(res, c.BindEnv(MongoUrl, "KH_MONGODB_URL"))
+	res = multierror.Append(res, c.BindEnv(JanusGraphUrl, "KH_JANUSGRAPH_URL"))
+
+	res = multierror.Append(res, c.BindEnv(IngestorAPIEndpoint, "KH_INGESTOR_API_ENDPOINT"))
+	res = multierror.Append(res, c.BindEnv(IngestorAPIInsecure, "KH_INGESTOR_API_INSECURE"))
+	res = multierror.Append(res, c.BindEnv(IngestorBlobBucketName, "KH_INGESTOR_BUCKET_NAME"))
+	res = multierror.Append(res, c.BindEnv(IngestorTempDir, "KH_INGESTOR_TEMP_DIR"))
+	res = multierror.Append(res, c.BindEnv(IngestorMaxArchiveSize, "KH_INGESTOR_MAX_ARCHIVE_SIZE"))
+	res = multierror.Append(res, c.BindEnv(IngestorArchiveName, "KH_INGESTOR_ARCHIVE_NAME"))
+	res = multierror.Append(res, c.BindEnv(IngestorBlobRegion, "KH_INGESTOR_REGION"))
 
 	if res.ErrorOrNil() != nil {
 		log.I.Fatalf("config environment override: %v", res.ErrorOrNil())
@@ -234,6 +245,8 @@ func NewEmbedConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error)
 	v.SetConfigType(DefaultConfigType)
 	SetDefaultValues(v)
 
+	// Configure environment variable override
+	SetEnvOverrides(v)
 	data, err := embedconfig.F.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("reading embed config: %w", err)
