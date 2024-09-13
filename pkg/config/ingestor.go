@@ -10,8 +10,6 @@ const (
 
 	IngestorAPIEndpoint    = "ingestor.api.endpoint"
 	IngestorAPIInsecure    = "ingestor.api.insecure"
-	IngestorClusterName    = "ingestor.cluster_name"
-	IngestorRunID          = "ingestor.run_id"
 	IngestorMaxArchiveSize = "ingestor.max_archive_size"
 	IngestorTempDir        = "ingestor.temp_dir"
 	IngestorArchiveName    = "ingestor.archive_name"
