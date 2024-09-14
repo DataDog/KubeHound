@@ -1,0 +1,55 @@
+# Deploying KHaaS - Ingestor stack
+
+!!! warning "deprecated"
+
+    The `kubehound-ingestor` has been deprecated since **v1.5.0** and renamed to `kubehound-binary`.
+
+## Docker deployment
+
+To run the KubeHound as a Service with `docker` just use the following [compose files](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound):
+
+```bash
+cd ./deployments/kubehound
+docker compose -f docker-compose.yaml -f docker-compose.release.yaml -f docker-compose.release.ingestor.yaml up -d
+```
+
+By default the endpoints are only exposed locally:
+
+- `127.0.0.1:9000` for ingestor endpoint.
+- `127.0.0.1:8888` for the UI.
+
+!!! warning
+
+    You should change the default password by editing `NOTEBOOK_PASSWORD=<your_password>` in the `docker-compose.yaml`
+
+## k8s deployment
+
+To run the KubeHound as a Service on Kubernetes just use the following [helm files](https://github.com/DataDog/KubeHound/tree/main/deployments/k8s):
+
+```bash
+cd ./deployments/k8s
+helm install khaas khaas --namespace khaas --create-namespace
+```
+
+If it succeeded you should see the deployment listed:
+
+```bash
+$ helm ls -A
+NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART              APP VERSION
+khaas   khaas           1               2024-07-30 19:04:37.0575 +0200 CEST     deployed        kubehound-0.0.1
+```
+
+!!! Note
+
+    This is an example to deploy KubeHound as a Service in k8s cluster, but you will need to adapt it to your own environment.
+
+## k8s collector
+
+When deploying the collector inside a k8s cluster, we need to configure one of the two variable:
+
+- `KH_K8S_CLUSTER_NAME_ENV_PTR`: variable indicating env var to use from the k8s cluster/pod to setup the name of the targetted k8s cluster
+- `KH_K8S_CLUSTER_NAME`: variable indicating the name of the targetted k8s cluster
+
+!!! Note
+
+    `KH_K8S_CLUSTER_NAME_ENV_PTR` will overwrite the `KH_K8S_CLUSTER_NAME` env var.

@@ -28,7 +28,7 @@ The repository includes a suite of system tests that will do the following:
 - run KubeHound using the file collector to create a working graph database
 - query the graph database to ensure all expected vertices and edges have been created correctly
 
-The cluster setup and running instances can be found under [test/setup](./test/setup/)
+The cluster setup and running instances can be found under [test/setup](https://github.com/DataDog/KubeHound/tree/main/test/setup)
 
 If you need to manually access the system test environment with kubectl and other commands, you'll need to set (assuming you are at the root dir):
 
