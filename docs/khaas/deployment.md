@@ -53,3 +53,19 @@ When deploying the collector inside a k8s cluster, we need to configure one of t
 !!! Note
 
     `KH_K8S_CLUSTER_NAME_ENV_PTR` will overwrite the `KH_K8S_CLUSTER_NAME` env var.
+
+### RBAC requirements
+
+In order for the collector to work it needs access to the k8s API and the following k8s ClusterRole:
+
+| apiGroups                 | resources                                                    | verb        |
+| ------------------------- | ------------------------------------------------------------ | ----------- |
+| rbac.authorization.k8s.io | roles<br>rolebindings<br>clusterroles<br>clusterrolebindings | get<br>list |
+|                           | pods<br>nodes<br>                                            | get<br>list |
+| discovery.k8s.io          | endpointslices                                               | get<br>list |
+
+The definition of the k8s RBAC can find here:
+
+- [clusterRole](https://github.com/DataDog/KubeHound/tree/main/deployments/k8s/khaas/templates/cluster_role.yaml)
+- [clusterRoleBinding](https://github.com/DataDog/KubeHound/tree/main/deployments/k8s/khaas/templates/cluster_role_binding.yaml)
+- [serviceAccount](https://github.com/DataDog/KubeHound/tree/main/deployments/k8s/khaas/templates/service_account.yaml)
