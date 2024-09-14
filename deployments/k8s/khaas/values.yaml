@@ -1,6 +1,20 @@
 team: <your_team>
 services:
+  collector:
+    image: ghcr.io/datadog/kubehound-binary
+    version: latest
+    resources:
+      requests:
+        cpu: "4"
+        memory: "8Gi"
+      limits:
+        cpu: "4"
+        memory: "8Gi"
+    khaas_server: kubehound-ingestor.kubehound.cluster-local.local
+
   ingestor:
+    host: 0.0.0.0
+    port: 9000
     image: ghcr.io/datadog/kubehound-binary
     version: latest
     bucket_url: s3://<your_bucket>
@@ -12,10 +26,10 @@ services:
       limits:
         cpu: "4"
         memory: "8Gi"
-    port: 9000
-    host: 0.0.0.0
+
   graph:
-    host: kubehound-graph
+    host: kubehound-graph.kubehound.cluster-local.local
+    port: 8182
     db_name: kubehound
     image: ghcr.io/datadog/kubehound-graph
     version: latest
@@ -26,7 +40,7 @@ services:
       limits:
         cpu: "4"
         memory: "16Gi"
-    port: 8182
+
   ui:
     image: ghcr.io/datadog/kubehound-ui
     version: latest
@@ -37,14 +51,15 @@ services:
       limits:
         cpu: "2"
         memory: "4Gi"
-    ports: 
+    ports:
       lab: 8888
       tree: 8889
+
   db:
-    host: kubehound-db
+    host: kubehound-db.kubehound.cluster-local.local
+    port: 27017
     image: mongo
     version: 6.0.6
-    port: 27017
     resources:
       requests:
         cpu: "4"
@@ -52,4 +67,3 @@ services:
       limits:
         cpu: "4"
         memory: "16Gi"
-    port: 27017

@@ -1,0 +1,13 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kubehound-collector
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: kubehound-collector
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: kubehound-collector
+  apiGroup: rbac.authorization.k8s.io
