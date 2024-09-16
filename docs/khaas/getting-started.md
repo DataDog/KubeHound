@@ -1,6 +1,6 @@
 # KubeHound as a Service (KHaaS)
 
-KHaaS enables you to use KubeHound in a distributive way. It is being splitted in 2 main categories:
+KHaaS enables you to use KubeHound in a distributive way. It is split in 2 main categories:
 
 - The ingestor stack which includes the `graphdb`, `storedb`, `UI` and `grpc endpoint`.
 - The collector (the kubehound binary) which will dump and send the k8s resources to the KHaaS `grpc endpoint`.
