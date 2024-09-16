@@ -12,7 +12,7 @@ Since this is not likely to change in your environment, we advise you to use the
 
 ## Dump and ingest
 
-In order to use the collector with KHaaS you need to specify the cloud location you want to dump the k8s resources:
+In order to use the collector with KHaaS you need to specify the dump location for the k8s resources:
 
 - `--bucket_url` from the inline flags (i.e. `s3://<your_bucket>`). There is no default value for security reason.
 - `--region` from the inline flags (i.e. `us-east-1`) to set the region to retrieve the configuration (only for s3).
