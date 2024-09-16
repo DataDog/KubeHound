@@ -17,7 +17,7 @@ KHaaS has been created to be deployed inside a kubernetes cluster. This eases sc
 
 ## Manual collection
 
-In order to use `kubehound` with KHaaS, you need to specify the api endpoint you want to use. Since this is not likely to change in your environment, we advise you to use the local config file. By default KubeHound will look for `./kubehound.yaml` or `$HOME/.config/kubehound.yaml`. As example here we set the default endpoint with disabled SSL.
+In order to use `kubehound` with KHaaS, you need to specify the api endpoint you want to use. Since this is not likely to change in your environment, we recommend using the local config file. By default KubeHound will look for `./kubehound.yaml` or `$HOME/.config/kubehound.yaml`. For instance if the default configuration we set the endpoint with disabled SSL:
 
 ```yaml
 ingestor:
