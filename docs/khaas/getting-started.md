@@ -13,7 +13,7 @@ KHaaS enables you to use KubeHound in a distributive way. It is split in 2 main 
 
 ## Automatic collection
 
-KHaaS has been created to deployed inside a kubernetes cluster. This way you can set through Kubernetes `CronJob` daily dumps of your infrastucture. To configure and deploy it, please refer to the [deployment](deployment.md) section.
+KHaaS has been created to be deployed inside a kubernetes cluster. This eases scaling and allows you to set Kubernetes `CronJob` daily dumps of your infrastucture for instance. To configure and deploy it, please refer to the [deployment](deployment.md) section.
 
 ## Manual collection
 
