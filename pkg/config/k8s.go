@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	clusterNameEnvVarPtr = "KH_K8S_CLUSTER_NAME_ENV_PTR"
-	clusterNameEnvVar    = "KH_K8S_CLUSTER_NAME"
+	clusterNameEnvVar = "KH_K8S_CLUSTER_NAME"
 )
 
 // ClusterInfo encapsulates the target cluster information for the current run.
@@ -22,11 +21,7 @@ type ClusterInfo struct {
 func NewClusterInfo(_ context.Context) (*ClusterInfo, error) {
 	// Testing if running from pod
 	// Using an environment variable to get the cluster name as it is not provided in the pod configuration
-	clusterNamePtr := os.Getenv(clusterNameEnvVarPtr)
 	clusterName := os.Getenv(clusterNameEnvVar)
-	if clusterNamePtr != "" {
-		clusterName = os.Getenv(clusterNamePtr)
-	}
 	if clusterName != "" {
 		log.I.Warnf("Using cluster name from environment variable [%s]: %s", clusterNameEnvVar, clusterName)
 
