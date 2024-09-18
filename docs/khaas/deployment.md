@@ -45,14 +45,9 @@ khaas   khaas           1               2024-07-30 19:04:37.0575 +0200 CEST     
 
 ## k8s collector
 
-When deploying the collector inside a k8s cluster, we need to configure one of the two variable:
+When deploying the collector inside a k8s cluster, we need to configure one of the following variable:
 
-- `KH_K8S_CLUSTER_NAME_ENV_PTR`: variable indicating env var to use from the k8s cluster/pod to setup the name of the targetted k8s cluster
 - `KH_K8S_CLUSTER_NAME`: variable indicating the name of the targetted k8s cluster
-
-!!! Note
-
-    `KH_K8S_CLUSTER_NAME_ENV_PTR` will overwrite the `KH_K8S_CLUSTER_NAME` env var.
 
 ### RBAC requirements
 

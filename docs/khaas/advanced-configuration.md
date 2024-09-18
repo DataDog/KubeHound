@@ -1,14 +1,15 @@
 # Advanced configuration
 
-This section covering all the flags available to use KubeHound. If you don't want to specify the bucket every time, you can set it up in your local config file (`./kubehound.yaml` or `$HOME/.config/kubehound.yaml`). See [getting started with KHaaS](./getting-started.md)
+This section covers all the available flags in KubeHound.
+!!! note
+
+    If you don't want to specify the bucket every time, you can set it up in your local config file (`./kubehound.yaml` or `$HOME/.config/kubehound.yaml`). See [getting started with KHaaS](./getting-started.md)
 
 ## Manual collection
 
 In order to use `kubehound` with KHaaS, you need to specify the api endpoint you want to use:
 
 - `--khaas-server` from the inline flags (by default `127.0.0.1:9000`)
-
-Since this is not likely to change in your environment, we advise you to use the local config file. By default KubeHound will look for `./kubehound.yaml` or `$HOME/.config/kubehound.yaml`. As example here we set the default endpoint with disabled SSL.
 
 ## Dump and ingest
 
