@@ -10,13 +10,18 @@ To run the KubeHound as a Service with `docker` just use the following [compose 
 
 ```bash
 cd ./deployments/kubehound
-docker compose -f docker-compose.yaml -f docker-compose.release.yaml -f docker-compose.release.ingestor.yaml up -d
+docker compose -f docker-compose.yaml -f docker-compose.release.yaml -f docker-compose.release.ingestor.yaml --profile jupyter up -d
 ```
 
 By default the endpoints are only exposed locally:
 
 - `127.0.0.1:9000` for ingestor endpoint.
 - `127.0.0.1:8888` for the UI.
+
+For the UI 2 profiles (`--profile`) are available, you need to pick one:
+
+- `jupyter` to spawn a Jupyter backend compatible with Janusgraph endpoint ([aws graph-notebook](https://github.com/aws/graph-notebook)).
+- `invana` to spawn the [Invana Studio](https://github.com/invana/invana-studio), a dedicated UI for Janusgraph (this is also deploying the invana backend). **We do not encourage to use as it is not maintained anymore**.
 
 !!! warning
 
