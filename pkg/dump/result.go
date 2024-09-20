@@ -18,7 +18,7 @@ type DumpResult struct {
 }
 
 const (
-	DumpResultClusterNameRegex = `([A-Za-z0-9\.\-_]+)`
+	DumpResultClusterNameRegex = `([A-Za-z0-9\.\-_@]+)`
 	DumpResultRunIDRegex       = `([a-z0-9]{26})`
 	DumpResultExtensionRegex   = `\.?([a-z0-9\.]+)?`
 	DumpResultPrefix           = "kubehound_"
