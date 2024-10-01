@@ -12,16 +12,16 @@ theme:
   logo: ./logo.png
   favicon: ./logo.png
   palette:
-      - scheme: default
-        primary: light blue
-        toggle:
-          icon: material/toggle-switch-off-outline
-          name: Switch to dark mode
-      - scheme: slate
-        primary: light blue
-        toggle:
-          icon: material/toggle-switch
-          name: Switch to light mode
+    - scheme: default
+      primary: light blue
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - scheme: slate
+      primary: light blue
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
   features:
     - navigation.expand
     - navigation.indexes
@@ -30,19 +30,19 @@ theme:
     - navigation.tabs.sticky
     - content.code.copy
   icon:
-      admonition:
-        note: octicons/tag-16
-        abstract: octicons/checklist-16
-        info: octicons/info-16
-        tip: octicons/squirrel-16
-        success: octicons/check-16
-        question: octicons/question-16
-        warning: octicons/alert-16
-        failure: octicons/x-circle-16
-        danger: octicons/zap-16
-        bug: octicons/bug-16
-        example: octicons/beaker-16
-        quote: octicons/quote-16
+    admonition:
+      note: octicons/tag-16
+      abstract: octicons/checklist-16
+      info: octicons/info-16
+      tip: octicons/squirrel-16
+      success: octicons/check-16
+      question: octicons/question-16
+      warning: octicons/alert-16
+      failure: octicons/x-circle-16
+      danger: octicons/zap-16
+      bug: octicons/bug-16
+      example: octicons/beaker-16
+      quote: octicons/quote-16
   use_directory_urls: true
   extra_javascript:
     - path: js/tablesort.js #TODO not working
@@ -67,7 +67,7 @@ markdown_extensions:
   - footnotes
   - markdown_captions
   - pymdownx.tabbed:
-      alternate_style: true 
+      alternate_style: true
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
@@ -85,8 +85,11 @@ nav:
       - Getting Started: user-guide/getting-started.md
       - Advanced config: user-guide/advanced-configuration.md
       - Local Common Operations: user-guide/common-operations.md
-      - KubeHound as a Service: user-guide/khaas-101.md
       - Troubleshooting: user-guide/troubleshooting.md
+  - KubeHound as a Serivce:
+      - Getting Started: khaas/getting-started.md
+      - Advanced config: khaas/advanced-configuration.md
+      - Deployment: khaas/deployment.md
   - Developer Guide:
       - Getting Started: dev-guide/getting-started.md
       - Testing: dev-guide/testing.md

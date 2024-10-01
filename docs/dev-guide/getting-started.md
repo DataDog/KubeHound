@@ -102,7 +102,7 @@ New tags will trigger the 2 following jobs:
 
     The `kubehound-ingestor` image has been deprecated since **v1.5.0** and renamed to `kubehound-binary`.
 
-The CI will draft a new release that **will need manual validation**. In order to get published, an admin has to to validate the new draft from the UI.
+The CI will draft a new release (not available publicly). **In order to finish the process, an admin has to validate the draft from the [release page](https://github.com/DataDog/KubeHound/releases)**.
 
 !!! tip
 
