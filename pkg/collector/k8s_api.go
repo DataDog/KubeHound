@@ -150,11 +150,11 @@ func (c *k8sAPICollector) ComputeMetadata(ctx context.Context, ingestor Metadata
 }
 
 func (c *k8sAPICollector) wait(_ context.Context, resourceType string, tags []string) {
+	c.mu.Lock()
 	prev := time.Now()
 	now := c.rl.Take()
 
 	waitTime := now.Sub(prev)
-	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.waitTime[resourceType] += waitTime
 
