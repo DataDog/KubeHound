@@ -60,7 +60,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 				log.I.Errorf("Failed to remove temporary directory: %v", err)
 			}
 		}()
-		puller, err := blob.NewBlobStorage(khCfg, khCfg.Collector.File.Blob)
+		puller, err := blob.NewBlobStorage(khCfg, khCfg.Ingestor.Blob)
 		if err != nil {
 			return "", err
 		}
