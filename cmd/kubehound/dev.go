@@ -59,7 +59,7 @@ var (
 )
 
 func runEnv(ctx context.Context, composePaths []string) error {
-	if uiTesting || downTesting {
+	if uiTesting {
 		profiles = append(profiles, backend.DevUIProfile)
 	}
 
