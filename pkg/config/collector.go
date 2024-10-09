@@ -41,15 +41,9 @@ type K8SAPICollectorConfig struct {
 type FileCollectorConfig struct {
 	Directory string             `mapstructure:"directory"` // Base directory holding the K8s data JSON files
 	Archive   *FileArchiveConfig `mapstructure:"archive"`   // Archive configuration
-	Blob      *BlobConfig        `mapstructure:"blob"`      // Blob storage configuration
 }
 
 type FileArchiveConfig struct {
 	ArchiveName string `mapstructure:"archive_name"` // Name of the output archive
 	NoCompress  bool   `mapstructure:"no_compress"`  // Disable compression for the dumped data (generates a tar.gz file)
-}
-
-type BlobConfig struct {
-	BucketUrl string `mapstructure:"bucket_url"` // Bucket to use to push k8s resources (e.g.: s3://<your_bucket>)
-	Region    string `mapstructure:"region"`     // Region to use for the bucket (only for s3)
 }
