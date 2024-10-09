@@ -9,6 +9,10 @@ services:
       - "127.0.0.1:9000:9000"
     networks:
       - kubenet
+    env_file:
+      - kubehound.env
+    labels:
+      com.datadoghq.ad.logs: '[{"app": "grpc", "service": "kubehound"}]'
 
 networks:
   kubenet:
