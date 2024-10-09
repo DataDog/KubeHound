@@ -6,7 +6,7 @@
 
 ## Docker deployment
 
-To run the KubeHound as a Service with `docker` just use the following [compose files](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound). First you need to set the environment variables in the `kubehound.env` file. There is a template file `kubehound.env.template` that you can use as a reference.
+To run the KubeHound as a Service with `docker` just use the following [compose files](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound):
 
 ```bash
 cd ./deployments/kubehound
