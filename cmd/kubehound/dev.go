@@ -20,6 +20,7 @@ var (
 var (
 	uiTesting   bool
 	grpcTesting bool
+	noCache     bool
 	downTesting bool
 	profiles    []string
 )
@@ -71,7 +72,7 @@ func runEnv(ctx context.Context, composePaths []string) error {
 		return docker.Down(ctx)
 	}
 
-	return docker.BuildUp(ctx)
+	return docker.BuildUp(ctx, noCache)
 }
 
 func init() {
@@ -79,6 +80,7 @@ func init() {
 	envCmd.PersistentFlags().BoolVar(&downTesting, "down", false, "Tearing down the kubehound dev stack and deleting the data associated with it")
 	envCmd.Flags().BoolVar(&uiTesting, "ui", false, "Include the UI in the dev stack")
 	envCmd.Flags().BoolVar(&grpcTesting, "grpc", false, "Include Grpc Server (ingestor) in the dev stack")
+	envCmd.Flags().BoolVar(&noCache, "no-cache", false, "Disable the cache when building the images")
 
 	rootCmd.AddCommand(envCmd)
 }

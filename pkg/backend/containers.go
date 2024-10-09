@@ -66,14 +66,14 @@ func newDockerCli() (*command.DockerCli, error) {
 	return dockerCli, nil
 }
 
-func BuildUp(ctx context.Context) error {
-	return currentBackend.buildUp(ctx)
+func BuildUp(ctx context.Context, noCache bool) error {
+	return currentBackend.buildUp(ctx, noCache)
 }
 
-func (b *Backend) buildUp(ctx context.Context) error {
+func (b *Backend) buildUp(ctx context.Context, noCache bool) error {
 	log.I.Infof("Building the kubehound stack")
 	err := b.composeService.Build(ctx, b.project, api.BuildOptions{
-		NoCache: true,
+		NoCache: noCache,
 		Pull:    true,
 	})
 	if err != nil {
