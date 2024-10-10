@@ -23,7 +23,7 @@ func TestFileWriter_Write(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("/tmp/", "kh-unit-tests-*")
 	if err != nil {
-		//log.I..Fatalf(err.Error())
+		t.Fatalf("failer to create temp dir for test: %v", err)
 	}
 
 	fileNameK8sObject := collector.EndpointPath

@@ -5,14 +5,16 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // MongoDB is a helper function to retrieve the store database object from a mongoDB provider.
 func MongoDB(store storedb.Provider) *mongo.Database {
+	l := log.Logger(context.TODO())
 	db, ok := store.Reader().(*mongo.Database)
 	if !ok {
-		//log.I..Fatalf("Invalid database provider type. Expected *mongo.Client, got %T", store.Reader())
+		l.Fatalf("Invalid database provider type. Expected *mongo.Client, got %T", store.Reader())
 	}
 
 	return db

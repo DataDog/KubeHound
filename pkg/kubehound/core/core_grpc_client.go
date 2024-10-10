@@ -7,6 +7,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	pb "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -33,14 +34,14 @@ func getGrpcConn(ingestorConfig config.IngestorConfig) (*grpc.ClientConn, error)
 }
 
 func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName string, runID string) error {
+	l := log.Logger(context.TODO())
 	conn, err := getGrpcConn(ingestorConfig)
 	if err != nil {
 		return fmt.Errorf("getGrpcClient: %w", err)
 	}
 	defer conn.Close()
 	client := pb.NewAPIClient(conn)
-
-	//log.I..Infof("Launching ingestion on %s [rundID: %s]", ingestorConfig.API.Endpoint, runID)
+	l.Info("Launching ingestion", log.String("endpoint", ingestorConfig.API.Endpoint), log.String("run_id", runID))
 
 	_, err = client.Ingest(context.Background(), &pb.IngestRequest{
 		RunId:       runID,
@@ -54,6 +55,7 @@ func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName strin
 }
 
 func CoreClientGRPCRehydrateLatest(ingestorConfig config.IngestorConfig) error {
+	l := log.Logger(context.TODO())
 	conn, err := getGrpcConn(ingestorConfig)
 	if err != nil {
 		return fmt.Errorf("getGrpcClient: %w", err)
@@ -61,15 +63,14 @@ func CoreClientGRPCRehydrateLatest(ingestorConfig config.IngestorConfig) error {
 	defer conn.Close()
 	client := pb.NewAPIClient(conn)
 
-	//log.I..Infof("Launching rehydratation on %s [latest]", ingestorConfig.API.Endpoint)
+	l.Info("Launching rehydratation [latest]", log.String("endpoint", ingestorConfig.API.Endpoint))
 	results, err := client.RehydrateLatest(context.Background(), &pb.RehydrateLatestRequest{})
 	if err != nil {
 		return fmt.Errorf("call rehydratation (latest): %w", err)
 	}
 
 	for _, res := range results.IngestedCluster {
-		fmt.Printf("REMOVE ME TODO REMAOADHSKDFJHSGSJDF JGJHGSJDFGSHDFJ SDJFG", res)
-		//log.I..Infof("Rehydrated cluster: %s, date: %s, run_id: %s", res.ClusterName, res.Date.AsTime().Format("01-02-2006 15:04:05"), res.Key)
+		l.Info("Rehydrated cluster", log.String("cluster_name", res.ClusterName), log.Time("time", res.Date.AsTime()), log.String("key", res.Key))
 	}
 
 	return nil

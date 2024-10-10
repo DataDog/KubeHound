@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 //go:generate mockery --name DataPuller --output mocks --case underscore --filename mock_puller.go --with-expecter
@@ -69,6 +71,7 @@ func IsTarGz(filePath string, maxArchiveSize int64) (bool, error) {
 }
 
 func ExtractTarGz(checkOnly bool, archivePath string, basePath string, maxArchiveSize int64) error { //nolint:gocognit
+	l := log.Logger(context.TODO())
 	gzipFileReader, err := os.Open(archivePath)
 	if err != nil {
 		return err
@@ -130,7 +133,7 @@ func ExtractTarGz(checkOnly bool, archivePath string, basePath string, maxArchiv
 				return fmt.Errorf("copying file %s: %w", cleanPath, err)
 			}
 		default:
-			//log.I..Info("unsupported archive item (not a folder, not a regular file): ", header.Typeflag)
+			l.Info("unsupported archive item (not a folder, not a regular file)", log.Byte("flag", header.Typeflag))
 		}
 	}
 

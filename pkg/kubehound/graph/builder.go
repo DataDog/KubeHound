@@ -58,8 +58,8 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 	span.SetTag(tag.LabelTag, e.Label())
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
-
-	// l.Infof("Building edge %s", label)
+	l := log.Logger(ctx)
+	l.Info("Building edge", log.String("label", label))
 
 	if err = e.Initialize(&b.cfg.Builder.Edge, &b.cfg.Dynamic); err != nil {
 		return err
@@ -113,7 +113,8 @@ func (b *Builder) buildMutating(ctx context.Context, oic *converter.ObjectIDConv
 
 // buildSimple constructs all the simple edges in the graph database.
 func (b *Builder) buildSimple(ctx context.Context, oic *converter.ObjectIDConverter) error {
-	// l.Info("Creating edge builder worker pool")
+	l := log.Logger(ctx)
+	l.Info("Creating edge builder worker pool")
 	wp, err := worker.PoolFactory(b.cfg.Builder.Edge.WorkerPoolSize, b.cfg.Builder.Edge.WorkerPoolCapacity)
 	if err != nil {
 		return fmt.Errorf("graph builder worker pool create: %w", err)
@@ -218,36 +219,35 @@ func (b *Builder) Run(ctx context.Context) error {
 // All I/O operations are performed asynchronously.
 func BuildGraph(outer context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
 	graphdb graphdb.Provider, cache cache.CacheReader) error {
-
+	l := log.Logger(outer)
 	start := time.Now()
-	_ = start
 	span, ctx := span.SpanIngestRunFromContext(outer, span.BuildGraph)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	//log.I..Info("Loading graph edge definitions")
+	l.Info("Loading graph edge definitions")
 	edges := edge.Registered()
 	if err = edges.Verify(); err != nil {
 		return fmt.Errorf("edge registry verification: %w", err)
 	}
 
-	//log.I..Info("Loading graph builder")
+	l.Info("Loading graph builder")
 	builder, err := NewBuilder(cfg, storedb, graphdb, cache, edges)
 	if err != nil {
 		return fmt.Errorf("graph builder creation: %w", err)
 	}
 
-	//log.I..Info("Running dependency health checks")
+	l.Info("Running dependency health checks")
 	if err := builder.HealthCheck(ctx); err != nil {
 		return fmt.Errorf("graph builder dependency health check: %w", err)
 	}
 
-	//log.I..Info("Constructing graph")
+	l.Info("Constructing graph")
 	if err := builder.Run(ctx); err != nil {
 		return fmt.Errorf("graph builder edge calculation: %w", err)
 	}
 
-	//log.I..Infof("Completed graph construction in %s", time.Since(start))
+	l.Info("Completed graph construction", log.Duration("duration", time.Since(start)))
 
 	return nil
 }

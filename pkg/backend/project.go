@@ -9,6 +9,7 @@ import (
 
 	embedconfigdocker "github.com/DataDog/KubeHound/deployments/kubehound"
 	"github.com/DataDog/KubeHound/pkg/config"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/compose-spec/compose-go/v2/cli"
 	"github.com/compose-spec/compose-go/v2/loader"
 	"github.com/compose-spec/compose-go/v2/types"
@@ -26,13 +27,13 @@ var (
 func loadProject(ctx context.Context, composeFilePaths []string, profiles []string) (*types.Project, error) {
 	var project *types.Project
 	var err error
-
+	l := log.Logger(ctx)
 	switch {
 	case len(composeFilePaths) != 0 && len(composeFilePaths[0]) != 0:
-		//log.I..Infof("Loading backend from file %s", composeFilePaths)
+		l.Info("Loading backend from file", log.Strings("path", composeFilePaths))
 		project, err = loadComposeConfig(ctx, composeFilePaths, profiles)
 	default:
-		//log.I..Infof("Loading backend from default embedded")
+		l.Info("Loading backend from default embedded")
 		project, err = loadEmbeddedConfig(ctx, profiles)
 	}
 
@@ -107,9 +108,9 @@ func loadEmbeddedConfig(ctx context.Context, profiles []string) (*types.Project,
 	return loader.LoadWithContext(ctx, opts, loader.WithProfiles(profiles))
 }
 
-func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerComposeFileData map[interface{}]interface{}) (map[interface{}]interface{}, error) {
+func loadEmbeddedDockerCompose(ctx context.Context, filepath string, dockerComposeFileData map[interface{}]interface{}) (map[interface{}]interface{}, error) {
+	l := log.Logger(ctx)
 	var localYaml map[interface{}]interface{}
-
 	localData, err := embedconfigdocker.F.ReadFile(filepath)
 	if err != nil {
 		return nil, fmt.Errorf("reading embed config: %w", err)
@@ -123,7 +124,7 @@ func loadEmbeddedDockerCompose(_ context.Context, filepath string, dockerCompose
 		// For local version (when the version is "dirty", using latest to have a working binary)
 		// For any branch outside of main, using latest image as the current tag will cover (including the commit sha in the tag)
 		if strings.HasSuffix(config.BuildBranch, "dirty") || config.BuildBranch != "main" {
-			//log.I..Warnf("Loading the kubehound images with tag latest - dev branch detected")
+			l.Warn("Loading the kubehound images with tag latest - dev branch detected")
 			version["VersionTag"] = "latest"
 		}
 

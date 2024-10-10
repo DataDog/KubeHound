@@ -7,6 +7,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/hashicorp/go-multierror"
 	"go.mongodb.org/mongo-driver/bson"
@@ -111,6 +112,7 @@ func (mp *MongoProvider) Prepare(ctx context.Context) error {
 }
 
 func (mp *MongoProvider) Clean(ctx context.Context, cluster string, runId string) error {
+	l := log.Logger(ctx)
 	db := mp.writer.Database(MongoDatabaseName)
 	collections, err := db.ListCollectionNames(ctx, bson.M{})
 	if err != nil {
@@ -121,11 +123,11 @@ func (mp *MongoProvider) Clean(ctx context.Context, cluster string, runId string
 		"runtime.cluster": cluster,
 	}
 	for _, collectionName := range collections {
-		_, err := db.Collection(collectionName).DeleteMany(ctx, filter)
+		res, err := db.Collection(collectionName).DeleteMany(ctx, filter)
 		if err != nil {
 			return fmt.Errorf("deleting mongo DB collection %s: %w", collectionName, err)
 		}
-		//log.I..Infof("Deleted %d elements from collection %s", res.DeletedCount, collectionName)
+		l.Info("Deleted elements from collection", log.Int64("count", res.DeletedCount), log.String("collection", collectionName))
 	}
 
 	return nil

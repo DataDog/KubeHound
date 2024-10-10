@@ -70,7 +70,7 @@ func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (Collect
 	}
 
 	l := log.Trace(ctx)
-	l.Infof("Creating file collector from directory %s", cfg.Collector.File.Directory)
+	l.Info("Creating file collector from directory", log.String("path", cfg.Collector.File.Directory))
 
 	return &FileCollector{
 		cfg: cfg.Collector.File,

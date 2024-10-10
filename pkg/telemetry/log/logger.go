@@ -87,18 +87,6 @@ const (
 	ContextFieldCluster
 )
 
-// func TraceLogger(ctx context.Context) *CSALogger {
-// 	logger := log.Trace(ctx)
-
-// 	// Context based fields
-// 	runID := convertTag(ctx.Value(ContextLogFieldRepo))
-// 	if runID != "" {
-// 		logger = logger.With(log.String(LogFieldRepo, runID))
-// 	}
-
-// 	return &CSALogger{Logger: logger}
-// }
-
 func convertTag(value any) string {
 	val, err := value.(string)
 	if !err {
@@ -185,7 +173,7 @@ func init() {
 
 	cfg := &Config{
 		logLevel:  LevelInfo,
-		formatter: "text",
+		formatter: "json",
 	}
 	l := &traceLogger{
 		logger: newLoggerWithSkip(cfg, 1),
@@ -196,7 +184,7 @@ func init() {
 
 func newLoggerWithSkip(cfg *Config, skip int) *zapLogger {
 	// add 1 to skip: We wrap zap's functions with *zapLogger methods
-	// skip += zapLoggerExtraCallerSkip
+	skip += 1
 
 	zc := newZapConfig(cfg)
 	zOptions := []zap.Option{

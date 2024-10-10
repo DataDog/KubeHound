@@ -46,7 +46,7 @@ var (
 					return fmt.Errorf("writing to file: %w", err)
 				}
 
-				l.Infof("Configuration saved to %s\n", configPath)
+				l.Info("Configuration saved", log.String("path", configPath))
 
 				return nil
 			}
