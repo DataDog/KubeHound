@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"strings"
-
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 func AskForConfirmation() (bool, error) {
@@ -22,7 +20,7 @@ func AskForConfirmation() (bool, error) {
 	case "n", "no":
 		return false, nil
 	default:
-		log.I.Error("Please type (y)es or (n)o and then press enter:")
+		//log.I..Error("Please type (y)es or (n)o and then press enter:")
 
 		return AskForConfirmation()
 	}

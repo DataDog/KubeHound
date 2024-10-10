@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 // SkipVolumes represent a list of Volumes that will not be ingested - use with caution!
@@ -29,8 +28,8 @@ func CheckPod(pod types.PodType) (bool, error) {
 
 	// If the pod is not running we don't want to save it
 	if pod.Status.Phase != "Running" {
-		log.I.Debugf("pod %s::%s not running (status=%s), skipping ingest!",
-			pod.Namespace, pod.Name, pod.Status.Phase)
+		//log.I..Debugf("pod %s::%s not running (status=%s), skipping ingest!",
+		// pod.Namespace, pod.Name, pod.Status.Phase)
 
 		return false, nil
 	}
@@ -103,8 +102,8 @@ func CheckEndpoint(ep types.EndpointType) (bool, error) {
 	}
 
 	if len(ep.Ports) == 0 {
-		log.I.Debugf("endpoint slice %s::%s not associated with any target, skipping ingest!",
-			ep.Namespace, ep.Name)
+		//log.I..Debugf("endpoint slice %s::%s not associated with any target, skipping ingest!",
+		// ep.Namespace, ep.Name)
 
 		return false, nil
 	}

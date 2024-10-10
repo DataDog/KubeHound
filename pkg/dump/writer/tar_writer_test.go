@@ -14,7 +14,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	discoveryv1 "k8s.io/api/discovery/v1"
 )
 
@@ -24,12 +23,12 @@ func TestTarWriter_Write(t *testing.T) {
 
 	tmpTarFileDir, err := os.MkdirTemp("/tmp/", "kh-unit-tests-*")
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		//log.I..Fatalf(err.Error())
 	}
 
 	tmpTarExtractDir, err := os.MkdirTemp("/tmp/", "kh-unit-tests-*")
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		//log.I..Fatalf(err.Error())
 	}
 
 	// Constructing a buffer of Endpoints objects in different namespaces/files

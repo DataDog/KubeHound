@@ -7,7 +7,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/dump"
 	"github.com/DataDog/KubeHound/pkg/ingestor/api"
 	pb "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -42,7 +41,7 @@ func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestRe
 
 	err = s.api.Ingest(ctx, key)
 	if err != nil {
-		log.I.Errorf("Ingest failed: %v", err)
+		//log.I..Errorf("Ingest failed: %v", err)
 
 		return nil, err
 	}
@@ -54,7 +53,7 @@ func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestRe
 func (s *server) RehydrateLatest(ctx context.Context, in *pb.RehydrateLatestRequest) (*pb.RehydrateLatestResponse, error) {
 	res, err := s.api.RehydrateLatest(ctx)
 	if err != nil {
-		log.I.Errorf("Ingest failed: %v", err)
+		//log.I..Errorf("Ingest failed: %v", err)
 
 		return nil, err
 	}
@@ -83,7 +82,7 @@ func Listen(ctx context.Context, api *api.IngestorAPI) error {
 	pb.RegisterAPIServer(s, &server{
 		api: api,
 	})
-	log.I.Infof("server listening at %v", lis.Addr())
+	//log.I..Infof("server listening at %v", lis.Addr())
 	err = s.Serve(lis)
 	if err != nil {
 		return err

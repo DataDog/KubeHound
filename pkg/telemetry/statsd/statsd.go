@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/DataDog/datadog-go/v5/statsd"
 )
@@ -25,7 +24,7 @@ func init() {
 
 func Setup(cfg *config.KubehoundConfig) error {
 	statsdURL := cfg.Telemetry.Statsd.URL
-	log.I.Infof("Using %s for statsd URL", statsdURL)
+	//log.I..Infof("Using %s for statsd URL", statsdURL)
 
 	var err error
 	tags := tag.GetBaseTags()
@@ -38,7 +37,7 @@ func Setup(cfg *config.KubehoundConfig) error {
 
 	// In case we don't have a statsd url set or DD_DOGSTATSD_URL env var, we just want to continue, but log that we aren't going to submit metrics.
 	if err != nil || statsdClient == nil {
-		log.I.Warn("No metrics collector has been setup. All metrics submission are going to be NOOPmmm.")
+		//log.I..Warn("No metrics collector has been setup. All metrics submission are going to be NOOPmmm.")
 		statsdClient = &NoopClient{}
 
 		return err

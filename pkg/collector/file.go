@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
@@ -70,12 +69,12 @@ func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (Collect
 		return nil, errors.New("file collector config not provided")
 	}
 
-	l := log.Trace(ctx, log.WithComponent(globals.FileCollectorComponent))
+	l := log.Trace(ctx)
 	l.Infof("Creating file collector from directory %s", cfg.Collector.File.Directory)
 
 	return &FileCollector{
-		cfg:         cfg.Collector.File,
-		log:         l,
+		cfg: cfg.Collector.File,
+		// log:         l,
 		tags:        newCollectorTags(),
 		clusterName: cfg.Dynamic.ClusterName,
 	}, nil

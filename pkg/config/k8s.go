@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -23,7 +22,7 @@ func NewClusterInfo(_ context.Context) (*ClusterInfo, error) {
 	// Using an environment variable to get the cluster name as it is not provided in the pod configuration
 	clusterName := os.Getenv(clusterNameEnvVar)
 	if clusterName != "" {
-		log.I.Warnf("Using cluster name from environment variable [%s]: %s", clusterNameEnvVar, clusterName)
+		//log.I..Warnf("Using cluster name from environment variable [%s]: %s", clusterNameEnvVar, clusterName)
 
 		return &ClusterInfo{
 			Name: clusterName,

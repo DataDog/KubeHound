@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
@@ -19,7 +18,7 @@ func (g *Group) Run(outer context.Context, deps *Dependencies) error {
 	ctx, cancelGroup := context.WithCancelCause(outer)
 	defer cancelGroup(nil)
 
-	l := log.Trace(ctx, log.WithComponent(globals.IngestorComponent))
+	l := log.Trace(ctx)
 	l.Infof("Starting %s ingests", g.Name)
 
 	// Run the group ingests in parallel and cancel all on any errors. Note we deliberately avoid

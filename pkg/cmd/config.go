@@ -6,9 +6,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -34,8 +32,8 @@ func InitializeKubehoundConfig(ctx context.Context, configPath string, generateR
 	khCfg := config.NewKubehoundConfig(configPath, inline)
 	// Activate debug mode if needed
 	if khCfg.Debug {
-		log.I.Info("Debug mode activated")
-		log.I.Logger.SetLevel(logrus.DebugLevel)
+		//log.I..Info("Debug mode activated")
+		//log.I..Logger.SetLevel(logrus.DebugLevel)
 	}
 
 	InitTags(ctx, khCfg)
@@ -46,10 +44,10 @@ func InitializeKubehoundConfig(ctx context.Context, configPath string, generateR
 }
 
 func InitTelemetry(khCfg *config.KubehoundConfig) {
-	log.I.Info("Initializing application telemetry")
+	//log.I..Info("Initializing application telemetry")
 	err := telemetry.Initialize(khCfg)
 	if err != nil {
-		log.I.Warnf("failed telemetry initialization: %v", err)
+		//log.I..Warnf("failed telemetry initialization: %v", err)
 	}
 }
 
@@ -64,14 +62,14 @@ func InitTags(ctx context.Context, khCfg *config.KubehoundConfig) {
 		tag.AppendBaseTags(tag.RunID(khCfg.Dynamic.RunID.String()))
 
 		// Set the run ID as a global log tag
-		log.AddGlobalTags(map[string]string{
-			tag.RunIdTag: khCfg.Dynamic.RunID.String(),
-		})
+		// log.AddGlobalTags(map[string]string{
+		// 	tag.RunIdTag: khCfg.Dynamic.RunID.String(),
+		// })
 	}
 
 	// Update the logger behaviour from configuration
-	log.SetDD(khCfg.Telemetry.Enabled)
-	log.AddGlobalTags(khCfg.Telemetry.Tags)
+	// log.SetDD(khCfg.Telemetry.Enabled)
+	// log.AddGlobalTags(khCfg.Telemetry.Tags)
 }
 
 func CloseKubehoundConfig() error {

@@ -11,8 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 //go:generate mockery --name DataPuller --output mocks --case underscore --filename mock_puller.go --with-expecter
@@ -132,7 +130,7 @@ func ExtractTarGz(checkOnly bool, archivePath string, basePath string, maxArchiv
 				return fmt.Errorf("copying file %s: %w", cleanPath, err)
 			}
 		default:
-			log.I.Info("unsupported archive item (not a folder, not a regular file): ", header.Typeflag)
+			//log.I..Info("unsupported archive item (not a folder, not a regular file): ", header.Typeflag)
 		}
 	}
 

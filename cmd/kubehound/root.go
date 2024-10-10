@@ -6,7 +6,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +40,7 @@ var (
 						return err
 					}
 				} else {
-					log.I.Info("Backend stack is already running")
+					//log.I..Info("Backend stack is already running")
 				}
 			}
 
@@ -61,11 +60,11 @@ var (
 				return err
 			}
 
-			log.I.Warn("KubeHound as finished ingesting and building the graph successfully.")
-			log.I.Warn("Please visit the UI to view the graph by clicking the link below:")
-			log.I.Warn("http://localhost:8888")
+			//log.I..Warn("KubeHound as finished ingesting and building the graph successfully.")
+			//log.I..Warn("Please visit the UI to view the graph by clicking the link below:")
+			//log.I..Warn("http://localhost:8888")
 			// Yes, we should change that :D
-			log.I.Warn("Password being 'admin'")
+			//log.I..Warn("Password being 'admin'")
 
 			return nil
 		},

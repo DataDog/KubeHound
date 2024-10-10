@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/spf13/afero"
@@ -61,7 +60,7 @@ func NewTarWriter(ctx context.Context, tarPath string) (*TarWriter, error) {
 }
 
 func createTarFile(tarPath string) (*os.File, error) {
-	log.I.Debugf("Creating tar file %s", tarPath)
+	//log.I..Debugf("Creating tar file %s", tarPath)
 	err := os.MkdirAll(filepath.Dir(tarPath), WriterDirMod)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create directories: %w", err)
@@ -81,7 +80,7 @@ func (f *TarWriter) WorkerNumber() int {
 // Write function writes the Kubernetes object to a buffer
 // All buffer are stored in a map which is flushed at the end of every type processed
 func (t *TarWriter) Write(ctx context.Context, k8sObj []byte, filePath string) error {
-	log.I.Debugf("Writing to file %s", filePath)
+	//log.I..Debugf("Writing to file %s", filePath)
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -96,7 +95,7 @@ func (t *TarWriter) Write(ctx context.Context, k8sObj []byte, filePath string) e
 
 // Flush function flushes all kubernetes object from the buffers to the tar file
 func (t *TarWriter) Flush(ctx context.Context) error {
-	log.I.Debug("Flushing writers")
+	//log.I..Debug("Flushing writers")
 	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterFlush, tracer.Measured())
 	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
 	var err error
@@ -123,7 +122,7 @@ func (t *TarWriter) Flush(ctx context.Context) error {
 // Close all the handler used to write the tar file
 // Need to be closed only when all assets are dumped
 func (t *TarWriter) Close(ctx context.Context) error {
-	log.I.Debug("Closing handlers for tar")
+	//log.I..Debug("Closing handlers for tar")
 	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterClose, tracer.Measured())
 	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
 	var err error

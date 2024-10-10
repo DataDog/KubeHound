@@ -32,7 +32,7 @@ import (
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
 type k8sAPICollector struct {
 	clientset   kubernetes.Interface
-	log         *log.KubehoundLogger
+	log         *log.LoggerI
 	rl          ratelimit.Limiter
 	cfg         *config.K8SAPICollectorConfig
 	tags        collectorTags
@@ -79,10 +79,8 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		return nil, errors.New("Cluster name is empty. Did you forget to set `KUBECONFIG` or use `kubectx` to select a cluster?")
 	}
 
-	l := log.Trace(ctx,
-		log.WithComponent(K8sAPICollectorName),
-		log.WithCollectedCluster(clusterName),
-	)
+	l := log.Trace(ctx) // log.WithComponent(K8sAPICollectorName),
+	// log.WithCollectedCluster(clusterName),
 
 	if !cfg.Collector.NonInteractive {
 		l.Warnf("About to dump k8s cluster: %q - Do you want to continue ? [Yes/No]", clusterName)
@@ -116,9 +114,9 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	}
 
 	return &k8sAPICollector{
-		cfg:         cfg.Collector.Live,
-		clientset:   clientset,
-		log:         l,
+		cfg:       cfg.Collector.Live,
+		clientset: clientset,
+		// log:         l,
 		rl:          ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
 		tags:        newCollectorTags(),
 		waitTime:    map[string]time.Duration{},
@@ -160,14 +158,14 @@ func (c *k8sAPICollector) wait(_ context.Context, resourceType string, tags []st
 
 	// Display a message to tell the user the streaming has started (only once after the approval has been made)
 	if !c.isStreaming {
-		log.I.Info("Streaming data from the K8s API")
+		// c.log.I.nfo("Streaming data from the K8s API")
 		c.isStreaming = true
 	}
 
 	// entity := tag.Entity(resourceType)
 	err := statsd.Gauge(metric.CollectorWait, float64(c.waitTime[resourceType]), tags, 1)
 	if err != nil {
-		c.log.Error(err)
+		// c.log.Error(err)
 	}
 }
 
@@ -177,7 +175,7 @@ func (c *k8sAPICollector) waitTimeByResource(resourceType string, span ddtrace.S
 
 	waitTime := c.waitTime[resourceType]
 	span.SetTag(tag.WaitTag, waitTime)
-	c.log.Debugf("Wait time for %s: %s", resourceType, waitTime)
+	// c.log.Debugf("Wait time for %s: %s", resourceType, waitTime)
 }
 
 func (c *k8sAPICollector) Name() string {
@@ -185,7 +183,7 @@ func (c *k8sAPICollector) Name() string {
 }
 
 func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
-	c.log.Debugf("Requesting /healthz endpoint")
+	// c.log.Debugf("Requesting /healthz endpoint")
 
 	rawRes, err := c.clientset.Discovery().RESTClient().Get().AbsPath("/healthz").DoRaw(ctx)
 	if err != nil {
@@ -216,21 +214,21 @@ func (c *k8sAPICollector) computeMetrics(_ context.Context) (Metrics, error) {
 	err := statsd.Gauge(metric.CollectorRunWait, float64(runTotalWaitTime), c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
-		c.log.Error(err)
+		// c.log.Error(err)
 	}
 	err = statsd.Gauge(metric.CollectorRunDuration, float64(runDuration), c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
-		c.log.Error(err)
+		// c.log.Error(err)
 	}
 
 	runThrottlingPercentage := 1 - (float64(runDuration-runTotalWaitTime) / float64(runDuration))
 	err = statsd.Gauge(metric.CollectorRunThrottling, runThrottlingPercentage, c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
-		c.log.Error(err)
+		// c.log.Error(err)
 	}
-	c.log.Infof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage) //nolint:gomnd
+	//c.log.I.nfof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage) //nolint:gomnd
 
 	// SaveMetadata
 	metadata := Metrics{

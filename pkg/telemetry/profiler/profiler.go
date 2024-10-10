@@ -3,7 +3,6 @@ package profiler
 import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
@@ -34,7 +33,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 
 	err := profiler.Start(opts...)
 	if err != nil {
-		log.I.Errorf("start profiler: %v", err)
+		//log.I..Errorf("start profiler: %v", err)
 	}
 }
 

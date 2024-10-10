@@ -13,7 +13,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/dump"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	awsv2cfg "github.com/aws/aws-sdk-go-v2/config"
 	s3v2 "github.com/aws/aws-sdk-go-v2/service/s3"
@@ -131,7 +130,7 @@ func (bs *BlobStore) ListFiles(ctx context.Context, prefix string, recursive boo
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
 func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName string, runID string) error {
-	log.I.Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
+	//log.I..Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
 	spanPut, ctx := span.SpanIngestRunFromContext(outer, span.IngestorBlobPull)
 	var err error
 	defer func() { spanPut.Finish(tracer.WithError(err)) }()
@@ -141,20 +140,20 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 		return err
 	}
 	key := dumpResult.GetFullPath()
-	log.I.Infof("Opening bucket: %s", bs.bucketName)
+	//log.I..Infof("Opening bucket: %s", bs.bucketName)
 	b, err := bs.openBucket(ctx)
 	if err != nil {
 		return err
 	}
 	defer b.Close()
-	log.I.Infof("Opening archive file %s", archivePath)
+	//log.I..Infof("Opening archive file %s", archivePath)
 	f, err := os.Open(archivePath)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	log.I.Infof("Uploading archive (%q) from blob store", key)
+	//log.I..Infof("Uploading archive (%q) from blob store", key)
 	w := bufio.NewReader(f)
 	err = b.Upload(ctx, key, w, &blob.WriterOptions{
 		ContentType: "application/gzip",
@@ -173,12 +172,12 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
 func (bs *BlobStore) Pull(outer context.Context, key string) (string, error) {
-	log.I.Infof("Pulling data from blob store bucket %s, %s", bs.bucketName, key)
+	//log.I..Infof("Pulling data from blob store bucket %s, %s", bs.bucketName, key)
 	spanPull, ctx := span.SpanIngestRunFromContext(outer, span.IngestorBlobPull)
 	var err error
 	defer func() { spanPull.Finish(tracer.WithError(err)) }()
 
-	log.I.Infof("Opening bucket: %s", bs.bucketName)
+	//log.I..Infof("Opening bucket: %s", bs.bucketName)
 	b, err := bs.openBucket(ctx)
 	if err != nil {
 		return "", err
@@ -195,7 +194,7 @@ func (bs *BlobStore) Pull(outer context.Context, key string) (string, error) {
 		return dirname, err
 	}
 
-	log.I.Infof("Created temporary directory %s", dirname)
+	//log.I..Infof("Created temporary directory %s", dirname)
 	archivePath := filepath.Join(dirname, config.DefaultArchiveName)
 	f, err := os.Create(archivePath)
 	if err != nil {
@@ -203,7 +202,7 @@ func (bs *BlobStore) Pull(outer context.Context, key string) (string, error) {
 	}
 	defer f.Close()
 
-	log.I.Infof("Downloading archive (%q) from blob store", key)
+	//log.I..Infof("Downloading archive (%q) from blob store", key)
 	w := bufio.NewWriter(f)
 	err = b.Download(ctx, key, w, nil)
 	if err != nil {

@@ -12,7 +12,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/dump/pipeline"
 	"github.com/DataDog/KubeHound/pkg/dump/writer"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -113,7 +112,7 @@ const (
 )
 
 func ParsePath(path string) (*DumpResult, error) {
-	log.I.Warnf("[Backward Compatibility] Extracting the metadata from the path: %s", path)
+	//log.I..Warnf("[Backward Compatibility] Extracting the metadata from the path: %s", path)
 
 	// ./<clusterName>/kubehound_<clusterName>_<run_id>[.tar.gz]
 	// re := regexp.MustCompile(`([a-z0-9\.\-_]+)/kubehound_([a-z0-9\.-_]+)_([a-z0-9]{26})\.?([a-z0-9\.]+)?`)

@@ -6,7 +6,6 @@ import (
 	"os"
 
 	embedconfig "github.com/DataDog/KubeHound/configs"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/go-playground/validator/v10"
 	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/viper"
@@ -44,7 +43,7 @@ type KubehoundConfig struct {
 func MustLoadEmbedConfig() *KubehoundConfig {
 	cfg, err := NewEmbedConfig(viper.GetViper(), embedconfig.DefaultPath)
 	if err != nil {
-		log.I.Fatalf("embed config load: %v", err)
+		//log.I..Fatalf("embed config load: %v", err)
 	}
 
 	return cfg
@@ -54,7 +53,7 @@ func MustLoadEmbedConfig() *KubehoundConfig {
 func MustLoadConfig(configPath string) *KubehoundConfig {
 	cfg, err := NewConfig(viper.GetViper(), configPath)
 	if err != nil {
-		log.I.Fatalf("config load: %v", err)
+		//log.I..Fatalf("config load: %v", err)
 	}
 
 	return cfg
@@ -64,7 +63,7 @@ func MustLoadConfig(configPath string) *KubehoundConfig {
 func MustLoadInlineConfig() *KubehoundConfig {
 	cfg, err := NewInlineConfig(viper.GetViper())
 	if err != nil {
-		log.I.Fatalf("config load: %v", err)
+		//log.I..Fatalf("config load: %v", err)
 	}
 
 	return cfg
@@ -75,13 +74,13 @@ func NewKubehoundConfig(configPath string, inLine bool) *KubehoundConfig {
 	var cfg *KubehoundConfig
 	switch {
 	case len(configPath) != 0:
-		log.I.Infof("Loading application configuration from file %s", configPath)
+		//log.I..Infof("Loading application configuration from file %s", configPath)
 		cfg = MustLoadConfig(configPath)
 	case inLine:
-		log.I.Info("Loading application from inline command")
+		//log.I..Info("Loading application from inline command")
 		cfg = MustLoadInlineConfig()
 	default:
-		log.I.Infof("Loading application configuration from default embedded")
+		//log.I..Infof("Loading application configuration from default embedded")
 		cfg = MustLoadEmbedConfig()
 	}
 
@@ -161,7 +160,7 @@ func SetEnvOverrides(c *viper.Viper) {
 	res = multierror.Append(res, c.BindEnv(IngestorBlobRegion, "KH_INGESTOR_REGION"))
 
 	if res.ErrorOrNil() != nil {
-		log.I.Fatalf("config environment override: %v", res.ErrorOrNil())
+		//log.I..Fatalf("config environment override: %v", res.ErrorOrNil())
 	}
 }
 
@@ -234,10 +233,10 @@ func SetLocalConfig(v *viper.Viper) {
 
 	err := v.ReadInConfig()
 	if err != nil {
-		log.I.Warnf("No local config file was found (%s.%s)", DefaultConfigName, DefaultConfigType)
-		// log.I.Debugf("Error reading config: %v", err)
+		//log.I..Warnf("No local config file was found (%s.%s)", DefaultConfigName, DefaultConfigType)
+		// //log.I..Debugf("Error reading config: %v", err)
 	}
-	log.I.Infof("Using %s for default config\n", viper.ConfigFileUsed())
+	//log.I..Infof("Using %s for default config\n", viper.ConfigFileUsed())
 }
 
 // NewEmbedConfig creates a new config instance from an embedded config file using viper.

@@ -3,8 +3,6 @@ package edge
 import (
 	"fmt"
 	"sync"
-
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 type RegistrationFlag uint8
@@ -83,28 +81,28 @@ func Register(edge Builder, flags RegistrationFlag) {
 	registry := Registered()
 	switch {
 	case flags&RegisterGraphMutation != 0:
-		log.I.Debugf("Registering mutating edge builder %s -> %s", edge.Name(), edge.Label())
+		//log.I..Debugf("Registering mutating edge builder %s -> %s", edge.Name(), edge.Label())
 		if _, ok := registry.mutating[edge.Name()]; ok {
-			log.I.Fatalf("edge name collision: %s", edge.Name())
+			//log.I..Fatalf("edge name collision: %s", edge.Name())
 		}
 
 		registry.mutating[edge.Name()] = edge
 	case flags&RegisterGraphDependency != 0:
-		log.I.Debugf("Registering dependent edge builder %s -> %s", edge.Name(), edge.Label())
+		//log.I..Debugf("Registering dependent edge builder %s -> %s", edge.Name(), edge.Label())
 		if _, ok := registry.dependent[edge.Name()]; ok {
-			log.I.Fatalf("edge name collision: %s", edge.Name())
+			//log.I..Fatalf("edge name collision: %s", edge.Name())
 		}
 
 		dependent, ok := edge.(DependentBuilder)
 		if !ok {
-			log.I.Fatalf("dependent edge must implement DependentBuilder: %s", edge.Name())
+			//log.I..Fatalf("dependent edge must implement DependentBuilder: %s", edge.Name())
 		}
 
 		registry.dependent[edge.Name()] = dependent
 	default:
-		log.I.Debugf("Registering default edge builder %s -> %s", edge.Name(), edge.Label())
+		//log.I..Debugf("Registering default edge builder %s -> %s", edge.Name(), edge.Label())
 		if _, ok := registry.simple[edge.Name()]; ok {
-			log.I.Fatalf("edge name collision: %s", edge.Name())
+			//log.I..Fatalf("edge name collision: %s", edge.Name())
 		}
 
 		registry.simple[edge.Name()] = edge

@@ -6,7 +6,6 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/pipeline"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
@@ -94,7 +93,7 @@ func (i PipelineIngestor) Run(outer context.Context) error {
 	ctx, cancelAll := context.WithCancelCause(outer)
 	defer cancelAll(nil)
 
-	l := log.Trace(ctx, log.WithComponent(globals.IngestorComponent))
+	l := log.Trace(ctx)
 	l.Info("Starting ingest sequences")
 
 	wg := &sync.WaitGroup{}

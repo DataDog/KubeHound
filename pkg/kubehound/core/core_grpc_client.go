@@ -7,7 +7,6 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	pb "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -41,7 +40,7 @@ func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName strin
 	defer conn.Close()
 	client := pb.NewAPIClient(conn)
 
-	log.I.Infof("Launching ingestion on %s [rundID: %s]", ingestorConfig.API.Endpoint, runID)
+	//log.I..Infof("Launching ingestion on %s [rundID: %s]", ingestorConfig.API.Endpoint, runID)
 
 	_, err = client.Ingest(context.Background(), &pb.IngestRequest{
 		RunId:       runID,
@@ -62,14 +61,15 @@ func CoreClientGRPCRehydrateLatest(ingestorConfig config.IngestorConfig) error {
 	defer conn.Close()
 	client := pb.NewAPIClient(conn)
 
-	log.I.Infof("Launching rehydratation on %s [latest]", ingestorConfig.API.Endpoint)
+	//log.I..Infof("Launching rehydratation on %s [latest]", ingestorConfig.API.Endpoint)
 	results, err := client.RehydrateLatest(context.Background(), &pb.RehydrateLatestRequest{})
 	if err != nil {
 		return fmt.Errorf("call rehydratation (latest): %w", err)
 	}
 
 	for _, res := range results.IngestedCluster {
-		log.I.Infof("Rehydrated cluster: %s, date: %s, run_id: %s", res.ClusterName, res.Date.AsTime().Format("01-02-2006 15:04:05"), res.Key)
+		fmt.Printf("REMOVE ME TODO REMAOADHSKDFJHSGSJDF JGJHGSJDFGSHDFJ SDJFG", res)
+		//log.I..Infof("Rehydrated cluster: %s, date: %s, run_id: %s", res.ClusterName, res.Date.AsTime().Format("01-02-2006 15:04:05"), res.Key)
 	}
 
 	return nil
