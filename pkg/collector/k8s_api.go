@@ -32,7 +32,6 @@ import (
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
 type k8sAPICollector struct {
 	clientset   kubernetes.Interface
-	log         *log.LoggerI
 	rl          ratelimit.Limiter
 	cfg         *config.K8SAPICollectorConfig
 	tags        collectorTags
