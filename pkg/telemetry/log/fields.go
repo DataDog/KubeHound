@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -9,7 +10,93 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	ddtrace "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
+
+const (
+	FieldK8sTypeKey          = "k8s_type"
+	FieldCountKey            = "count"
+	FieldNodeTypeKey         = "node_type"
+	FieldVertexTypeKey       = "vertex_type"
+	FieldClusterKey          = "cluster"
+	FieldComponentKey        = "component"
+	FieldRunIDKey            = "run_id"
+	FieldTeamKey             = "team"
+	FieldServiceKey          = "service"
+	FieldIngestorPipelineKey = "ingestor_pipeline"
+	FieldDumpPipelineKey     = "dump_pipeline"
+)
+
+type contextKey int
+
+const (
+	ContextFieldRunID contextKey = iota
+	ContextFieldCluster
+)
+
+func convertField(value any) string {
+	val, err := value.(string)
+	if !err {
+		return ""
+	}
+	return val
+}
+
+func SpanSetDefaultField(ctx context.Context, span ddtrace.Span) {
+	runID := convertField(ctx.Value(ContextFieldRunID))
+	if runID != "" {
+		span.SetTag(FieldRunIDKey, convertField(runID))
+	}
+
+	cluster := convertField(ctx.Value(ContextFieldCluster))
+	if cluster != "" {
+		span.SetTag(FieldClusterKey, convertField(cluster))
+	}
+}
+
+func FieldK8sType(k8sType string) string {
+	return fmt.Sprintf("%s:%s", FieldK8sTypeKey, k8sType)
+}
+
+func FieldCount(count int) string {
+	return fmt.Sprintf("%s:%d", FieldCountKey, count)
+}
+
+func FieldNodeType(nodeType string) string {
+	return fmt.Sprintf("%s:%s", FieldNodeTypeKey, nodeType)
+}
+
+func FieldVertexType(vertexType string) string {
+	return fmt.Sprintf("%s:%s", FieldVertexTypeKey, vertexType)
+}
+
+func FieldCluster(cluster string) string {
+	return fmt.Sprintf("%s:%s", FieldClusterKey, cluster)
+}
+
+func FieldComponent(component string) string {
+	return fmt.Sprintf("%s:%s", FieldComponentKey, component)
+}
+
+func FieldRunID(runID string) string {
+	return fmt.Sprintf("%s:%s", FieldRunIDKey, runID)
+}
+
+func FieldTeam(team string) string {
+	return fmt.Sprintf("%s:%s", FieldTeamKey, team)
+}
+
+func FieldService(service string) string {
+	return fmt.Sprintf("%s:%s", FieldServiceKey, service)
+}
+
+func FieldIngestorPipeline(ingestorPipeline string) string {
+	return fmt.Sprintf("%s:%s", FieldIngestorPipelineKey, ingestorPipeline)
+}
+
+func FieldDumpPipeline(dumpPipeline string) string {
+	return fmt.Sprintf("%s:%s", FieldDumpPipelineKey, dumpPipeline)
+}
 
 // Field aliased here to make it easier to adopt this package
 type Field = zapcore.Field

@@ -2,7 +2,6 @@ package log
 
 import (
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 type zapLogger struct {
@@ -19,30 +18,14 @@ func (z *zapLogger) With(fields ...Field) LoggerI {
 	}
 }
 
-// newZapConfig creates a zap.Config
 func newZapConfig(cfg *Config) zap.Config {
 	var zc zap.Config
-
-	zc = zap.NewProductionConfig()
-
-	// We want log.Duration("duration", ...) to naturally map to Datadog's 'duration' standard attribute.
-	// Datadog displays it nicely and uses it as a default measure for trace search.
-	// See https://docs.datadoghq.com/logs/log_configuration/attributes_naming_convention/#performance
-	// The spec requires that it be encoded in nanoseconds (default is seconds).
-	zc.EncoderConfig.EncodeDuration = zapcore.NanosDurationEncoder
-
-	// never use color with JSON output: the JSON encoder escapes it
-	if cfg.useColour && cfg.formatter != "json" {
-		zc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	} else {
-		zc.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	switch cfg.formatter {
+	case "json":
+		zc = newJSONFormatterConfig(cfg)
+	case "text":
+		zc = newTextFormatterConfig(cfg)
 	}
-	zc.Level.SetLevel(cfg.logLevel.zapLevel())
-	zc.Encoding = cfg.formatter
-
-	// we don't want zap stacktraces because they are incredibly noisy
-	zc.DisableStacktrace = true
-
 	return zc
 }
 
