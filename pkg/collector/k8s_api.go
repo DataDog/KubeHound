@@ -83,7 +83,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	// log.WithCollectedCluster(clusterName),
 
 	if !cfg.Collector.NonInteractive {
-		l.Warnf("About to dump k8s cluster: %q - Do you want to continue ? [Yes/No]", clusterName)
+		l.Warn("About to dump k8s cluster - Do you want to continue ? [Yes/No]", log.String("cluster", clusterName))
 		proceed, err := cmd.AskForConfirmation(ctx)
 		if err != nil {
 			return nil, err
