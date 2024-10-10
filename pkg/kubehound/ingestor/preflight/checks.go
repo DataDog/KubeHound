@@ -1,9 +1,11 @@
 package preflight
 
 import (
+	"context"
 	"errors"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
 // SkipVolumes represent a list of Volumes that will not be ingested - use with caution!
@@ -22,14 +24,14 @@ func CheckNode(node types.NodeType) (bool, error) {
 
 // CheckPod checks an input K8s pod object and reports whether it should be ingested.
 func CheckPod(pod types.PodType) (bool, error) {
+	l := log.Logger(context.TODO())
 	if pod == nil {
 		return false, errors.New("nil pod input in preflight check")
 	}
 
 	// If the pod is not running we don't want to save it
 	if pod.Status.Phase != "Running" {
-		//log.I..Debugf("pod %s::%s not running (status=%s), skipping ingest!",
-		// pod.Namespace, pod.Name, pod.Status.Phase)
+		l.Debug("pod is not running skipping ingest!", log.String("namespace", pod.Namespace), log.String("pod_name", pod.Name), log.String("status", string(pod.Status.Phase)))
 
 		return false, nil
 	}
@@ -97,13 +99,13 @@ func CheckClusterRoleBinding(role types.ClusterRoleBindingType) (bool, error) {
 
 // CheckEndpoint checks an input K8s endpoint slice object and reports whether it should be ingested.
 func CheckEndpoint(ep types.EndpointType) (bool, error) {
+	l := log.Logger(context.TODO())
 	if ep == nil {
 		return false, errors.New("nil endpoint input in preflight check")
 	}
 
 	if len(ep.Ports) == 0 {
-		//log.I..Debugf("endpoint slice %s::%s not associated with any target, skipping ingest!",
-		// ep.Namespace, ep.Name)
+		l.Debug("endpoint slice not associated with any target, skipping ingest!", log.String("namespace", ep.Namespace), log.String("name", ep.Name))
 
 		return false, nil
 	}

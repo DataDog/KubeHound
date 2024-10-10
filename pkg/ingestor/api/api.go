@@ -20,6 +20,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/events"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
@@ -57,6 +58,7 @@ func NewIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller, notif
 
 // RehydrateLatest is just a GRPC wrapper around the Ingest method from the API package
 func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedCluster, error) {
+	l := log.Logger(ctx)
 	// first level key are cluster names
 	directories, errRet := g.puller.ListFiles(ctx, "", false)
 	if errRet != nil {
@@ -73,7 +75,7 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 			return nil, err
 		}
 
-		if l := len(dumpKeys); l > 0 {
+		if k := len(dumpKeys); k > 0 {
 			// extracting the latest runID
 			latestDump := slices.MaxFunc(dumpKeys, func(a, b *puller.ListObject) int {
 				// return dumpKeys[a].ModTime.Before(dumpKeys[b].ModTime)
@@ -86,21 +88,21 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 			if clusterErr != nil {
 				errRet = errors.Join(errRet, fmt.Errorf("ingesting cluster %s: %w", latestDumpKey, clusterErr))
 			}
-			//log.I..Infof("Rehydrated cluster: %s, date: %s, key: %s", clusterName, latestDumpIngestTime.Format("01-02-2006 15:04:05"), latestDumpKey)
+			l.Info("Rehydrated cluster", log.String("cluster_name", clusterName), log.Time("dump_ingest_time", latestDumpIngestTime), log.String("dump_key", latestDumpKey))
 			ingestedCluster := &grpc.IngestedCluster{
 				ClusterName: clusterName,
 				Key:         latestDumpKey,
 				Date:        timestamppb.New(latestDumpIngestTime),
 			}
 			res = append(res, ingestedCluster)
-
 		}
 	}
 
 	return res, errRet
 }
 
-func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
+func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
+	l := log.Logger(ctx)
 	// Settings global variables for the run in the context to propagate them to the spans
 	runCtx := context.Background()
 
@@ -121,11 +123,11 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 	metadataFilePath := filepath.Join(filepath.Dir(archivePath), collector.MetadataPath)
 	md, err := dump.ParseMetadata(runCtx, metadataFilePath) //nolint: contextcheck
 	if err != nil {
-		//log.I..Warnf("no metadata has been parsed (old dump format from v1.4.0 or below do not embed metadata information): %v", err)
+		l.Warn("no metadata has been parsed (old dump format from v1.4.0 or below do not embed metadata information)", log.ErrorField(err))
 		// Backward Compatibility: Extracting the metadata from the path
-		dumpMetadata, err := dump.ParsePath(path)
+		dumpMetadata, err := dump.ParsePath(ctx, path)
 		if err != nil {
-			//log.I..Warn("parsing path for metadata", err)
+			l.Warn("parsing path for metadata", log.ErrorField(err))
 
 			return err
 		}
@@ -172,14 +174,14 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 
 	// We need to flush the cache to prevent warnings/errors when overwriting elements in cache from the previous ingestion
 	// This avoid conflicts from previous ingestion (there is no need to reuse the cache from a previous ingestion)
-	//log.I..Info("Preparing cache provider")
+	l.Info("Preparing cache provider")
 	err = g.providers.CacheProvider.Prepare(runCtx) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("cache client creation: %w", err)
 	}
 
 	// Create the collector instance
-	//log.I..Info("Loading Kubernetes data collector client")
+	l.Info("Loading Kubernetes data collector client")
 	collect, err := collector.ClientFactory(runCtx, runCfg) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("collector client creation: %w", err)
@@ -188,17 +190,17 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 	defer func() {
 		err = errors.Join(err, collect.Close(runCtx))
 	}()
-	log.I.Infof("Loaded %s collector client", collect.Name())
+	l.Info("Loaded collector client", log.String("collector", collect.Name()))
 
 	// Run the ingest pipeline
-	log.I.Info("Starting Kubernetes raw data ingest")
+	l.Info("Starting Kubernetes raw data ingest")
 	alreadyIngestedInDB, err := g.isAlreadyIngestedInDB(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
 
 	if alreadyIngestedInDB {
-		log.I.Infof("Data already ingested in the database for %s/%s, droping the current data", clusterName, runID)
+		l.Info("Data already ingested in the database for %s/%s, droping the current data", log.String("cluster_name", clusterName), log.String("run_id", runID))
 		err := g.providers.StoreProvider.Clean(runCtx, runID, clusterName) //nolint: contextcheck
 		if err != nil {
 			return err
@@ -250,6 +252,7 @@ func (g *IngestorAPI) isAlreadyIngestedInGraph(_ context.Context, clusterName st
 }
 
 func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName string, runID string) (bool, error) {
+	l := log.Logger(ctx)
 	var resNum int64
 	var err error
 	for _, collection := range collections.GetCollections() {
@@ -266,11 +269,11 @@ func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName str
 			return false, fmt.Errorf("error counting documents in collection %s: %w", collection, err)
 		}
 		if resNum != 0 {
-			//log.I..Infof("Found %d element in collection %s", resNum, collection)
+			l.Infof("Found element(s) in collection", log.Int64("count", resNum), log.String("collection", collection))
 
 			return true, nil
 		}
-		//log.I..Debugf("Found %d element in collection %s", resNum, collection)
+		l.Debug("Found element(s) in collection", log.Int64("count", resNum), log.String("collection", collection))
 	}
 
 	return false, nil

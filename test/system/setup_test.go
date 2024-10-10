@@ -50,20 +50,21 @@ func RunTestSuites(t *testing.T) {
 }
 
 func InitSetupTest(ctx context.Context) *providers.ProvidersFactoryConfig {
+	l := log.Logger(ctx)
 	err := cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatal("failed to initialize kubehound config", log.ErrorField(err))
 	}
 
 	khCfg, err := cmd.GetConfig()
 	if err != nil {
-		log.I.Fatal(err.Error())
+		l.Fatal("failed to get config", log.ErrorField(err))
 	}
 
 	// Initialisation of the p needed for the ingestion and the graph creation
 	p, err := providers.NewProvidersFactoryConfig(ctx, khCfg)
 	if err != nil {
-		log.I.Fatalf("factory config creation: %v", err)
+		l.Fatal("factory config creation", log.ErrorField(err))
 	}
 
 	return p
@@ -78,6 +79,7 @@ type runArgs struct {
 
 func Dump(ctx context.Context, compress bool) (*config.KubehoundConfig, string) {
 	var err error
+	l := log.Logger(ctx)
 
 	// Setting the base tags
 	tag.SetupBaseTags()
@@ -94,7 +96,7 @@ func Dump(ctx context.Context, compress bool) (*config.KubehoundConfig, string) 
 
 	tmpDir, err := os.MkdirTemp("/tmp/", "kh-system-tests-*")
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatal("creating tempr dir", log.ErrorField(err))
 	}
 	viper.Set(config.CollectorFileDirectory, tmpDir)
 	viper.Set(config.CollectorNonInteractive, true)
@@ -102,17 +104,17 @@ func Dump(ctx context.Context, compress bool) (*config.KubehoundConfig, string) 
 	// Initialisation of the Kubehound config
 	err = cmd.InitializeKubehoundConfig(ctx, "", true, false)
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatal("initializing kubehound config", log.ErrorField(err))
 	}
 
 	khCfg, err := cmd.GetConfig()
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatal("getting config", log.ErrorField(err))
 	}
 
 	resultPath, err := core.DumpCore(ctx, khCfg, false)
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatal("dumping core", log.ErrorField(err))
 	}
 
 	return khCfg, resultPath
@@ -124,12 +126,13 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 	collectorDir := runArgs.collectorPath
 	clusterName := runArgs.cluster
 	runID := runArgs.runID
+	l := log.Logger(ctx)
 
 	if compress {
 		dryRun := false
 		err := puller.ExtractTarGz(dryRun, runArgs.resultPath, collectorDir, config.DefaultMaxArchiveSize)
 		if err != nil {
-			log.I.Fatalf(err.Error())
+			l.Fatal("extracting tar gz", log.ErrorField(err))
 		}
 	}
 
@@ -146,28 +149,28 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 
 	err := cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatal(err.Error())
 	}
 
 	khCfg, err := cmd.GetConfig()
 	if err != nil {
-		log.I.Fatal(err.Error())
+		l.Fatal("get config", log.ErrorField(err))
 	}
 
 	// We need to flush the cache to prevent warning/error on the overwriting element in cache the  any conflict with the previous ingestion
 	err = p.CacheProvider.Prepare(ctx)
 	if err != nil {
-		log.I.Fatalf("preparing cache provider: %v", err)
+		l.Fatal("preparing cache provider", log.ErrorField(err))
 	}
 
 	err = khCfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID))
 	if err != nil {
-		log.I.Fatalf("collector client creation: %v", err)
+		l.Fatal("collector client creation", log.ErrorField(err))
 	}
 
 	err = p.IngestBuildData(ctx, khCfg)
 	if err != nil {
-		log.I.Fatalf("ingest build data: %v", err)
+		l.Fatal("ingest build data", log.ErrorField(err))
 	}
 }
 
@@ -176,6 +179,7 @@ func RunGRPC(ctx context.Context, runArgs *runArgs, p *providers.ProvidersFactor
 	runID := runArgs.runID
 	cluster := runArgs.cluster
 	fileFolder := runArgs.collectorPath
+	l := log.Logger(ctx)
 
 	// Reseting the context to simulate a new ingestion from scratch
 	ctx = context.Background()
@@ -185,37 +189,37 @@ func RunGRPC(ctx context.Context, runArgs *runArgs, p *providers.ProvidersFactor
 	viper.Reset()
 	err := cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatal("initialize kubehound config", log.ErrorField(err))
 	}
 
 	khCfg, err := cmd.GetConfig()
 	if err != nil {
-		log.I.Fatal(err.Error())
+		l.Fatal("getting config", log.ErrorField(err))
 	}
 
 	khCfg.Ingestor.Blob.BucketUrl = fmt.Sprintf("file://%s", fileFolder)
-	log.I.Info("Creating Blob Storage provider")
+	l.Info("Creating Blob Storage provider")
 	puller, err := blob.NewBlobStorage(khCfg, khCfg.Ingestor.Blob)
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatal("initializign blob storage", log.ErrorField(err))
 	}
 
-	log.I.Info("Creating Noop Notifier")
+	l.Info("Creating Noop Notifier")
 	noopNotifier := noop.NewNoopNotifier()
 
-	log.I.Info("Creating Ingestor API")
+	l.Info("Creating Ingestor API")
 	ingestorApi := api.NewIngestorAPI(khCfg, puller, noopNotifier, p)
 
 	// Start the GRPC server
 	go func() {
 		err := grpc.Listen(ctx, ingestorApi)
-		log.I.Fatalf(err.Error())
+		l.Fatal("listening grpc", log.ErrorField(err))
 	}()
 
 	// Starting ingestion of the dumped data
 	err = core.CoreClientGRPCIngest(khCfg.Ingestor, cluster, runID)
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatal("initialize core GRPC client", log.ErrorField(err))
 	}
 }
 func DumpAndRun(ctx context.Context, compress bool, p *providers.ProvidersFactoryConfig) {
@@ -296,13 +300,14 @@ type LiveTestSuite struct {
 // an attack graph that can be queried in the individual system tests.
 func (s *LiveTestSuite) SetupSuite() {
 	ctx := context.Background()
+	l := log.Logger(ctx)
 	libkube.ResetOnce()
 
 	// Initialisation of the Kubehound config
 	cmd.InitializeKubehoundConfig(ctx, KubeHoundConfigPath, true, false)
 	khCfg, err := cmd.GetConfig()
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatal("getting config", log.ErrorField(err))
 	}
 
 	core.CoreLive(ctx, khCfg)
@@ -319,6 +324,7 @@ type GRPCTestSuite struct {
 func (s *GRPCTestSuite) SetupSuite() {
 	// Reseting the context to simulate a new ingestion from scratch
 	ctx := context.Background()
+	l := log.Logger(ctx)
 
 	p := InitSetupTest(ctx)
 	defer p.Close(ctx)
@@ -338,12 +344,12 @@ func (s *GRPCTestSuite) SetupSuite() {
 	// Starting ingestion of the dumped data
 	err := cmd.InitializeKubehoundConfig(ctx, KubeHoundThroughDumpConfigPath, false, false)
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		l.Fatalf("initialize config", log.ErrorField(err))
 	}
 
 	khCfg, err = cmd.GetConfig()
 	if err != nil {
-		log.I.Fatal(err.Error())
+		l.Fatal("get config", log.ErrorField(err))
 	}
 
 	err = core.CoreClientGRPCIngest(khCfg.Ingestor, runArgs.cluster, runArgs.runID)

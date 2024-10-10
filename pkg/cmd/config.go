@@ -6,6 +6,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/telemetry"
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/spf13/viper"
 )
@@ -22,6 +23,7 @@ func GetConfig() (*config.KubehoundConfig, error) {
 }
 
 func InitializeKubehoundConfig(ctx context.Context, configPath string, generateRunID bool, inline bool) error {
+	l := log.Logger(ctx)
 	// We define a unique run id this so we can measure run by run in addition of version per version.
 	// Useful when rerunning the same binary (same version) on different dataset or with different databases...
 	// In the case of KHaaS, the runID is taken from the GRPC request argument
@@ -32,7 +34,7 @@ func InitializeKubehoundConfig(ctx context.Context, configPath string, generateR
 	khCfg := config.NewKubehoundConfig(configPath, inline)
 	// Activate debug mode if needed
 	if khCfg.Debug {
-		//log.I..Info("Debug mode activated")
+		l.Info("Debug mode activated")
 		//log.I..Logger.SetLevel(logrus.DebugLevel)
 	}
 
@@ -44,10 +46,12 @@ func InitializeKubehoundConfig(ctx context.Context, configPath string, generateR
 }
 
 func InitTelemetry(khCfg *config.KubehoundConfig) {
-	//log.I..Info("Initializing application telemetry")
+	ctx := context.Background()
+	l := log.Logger(ctx)
+	l.Info("Initializing application telemetry")
 	err := telemetry.Initialize(khCfg)
 	if err != nil {
-		//log.I..Warnf("failed telemetry initialization: %v", err)
+		l.Warn("failed telemetry initialization", log.ErrorField(err))
 	}
 }
 

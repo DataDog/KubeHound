@@ -48,8 +48,7 @@ var (
 				return fmt.Errorf("create temporary directory: %w", err)
 			}
 			l := log.Trace(cobraCmd.Context())
-			l.Info("TEST 1")
-			l.Infof("Temporary directory created: %s", tmpDir)
+			l.Info("Temporary directory created", log.String("path", tmpDir))
 			viper.Set(config.CollectorFileDirectory, tmpDir)
 
 			// Passing the Kubehound config from viper
