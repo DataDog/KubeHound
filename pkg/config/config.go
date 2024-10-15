@@ -166,6 +166,9 @@ func SetEnvOverrides(c *viper.Viper) {
 	res = multierror.Append(res, c.BindEnv(IngestorArchiveName, "KH_INGESTOR_ARCHIVE_NAME"))
 	res = multierror.Append(res, c.BindEnv(IngestorBlobRegion, "KH_INGESTOR_REGION"))
 
+	res = multierror.Append(res, c.BindEnv(TelemetryStatsdUrl, "STATSD_URL"))
+	res = multierror.Append(res, c.BindEnv(TelemetryTracerUrl, "TRACE_AGENT_URL"))
+
 	if res.ErrorOrNil() != nil {
 		l.Fatal("config environment override", log.ErrorField(res.ErrorOrNil()))
 	}

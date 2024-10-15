@@ -25,6 +25,7 @@ const (
 	FieldServiceKey          = "service"
 	FieldIngestorPipelineKey = "ingestor_pipeline"
 	FieldDumpPipelineKey     = "dump_pipeline"
+	FieldPathKey             = "path"
 )
 
 type contextKey int
@@ -32,6 +33,7 @@ type contextKey int
 const (
 	ContextFieldRunID contextKey = iota
 	ContextFieldCluster
+	ContextFieldComponent
 )
 
 func convertField(value any) string {

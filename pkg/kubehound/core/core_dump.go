@@ -23,8 +23,16 @@ import (
 // It returns the path to the dumped file/dir (only used for the system tests)
 func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (string, error) {
 	l := log.Logger(ctx)
+
+	clusterName, err := config.GetClusterName(ctx)
+	if err != nil {
+		return "", fmt.Errorf("collector cluster info: %w", err)
+	}
+	khCfg.Dynamic.ClusterName = clusterName
+	ctx = context.WithValue(ctx, log.ContextFieldCluster, clusterName)
+	ctx = context.WithValue(ctx, log.ContextFieldRunID, khCfg.Dynamic.RunID.String())
+
 	start := time.Now()
-	var err error
 
 	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperLaunch, tracer.Measured())
 	defer func() {
@@ -32,12 +40,6 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 	}()
 
 	khCfg.Collector.Type = config.CollectorTypeK8sAPI
-
-	clusterName, err := config.GetClusterName(ctx)
-	if err != nil {
-		return "", fmt.Errorf("collector cluster info: %w", err)
-	}
-	khCfg.Dynamic.ClusterName = clusterName
 
 	events.PushEvent(
 		fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
@@ -94,12 +96,13 @@ func runLocalDump(ctx context.Context, khCfg *config.KubehoundConfig) (string, e
 		return "", fmt.Errorf("collector client creation: %w", err)
 	}
 	defer func() { collect.Close(ctx) }()
-	l.Info("Loaded collector client", log.String("collector", collect.Name()))
+	ctx = context.WithValue(ctx, log.ContextFieldComponent, collect.Name())
+	l.Info("Loaded collector client")
 
 	// Create the dumper instance
 	collectorLocalOutputDir := khCfg.Collector.File.Directory
 	collectorLocalCompress := !khCfg.Collector.File.Archive.NoCompress
-	l.Info("Dumping cluster info to directory", log.String("cluster_name", khCfg.Dynamic.ClusterName), log.String("path", collectorLocalOutputDir))
+	l.Info("Dumping cluster info to directory", log.String(log.FieldPathKey, collectorLocalOutputDir))
 	dumpIngestor, err := dump.NewDumpIngestor(ctx, collect, collectorLocalCompress, collectorLocalOutputDir, khCfg.Dynamic.RunID)
 	if err != nil {
 		return "", fmt.Errorf("create dumper: %w", err)
