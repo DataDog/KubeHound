@@ -89,7 +89,8 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 			return nil, errors.New("user did not confirm")
 		}
 	} else {
-		l.Warnf("Non-interactive mode enabled, proceeding with k8s cluster dump: %s", clusterName)
+		msg := fmt.Sprintf("Non-interactive mode enabled, proceeding with k8s cluster dump: %s", clusterName)
+		l.Warn(msg)
 	}
 
 	err = checkK8sAPICollectorConfig(cfg.Collector.Type)

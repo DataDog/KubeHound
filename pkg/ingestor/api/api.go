@@ -256,7 +256,7 @@ func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName str
 	var resNum int64
 	var err error
 	for _, collection := range collections.GetCollections() {
-		mdb := adapter.MongoDB(g.providers.StoreProvider)
+		mdb := adapter.MongoDB(ctx, g.providers.StoreProvider)
 		db := mdb.Collection(collection)
 		filter := bson.M{
 			"runtime": bson.M{
@@ -269,11 +269,11 @@ func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName str
 			return false, fmt.Errorf("error counting documents in collection %s: %w", collection, err)
 		}
 		if resNum != 0 {
-			l.Infof("Found element(s) in collection", log.Int64("count", resNum), log.String("collection", collection))
+			l.Info("Found element(s) in collection", log.Int64(log.FieldCountKey, resNum), log.String("collection", collection))
 
 			return true, nil
 		}
-		l.Debug("Found element(s) in collection", log.Int64("count", resNum), log.String("collection", collection))
+		l.Debug("No element found in collection", log.Int64(log.FieldCountKey, resNum), log.String("collection", collection))
 	}
 
 	return false, nil

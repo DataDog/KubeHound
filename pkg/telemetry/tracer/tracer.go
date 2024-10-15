@@ -11,16 +11,16 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-func Initialize(cfg *config.KubehoundConfig) {
-	l := log.Logger(context.TODO())
+func Initialize(ctx context.Context, cfg *config.KubehoundConfig) {
+	l := log.Logger(ctx)
 	// Default options
 	opts := []tracer.StartOption{
 		tracer.WithEnv(globals.GetDDEnv()),
 		tracer.WithService(globals.DDServiceName),
 		tracer.WithServiceVersion(config.BuildVersion),
-		tracer.WithLogStartup(false),
+		tracer.WithLogStartup(true),
 	}
-	l = l.With(log.String("team", " edge.Name()"))
+
 	if cfg.Telemetry.Tracer.URL != "" {
 		l.Infof("Using %s for tracer URL", cfg.Telemetry.Tracer.URL)
 		opts = append(opts, tracer.WithAgentAddr(cfg.Telemetry.Tracer.URL))

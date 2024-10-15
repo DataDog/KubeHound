@@ -36,22 +36,6 @@ type LoggerI interface {
 	Fatalf(msg string, params ...interface{})
 }
 
-// Config options for logging.
-type Config struct {
-	logLevel  Level
-	formatter string
-	useColour bool
-
-	// serializes a caller in /full/path/to/package/file:line format
-	// instead of just the package/file:line format
-	fullCallerPath bool
-
-	disableCaller bool
-
-	// stdout is a special case for the logger to output to stdout
-	stdout bool
-}
-
 type KubehoundLogger struct {
 	LoggerI
 }

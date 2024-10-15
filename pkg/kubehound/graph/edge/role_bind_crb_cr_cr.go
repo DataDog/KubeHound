@@ -92,7 +92,7 @@ func (e *RoleBindCrbCrCr) Traversal() types.EdgeTraversal {
 func (e *RoleBindCrbCrCr) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
+	permissionSets := adapter.MongoDB(ctx, store).Collection(collections.PermissionSetName)
 	// Handle clusterrolebindings against clusterroles
 	pipeline := []bson.M{
 		// $match stage

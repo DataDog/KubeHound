@@ -24,10 +24,10 @@ func init() {
 	statsdClient = &NoopClient{}
 }
 
-func Setup(cfg *config.KubehoundConfig) error {
-	l := log.Logger(context.TODO())
+func Setup(ctx context.Context, cfg *config.KubehoundConfig) error {
+	l := log.Logger(ctx)
 	statsdURL := cfg.Telemetry.Statsd.URL
-	l.Infof("Using %s for statsd URL", statsdURL)
+	l.Infof("Using %q for statsd URL", statsdURL)
 
 	var err error
 	tags := tag.GetBaseTags()

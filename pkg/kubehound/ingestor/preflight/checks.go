@@ -23,8 +23,8 @@ func CheckNode(node types.NodeType) (bool, error) {
 }
 
 // CheckPod checks an input K8s pod object and reports whether it should be ingested.
-func CheckPod(pod types.PodType) (bool, error) {
-	l := log.Logger(context.TODO())
+func CheckPod(ctx context.Context, pod types.PodType) (bool, error) {
+	l := log.Logger(ctx)
 	if pod == nil {
 		return false, errors.New("nil pod input in preflight check")
 	}
@@ -98,8 +98,8 @@ func CheckClusterRoleBinding(role types.ClusterRoleBindingType) (bool, error) {
 }
 
 // CheckEndpoint checks an input K8s endpoint slice object and reports whether it should be ingested.
-func CheckEndpoint(ep types.EndpointType) (bool, error) {
-	l := log.Logger(context.TODO())
+func CheckEndpoint(ctx context.Context, ep types.EndpointType) (bool, error) {
+	l := log.Logger(ctx)
 	if ep == nil {
 		return false, errors.New("nil endpoint input in preflight check")
 	}

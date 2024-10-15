@@ -16,7 +16,7 @@ var riOnce sync.Once
 func Engine() *RiskEngine {
 	var err error
 	riOnce.Do(func() {
-		l := log.Logger(context.TODO())
+		l := log.Logger(context.Background())
 		engineInstance, err = newEngine()
 		if err != nil {
 			l.Fatal("Risk engine initialization", log.ErrorField(err))

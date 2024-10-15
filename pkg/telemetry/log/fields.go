@@ -26,6 +26,7 @@ const (
 	FieldIngestorPipelineKey = "ingestor_pipeline"
 	FieldDumpPipelineKey     = "dump_pipeline"
 	FieldPathKey             = "path"
+	FieldEntityKey           = "entity"
 )
 
 type contextKey int

@@ -48,7 +48,7 @@ func (e *IdentityAssumeNode) Processor(ctx context.Context, oic *converter.Objec
 func (e *IdentityAssumeNode) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	nodes := adapter.MongoDB(store).Collection(collections.NodeName)
+	nodes := adapter.MongoDB(ctx, store).Collection(collections.NodeName)
 
 	// Nodes will either have a dedicated user based on node name or use the default system:nodes group
 	// See reference for details: https://kubernetes.io/docs/reference/access-authn-authz/node/

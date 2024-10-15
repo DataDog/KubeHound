@@ -2,6 +2,7 @@ package ingestor
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
@@ -113,7 +114,8 @@ func (i PipelineIngestor) Run(outer context.Context) error {
 
 		go func() {
 			defer wg.Done()
-			l.Infof("Running ingestor sequence %s", s.Name)
+			msg := fmt.Sprintf("Running ingestor sequence %s", s.Name)
+			l.Info(msg)
 
 			err := s.Run(ctx, deps)
 			if err != nil {

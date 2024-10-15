@@ -33,8 +33,8 @@ func getGrpcConn(ingestorConfig config.IngestorConfig) (*grpc.ClientConn, error)
 	return conn, nil
 }
 
-func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName string, runID string) error {
-	l := log.Logger(context.TODO())
+func CoreClientGRPCIngest(ctx context.Context, ingestorConfig config.IngestorConfig, clusteName string, runID string) error {
+	l := log.Logger(ctx)
 	conn, err := getGrpcConn(ingestorConfig)
 	if err != nil {
 		return fmt.Errorf("getGrpcClient: %w", err)
@@ -54,8 +54,8 @@ func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName strin
 	return nil
 }
 
-func CoreClientGRPCRehydrateLatest(ingestorConfig config.IngestorConfig) error {
-	l := log.Logger(context.TODO())
+func CoreClientGRPCRehydrateLatest(ctx context.Context, ingestorConfig config.IngestorConfig) error {
+	l := log.Logger(ctx)
 	conn, err := getGrpcConn(ingestorConfig)
 	if err != nil {
 		return fmt.Errorf("getGrpcClient: %w", err)

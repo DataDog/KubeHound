@@ -81,7 +81,8 @@ func (r *Registry) Verify() error {
 
 // Register loads the provided edge into the registry.
 func Register(edge Builder, flags RegistrationFlag) {
-	l := log.Logger(context.TODO()).With(log.String("edge", edge.Name()), log.String("edge", edge.Label()))
+	// No context as it is only init function
+	l := log.Logger(context.Background()).With(log.String("edge", edge.Name()), log.String("edge", edge.Label()))
 	registry := Registered()
 	switch {
 	case flags&RegisterGraphMutation != 0:

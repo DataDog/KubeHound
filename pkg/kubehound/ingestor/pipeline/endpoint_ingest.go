@@ -50,7 +50,7 @@ func (i *EndpointIngest) Initialize(ctx context.Context, deps *Dependencies) err
 // IngestEndpoint is invoked by the collector for each endpoint slice collected.
 // The function ingests an input endpoint slice into the cache/store/graph databases asynchronously.
 func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointType) error {
-	if ok, err := preflight.CheckEndpoint(eps); !ok {
+	if ok, err := preflight.CheckEndpoint(ctx, eps); !ok {
 		return err
 	}
 

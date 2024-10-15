@@ -39,7 +39,7 @@ type TarWriter struct {
 }
 
 func NewTarWriter(ctx context.Context, tarPath string) (*TarWriter, error) {
-	tarFile, err := createTarFile(tarPath)
+	tarFile, err := createTarFile(ctx, tarPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create tar file: %w", err)
 	}
@@ -60,8 +60,8 @@ func NewTarWriter(ctx context.Context, tarPath string) (*TarWriter, error) {
 	}, nil
 }
 
-func createTarFile(tarPath string) (*os.File, error) {
-	l := log.Logger(context.TODO())
+func createTarFile(ctx context.Context, tarPath string) (*os.File, error) {
+	l := log.Logger(ctx)
 	l.Debugf("Creating tar file", log.String("path", tarPath))
 	err := os.MkdirAll(filepath.Dir(tarPath), WriterDirMod)
 	if err != nil {
