@@ -5,7 +5,6 @@ import (
 	"sync/atomic"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 // globalDefault contains the current global default logger and its configuration.
@@ -74,41 +73,32 @@ func DefaultLogger() LoggerI {
 	return globalDefault.Load()
 }
 
-func NewTextEncoder(cfg zapcore.EncoderConfig) (zapcore.Encoder, error) {
-	return zapcore.NewConsoleEncoder(cfg), nil
-}
-
 func init() {
-	err := zap.RegisterEncoder("text", NewTextEncoder)
+	err := zap.RegisterEncoder("text", NewKeyValueEncoder)
 	if err != nil {
 		panic(err)
 	}
-	// TOOD: use the env var to setup the formatter (json / text / dd ...)
+	InitLogger()
+}
 
-	cfg := &Config{
-		logLevel:  LevelInfo,
-		formatter: "text",
-		useColour: true,
-	}
+func InitLogger() {
 	l := &traceLogger{
-		logger: newLoggerWithSkip(cfg, 1),
+		logger: newLoggerWithSkip(1),
 		fields: []Field{},
 	}
 	globalDefault.Store(l)
 }
 
-func newLoggerWithSkip(cfg *Config, skip int) *zapLogger {
+func newLoggerWithSkip(skip int) *zapLogger {
 	// add 1 to skip: We wrap zap's functions with *zapLogger methods
 	skip += 1
 
-	zc := newZapConfig(cfg)
+	zc := newZapConfig()
 	zOptions := []zap.Option{
 		zap.AddCallerSkip(skip),
 		zap.AddStacktrace(zap.DPanicLevel),
 	}
-	// NOTE: Avoid using common names like `stack_trace` to avoid field remapping by the Logs app
-	// that might mask error message
-	zc.EncoderConfig.StacktraceKey = "zap_stack_trace"
+
 	logger, err := zc.Build(zOptions...)
 
 	// XXX: fall back to a basic printf-based logger?

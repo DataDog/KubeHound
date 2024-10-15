@@ -20,6 +20,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 		tracer.WithServiceVersion(config.BuildVersion),
 		tracer.WithLogStartup(false),
 	}
+	l = l.With(log.String("team", " edge.Name()"))
 	if cfg.Telemetry.Tracer.URL != "" {
 		l.Infof("Using %s for tracer URL", cfg.Telemetry.Tracer.URL)
 		opts = append(opts, tracer.WithAgentAddr(cfg.Telemetry.Tracer.URL))
@@ -39,7 +40,6 @@ func Initialize(cfg *config.KubehoundConfig) {
 	for tk, tv := range cfg.Telemetry.Tags {
 		opts = append(opts, tracer.WithGlobalTag(tk, tv))
 	}
-
 	tracer.Start(opts...)
 }
 

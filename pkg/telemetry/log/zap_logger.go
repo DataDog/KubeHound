@@ -18,17 +18,6 @@ func (z *zapLogger) With(fields ...Field) LoggerI {
 	}
 }
 
-func newZapConfig(cfg *Config) zap.Config {
-	var zc zap.Config
-	switch cfg.formatter {
-	case "json":
-		zc = newJSONFormatterConfig(cfg)
-	case "text":
-		zc = newTextFormatterConfig(cfg)
-	}
-	return zc
-}
-
 func (z *zapLogger) Debug(msg string, fields ...Field) {
 	z.l.Debug(msg, fields...)
 }

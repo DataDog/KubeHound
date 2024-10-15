@@ -57,6 +57,20 @@ func TraceLogger(ctx context.Context, logger LoggerI) LoggerI {
 
 	fields = []zap.Field{ddTraceSpanID(span), ddTraceTraceID(span)}
 
+	// Adding by default the runID and cluster to the logs
+	runID := convertField(ctx.Value(ContextFieldRunID))
+	if runID != "" {
+		fields = append(fields, String(FieldRunIDKey, runID))
+	}
+	cluster := convertField(ctx.Value(ContextFieldCluster))
+	if cluster != "" {
+		fields = append(fields, String(FieldClusterKey, cluster))
+	}
+	component := convertField(ctx.Value(ContextFieldComponent))
+	if component != "" {
+		fields = append(fields, String(FieldComponentKey, component))
+	}
+
 	// no span: return the logger with no modifications
 	if len(fields) == 0 {
 		return logger
