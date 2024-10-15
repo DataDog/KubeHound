@@ -104,7 +104,7 @@ func (e *PodPatch) Traversal() types.EdgeTraversal {
 func (e *PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	permissionSets := adapter.MongoDB(store).Collection(collections.PermissionSetName)
+	permissionSets := adapter.MongoDB(ctx, store).Collection(collections.PermissionSetName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{

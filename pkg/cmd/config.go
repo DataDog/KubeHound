@@ -31,7 +31,7 @@ func InitializeKubehoundConfig(ctx context.Context, configPath string, generateR
 		viper.Set(config.DynamicRunID, config.NewRunID())
 	}
 
-	khCfg := config.NewKubehoundConfig(configPath, inline)
+	khCfg := config.NewKubehoundConfig(ctx, configPath, inline)
 	// Activate debug mode if needed
 	if khCfg.Debug {
 		l.Info("Debug mode activated")
@@ -49,7 +49,7 @@ func InitTelemetry(khCfg *config.KubehoundConfig) {
 	ctx := context.Background()
 	l := log.Logger(ctx)
 	l.Info("Initializing application telemetry")
-	err := telemetry.Initialize(khCfg)
+	err := telemetry.Initialize(ctx, khCfg)
 	if err != nil {
 		l.Warn("failed telemetry initialization", log.ErrorField(err))
 	}
@@ -76,13 +76,13 @@ func InitTags(ctx context.Context, khCfg *config.KubehoundConfig) {
 	// log.AddGlobalTags(khCfg.Telemetry.Tags)
 }
 
-func CloseKubehoundConfig() error {
+func CloseKubehoundConfig(ctx context.Context) error {
 	khCfg, err := GetConfig()
 	if err != nil {
 		return err
 	}
 
-	telemetry.Shutdown(khCfg.Telemetry.Enabled)
+	telemetry.Shutdown(ctx, khCfg.Telemetry.Enabled)
 
 	return nil
 }

@@ -11,15 +11,13 @@ COPY deployments ./deployments
 
 RUN GOOS=linux GOARCH=amd64 go build -o "./bin/build/kubehound" ./cmd/kubehound/
 
-FROM gcr.io/distroless/base-debian12 AS build-release-stage
+FROM ubuntu:24.04 AS build-release-stage
 
 WORKDIR /
 
 COPY --from=build-stage /go/bin/build/kubehound /kubehound
 
 EXPOSE 9000
-
-USER nonroot:nonroot
 
 ENTRYPOINT ["/kubehound"]
 CMD  ["serve"]

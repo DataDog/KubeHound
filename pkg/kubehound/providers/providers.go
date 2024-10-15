@@ -42,7 +42,8 @@ func NewProvidersFactoryConfig(ctx context.Context, khCfg *config.KubehoundConfi
 	if err != nil {
 		return nil, fmt.Errorf("store database client creation: %w", err)
 	}
-	l.Info("Loaded store provider", log.String("provider", sp.Name()))
+	msg := fmt.Sprintf("Loaded %s store provider", sp.Name())
+	l.Info(msg, log.String("provider", sp.Name()))
 
 	err = sp.Prepare(ctx)
 	if err != nil {
@@ -55,7 +56,8 @@ func NewProvidersFactoryConfig(ctx context.Context, khCfg *config.KubehoundConfi
 	if err != nil {
 		return nil, fmt.Errorf("graph database client creation: %w", err)
 	}
-	l.Infof("Loaded %s graph provider", gp.Name())
+	msg = fmt.Sprintf("Loaded %s graph provider", gp.Name())
+	l.Infof(msg, log.String("provider", sp.Name()))
 
 	err = gp.Prepare(ctx)
 	if err != nil {

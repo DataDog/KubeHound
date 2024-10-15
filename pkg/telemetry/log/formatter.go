@@ -75,7 +75,8 @@ func legacyTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 }
 
 func newZapConfig() zap.Config {
-	var zc zap.Config
+	// By default, we use text formatter
+	zc := newTextFormatterConfig()
 
 	switch logFormat := os.Getenv("KH_LOG_FORMAT"); {
 	// Datadog require the logged field to be "message" and not "msg"
@@ -85,8 +86,6 @@ func newZapConfig() zap.Config {
 		zc.EncoderConfig.EncodeTime = legacyTimeEncoder
 	case logFormat == logFormatJSON:
 		zc = newJSONFormatterConfig()
-	case logFormat == logFormatText:
-		zc = newTextFormatterConfig()
 	}
 
 	zc.InitialFields = map[string]interface{}{

@@ -232,7 +232,7 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 	}
 
 	dryRun := false
-	err = puller.ExtractTarGz(dryRun, archivePath, basePath, bs.cfg.Ingestor.MaxArchiveSize)
+	err = puller.ExtractTarGz(ctx, dryRun, archivePath, basePath, bs.cfg.Ingestor.MaxArchiveSize)
 	if err != nil {
 		return err
 	}

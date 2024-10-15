@@ -37,7 +37,7 @@ func (e *EscapeModuleLoad) Processor(ctx context.Context, oic *converter.ObjectI
 func (e *EscapeModuleLoad) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(ctx, store).Collection(collections.ContainerName)
 
 	// Escape is possible with privileged containers or CAP_SYS_MODULE loaded explicitly
 	filter := bson.M{

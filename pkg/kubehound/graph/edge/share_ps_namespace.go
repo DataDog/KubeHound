@@ -51,7 +51,7 @@ func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectI
 func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	coll := adapter.MongoDB(store).Collection(collections.PodName)
+	coll := adapter.MongoDB(ctx, store).Collection(collections.PodName)
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{

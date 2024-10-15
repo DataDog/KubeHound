@@ -10,8 +10,8 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
 
-func Initialize(cfg *config.KubehoundConfig) {
-	l := log.Logger(context.TODO())
+func Initialize(ctx context.Context, cfg *config.KubehoundConfig) {
+	l := log.Logger(ctx)
 	opts := []profiler.Option{
 		profiler.WithService(globals.DDServiceName),
 		profiler.WithEnv(globals.GetDDEnv()),

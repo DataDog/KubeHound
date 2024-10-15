@@ -42,9 +42,9 @@ type KubehoundConfig struct {
 }
 
 // MustLoadEmbedConfig loads the embedded default application configuration, treating all errors as fatal.
-func MustLoadEmbedConfig() *KubehoundConfig {
-	l := log.Logger(context.TODO())
-	cfg, err := NewEmbedConfig(viper.GetViper(), embedconfig.DefaultPath)
+func MustLoadEmbedConfig(ctx context.Context) *KubehoundConfig {
+	l := log.Logger(ctx)
+	cfg, err := NewEmbedConfig(ctx, viper.GetViper(), embedconfig.DefaultPath)
 	if err != nil {
 		l.Fatal("embed config load", log.ErrorField(err))
 	}
@@ -53,9 +53,9 @@ func MustLoadEmbedConfig() *KubehoundConfig {
 }
 
 // MustLoadConfig loads the application configuration from the provided path, treating all errors as fatal.
-func MustLoadConfig(configPath string) *KubehoundConfig {
-	l := log.Logger(context.TODO())
-	cfg, err := NewConfig(viper.GetViper(), configPath)
+func MustLoadConfig(ctx context.Context, configPath string) *KubehoundConfig {
+	l := log.Logger(ctx)
+	cfg, err := NewConfig(ctx, viper.GetViper(), configPath)
 	if err != nil {
 		l.Fatal("config load", log.ErrorField(err))
 	}
@@ -64,9 +64,9 @@ func MustLoadConfig(configPath string) *KubehoundConfig {
 }
 
 // MustLoadConfig loads the application configuration from the provided path, treating all errors as fatal.
-func MustLoadInlineConfig() *KubehoundConfig {
-	l := log.Logger(context.TODO())
-	cfg, err := NewInlineConfig(viper.GetViper())
+func MustLoadInlineConfig(ctx context.Context) *KubehoundConfig {
+	l := log.Logger(ctx)
+	cfg, err := NewInlineConfig(ctx, viper.GetViper())
 	if err != nil {
 		l.Fatal("config load", log.ErrorField(err))
 	}
@@ -74,27 +74,27 @@ func MustLoadInlineConfig() *KubehoundConfig {
 	return cfg
 }
 
-func NewKubehoundConfig(configPath string, inLine bool) *KubehoundConfig {
-	l := log.Logger(context.TODO())
+func NewKubehoundConfig(ctx context.Context, configPath string, inLine bool) *KubehoundConfig {
+	l := log.Logger(ctx)
 	// Configuration initialization
 	var cfg *KubehoundConfig
 	switch {
 	case len(configPath) != 0:
 		l.Info("Loading application configuration from file", log.String("path", configPath))
-		cfg = MustLoadConfig(configPath)
+		cfg = MustLoadConfig(ctx, configPath)
 	case inLine:
 		l.Info("Loading application from inline command")
-		cfg = MustLoadInlineConfig()
+		cfg = MustLoadInlineConfig(ctx)
 	default:
 		l.Info("Loading application configuration from default embedded")
-		cfg = MustLoadEmbedConfig()
+		cfg = MustLoadEmbedConfig(ctx)
 	}
 
 	return cfg
 }
 
 // SetDefaultValues loads the default value from the different modules
-func SetDefaultValues(v *viper.Viper) {
+func SetDefaultValues(ctx context.Context, v *viper.Viper) {
 	// K8s Live collector module
 	v.SetDefault(CollectorLivePageSize, DefaultK8sAPIPageSize)
 	v.SetDefault(CollectorLivePageBufferSize, DefaultK8sAPIPageBufferSize)
@@ -142,13 +142,13 @@ func SetDefaultValues(v *viper.Viper) {
 	v.SetDefault(IngestorMaxArchiveSize, DefaultMaxArchiveSize)
 	v.SetDefault(IngestorArchiveName, DefaultArchiveName)
 
-	SetLocalConfig(v)
+	SetLocalConfig(ctx, v)
 }
 
 // SetEnvOverrides enables environment variable overrides for the config.
-func SetEnvOverrides(c *viper.Viper) {
+func SetEnvOverrides(ctx context.Context, c *viper.Viper) {
 	var res *multierror.Error
-	l := log.Logger(context.TODO())
+	l := log.Logger(ctx)
 
 	// Enable changing file collector fields via environment variables
 	res = multierror.Append(res, c.BindEnv("collector.type", "KH_COLLECTOR"))
@@ -195,16 +195,16 @@ func unmarshalConfig(v *viper.Viper) (*KubehoundConfig, error) {
 }
 
 // NewConfig creates a new config instance from the provided file using viper.
-func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
+func NewConfig(ctx context.Context, v *viper.Viper, configPath string) (*KubehoundConfig, error) {
 	// Configure default values
-	SetDefaultValues(v)
+	SetDefaultValues(ctx, v)
 
 	// Loading inLine config path
 	v.SetConfigType(DefaultConfigType)
 	v.SetConfigFile(configPath)
 
 	// Configure environment variable override
-	SetEnvOverrides(v)
+	SetEnvOverrides(ctx, v)
 	if err := v.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("loading config: %w", err)
 	}
@@ -218,12 +218,12 @@ func NewConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
 }
 
 // NewConfig creates a new config instance from the provided file using viper.
-func NewInlineConfig(v *viper.Viper) (*KubehoundConfig, error) {
+func NewInlineConfig(ctx context.Context, v *viper.Viper) (*KubehoundConfig, error) {
 	// Load default embedded config file
-	SetDefaultValues(v)
+	SetDefaultValues(ctx, v)
 
 	// Configure environment variable override
-	SetEnvOverrides(v)
+	SetEnvOverrides(ctx, v)
 
 	kc, err := unmarshalConfig(v)
 	if err != nil {
@@ -235,8 +235,8 @@ func NewInlineConfig(v *viper.Viper) (*KubehoundConfig, error) {
 
 // Load local config file if it exists, check for local file in current dir or in $HOME/.config/
 // Not returning any error as it is not mandatory to have a local config file
-func SetLocalConfig(v *viper.Viper) {
-	l := log.Logger(context.TODO())
+func SetLocalConfig(ctx context.Context, v *viper.Viper) {
+	l := log.Logger(ctx)
 
 	v.SetConfigName(DefaultConfigName) // name of config file (without extension)
 	v.SetConfigType(DefaultConfigType) // REQUIRED if the config file does not have the extension in the name
@@ -253,12 +253,12 @@ func SetLocalConfig(v *viper.Viper) {
 }
 
 // NewEmbedConfig creates a new config instance from an embedded config file using viper.
-func NewEmbedConfig(v *viper.Viper, configPath string) (*KubehoundConfig, error) {
+func NewEmbedConfig(ctx context.Context, v *viper.Viper, configPath string) (*KubehoundConfig, error) {
 	v.SetConfigType(DefaultConfigType)
-	SetDefaultValues(v)
+	SetDefaultValues(ctx, v)
 
 	// Configure environment variable override
-	SetEnvOverrides(v)
+	SetEnvOverrides(ctx, v)
 	data, err := embedconfig.F.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("reading embed config: %w", err)

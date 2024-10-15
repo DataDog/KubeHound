@@ -130,7 +130,7 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 
 	if compress {
 		dryRun := false
-		err := puller.ExtractTarGz(dryRun, runArgs.resultPath, collectorDir, config.DefaultMaxArchiveSize)
+		err := puller.ExtractTarGz(ctx, dryRun, runArgs.resultPath, collectorDir, config.DefaultMaxArchiveSize)
 		if err != nil {
 			l.Fatal("extracting tar gz", log.ErrorField(err))
 		}
@@ -217,7 +217,7 @@ func RunGRPC(ctx context.Context, runArgs *runArgs, p *providers.ProvidersFactor
 	}()
 
 	// Starting ingestion of the dumped data
-	err = core.CoreClientGRPCIngest(khCfg.Ingestor, cluster, runID)
+	err = core.CoreClientGRPCIngest(ctx, khCfg.Ingestor, cluster, runID)
 	if err != nil {
 		l.Fatal("initialize core GRPC client", log.ErrorField(err))
 	}
@@ -352,7 +352,7 @@ func (s *GRPCTestSuite) SetupSuite() {
 		l.Fatal("get config", log.ErrorField(err))
 	}
 
-	err = core.CoreClientGRPCIngest(khCfg.Ingestor, runArgs.cluster, runArgs.runID)
+	err = core.CoreClientGRPCIngest(ctx, khCfg.Ingestor, runArgs.cluster, runArgs.runID)
 	s.ErrorContains(err, api.ErrAlreadyIngested.Error())
 }
 

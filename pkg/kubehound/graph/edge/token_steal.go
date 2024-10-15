@@ -49,7 +49,7 @@ func (e *TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIDConve
 func (e *TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.CacheReader,
 	process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	volumes := adapter.MongoDB(sdb).Collection(collections.VolumeName)
+	volumes := adapter.MongoDB(ctx, sdb).Collection(collections.VolumeName)
 
 	filter := bson.M{
 		"type":            shared.VolumeTypeProjected,

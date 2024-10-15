@@ -82,7 +82,7 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			v := viper.New()
-			cfg, err := config.NewConfig(v, tt.args.path)
+			cfg, err := config.NewConfig(context.TODO(), v, tt.args.path)
 			assert.NoError(t, err)
 			err = checkK8sAPICollectorConfig(cfg.Collector.Type)
 			if (err != nil) != tt.wantErr {
