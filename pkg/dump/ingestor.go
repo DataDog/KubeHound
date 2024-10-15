@@ -112,8 +112,9 @@ const (
 	DumpResultPathRegex     = DumpResultClusterNameRegex + "/" + DumpResultFilenameRegex
 )
 
-func ParsePath(path string) (*DumpResult, error) {
-	log.I.Warnf("[Backward Compatibility] Extracting the metadata from the path: %s", path)
+func ParsePath(ctx context.Context, path string) (*DumpResult, error) {
+	l := log.Logger(ctx)
+	l.Warn("[Backward Compatibility] Extracting the metadata", log.String("path", path))
 
 	// ./<clusterName>/kubehound_<clusterName>_<run_id>[.tar.gz]
 	// re := regexp.MustCompile(`([a-z0-9\.\-_]+)/kubehound_([a-z0-9\.-_]+)_([a-z0-9]{26})\.?([a-z0-9\.]+)?`)

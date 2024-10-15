@@ -71,7 +71,8 @@ func BuildUp(ctx context.Context, noCache bool) error {
 }
 
 func (b *Backend) buildUp(ctx context.Context, noCache bool) error {
-	log.I.Infof("Building the kubehound stack")
+	l := log.Logger(ctx)
+	l.Info("Building the kubehound stack")
 	err := b.composeService.Build(ctx, b.project, api.BuildOptions{
 		NoCache: noCache,
 		Pull:    true,
@@ -88,7 +89,8 @@ func Up(ctx context.Context) error {
 }
 
 func (b *Backend) up(ctx context.Context) error {
-	log.I.Infof("Spawning the kubehound stack")
+	l := log.Logger(ctx)
+	l.Info("Spawning the kubehound stack")
 
 	err := b.composeService.Up(ctx, b.project, api.UpOptions{
 		Create: api.CreateOptions{
@@ -117,7 +119,8 @@ func Down(ctx context.Context) error {
 }
 
 func (b *Backend) down(ctx context.Context) error {
-	log.I.Info("Tearing down the kubehound stack")
+	l := log.Logger(ctx)
+	l.Info("Tearing down the kubehound stack")
 
 	err := b.composeService.Remove(ctx, b.project.Name, api.RemoveOptions{
 		Stop:    true,
@@ -175,10 +178,11 @@ func Wipe(ctx context.Context) error {
 
 func (b *Backend) wipe(ctx context.Context) error {
 	var err error
-	log.I.Infof("Wiping the persisted backend data")
+	l := log.Logger(ctx)
+	l.Info("Wiping the persisted backend data")
 
 	for _, volumeID := range b.project.VolumeNames() {
-		log.I.Infof("Deleting volume %s", volumeID)
+		l.Info("Deleting volume", log.String("volume", volumeID))
 		err = errors.Join(err, b.dockerCli.Client().VolumeRemove(ctx, volumeID, true))
 	}
 

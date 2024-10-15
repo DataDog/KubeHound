@@ -52,7 +52,7 @@ func (e *ContainerAttach) Traversal() types.EdgeTraversal {
 func (e *ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(ctx, store).Collection(collections.ContainerName)
 
 	// We just need a 1:1 mapping of the container and pod to create this edge
 	projection := bson.M{"_id": 1, "pod_id": 1}

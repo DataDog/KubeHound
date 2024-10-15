@@ -16,7 +16,7 @@ func TestFileCollector_Constructor(t *testing.T) {
 	t.Parallel()
 
 	v := viper.New()
-	cfg, err := config.NewConfig(v, "testdata/kubehound-test.yaml")
+	cfg, err := config.NewConfig(context.TODO(), v, "testdata/kubehound-test.yaml")
 	assert.NoError(t, err)
 
 	c, err := NewFileCollector(context.Background(), cfg)
@@ -64,7 +64,7 @@ func NewTestFileCollector(t *testing.T) *FileCollector {
 	t.Helper()
 
 	v := viper.New()
-	cfg, err := config.NewConfig(v, "testdata/kubehound-test.yaml")
+	cfg, err := config.NewConfig(context.TODO(), v, "testdata/kubehound-test.yaml")
 	assert.NoError(t, err)
 
 	c, err := NewFileCollector(context.Background(), cfg)

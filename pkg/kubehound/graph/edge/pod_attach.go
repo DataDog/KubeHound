@@ -48,7 +48,7 @@ func (e *PodAttach) Processor(ctx context.Context, oic *converter.ObjectIDConver
 func (e *PodAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	pods := adapter.MongoDB(store).Collection(collections.PodName)
+	pods := adapter.MongoDB(ctx, store).Collection(collections.PodName)
 
 	// We just need a 1:1 mapping of the node and pod to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}

@@ -66,10 +66,10 @@ var (
 			}
 
 			if isIngestRemoteDefault() {
-				return core.CoreClientGRPCRehydrateLatest(khCfg.Ingestor)
+				return core.CoreClientGRPCRehydrateLatest(cobraCmd.Context(), khCfg.Ingestor)
 			}
 
-			return core.CoreClientGRPCIngest(khCfg.Ingestor, khCfg.Dynamic.ClusterName, runID)
+			return core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.ClusterName, runID)
 		},
 	}
 )

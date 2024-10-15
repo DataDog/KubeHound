@@ -1,6 +1,7 @@
 package edge
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -80,31 +81,33 @@ func (r *Registry) Verify() error {
 
 // Register loads the provided edge into the registry.
 func Register(edge Builder, flags RegistrationFlag) {
+	// No context as it is only init function
+	l := log.Logger(context.Background()).With(log.String("edge", edge.Name()), log.String("edge", edge.Label()))
 	registry := Registered()
 	switch {
 	case flags&RegisterGraphMutation != 0:
-		log.I.Debugf("Registering mutating edge builder %s -> %s", edge.Name(), edge.Label())
+		l.Debug("Registering mutating edge builder")
 		if _, ok := registry.mutating[edge.Name()]; ok {
-			log.I.Fatalf("edge name collision: %s", edge.Name())
+			l.Fatal("edge name collision")
 		}
 
 		registry.mutating[edge.Name()] = edge
 	case flags&RegisterGraphDependency != 0:
-		log.I.Debugf("Registering dependent edge builder %s -> %s", edge.Name(), edge.Label())
+		l.Debug("Registering dependent edge builder")
 		if _, ok := registry.dependent[edge.Name()]; ok {
-			log.I.Fatalf("edge name collision: %s", edge.Name())
+			l.Fatal("edge name collision")
 		}
 
 		dependent, ok := edge.(DependentBuilder)
 		if !ok {
-			log.I.Fatalf("dependent edge must implement DependentBuilder: %s", edge.Name())
+			l.Fatal("dependent edge must implement DependentBuilder")
 		}
 
 		registry.dependent[edge.Name()] = dependent
 	default:
-		log.I.Debugf("Registering default edge builder %s -> %s", edge.Name(), edge.Label())
+		l.Debug("Registering default edge builder")
 		if _, ok := registry.simple[edge.Name()]; ok {
-			log.I.Fatalf("edge name collision: %s", edge.Name())
+			l.Fatal("edge name collision")
 		}
 
 		registry.simple[edge.Name()] = edge

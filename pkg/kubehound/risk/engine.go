@@ -2,6 +2,7 @@
 package risk
 
 import (
+	"context"
 	"sync"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
@@ -15,9 +16,10 @@ var riOnce sync.Once
 func Engine() *RiskEngine {
 	var err error
 	riOnce.Do(func() {
+		l := log.Logger(context.Background())
 		engineInstance, err = newEngine()
 		if err != nil {
-			log.I.Fatalf("Risk engine initialization: %v", err)
+			l.Fatal("Risk engine initialization", log.ErrorField(err))
 		}
 	})
 

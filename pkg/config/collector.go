@@ -18,8 +18,6 @@ const (
 	CollectorNonInteractive        = "collector.non_interactive"
 	CollectorFileArchiveNoCompress = "collector.file.archive.no_compress"
 	CollectorFileDirectory         = "collector.file.directory"
-	CollectorFileBlobRegion        = "collector.file.blob.region"
-	CollectorFileBlobBucket        = "collector.file.blob.bucket_url"
 )
 
 // CollectorConfig configures collector specific parameters.

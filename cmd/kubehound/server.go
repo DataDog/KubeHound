@@ -27,7 +27,7 @@ var (
 			return core.CoreGrpcApi(cobraCmd.Context(), khCfg)
 		},
 		PersistentPostRunE: func(cobraCmd *cobra.Command, args []string) error {
-			return cmd.CloseKubehoundConfig()
+			return cmd.CloseKubehoundConfig(cobraCmd.Context())
 		},
 	}
 )

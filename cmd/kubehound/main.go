@@ -8,6 +8,6 @@ import (
 func main() {
 	tag.SetupBaseTags()
 	if err := rootCmd.Execute(); err != nil {
-		log.I.Fatal(err.Error())
+		log.Logger(rootCmd.Context()).Fatal(err.Error())
 	}
 }

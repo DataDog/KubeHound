@@ -42,7 +42,7 @@ func (e *EscapeCorePattern) Processor(ctx context.Context, oic *converter.Object
 
 func (e *EscapeCorePattern) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(ctx, store).Collection(collections.ContainerName)
 
 	pipeline := []bson.M{
 		{

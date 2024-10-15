@@ -47,8 +47,8 @@ var (
 			if err != nil {
 				return fmt.Errorf("create temporary directory: %w", err)
 			}
-
-			log.I.Debugf("Temporary directory created: %s", tmpDir)
+			l := log.Trace(cobraCmd.Context())
+			l.Info("Temporary directory created", log.String("path", tmpDir))
 			viper.Set(config.CollectorFileDirectory, tmpDir)
 
 			// Passing the Kubehound config from viper
@@ -63,7 +63,7 @@ var (
 			}
 			// Running the ingestion on KHaaS
 			if cobraCmd.Flags().Lookup("khaas-server").Value.String() != "" {
-				return core.CoreClientGRPCIngest(khCfg.Ingestor, khCfg.Dynamic.ClusterName, khCfg.Dynamic.RunID.String())
+				return core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.ClusterName, khCfg.Dynamic.RunID.String())
 			}
 
 			return err

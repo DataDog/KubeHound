@@ -48,7 +48,7 @@ func (e *IdentityAssumeContainer) Processor(ctx context.Context, oic *converter.
 func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(ctx, store).Collection(collections.ContainerName)
 	pipeline := bson.A{
 		bson.M{
 			"$match": bson.M{

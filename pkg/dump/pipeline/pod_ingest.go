@@ -29,7 +29,7 @@ func NewPodIngestor(ctx context.Context, dumpWriter writer.DumperWriter) *PodIng
 }
 
 func (d *PodIngestor) IngestPod(ctx context.Context, pod types.PodType) error {
-	if ok, err := preflight.CheckPod(pod); !ok {
+	if ok, err := preflight.CheckPod(ctx, pod); !ok {
 		return err
 	}
 

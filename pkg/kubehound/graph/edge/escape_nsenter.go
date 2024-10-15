@@ -37,7 +37,7 @@ func (e *EscapeNsenter) Processor(ctx context.Context, oic *converter.ObjectIDCo
 func (e *EscapeNsenter) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(ctx, store).Collection(collections.ContainerName)
 
 	// Escape is possible with privileged containers that share the PID namespace
 	filter := bson.M{

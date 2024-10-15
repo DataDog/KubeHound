@@ -37,7 +37,7 @@ func (e *EscapePrivMount) Processor(ctx context.Context, oic *converter.ObjectID
 func (e *EscapePrivMount) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(ctx, store).Collection(collections.ContainerName)
 
 	// Escape is possible with privileged containers via mounting the root directory on the host
 	// and editing sensitive files e.g SSH keys, cronjobs, etc

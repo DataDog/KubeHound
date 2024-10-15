@@ -28,7 +28,7 @@ var (
 			if err != nil {
 				return fmt.Errorf("get config: %w", err)
 			}
-
+			l := log.Logger(cobraCmd.Context())
 			yamlData, err := yaml.Marshal(&khCfg)
 
 			if err != nil {
@@ -46,7 +46,7 @@ var (
 					return fmt.Errorf("writing to file: %w", err)
 				}
 
-				log.I.Infof("Configuration saved to %s\n", configPath)
+				l.Info("Configuration saved", log.String("path", configPath))
 
 				return nil
 			}

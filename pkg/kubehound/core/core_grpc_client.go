@@ -33,15 +33,15 @@ func getGrpcConn(ingestorConfig config.IngestorConfig) (*grpc.ClientConn, error)
 	return conn, nil
 }
 
-func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName string, runID string) error {
+func CoreClientGRPCIngest(ctx context.Context, ingestorConfig config.IngestorConfig, clusteName string, runID string) error {
+	l := log.Logger(ctx)
 	conn, err := getGrpcConn(ingestorConfig)
 	if err != nil {
 		return fmt.Errorf("getGrpcClient: %w", err)
 	}
 	defer conn.Close()
 	client := pb.NewAPIClient(conn)
-
-	log.I.Infof("Launching ingestion on %s [rundID: %s]", ingestorConfig.API.Endpoint, runID)
+	l.Info("Launching ingestion", log.String("endpoint", ingestorConfig.API.Endpoint), log.String("run_id", runID))
 
 	_, err = client.Ingest(context.Background(), &pb.IngestRequest{
 		RunId:       runID,
@@ -54,7 +54,8 @@ func CoreClientGRPCIngest(ingestorConfig config.IngestorConfig, clusteName strin
 	return nil
 }
 
-func CoreClientGRPCRehydrateLatest(ingestorConfig config.IngestorConfig) error {
+func CoreClientGRPCRehydrateLatest(ctx context.Context, ingestorConfig config.IngestorConfig) error {
+	l := log.Logger(ctx)
 	conn, err := getGrpcConn(ingestorConfig)
 	if err != nil {
 		return fmt.Errorf("getGrpcClient: %w", err)
@@ -62,14 +63,14 @@ func CoreClientGRPCRehydrateLatest(ingestorConfig config.IngestorConfig) error {
 	defer conn.Close()
 	client := pb.NewAPIClient(conn)
 
-	log.I.Infof("Launching rehydratation on %s [latest]", ingestorConfig.API.Endpoint)
+	l.Info("Launching rehydratation [latest]", log.String("endpoint", ingestorConfig.API.Endpoint))
 	results, err := client.RehydrateLatest(context.Background(), &pb.RehydrateLatestRequest{})
 	if err != nil {
 		return fmt.Errorf("call rehydratation (latest): %w", err)
 	}
 
 	for _, res := range results.IngestedCluster {
-		log.I.Infof("Rehydrated cluster: %s, date: %s, run_id: %s", res.ClusterName, res.Date.AsTime().Format("01-02-2006 15:04:05"), res.Key)
+		l.Info("Rehydrated cluster", log.String("cluster_name", res.ClusterName), log.Time("time", res.Date.AsTime()), log.String("key", res.Key))
 	}
 
 	return nil

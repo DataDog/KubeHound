@@ -111,7 +111,8 @@ func (mp *MongoProvider) Prepare(ctx context.Context) error {
 	return nil
 }
 
-func (mp *MongoProvider) Clean(ctx context.Context, runId string, cluster string) error {
+func (mp *MongoProvider) Clean(ctx context.Context, cluster string, runId string) error {
+	l := log.Logger(ctx)
 	db := mp.writer.Database(MongoDatabaseName)
 	collections, err := db.ListCollectionNames(ctx, bson.M{})
 	if err != nil {
@@ -126,7 +127,7 @@ func (mp *MongoProvider) Clean(ctx context.Context, runId string, cluster string
 		if err != nil {
 			return fmt.Errorf("deleting mongo DB collection %s: %w", collectionName, err)
 		}
-		log.I.Infof("Deleted %d elements from collection %s", res.DeletedCount, collectionName)
+		l.Info("Deleted elements from collection", log.Int64("count", res.DeletedCount), log.String("collection", collectionName))
 	}
 
 	return nil

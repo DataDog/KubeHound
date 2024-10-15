@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"go.uber.org/ratelimit"
 	corev1 "k8s.io/api/core/v1"
 	discoveryv1 "k8s.io/api/discovery/v1"
@@ -154,9 +153,9 @@ func NewTestK8sAPICollector(ctx context.Context, clientset *fake.Clientset) Coll
 	return &k8sAPICollector{
 		cfg:       cfg,
 		clientset: clientset,
-		log:       log.Trace(ctx, log.WithComponent(K8sAPICollectorName)),
-		rl:        ratelimit.New(config.DefaultK8sAPIRateLimitPerSecond), // per second
-		waitTime:  map[string]time.Duration{},
-		mu:        &sync.Mutex{},
+		// log:       log.Trace(ctx, log.WithComponent(K8sAPICollectorName)),
+		rl:       ratelimit.New(config.DefaultK8sAPIRateLimitPerSecond), // per second
+		waitTime: map[string]time.Duration{},
+		mu:       &sync.Mutex{},
 	}
 }

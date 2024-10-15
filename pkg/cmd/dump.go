@@ -38,10 +38,10 @@ func InitLocalDumpCmd(cmd *cobra.Command) {
 
 func InitRemoteDumpCmd(cmd *cobra.Command) {
 	cmd.Flags().String("bucket-url", "", "Bucket to use to push k8s resources (e.g.: s3://<your_bucket>)")
-	viper.BindPFlag(config.CollectorFileBlobBucket, cmd.Flags().Lookup("bucket-url")) //nolint: errcheck
+	viper.BindPFlag(config.IngestorBlobBucketURL, cmd.Flags().Lookup("bucket-url")) //nolint: errcheck
 
 	cmd.Flags().String("region", "", "Region to retrieve the configuration (only for s3) (e.g.: us-east-1)")
-	viper.BindPFlag(config.CollectorFileBlobRegion, cmd.Flags().Lookup("region")) //nolint: errcheck
+	viper.BindPFlag(config.IngestorBlobBucketURL, cmd.Flags().Lookup("region")) //nolint: errcheck
 }
 
 func InitLocalIngestCmd(cmd *cobra.Command) {

@@ -28,7 +28,7 @@ func NewEndpointIngestor(ctx context.Context, dumpWriter writer.DumperWriter) *E
 }
 
 func (d *EndpointIngestor) IngestEndpoint(ctx context.Context, endpoint types.EndpointType) error {
-	if ok, err := preflight.CheckEndpoint(endpoint); !ok {
+	if ok, err := preflight.CheckEndpoint(ctx, endpoint); !ok {
 		return err
 	}
 

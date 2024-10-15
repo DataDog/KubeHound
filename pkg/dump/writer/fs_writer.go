@@ -33,7 +33,8 @@ func NewFSWriter(ctx context.Context) (*FSWriter, error) {
 // Write function writes the Kubernetes object to a buffer
 // All buffer are stored in a map which is flushed at the end of every type processed
 func (f *FSWriter) WriteFile(ctx context.Context, pathObj string, k8sObj []byte) error {
-	log.I.Debugf("Writing to file %s", pathObj)
+	l := log.Logger(ctx)
+	l.Debug("Writing to file", log.String("path", pathObj))
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
