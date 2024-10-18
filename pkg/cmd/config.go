@@ -35,7 +35,6 @@ func InitializeKubehoundConfig(ctx context.Context, configPath string, generateR
 	// Activate debug mode if needed
 	if khCfg.Debug {
 		l.Info("Debug mode activated")
-		//log.I..Logger.SetLevel(logrus.DebugLevel)
 	}
 
 	InitTags(ctx, khCfg)

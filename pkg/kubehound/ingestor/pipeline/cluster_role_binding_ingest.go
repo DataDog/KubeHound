@@ -91,7 +91,7 @@ func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *sto
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Identity(sid)
+	insert, err := i.r.graphConvert.Identity(sid) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
@@ -126,7 +126,7 @@ func (i *ClusterRoleBindingIngest) createPermissionSet(ctx context.Context, crb 
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.PermissionSet(o)
+	insert, err := i.r.graphConvert.PermissionSet(o) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
