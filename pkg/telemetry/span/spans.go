@@ -3,6 +3,7 @@ package span
 import (
 	"context"
 
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -81,14 +82,14 @@ func convertTag(value any) string {
 	return val
 }
 
-func SpanIngestRunFromContext(runCtx context.Context, spanName string) (ddtrace.Span, context.Context) {
-	spanJob, runCtx := tracer.StartSpanFromContext(runCtx, spanName, tracer.ResourceName(convertTag(runCtx.Value(ContextLogFieldClusterName))), tracer.Measured())
+func SpanRunFromContext(runCtx context.Context, spanName string) (ddtrace.Span, context.Context) {
+	spanJob, runCtx := tracer.StartSpanFromContext(runCtx, spanName, tracer.ResourceName(convertTag(runCtx.Value(log.ContextFieldCluster))), tracer.Measured())
 	spanIngestRunSetDefaultTag(runCtx, spanJob)
 
 	return spanJob, runCtx
 }
 
 func spanIngestRunSetDefaultTag(ctx context.Context, span ddtrace.Span) {
-	span.SetTag(tag.CollectorClusterTag, convertTag(ctx.Value(ContextLogFieldClusterName)))
-	span.SetTag(tag.RunIdTag, convertTag(ctx.Value(ContextLogFieldRunID)))
+	span.SetTag(tag.CollectorClusterTag, convertTag(ctx.Value(log.ContextFieldCluster)))
+	span.SetTag(tag.RunIdTag, convertTag(ctx.Value(log.ContextFieldRunID)))
 }

@@ -15,6 +15,7 @@ type DynamicConfig struct {
 	mu          sync.Mutex
 	RunID       *RunID `mapstructure:"run_id"`
 	ClusterName string `mapstructure:"cluster_name"`
+	Service     string `mapstructure:"service"`
 }
 
 func (d *DynamicConfig) HealthCheck() error {

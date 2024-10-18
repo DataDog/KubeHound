@@ -57,7 +57,7 @@ func NewProvidersFactoryConfig(ctx context.Context, khCfg *config.KubehoundConfi
 		return nil, fmt.Errorf("graph database client creation: %w", err)
 	}
 	msg = fmt.Sprintf("Loaded %s graph provider", gp.Name())
-	l.Infof(msg, log.String("provider", sp.Name()))
+	l.Info(msg, log.String("provider", sp.Name()))
 
 	err = gp.Prepare(ctx)
 	if err != nil {

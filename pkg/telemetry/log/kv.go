@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	DefaultRemovedFields = []string{FieldTeamKey, FieldServiceKey, FieldRunIDKey, FieldClusterKey, FieldComponentKey, spanIDKey, traceIDKey}
+	DefaultRemovedFields = []string{FieldTeamKey, FieldServiceKey, FieldAppKey, FieldRunIDKey, FieldClusterKey, FieldComponentKey, spanIDKey, traceIDKey}
 	bufferpool           = buffer.NewPool()
 )
 

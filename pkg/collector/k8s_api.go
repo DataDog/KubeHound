@@ -79,7 +79,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	}
 
 	if !cfg.Collector.NonInteractive {
-		l.Warn("About to dump k8s cluster - Do you want to continue ? [Yes/No]", log.String("cluster", clusterName))
+		l.Warn("About to dump k8s cluster - Do you want to continue ? [Yes/No]", log.String(log.FieldClusterKey, clusterName))
 		proceed, err := cmd.AskForConfirmation(ctx)
 		if err != nil {
 			return nil, err
@@ -89,8 +89,7 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 			return nil, errors.New("user did not confirm")
 		}
 	} else {
-		msg := fmt.Sprintf("Non-interactive mode enabled, proceeding with k8s cluster dump: %s", clusterName)
-		l.Warn(msg)
+		l.Warnf("Non-interactive mode enabled, proceeding with k8s cluster dump: %s", clusterName)
 	}
 
 	err = checkK8sAPICollectorConfig(cfg.Collector.Type)
@@ -304,7 +303,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 
 func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
 	entity := tag.EntityPods
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -359,7 +358,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 
 func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
 	entity := tag.EntityRoles
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -414,7 +413,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 
 func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
 	entity := tag.EntityRolebindings
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -469,7 +468,7 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 
 func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
 	entity := tag.EntityEndpoints
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -487,7 +486,7 @@ func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor Endpoint
 
 func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
 	entity := tag.EntityNodes
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -530,7 +529,7 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 
 func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
 	entity := tag.EntityClusterRoles
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -573,7 +572,7 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 
 func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
 	entity := tag.EntityClusterRolebindings
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()

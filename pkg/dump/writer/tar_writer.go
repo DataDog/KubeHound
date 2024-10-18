@@ -62,7 +62,7 @@ func NewTarWriter(ctx context.Context, tarPath string) (*TarWriter, error) {
 
 func createTarFile(ctx context.Context, tarPath string) (*os.File, error) {
 	l := log.Logger(ctx)
-	l.Debugf("Creating tar file", log.String("path", tarPath))
+	l.Debugf("Creating tar file", log.String(log.FieldPathKey, tarPath))
 	err := os.MkdirAll(filepath.Dir(tarPath), WriterDirMod)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create directories: %w", err)
@@ -83,7 +83,7 @@ func (f *TarWriter) WorkerNumber() int {
 // All buffer are stored in a map which is flushed at the end of every type processed
 func (t *TarWriter) Write(ctx context.Context, k8sObj []byte, filePath string) error {
 	l := log.Logger(ctx)
-	l.Debug("Writing to file", log.String("path", filePath))
+	l.Debug("Writing to file", log.String(log.FieldPathKey, filePath))
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -100,7 +100,7 @@ func (t *TarWriter) Write(ctx context.Context, k8sObj []byte, filePath string) e
 func (t *TarWriter) Flush(ctx context.Context) error {
 	l := log.Logger(ctx)
 	l.Debug("Flushing writers")
-	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterFlush, tracer.Measured())
+	span, _ := span.SpanRunFromContext(ctx, span.DumperWriterFlush)
 	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -128,7 +128,7 @@ func (t *TarWriter) Flush(ctx context.Context) error {
 func (t *TarWriter) Close(ctx context.Context) error {
 	l := log.Logger(ctx)
 	l.Debug("Closing handlers for tar")
-	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterClose, tracer.Measured())
+	span, _ := span.SpanRunFromContext(ctx, span.DumperWriterClose)
 	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()

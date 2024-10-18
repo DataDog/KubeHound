@@ -23,6 +23,7 @@ const (
 	FieldRunIDKey            = "run_id"
 	FieldTeamKey             = "team"
 	FieldServiceKey          = "service"
+	FieldAppKey              = "app"
 	FieldIngestorPipelineKey = "ingestor_pipeline"
 	FieldDumpPipelineKey     = "dump_pipeline"
 	FieldPathKey             = "path"

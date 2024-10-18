@@ -24,7 +24,7 @@ func NewClusterInfo(ctx context.Context) (*ClusterInfo, error) {
 	l := log.Logger(ctx)
 	clusterName := os.Getenv(clusterNameEnvVar)
 	if clusterName != "" {
-		l.Warn("Using cluster name from environment variable", log.String("env_var", clusterNameEnvVar), log.String("cluster_name", clusterName))
+		l.Warn("Using cluster name from environment variable", log.String("env_var", clusterNameEnvVar), log.String(log.FieldClusterKey, clusterName))
 
 		return &ClusterInfo{
 			Name: clusterName,

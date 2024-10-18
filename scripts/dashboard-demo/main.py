@@ -26,7 +26,7 @@ class KPI:
         self.res_query_critical_path = c.submit(self.KH_QUERY_EXTERNAL_CRITICAL_PATH).all().result()
         self.get_details()
         print("Loading " + self.DISPLAY_TITLE + " DONE")
-    
+
     def get_main(self):
         return self.DESCRIPTION
 
@@ -44,7 +44,7 @@ class KPI:
 
     def display(self):
         return pn.Column(
-            f'# {self.DISPLAY_TITLE}', 
+            f'# {self.DISPLAY_TITLE}',
             pn.layout.Divider(),
             pn.Row(
                 self.DESCRIPTION,
@@ -186,7 +186,7 @@ class GlobalKPI(KPI):
 
     def display(self):
         return pn.Column(
-            f'# {self.DISPLAY_TITLE}', 
+            f'# {self.DISPLAY_TITLE}',
             pn.layout.Divider(),
             pn.Row(
                 self.get_main(),
