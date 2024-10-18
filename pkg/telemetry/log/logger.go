@@ -16,7 +16,7 @@ import (
 // loggers, without changing the AddCallerSkip() configuration.
 var globalDefault atomic.Pointer[traceLogger]
 
-type LoggerI interface {
+type LoggerI interface { //nolint: interfacebloat
 	// With returns a child logger structured with the provided fields.
 	// Fields added to the child don't affect the parent, and vice versa.
 	With(fields ...Field) LoggerI
@@ -42,6 +42,7 @@ type KubehoundLogger struct {
 
 func Logger(ctx context.Context) LoggerI {
 	logger := Trace(ctx)
+
 	return &KubehoundLogger{
 		LoggerI: logger,
 	}

@@ -39,6 +39,7 @@ func newkvEncoder(cfg zapcore.EncoderConfig) *kvEncoder {
 // Useful for testing.
 func (enc *kvEncoder) DumpBuffer() string {
 	defer enc.buf.Reset()
+
 	return enc.buf.String()
 }
 
@@ -84,11 +85,13 @@ func (enc *kvEncoder) addKey(key string) {
 
 func (enc *kvEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) error {
 	enc.addKey(key)
+
 	return enc.AppendArray(marshaler)
 }
 
 func (enc *kvEncoder) AddObject(key string, marshaler zapcore.ObjectMarshaler) error {
 	enc.addKey(key)
+
 	return marshaler.MarshalLogObject(enc)
 }
 
@@ -98,7 +101,7 @@ func (enc *kvEncoder) AddBinary(key string, value []byte) {
 
 func (enc *kvEncoder) AddByteString(key string, value []byte) {
 	enc.addKey(key)
-	enc.buf.Write(value)
+	enc.buf.Write(value) //nolint: errcheck
 }
 func (enc *kvEncoder) AddBool(key string, value bool) {
 	enc.addKey(key)
@@ -139,11 +142,11 @@ func (enc *kvEncoder) AddString(key, value string) {
 	if strings.Contains(value, " ") {
 		value = `"` + strings.ReplaceAll(value, `"`, `\"`) + `"`
 	}
-	enc.buf.Write([]byte(value))
+	enc.buf.Write([]byte(value)) //nolint: errcheck
 }
 func (enc *kvEncoder) AddRawString(key, value string) {
 	enc.addKey(key)
-	enc.buf.Write([]byte(value))
+	enc.buf.Write([]byte(value)) //nolint: errcheck
 }
 
 func (enc *kvEncoder) AddTime(key string, value time.Time) {
@@ -161,6 +164,7 @@ func (enc *kvEncoder) AddUint8(key string, value uint8)     { enc.AddUint64(key,
 func (enc *kvEncoder) AddUintptr(key string, value uintptr) { enc.AddUint64(key, uint64(value)) }
 func (enc *kvEncoder) AddReflected(key string, value interface{}) error {
 	enc.AddRawString(key, fmt.Sprintf("%v", value))
+
 	return nil
 }
 
@@ -172,6 +176,7 @@ func (enc *kvEncoder) AppendObject(marshaler zapcore.ObjectMarshaler) error {
 
 func (enc *kvEncoder) AppendReflected(val interface{}) error {
 	enc.AppendString(fmt.Sprintf("%v", val))
+
 	return nil
 }
 
@@ -183,7 +188,7 @@ func (enc *kvEncoder) AppendBool(value bool) {
 
 func (enc *kvEncoder) AppendByteString(value []byte) {
 	enc.addElementSeparator()
-	enc.buf.Write(value)
+	enc.buf.Write(value) //nolint: errcheck
 }
 
 func (enc *kvEncoder) AppendDuration(value time.Duration) {
@@ -192,10 +197,10 @@ func (enc *kvEncoder) AppendDuration(value time.Duration) {
 
 func (enc *kvEncoder) AppendComplex128(value complex128) {
 	enc.addElementSeparator()
-	r, i := float64(real(value)), float64(imag(value))
-	enc.buf.AppendFloat(r, 64)
+	r, i := float64(real(value)), float64(imag(value)) //nolint: unconvert
+	enc.buf.AppendFloat(r, 64)                         //nolint: gomnd
 	enc.buf.AppendByte('+')
-	enc.buf.AppendFloat(i, 64)
+	enc.buf.AppendFloat(i, 64) //nolint: gomnd
 	enc.buf.AppendByte('i')
 }
 
@@ -204,6 +209,7 @@ func (enc *kvEncoder) AppendArray(marshaler zapcore.ArrayMarshaler) error {
 	enc.buf.AppendByte('{')
 	err := marshaler.MarshalLogArray(enc)
 	enc.buf.AppendByte('}')
+
 	return err
 }
 func (enc *kvEncoder) AppendComplex64(value complex64) { enc.AppendComplex128(complex128(value)) }
@@ -238,13 +244,15 @@ func (enc *kvEncoder) AppendUintptr(value uintptr) { enc.AppendUint64(uint64(val
 
 func (enc *kvEncoder) Clone() zapcore.Encoder {
 	clone := enc.clone()
-	clone.buf.Write(enc.buf.Bytes())
+	clone.buf.Write(enc.buf.Bytes()) //nolint: errcheck
+
 	return clone
 }
 
 func (enc *kvEncoder) clone() *kvEncoder {
 	clone := newkvEncoder(*enc.EncoderConfig)
 	clone.buf = bufferpool.Get()
+
 	return clone
 }
 
@@ -291,7 +299,7 @@ func (enc *kvEncoder) EncodeEntry(ent zapcore.Entry, rawfields []zapcore.Field) 
 
 	if enc.buf.Len() > 0 {
 		c.addElementSeparator()
-		c.buf.Write(enc.buf.Bytes())
+		c.buf.Write(enc.buf.Bytes()) //nolint: errcheck
 	}
 
 	for i := range fields {

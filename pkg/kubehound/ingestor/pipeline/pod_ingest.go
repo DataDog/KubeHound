@@ -237,7 +237,7 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Pod(sp)
+	insert, err := i.r.graphConvert.Pod(sp) //nolint: contextcheck
 	if err != nil {
 		return err
 	}

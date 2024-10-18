@@ -57,6 +57,7 @@ func (s *server) RehydrateLatest(ctx context.Context, in *pb.RehydrateLatestRequ
 	res, err := s.api.RehydrateLatest(ctx)
 	if err != nil {
 		l.Error("Ingest failed", log.ErrorField(err))
+
 		return nil, err
 	}
 

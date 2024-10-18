@@ -67,7 +67,7 @@ func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error 
 		return err
 	}
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Node(o)
+	insert, err := i.r.graphConvert.Node(o) //nolint: contextcheck
 	if err != nil {
 		return err
 	}

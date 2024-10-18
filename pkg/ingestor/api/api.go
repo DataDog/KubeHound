@@ -103,26 +103,24 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 }
 
 func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
-	// Settings global variables for the run in the context to propagate them to the spans
-	runCtx := context.Background()
-	l := log.Logger(runCtx)
+	l := log.Logger(ctx)
 
-	archivePath, err := g.puller.Pull(runCtx, path) //nolint: contextcheck
+	archivePath, err := g.puller.Pull(ctx, path)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		err = errors.Join(err, g.puller.Close(runCtx, archivePath))
+		err = errors.Join(err, g.puller.Close(ctx, archivePath))
 	}()
 
-	err = g.puller.Extract(runCtx, archivePath) //nolint: contextcheck
+	err = g.puller.Extract(ctx, archivePath)
 	if err != nil {
 		return err
 	}
 
 	metadataFilePath := filepath.Join(filepath.Dir(archivePath), collector.MetadataPath)
-	md, err := dump.ParseMetadata(runCtx, metadataFilePath) //nolint: contextcheck
+	md, err := dump.ParseMetadata(ctx, metadataFilePath)
 	if err != nil {
 		l.Warn("no metadata has been parsed (old dump format from v1.4.0 or below do not embed metadata information)", log.ErrorField(err))
 		// Backward Compatibility: Extracting the metadata from the path
@@ -134,6 +132,7 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 		}
 		md = dumpMetadata.Metadata
 	}
+
 	clusterName := md.ClusterName
 	runID := md.RunID
 
@@ -150,9 +149,11 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 		},
 	}
 
+	// Settings global variables for the run in the context to propagate them to the spans
+	runCtx := context.Background()
 	runCtx = context.WithValue(runCtx, log.ContextFieldCluster, clusterName)
 	runCtx = context.WithValue(runCtx, log.ContextFieldRunID, runID)
-	l = log.Logger(runCtx)
+	l = log.Logger(runCtx) //nolint: contextcheck
 	spanJob, runCtx := span.SpanRunFromContext(runCtx, span.IngestorStartJob)
 	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 

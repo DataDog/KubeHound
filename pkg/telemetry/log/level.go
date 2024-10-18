@@ -47,7 +47,7 @@ func (lvl Level) String() string {
 }
 
 // MarshalText implements encoding.TextMarshaler for Level.
-func (lvl Level) MarshalText() (text []byte, err error) {
+func (lvl Level) MarshalText() ([]byte, error) {
 	return []byte(lvl.String()), nil
 }
 
@@ -58,6 +58,7 @@ func (lvl *Level) UnmarshalText(text []byte) error {
 		return err
 	}
 	*lvl = l
+
 	return nil
 }
 
@@ -81,6 +82,7 @@ func LevelFromString(str string) (Level, error) {
 	case "fatal":
 		return LevelFatal, nil
 	}
+
 	return 0, errors.New("invalid log level")
 }
 
@@ -101,6 +103,7 @@ func (lvl Level) zapLevel() zapcore.Level {
 	case LevelFatal:
 		return zapcore.FatalLevel
 	}
+
 	// default to InfoLevel if we have something weird
 	return zapcore.InfoLevel
 }

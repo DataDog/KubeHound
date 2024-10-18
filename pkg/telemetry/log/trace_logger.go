@@ -2,9 +2,7 @@ package log
 
 import (
 	"context"
-	"fmt"
 	"strconv"
-	"strings"
 
 	"go.uber.org/zap"
 	ddtrace "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -21,6 +19,7 @@ func Trace(ctx context.Context) LoggerI {
 func ddTraceTraceID(span ddtrace.Span) Field {
 	traceID := span.Context().TraceID()
 	traceIDStr := strconv.FormatUint(traceID, 10)
+
 	return zap.String(traceIDKey, traceIDStr)
 }
 
@@ -29,6 +28,7 @@ func ddTraceTraceID(span ddtrace.Span) Field {
 func ddTraceSpanID(span ddtrace.Span) Field {
 	spanID := span.Context().SpanID()
 	spanIDStr := strconv.FormatUint(spanID, 10)
+
 	return zap.String(spanIDKey, spanIDStr)
 }
 
@@ -80,19 +80,8 @@ func TraceLogger(ctx context.Context, logger LoggerI) LoggerI {
 		logger: logger,
 		fields: fields,
 	}
-	return l
-}
 
-func (t *traceLogger) appendTracingFields(msg string) string {
-	var b strings.Builder
-	b.Grow(len(msg))
-	for i := range t.fields {
-		b.WriteString(fmt.Sprintf("%s=%s ",
-			t.fields[i].Key,
-			t.fields[i].String))
-	}
-	b.WriteString(msg)
-	return b.String()
+	return l
 }
 
 func (t *traceLogger) With(fields ...Field) LoggerI {

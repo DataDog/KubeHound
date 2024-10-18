@@ -43,6 +43,7 @@ func convertField(value any) string {
 	if !err {
 		return ""
 	}
+
 	return val
 }
 
@@ -109,10 +110,12 @@ type msec time.Duration
 
 func (f msec) String() string {
 	ms := time.Duration(f) / time.Millisecond
-	if ms < 10 {
+	if ms < 10 { //nolint: gomnd
 		us := time.Duration(f) / time.Microsecond
-		return fmt.Sprintf("%0.1fms", float64(us)/1000.0)
+
+		return fmt.Sprintf("%0.1fms", float64(us)/1000.0) //nolint: gomnd
 	}
+
 	return strconv.Itoa(int(ms)) + "ms"
 }
 
@@ -162,6 +165,7 @@ func Dur(key string, value time.Duration, truncate ...time.Duration) Field {
 	if len(truncate) > 0 {
 		trunc = truncate[0]
 	}
+
 	return zap.Duration(key, value-(value%trunc))
 }
 
@@ -185,6 +189,7 @@ func (f richError) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	}
 	marshalStacktrace(enc, "stack", f.stack)
 	marshalStacktrace(enc, "handling_stack", f.handlingStack)
+
 	return nil
 }
 
@@ -210,7 +215,7 @@ func RichError(err error) Field {
 	}
 
 	var callerStackTrace errors.StackTrace
-	if errWithStackTrace, ok := errors.WithStack(err).(stackTracer); ok {
+	if errWithStackTrace, ok := errors.WithStack(err).(stackTracer); ok { //nolint: errorlint
 		callerStackTrace = errWithStackTrace.StackTrace()
 		if len(callerStackTrace) > 0 {
 			callerStackTrace = callerStackTrace[1:]
@@ -245,13 +250,13 @@ func getStacktrace(err error) errors.StackTrace {
 	for index := 0; index < len(errorsToTest); index++ {
 		testedErr := errorsToTest[index]
 
-		if stackTracer, ok := testedErr.(stackTracer); ok {
+		if stackTracer, ok := testedErr.(stackTracer); ok { //nolint: errorlint
 			return stackTracer.StackTrace()
 		}
 
-		if joinErr, ok := testedErr.(UnwrapJoin); ok {
+		if joinErr, ok := testedErr.(UnwrapJoin); ok { //nolint: errorlint
 			errorsToTest = append(errorsToTest, joinErr.Unwrap()...)
-		} else if joinErr, ok := testedErr.(UnwrapMultierror); ok {
+		} else if joinErr, ok := testedErr.(UnwrapMultierror); ok { //nolint: errorlint
 			errorsToTest = append(errorsToTest, joinErr.WrappedErrors()...)
 		} else if unwrapped := errors.Unwrap(testedErr); unwrapped != nil {
 			errorsToTest = append(errorsToTest, unwrapped)
@@ -266,6 +271,7 @@ func ErrorField(err error) Field {
 	if err == nil {
 		return zap.Skip()
 	}
+
 	return zap.String("error", err.Error())
 }
 
@@ -274,6 +280,7 @@ func ErrorWithStackField(err error) Field {
 	if err == nil {
 		return zap.Skip()
 	}
+
 	return Object("error", err)
 }
 
@@ -369,6 +376,7 @@ func Bytes(key string, value []byte, limit int) Field {
 	if limit > 0 && limit < len(value) {
 		return zap.ByteString(key, value[:limit])
 	}
+
 	return zap.ByteString(key, value)
 }
 
@@ -433,7 +441,7 @@ type pct struct {
 }
 
 func (p pct) String() string {
-	return fmt.Sprintf("%0.3f%%", (p.part/p.whole)*100)
+	return fmt.Sprintf("%0.3f%%", (p.part/p.whole)*100) //nolint: gomnd
 }
 
 // Percent writes out a percent out of 100%.
