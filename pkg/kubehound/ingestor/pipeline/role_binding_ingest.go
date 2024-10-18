@@ -91,7 +91,7 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Identity(sid)
+	insert, err := i.r.graphConvert.Identity(sid) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb *store.R
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.PermissionSet(o)
+	insert, err := i.r.graphConvert.PermissionSet(o) //nolint: contextcheck
 	if err != nil {
 		return err
 	}

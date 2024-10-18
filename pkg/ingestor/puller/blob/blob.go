@@ -131,8 +131,9 @@ func (bs *BlobStore) ListFiles(ctx context.Context, prefix string, recursive boo
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
 func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName string, runID string) error {
-	log.I.Infof("Pulling data from blob store bucket %s, %s, %s", bs.bucketName, clusterName, runID)
-	spanPut, ctx := span.SpanIngestRunFromContext(outer, span.IngestorBlobPull)
+	l := log.Logger(outer)
+	l.Info("Putting data on blob store bucket", log.String("bucket_name", bs.bucketName), log.String(log.FieldClusterKey, clusterName), log.String(log.FieldRunIDKey, runID))
+	spanPut, ctx := span.SpanRunFromContext(outer, span.IngestorBlobPull)
 	var err error
 	defer func() { spanPut.Finish(tracer.WithError(err)) }()
 
@@ -141,20 +142,20 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 		return err
 	}
 	key := dumpResult.GetFullPath()
-	log.I.Infof("Opening bucket: %s", bs.bucketName)
+	l.Info("Opening bucket", log.String("bucket_name", bs.bucketName))
 	b, err := bs.openBucket(ctx)
 	if err != nil {
 		return err
 	}
 	defer b.Close()
-	log.I.Infof("Opening archive file %s", archivePath)
+	l.Info("Opening archive file", log.String(log.FieldPathKey, archivePath))
 	f, err := os.Open(archivePath)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	log.I.Infof("Uploading archive (%q) from blob store", key)
+	l.Info("Uploading archive from blob store", log.String("key", key))
 	w := bufio.NewReader(f)
 	err = b.Upload(ctx, key, w, &blob.WriterOptions{
 		ContentType: "application/gzip",
@@ -173,12 +174,13 @@ func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName 
 
 // Pull pulls the data from the blob store (e.g: s3) and returns the path of the folder containing the archive
 func (bs *BlobStore) Pull(outer context.Context, key string) (string, error) {
-	log.I.Infof("Pulling data from blob store bucket %s, %s", bs.bucketName, key)
-	spanPull, ctx := span.SpanIngestRunFromContext(outer, span.IngestorBlobPull)
+	l := log.Logger(outer)
+	l.Info("Pulling data from blob store bucket", log.String("bucket_name", bs.bucketName), log.String("key", key))
+	spanPull, ctx := span.SpanRunFromContext(outer, span.IngestorBlobPull)
 	var err error
 	defer func() { spanPull.Finish(tracer.WithError(err)) }()
 
-	log.I.Infof("Opening bucket: %s", bs.bucketName)
+	l.Info("Opening bucket", log.String("bucket_name", bs.bucketName))
 	b, err := bs.openBucket(ctx)
 	if err != nil {
 		return "", err
@@ -195,7 +197,7 @@ func (bs *BlobStore) Pull(outer context.Context, key string) (string, error) {
 		return dirname, err
 	}
 
-	log.I.Infof("Created temporary directory %s", dirname)
+	l.Info("Created temporary directory", log.String(log.FieldPathKey, dirname))
 	archivePath := filepath.Join(dirname, config.DefaultArchiveName)
 	f, err := os.Create(archivePath)
 	if err != nil {
@@ -203,7 +205,7 @@ func (bs *BlobStore) Pull(outer context.Context, key string) (string, error) {
 	}
 	defer f.Close()
 
-	log.I.Infof("Downloading archive (%q) from blob store", key)
+	l.Info("Downloading archive from blob store", log.String("key", key))
 	w := bufio.NewWriter(f)
 	err = b.Download(ctx, key, w, nil)
 	if err != nil {
@@ -219,7 +221,7 @@ func (bs *BlobStore) Pull(outer context.Context, key string) (string, error) {
 }
 
 func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
-	spanExtract, _ := span.SpanIngestRunFromContext(ctx, span.IngestorBlobExtract)
+	spanExtract, _ := span.SpanRunFromContext(ctx, span.IngestorBlobExtract)
 	var err error
 	defer func() { spanExtract.Finish(tracer.WithError(err)) }()
 
@@ -230,7 +232,7 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 	}
 
 	dryRun := false
-	err = puller.ExtractTarGz(dryRun, archivePath, basePath, bs.cfg.Ingestor.MaxArchiveSize)
+	err = puller.ExtractTarGz(ctx, dryRun, archivePath, basePath, bs.cfg.Ingestor.MaxArchiveSize)
 	if err != nil {
 		return err
 	}
@@ -241,7 +243,7 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 // Once downloaded and processed, we should cleanup the disk so we can reduce the disk usage
 // required for large infrastructure
 func (bs *BlobStore) Close(ctx context.Context, archivePath string) error {
-	spanClose, _ := span.SpanIngestRunFromContext(ctx, span.IngestorBlobClose)
+	spanClose, _ := span.SpanRunFromContext(ctx, span.IngestorBlobClose)
 	var err error
 	defer func() { spanClose.Finish(tracer.WithError(err)) }()
 

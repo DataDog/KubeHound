@@ -14,7 +14,8 @@ func NewNoopNotifier() notifier.Notifier {
 }
 
 func (n *NoopNotifier) Notify(ctx context.Context, clusterName string, runID string) error {
-	log.I.Warnf("Noop Notifying for cluster %s and run ID %s", clusterName, runID)
+	l := log.Logger(ctx)
+	l.Warn("Noop Notifying for cluster and run ID", log.String(log.FieldClusterKey, clusterName), log.String(log.FieldRunIDKey, runID))
 
 	return nil
 }

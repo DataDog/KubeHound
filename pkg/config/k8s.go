@@ -18,12 +18,13 @@ type ClusterInfo struct {
 	Name string
 }
 
-func NewClusterInfo(_ context.Context) (*ClusterInfo, error) {
+func NewClusterInfo(ctx context.Context) (*ClusterInfo, error) {
 	// Testing if running from pod
 	// Using an environment variable to get the cluster name as it is not provided in the pod configuration
+	l := log.Logger(ctx)
 	clusterName := os.Getenv(clusterNameEnvVar)
 	if clusterName != "" {
-		log.I.Warnf("Using cluster name from environment variable [%s]: %s", clusterNameEnvVar, clusterName)
+		l.Warn("Using cluster name from environment variable", log.String("env_var", clusterNameEnvVar), log.String(log.FieldClusterKey, clusterName))
 
 		return &ClusterInfo{
 			Name: clusterName,

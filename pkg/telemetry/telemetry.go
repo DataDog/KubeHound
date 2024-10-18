@@ -1,6 +1,8 @@
 package telemetry
 
 import (
+	"context"
+
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/profiler"
@@ -14,21 +16,22 @@ type State struct {
 
 // Initialize all telemetry required
 // return client to enable clean shutdown
-func Initialize(khCfg *config.KubehoundConfig) error {
+func Initialize(ctx context.Context, khCfg *config.KubehoundConfig) error {
+	l := log.Logger(ctx)
 	if !khCfg.Telemetry.Enabled {
-		log.I.Warnf("Telemetry disabled via configuration")
+		l.Warn("Telemetry disabled via configuration")
 
 		return nil
 	}
 
 	// Profiling
-	profiler.Initialize(khCfg)
+	profiler.Initialize(ctx, khCfg)
 
 	// Tracing
-	tracer.Initialize(khCfg)
+	tracer.Initialize(ctx, khCfg)
 
 	// Metrics
-	err := statsd.Setup(khCfg)
+	err := statsd.Setup(ctx, khCfg)
 	if err != nil {
 		return err
 	}
@@ -36,8 +39,9 @@ func Initialize(khCfg *config.KubehoundConfig) error {
 	return nil
 }
 
-func Shutdown(enabled bool) {
-	if enabled {
+func Shutdown(ctx context.Context, enabled bool) {
+	l := log.Logger(ctx)
+	if !enabled {
 		return
 	}
 
@@ -45,16 +49,16 @@ func Shutdown(enabled bool) {
 	profiler.Shutdown()
 
 	// Tracing
-	tracer.Shutdown()
+	tracer.Shutdown(ctx)
 
 	// Metrics
 	err := statsd.Flush()
 	if err != nil {
-		log.I.Warnf("Failed to flush statsd client: %v", err)
+		l.Warnf("Failed to flush statsd client", log.ErrorField(err))
 	}
 
 	err = statsd.Close()
 	if err != nil {
-		log.I.Warnf("Failed to close statsd client: %v", err)
+		l.Warnf("Failed to close statsd client", log.ErrorField(err))
 	}
 }

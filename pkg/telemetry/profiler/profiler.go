@@ -1,6 +1,8 @@
 package profiler
 
 import (
+	"context"
+
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -8,7 +10,8 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
 
-func Initialize(cfg *config.KubehoundConfig) {
+func Initialize(ctx context.Context, cfg *config.KubehoundConfig) {
+	l := log.Logger(ctx)
 	opts := []profiler.Option{
 		profiler.WithService(globals.DDServiceName),
 		profiler.WithEnv(globals.GetDDEnv()),
@@ -34,7 +37,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 
 	err := profiler.Start(opts...)
 	if err != nil {
-		log.I.Errorf("start profiler: %v", err)
+		l.Error("start profiler", log.ErrorField(err))
 	}
 }
 

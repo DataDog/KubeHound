@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
@@ -55,13 +54,14 @@ const (
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
 type FileCollector struct {
 	cfg         *config.FileCollectorConfig
-	log         *log.KubehoundLogger
 	tags        collectorTags
 	clusterName string
 }
 
 // NewFileCollector creates a new instance of the file collector from the provided application config.
 func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
+	ctx = context.WithValue(ctx, log.ContextFieldComponent, FileCollectorName)
+	l := log.Trace(ctx)
 	if cfg.Collector.Type != config.CollectorTypeFile {
 		return nil, fmt.Errorf("invalid collector type in config: %s", cfg.Collector.Type)
 	}
@@ -70,12 +70,10 @@ func NewFileCollector(ctx context.Context, cfg *config.KubehoundConfig) (Collect
 		return nil, errors.New("file collector config not provided")
 	}
 
-	l := log.Trace(ctx, log.WithComponent(globals.FileCollectorComponent))
-	l.Infof("Creating file collector from directory %s", cfg.Collector.File.Directory)
+	l.Info("Creating file collector from directory", log.String(log.FieldPathKey, cfg.Collector.File.Directory))
 
 	return &FileCollector{
 		cfg:         cfg.Collector.File,
-		log:         l,
 		tags:        newCollectorTags(),
 		clusterName: cfg.Dynamic.ClusterName,
 	}, nil
@@ -138,8 +136,9 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 }
 
 func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityPods)
+	l := log.Trace(ctx)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
@@ -157,7 +156,7 @@ func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) er
 			return nil
 		}
 
-		c.log.Debugf("Streaming pods from file %s", fp)
+		l.Debug("Streaming pods from file", log.String(log.FieldPathKey, fp), log.String(log.FieldEntityKey, tag.EntityPods))
 
 		return c.streamPodsNamespace(ctx, fp, ingestor)
 	})
@@ -189,8 +188,9 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 }
 
 func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityRoles)
+	l := log.Trace(ctx)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
@@ -200,17 +200,17 @@ func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) 
 			return nil
 		}
 
-		f := filepath.Join(path, RolesPath)
+		fp := filepath.Join(path, RolesPath)
 
 		// Check if the file exists
-		if _, err := os.Stat(f); os.IsNotExist(err) {
+		if _, err := os.Stat(fp); os.IsNotExist(err) {
 			// Skipping streaming as file does not exist (k8s type not necessary required in a namespace, for instance, an namespace can have no roles)
 			return nil
 		}
 
-		c.log.Debugf("Streaming roles from file %s", f)
+		l.Debug("Streaming roles from file", log.String(log.FieldPathKey, fp), log.String(log.FieldEntityKey, tag.EntityRoles))
 
-		return c.streamRolesNamespace(ctx, f, ingestor)
+		return c.streamRolesNamespace(ctx, fp, ingestor)
 	})
 
 	if err != nil {
@@ -240,8 +240,9 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 }
 
 func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityRolebindings)
+	l := log.Trace(ctx)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
@@ -259,7 +260,7 @@ func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBin
 			return nil
 		}
 
-		c.log.Debugf("Streaming role bindings from file %s", fp)
+		l.Debug("Streaming role bindings from file", log.String(log.FieldPathKey, fp), log.String(log.FieldEntityKey, tag.EntityRolebindings))
 
 		return c.streamRoleBindingsNamespace(ctx, fp, ingestor)
 	})
@@ -291,8 +292,9 @@ func (c *FileCollector) streamEndpointsNamespace(ctx context.Context, fp string,
 }
 
 func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
+	l := log.Trace(ctx)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
@@ -309,8 +311,7 @@ func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIn
 			// Skipping streaming as file does not exist (k8s type not necessary required in a namespace, for instance, an namespace can have no endpoints)
 			return nil
 		}
-
-		c.log.Debugf("Streaming endpoint slices from file %s", fp)
+		l.Debug("Streaming endpoints slices from file", log.String(log.FieldPathKey, fp), log.String(log.FieldEntityKey, tag.EntityEndpoints))
 
 		return c.streamEndpointsNamespace(ctx, fp, ingestor)
 	})
@@ -323,13 +324,14 @@ func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIn
 }
 
 func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityNodes)
+	l := log.Trace(ctx)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	fp := filepath.Join(c.cfg.Directory, NodePath)
-	c.log.Debugf("Streaming nodes from file %s", fp)
+	l.Debug("Streaming nodes from file", log.String(log.FieldPathKey, fp), log.String(log.FieldEntityKey, tag.EntityNodes))
 
 	list, err := readList[corev1.NodeList](ctx, fp)
 	if err != nil {
@@ -349,13 +351,14 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 }
 
 func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityClusterRoles)
+	l := log.Trace(ctx)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	fp := filepath.Join(c.cfg.Directory, ClusterRolesPath)
-	c.log.Debugf("Streaming cluster roles from file %s", fp)
+	l.Debug("Streaming cluster role from file", log.String(log.FieldPathKey, fp), log.String(log.FieldEntityKey, tag.EntityClusterRoles))
 
 	list, err := readList[rbacv1.ClusterRoleList](ctx, fp)
 	if err != nil {
@@ -375,13 +378,14 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 }
 
 func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityClusterRolebindings)
+	l := log.Trace(ctx)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	fp := filepath.Join(c.cfg.Directory, ClusterRoleBindingsPath)
-	c.log.Debugf("Streaming cluster role bindings from file %s", fp)
+	l.Debug("Streaming cluster role bindings from file", log.String(log.FieldPathKey, fp), log.String(log.FieldEntityKey, tag.EntityClusterRolebindings))
 
 	list, err := readList[rbacv1.ClusterRoleBindingList](ctx, fp)
 	if err != nil {
@@ -403,7 +407,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 // readList loads a list of K8s API objects into memory from a JSON file on disk.
 // NOTE: This implementation reads the entire array of objects from the file into memory at once.
 func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl, error) {
-	span, _ := tracer.StartSpanFromContext(ctx, span.DumperReadFile, tracer.Measured())
+	span, _ := span.SpanRunFromContext(ctx, span.DumperReadFile)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 

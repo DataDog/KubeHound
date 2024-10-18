@@ -2,146 +2,101 @@ package log
 
 import (
 	"context"
-	"os"
-	"strconv"
-	"sync"
+	"sync/atomic"
 
-	"github.com/DataDog/KubeHound/pkg/globals"
-	logrus "github.com/sirupsen/logrus"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"go.uber.org/zap"
 )
 
-type LoggerOption func(*logrus.Entry) *logrus.Entry
+// globalDefault contains the current global default logger and its configuration.
+// It is set in ConfigureDefaultLogger, which is called in a package init() function.
+// It will never be nil.
+//
+// When using this from package-level functions, we must use the zap loggers directly.
+// This avoids adding an extra level of functions to the stack. This means we can use the same
+// loggers, without changing the AddCallerSkip() configuration.
+var globalDefault atomic.Pointer[traceLogger]
 
-type LoggerConfig struct {
-	Tags logrus.Fields // Tags applied to all logs.
-	Mu   *sync.Mutex   // Lock to enable safe runtime changes.
-	DD   bool          // Whether Datadog integration is enabled.
+type LoggerI interface { //nolint: interfacebloat
+	// With returns a child logger structured with the provided fields.
+	// Fields added to the child don't affect the parent, and vice versa.
+	With(fields ...Field) LoggerI
+
+	Debug(msg string, fields ...Field)
+	Info(msg string, fields ...Field)
+	Warn(msg string, fields ...Field)
+	Error(msg string, fields ...Field)
+	Panic(msg string, fields ...Field)
+	Fatal(msg string, fields ...Field)
+
+	Debugf(msg string, params ...interface{})
+	Infof(msg string, params ...interface{})
+	Warnf(msg string, params ...interface{})
+	Errorf(msg string, params ...interface{})
+	Panicf(msg string, params ...interface{})
+	Fatalf(msg string, params ...interface{})
 }
 
-var globalConfig = LoggerConfig{
-	Tags: logrus.Fields{
-		globals.TagService:   globals.DDServiceName,
-		globals.TagComponent: globals.DefaultComponent,
-	},
-	Mu: &sync.Mutex{},
-	DD: true,
-}
-
-// I Global logger instance for use through the app
-var I = Base()
-
-// Require our logger to append job or API related fields for easier filtering and parsing
-// of logs within custom dashboards. Sticking to the "structured" log types also enables
-// out of the box correlation of APM traces and log messages without the need for a custom
-// index pipeline. See: https://docs.datadoghq.com/logs/log_collection/go/#configure-your-logger
 type KubehoundLogger struct {
-	*logrus.Entry
+	LoggerI
 }
 
-// traceID retrieves the trace ID from the provided span.
-func traceID(span tracer.Span) string {
-	traceID := span.Context().TraceID()
+func Logger(ctx context.Context) LoggerI {
+	logger := Trace(ctx)
 
-	return strconv.FormatUint(traceID, 10)
-}
-
-// traceID retrieves the span ID from the provided span.
-func spanID(span tracer.Span) string {
-	spanID := span.Context().SpanID()
-
-	return strconv.FormatUint(spanID, 10)
-}
-
-// Base returns the base logger for the application.
-func Base() *KubehoundLogger {
-	logger := logrus.WithFields(globalConfig.Tags)
-	logger.Logger.SetFormatter(GetLogrusFormatter())
-
-	return &KubehoundLogger{logger}
-}
-
-// SetDD enables/disabled Datadog integration in the logger.
-func SetDD(enabled bool) {
-	globalConfig.Mu.Lock()
-	defer globalConfig.Mu.Unlock()
-
-	globalConfig.DD = enabled
-
-	// Replace the current logger instance to reflect changes
-	I = Base()
-}
-
-// AddGlobalTags adds global tags to all application loggers.
-func AddGlobalTags(tags map[string]string) {
-	globalConfig.Mu.Lock()
-	defer globalConfig.Mu.Unlock()
-
-	for tk, tv := range tags {
-		globalConfig.Tags[tk] = tv
-	}
-
-	// Replace the current logger instance to reflect changes
-	I = Base()
-}
-
-// WithComponent adds a component name tag to the logger.
-func WithComponent(name string) LoggerOption {
-	return func(l *logrus.Entry) *logrus.Entry {
-		return l.WithField(globals.TagComponent, name)
+	return &KubehoundLogger{
+		LoggerI: logger,
 	}
 }
 
-// WithCollectedCluster adds a component name tag to the logger.
-func WithCollectedCluster(name string) LoggerOption {
-	return func(l *logrus.Entry) *logrus.Entry {
-		return l.WithField(globals.CollectedClusterComponent, name)
-	}
+const (
+	spanIDKey  = "dd.span_id"
+	traceIDKey = "dd.trace_id"
+
+	logFormatDD   = "dd"
+	logFormatJSON = "json"
+	logFormatText = "text"
+)
+
+// DefaultLogger returns the global logger
+func DefaultLogger() LoggerI {
+	return globalDefault.Load()
 }
 
-// Trace creates a logger from the current context, attaching trace and span IDs for use with APM.
-func Trace(ctx context.Context, opts ...LoggerOption) *KubehoundLogger {
-	baseLogger := Base()
-
-	span, ok := tracer.SpanFromContext(ctx)
-	if !ok {
-		return baseLogger
+func init() {
+	err := zap.RegisterEncoder("text", NewKeyValueEncoder)
+	if err != nil {
+		panic(err)
 	}
-
-	if !globalConfig.DD {
-		return baseLogger
-	}
-
-	logger := baseLogger.WithFields(logrus.Fields{
-		"dd.span_id":  spanID(span),
-		"dd.trace_id": traceID(span),
-	})
-
-	for _, o := range opts {
-		logger = o(logger)
-	}
-
-	return &KubehoundLogger{logger}
+	InitLogger()
 }
 
-func GetLogrusFormatter() logrus.Formatter {
-	customTextFormatter := NewFilteredTextFormatter(DefaultRemovedFields)
+func InitLogger() {
+	l := &traceLogger{
+		logger: newLoggerWithSkip(1),
+		fields: []Field{},
+	}
+	globalDefault.Store(l)
+}
 
-	switch logFormat := os.Getenv("KH_LOG_FORMAT"); {
-	// Datadog require the logged field to be "message" and not "msg"
-	case logFormat == "dd":
-		formatter := &logrus.JSONFormatter{
-			FieldMap: logrus.FieldMap{
-				logrus.FieldKeyMsg: "message",
-			},
-		}
+func newLoggerWithSkip(skip int) *zapLogger {
+	// add 1 to skip: We wrap zap's functions with *zapLogger methods
+	skip += 1
 
-		return formatter
-	case logFormat == "json":
-		return &logrus.JSONFormatter{}
-	case logFormat == "text":
-		return customTextFormatter
-	default:
-		return customTextFormatter
+	zc := newZapConfig()
+	zOptions := []zap.Option{
+		zap.AddCallerSkip(skip),
+		zap.AddStacktrace(zap.DPanicLevel),
+	}
+
+	logger, err := zc.Build(zOptions...)
+
+	// XXX: fall back to a basic printf-based logger?
+	if err != nil {
+		panic(err)
+	}
+
+	return &zapLogger{
+		l: logger,
+		s: logger.Sugar(),
 	}
 }

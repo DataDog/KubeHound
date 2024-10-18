@@ -48,7 +48,7 @@ func (e *VolumeAccess) Processor(ctx context.Context, oic *converter.ObjectIDCon
 func (e *VolumeAccess) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	volumes := adapter.MongoDB(store).Collection(collections.VolumeName)
+	volumes := adapter.MongoDB(ctx, store).Collection(collections.VolumeName)
 
 	// We just need a 1:1 mapping of the node and volume to create this edge
 	projection := bson.M{"_id": 1, "node_id": 1}

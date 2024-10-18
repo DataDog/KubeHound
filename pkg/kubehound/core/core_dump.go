@@ -14,6 +14,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/ext"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -22,21 +23,25 @@ import (
 // If upload is true, it will upload the file to the configured blob storage.
 // It returns the path to the dumped file/dir (only used for the system tests)
 func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (string, error) {
-	start := time.Now()
-	var err error
-
-	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperLaunch, tracer.Measured())
-	defer func() {
-		span.Finish(tracer.WithError(err))
-	}()
-
-	khCfg.Collector.Type = config.CollectorTypeK8sAPI
+	l := log.Logger(ctx)
 
 	clusterName, err := config.GetClusterName(ctx)
 	if err != nil {
 		return "", fmt.Errorf("collector cluster info: %w", err)
 	}
 	khCfg.Dynamic.ClusterName = clusterName
+	ctx = context.WithValue(ctx, log.ContextFieldCluster, clusterName)
+	ctx = context.WithValue(ctx, log.ContextFieldRunID, khCfg.Dynamic.RunID.String())
+
+	start := time.Now()
+
+	span, ctx := span.SpanRunFromContext(ctx, span.DumperLaunch)
+	span.SetTag(ext.ManualKeep, true)
+	defer func() {
+		span.Finish(tracer.WithError(err))
+	}()
+
+	khCfg.Collector.Type = config.CollectorTypeK8sAPI
 
 	events.PushEvent(
 		fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
@@ -50,14 +55,14 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 	if err != nil {
 		return "", err
 	}
-	log.I.Infof("result %s", filePath)
+	l.Info("result saved to file", log.String(log.FieldPathKey, filePath))
 
 	if upload {
 		// Clean up the temporary directory when done
 		defer func() {
 			err = os.RemoveAll(khCfg.Collector.File.Directory)
 			if err != nil {
-				log.I.Errorf("Failed to remove temporary directory: %v", err)
+				l.Error("Failed to remove temporary directory", log.ErrorField(err))
 			}
 		}()
 		puller, err := blob.NewBlobStorage(khCfg, khCfg.Ingestor.Blob)
@@ -78,7 +83,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 			tag.ActionType(events.DumperRun),
 		},
 	)
-	log.I.Infof("KubeHound dump run has been completed in %s", time.Since(start))
+	l.Info("KubeHound dump run has been completed", log.Duration("duration", time.Since(start)))
 
 	return filePath, nil
 }
@@ -86,18 +91,20 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 // Running the local dump of the k8s objects (dumper pipeline)
 // It returns the path to the dumped file/dir (only used for the system tests)
 func runLocalDump(ctx context.Context, khCfg *config.KubehoundConfig) (string, error) {
-	log.I.Info("Loading Kubernetes data collector client")
+	l := log.Logger(ctx)
+	l.Info("Loading Kubernetes data collector client")
 	collect, err := collector.ClientFactory(ctx, khCfg)
 	if err != nil {
 		return "", fmt.Errorf("collector client creation: %w", err)
 	}
 	defer func() { collect.Close(ctx) }()
-	log.I.Infof("Loaded %q collector client", collect.Name())
+	ctx = context.WithValue(ctx, log.ContextFieldComponent, collect.Name())
+	l.Info("Loaded collector client")
 
 	// Create the dumper instance
 	collectorLocalOutputDir := khCfg.Collector.File.Directory
 	collectorLocalCompress := !khCfg.Collector.File.Archive.NoCompress
-	log.I.Infof("Dumping %q to %q", khCfg.Dynamic.ClusterName, collectorLocalOutputDir)
+	l.Info("Dumping cluster info to directory", log.String(log.FieldPathKey, collectorLocalOutputDir))
 	dumpIngestor, err := dump.NewDumpIngestor(ctx, collect, collectorLocalCompress, collectorLocalOutputDir, khCfg.Dynamic.RunID)
 	if err != nil {
 		return "", fmt.Errorf("create dumper: %w", err)

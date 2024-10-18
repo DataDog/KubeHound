@@ -18,30 +18,31 @@ import (
 
 func IngestData(ctx context.Context, cfg *config.KubehoundConfig, collect collector.CollectorClient, cache cache.CacheProvider,
 	storedb storedb.Provider, graphdb graphdb.Provider) error {
+	l := log.Logger(ctx)
 
 	start := time.Now()
-	span, ctx := tracer.StartSpanFromContext(ctx, span.IngestData, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.IngestData)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	log.I.Info("Loading data ingestor")
+	l.Info("Loading data ingestor")
 	ingest, err := ingestor.Factory(cfg, collect, cache, storedb, graphdb)
 	if err != nil {
 		return fmt.Errorf("ingestor creation: %w", err)
 	}
 	defer ingest.Close(ctx)
 
-	log.I.Info("Running dependency health checks")
+	l.Info("Running deependency health checks")
 	if err := ingest.HealthCheck(ctx); err != nil {
 		return fmt.Errorf("ingestor dependency health check: %w", err)
 	}
 
-	log.I.Info("Running data ingest and normalization")
+	l.Info("Running data ingest and normalization")
 	if err := ingest.Run(ctx); err != nil {
 		return fmt.Errorf("ingest: %w", err)
 	}
 
-	log.I.Infof("Completed data ingest and normalization in %s", time.Since(start))
+	l.Info("Completed data ingest and normalization", log.Duration("time", time.Since(start)))
 
 	return nil
 }

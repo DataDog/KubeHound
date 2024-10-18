@@ -37,7 +37,7 @@ func (e *EscapeSysPtrace) Processor(ctx context.Context, oic *converter.ObjectID
 func (e *EscapeSysPtrace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(store).Collection(collections.ContainerName)
+	containers := adapter.MongoDB(ctx, store).Collection(collections.ContainerName)
 
 	// Escape is possible with shared host pid namespace and SYS_PTRACE/SYS_ADMIN capabilities
 	filter := bson.M{

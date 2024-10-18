@@ -32,7 +32,6 @@ import (
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
 type k8sAPICollector struct {
 	clientset   kubernetes.Interface
-	log         *log.KubehoundLogger
 	rl          ratelimit.Limiter
 	cfg         *config.K8SAPICollectorConfig
 	tags        collectorTags
@@ -71,6 +70,9 @@ func tunedListOptions() metav1.ListOptions {
 
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
+	ctx = context.WithValue(ctx, log.ContextFieldComponent, K8sAPICollectorName)
+	l := log.Trace(ctx)
+
 	clusterName, err := config.GetClusterName(ctx)
 	if err != nil {
 		return nil, err
@@ -79,14 +81,9 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		return nil, errors.New("Cluster name is empty. Did you forget to set `KUBECONFIG` or use `kubectx` to select a cluster?")
 	}
 
-	l := log.Trace(ctx,
-		log.WithComponent(K8sAPICollectorName),
-		log.WithCollectedCluster(clusterName),
-	)
-
 	if !cfg.Collector.NonInteractive {
-		l.Warnf("About to dump k8s cluster: %q - Do you want to continue ? [Yes/No]", clusterName)
-		proceed, err := cmd.AskForConfirmation()
+		l.Warn("About to dump k8s cluster - Do you want to continue ? [Yes/No]", log.String(log.FieldClusterKey, clusterName))
+		proceed, err := cmd.AskForConfirmation(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +115,6 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 	return &k8sAPICollector{
 		cfg:         cfg.Collector.Live,
 		clientset:   clientset,
-		log:         l,
 		rl:          ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
 		tags:        newCollectorTags(),
 		waitTime:    map[string]time.Duration{},
@@ -149,7 +145,8 @@ func (c *k8sAPICollector) ComputeMetadata(ctx context.Context, ingestor Metadata
 	return nil
 }
 
-func (c *k8sAPICollector) wait(_ context.Context, resourceType string, tags []string) {
+func (c *k8sAPICollector) wait(ctx context.Context, resourceType string, tags []string) {
+	l := log.Logger(ctx)
 	c.mu.Lock()
 	prev := time.Now()
 	now := c.rl.Take()
@@ -160,24 +157,25 @@ func (c *k8sAPICollector) wait(_ context.Context, resourceType string, tags []st
 
 	// Display a message to tell the user the streaming has started (only once after the approval has been made)
 	if !c.isStreaming {
-		log.I.Info("Streaming data from the K8s API")
+		l.Info("Streaming data from the K8s API")
 		c.isStreaming = true
 	}
 
 	// entity := tag.Entity(resourceType)
 	err := statsd.Gauge(metric.CollectorWait, float64(c.waitTime[resourceType]), tags, 1)
 	if err != nil {
-		c.log.Error(err)
+		l.Error("could not send gauge", log.ErrorField(err))
 	}
 }
 
-func (c *k8sAPICollector) waitTimeByResource(resourceType string, span ddtrace.Span) {
+func (c *k8sAPICollector) waitTimeByResource(ctx context.Context, resourceType string, span ddtrace.Span) {
+	l := log.Logger(ctx)
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	waitTime := c.waitTime[resourceType]
 	span.SetTag(tag.WaitTag, waitTime)
-	c.log.Debugf("Wait time for %s: %s", resourceType, waitTime)
+	l.Debugf("Wait time for %s: %s", resourceType, waitTime)
 }
 
 func (c *k8sAPICollector) Name() string {
@@ -185,7 +183,8 @@ func (c *k8sAPICollector) Name() string {
 }
 
 func (c *k8sAPICollector) HealthCheck(ctx context.Context) (bool, error) {
-	c.log.Debugf("Requesting /healthz endpoint")
+	l := log.Logger(ctx)
+	l.Debug("Requesting /healthz endpoint")
 
 	rawRes, err := c.clientset.Discovery().RESTClient().Get().AbsPath("/healthz").DoRaw(ctx)
 	if err != nil {
@@ -205,7 +204,8 @@ func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*config.ClusterInfo,
 }
 
 // Generate metrics for k8sAPI collector
-func (c *k8sAPICollector) computeMetrics(_ context.Context) (Metrics, error) {
+func (c *k8sAPICollector) computeMetrics(ctx context.Context) (Metrics, error) {
+	l := log.Logger(ctx)
 	var errMetric error
 	var runTotalWaitTime time.Duration
 	for _, wait := range c.waitTime {
@@ -216,21 +216,21 @@ func (c *k8sAPICollector) computeMetrics(_ context.Context) (Metrics, error) {
 	err := statsd.Gauge(metric.CollectorRunWait, float64(runTotalWaitTime), c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
-		c.log.Error(err)
+		l.Error("could not send gauge", log.ErrorField(err))
 	}
 	err = statsd.Gauge(metric.CollectorRunDuration, float64(runDuration), c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
-		c.log.Error(err)
+		l.Error("could not send gauge", log.ErrorField(err))
 	}
 
 	runThrottlingPercentage := 1 - (float64(runDuration-runTotalWaitTime) / float64(runDuration))
 	err = statsd.Gauge(metric.CollectorRunThrottling, runThrottlingPercentage, c.tags.baseTags, 1)
 	if err != nil {
 		errMetric = errors.Join(errMetric, err)
-		c.log.Error(err)
+		l.Error("could not send gauge", log.ErrorField(err))
 	}
-	c.log.Infof("Stats for the run time duration: %s / wait: %s / throttling: %f%%", runDuration, runTotalWaitTime, 100*runThrottlingPercentage) //nolint:gomnd
+	l.Info("Stats for the run time duration", log.Dur("run", runDuration), log.Dur("wait", runTotalWaitTime), log.Percent("throttling_percent", 100*runThrottlingPercentage, 100)) //nolint:gomnd
 
 	// SaveMetadata
 	metadata := Metrics{
@@ -306,7 +306,7 @@ func (c *k8sAPICollector) streamPodsNamespace(ctx context.Context, namespace str
 
 func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
 	entity := tag.EntityPods
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -317,7 +317,7 @@ func (c *k8sAPICollector) StreamPods(ctx context.Context, ingestor PodIngestor) 
 		return err
 	}
 
-	c.waitTimeByResource(entity, span)
+	c.waitTimeByResource(ctx, entity, span)
 
 	return ingestor.Complete(ctx)
 }
@@ -361,7 +361,7 @@ func (c *k8sAPICollector) streamRolesNamespace(ctx context.Context, namespace st
 
 func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
 	entity := tag.EntityRoles
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -372,7 +372,7 @@ func (c *k8sAPICollector) StreamRoles(ctx context.Context, ingestor RoleIngestor
 		return err
 	}
 
-	c.waitTimeByResource(entity, span)
+	c.waitTimeByResource(ctx, entity, span)
 
 	return ingestor.Complete(ctx)
 }
@@ -416,7 +416,7 @@ func (c *k8sAPICollector) streamRoleBindingsNamespace(ctx context.Context, names
 
 func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
 	entity := tag.EntityRolebindings
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -427,7 +427,7 @@ func (c *k8sAPICollector) StreamRoleBindings(ctx context.Context, ingestor RoleB
 		return err
 	}
 
-	c.waitTimeByResource(entity, span)
+	c.waitTimeByResource(ctx, entity, span)
 
 	return ingestor.Complete(ctx)
 }
@@ -471,7 +471,7 @@ func (c *k8sAPICollector) streamEndpointsNamespace(ctx context.Context, namespac
 
 func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
 	entity := tag.EntityEndpoints
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -482,14 +482,14 @@ func (c *k8sAPICollector) StreamEndpoints(ctx context.Context, ingestor Endpoint
 		return err
 	}
 
-	c.waitTimeByResource(entity, span)
+	c.waitTimeByResource(ctx, entity, span)
 
 	return ingestor.Complete(ctx)
 }
 
 func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
 	entity := tag.EntityNodes
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -525,14 +525,14 @@ func (c *k8sAPICollector) StreamNodes(ctx context.Context, ingestor NodeIngestor
 		return err
 	}
 
-	c.waitTimeByResource(entity, span)
+	c.waitTimeByResource(ctx, entity, span)
 
 	return ingestor.Complete(ctx)
 }
 
 func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
 	entity := tag.EntityClusterRoles
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -568,14 +568,14 @@ func (c *k8sAPICollector) StreamClusterRoles(ctx context.Context, ingestor Clust
 		return err
 	}
 
-	c.waitTimeByResource(entity, span)
+	c.waitTimeByResource(ctx, entity, span)
 
 	return ingestor.Complete(ctx)
 }
 
 func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
 	entity := tag.EntityClusterRolebindings
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, entity)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -611,7 +611,7 @@ func (c *k8sAPICollector) StreamClusterRoleBindings(ctx context.Context, ingesto
 		return err
 	}
 
-	c.waitTimeByResource(entity, span)
+	c.waitTimeByResource(ctx, entity, span)
 
 	return ingestor.Complete(ctx)
 }

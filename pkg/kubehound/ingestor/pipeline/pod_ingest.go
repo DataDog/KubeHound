@@ -219,7 +219,7 @@ func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.Vo
 // The function ingests an input pod object into the cache/store/graph and then ingests
 // all child objects (containers, volumes, etc) through their own ingestion pipeline.
 func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
-	if ok, err := preflight.CheckPod(pod); !ok {
+	if ok, err := preflight.CheckPod(ctx, pod); !ok {
 		return err
 	}
 
@@ -237,7 +237,7 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	}
 
 	// Transform store model to vertex input
-	insert, err := i.r.graphConvert.Pod(sp)
+	insert, err := i.r.graphConvert.Pod(sp) //nolint: contextcheck
 	if err != nil {
 		return err
 	}

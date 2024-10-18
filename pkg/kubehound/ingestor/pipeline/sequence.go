@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
@@ -16,7 +15,7 @@ type Sequence struct {
 
 // Run executes all the pipeline groups in sequence and returns when all complete.
 func (s *Sequence) Run(ctx context.Context, deps *Dependencies) error {
-	l := log.Trace(ctx, log.WithComponent(globals.IngestorComponent))
+	l := log.Trace(ctx)
 
 	l.Infof("Starting ingest sequence %s", s.Name)
 	for _, g := range s.Groups {

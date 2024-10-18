@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
-	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	discoveryv1 "k8s.io/api/discovery/v1"
 )
 
@@ -24,7 +23,7 @@ func TestFileWriter_Write(t *testing.T) {
 
 	tmpDir, err := os.MkdirTemp("/tmp/", "kh-unit-tests-*")
 	if err != nil {
-		log.I.Fatalf(err.Error())
+		t.Fatalf("failer to create temp dir for test: %v", err)
 	}
 
 	fileNameK8sObject := collector.EndpointPath

@@ -33,6 +33,7 @@ type server struct {
 
 // Ingest is just a GRPC wrapper around the Ingest method from the API package
 func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestResponse, error) {
+	l := log.Logger(ctx)
 	// Rebuilding the path for the dump archive file
 	dumpResult, err := dump.NewDumpResult(in.GetClusterName(), in.GetRunId(), true)
 	if err != nil {
@@ -42,7 +43,7 @@ func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestRe
 
 	err = s.api.Ingest(ctx, key)
 	if err != nil {
-		log.I.Errorf("Ingest failed: %v", err)
+		l.Error("Ingest failed", log.ErrorField(err))
 
 		return nil, err
 	}
@@ -52,9 +53,10 @@ func (s *server) Ingest(ctx context.Context, in *pb.IngestRequest) (*pb.IngestRe
 
 // RehydrateLatest is just a GRPC wrapper around the RehydrateLatest method from the API package
 func (s *server) RehydrateLatest(ctx context.Context, in *pb.RehydrateLatestRequest) (*pb.RehydrateLatestResponse, error) {
+	l := log.Logger(ctx)
 	res, err := s.api.RehydrateLatest(ctx)
 	if err != nil {
-		log.I.Errorf("Ingest failed: %v", err)
+		l.Error("Ingest failed", log.ErrorField(err))
 
 		return nil, err
 	}
@@ -67,6 +69,7 @@ func (s *server) RehydrateLatest(ctx context.Context, in *pb.RehydrateLatestRequ
 // Listen starts the GRPC server with the generic api implementation
 // It uses the config from the passed API for address and ports
 func Listen(ctx context.Context, api *api.IngestorAPI) error {
+	l := log.Logger(ctx)
 	lis, err := net.Listen("tcp", api.Cfg.Ingestor.API.Endpoint)
 	if err != nil {
 		return err
@@ -83,7 +86,7 @@ func Listen(ctx context.Context, api *api.IngestorAPI) error {
 	pb.RegisterAPIServer(s, &server{
 		api: api,
 	})
-	log.I.Infof("server listening at %v", lis.Addr())
+	l.Infof("server listening at %v", lis.Addr())
 	err = s.Serve(lis)
 	if err != nil {
 		return err

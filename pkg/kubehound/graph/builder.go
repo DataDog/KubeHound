@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
-	"github.com/DataDog/KubeHound/pkg/globals"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
@@ -54,13 +53,13 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 }
 
 // buildEdge inserts a class of edges into the graph database.
-func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, oic *converter.ObjectIDConverter, l *log.KubehoundLogger) error {
+func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, oic *converter.ObjectIDConverter) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildEdge, tracer.Measured(), tracer.ResourceName(e.Label()))
 	span.SetTag(tag.LabelTag, e.Label())
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
-
-	l.Infof("Building edge %s", label)
+	l := log.Logger(ctx)
+	l.Info("Building edge", log.String("label", label))
 
 	if err = e.Initialize(&b.cfg.Builder.Edge, &b.cfg.Dynamic); err != nil {
 		return err
@@ -90,9 +89,9 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 }
 
 // buildMutating constructs all the mutating edges in the graph database.
-func (b *Builder) buildMutating(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
+func (b *Builder) buildMutating(ctx context.Context, oic *converter.ObjectIDConverter) error {
 	for label, e := range b.edges.Mutating() {
-		err := b.buildEdge(ctx, label, e, oic, l)
+		err := b.buildEdge(ctx, label, e, oic)
 		if err != nil {
 			// In case we don't want to continue and have a partial graph built, we return an error.
 			// This then fails the WaitForComplete early and bubbles up to main.
@@ -103,7 +102,7 @@ func (b *Builder) buildMutating(ctx context.Context, l *log.KubehoundLogger, oic
 			// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
 			// values to the user (permissions of the users etc...)
 			// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
-			l.Errorf("Failed to create a mutating edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+			// l.Errorf("Failed to create a mutating edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
 
 			return nil
 		}
@@ -113,7 +112,8 @@ func (b *Builder) buildMutating(ctx context.Context, l *log.KubehoundLogger, oic
 }
 
 // buildSimple constructs all the simple edges in the graph database.
-func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
+func (b *Builder) buildSimple(ctx context.Context, oic *converter.ObjectIDConverter) error {
+	l := log.Logger(ctx)
 	l.Info("Creating edge builder worker pool")
 	wp, err := worker.PoolFactory(b.cfg.Builder.Edge.WorkerPoolSize, b.cfg.Builder.Edge.WorkerPoolCapacity)
 	if err != nil {
@@ -130,9 +130,9 @@ func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *
 		label := label
 
 		wp.Submit(func() error {
-			err := b.buildEdge(workCtx, label, e, oic, l)
+			err := b.buildEdge(workCtx, label, e, oic)
 			if err != nil {
-				l.Errorf("building simple edge %s: %v", label, err)
+				// l.Errorf("building simple edge %s: %v", label, err)
 				// In case we don't want to continue and have a partial graph built, we return an error.
 				// This then fails the WaitForComplete early and bubbles up to main.
 				if b.cfg.Builder.StopOnError {
@@ -142,7 +142,7 @@ func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *
 				// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
 				// values to the user (permissions of the users etc...)
 				// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
-				l.Errorf("Failed to create a simple edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+				// l.Errorf("Failed to create a simple edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
 
 				return nil
 			}
@@ -160,9 +160,9 @@ func (b *Builder) buildSimple(ctx context.Context, l *log.KubehoundLogger, oic *
 }
 
 // buildDependent constructs all the dependent edges in the graph database.
-func (b *Builder) buildDependent(ctx context.Context, l *log.KubehoundLogger, oic *converter.ObjectIDConverter) error {
+func (b *Builder) buildDependent(ctx context.Context, oic *converter.ObjectIDConverter) error {
 	for label, e := range b.edges.Dependent() {
-		err := b.buildEdge(ctx, label, e, oic, l)
+		err := b.buildEdge(ctx, label, e, oic)
 		if err != nil {
 			// In case we don't want to continue and have a partial graph built, we return an error.
 			// This then fails the WaitForComplete early and bubbles up to main.
@@ -173,7 +173,7 @@ func (b *Builder) buildDependent(ctx context.Context, l *log.KubehoundLogger, oi
 			// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
 			// values to the user (permissions of the users etc...)
 			// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
-			l.Errorf("Failed to create a dependent edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+			// l.Errorf("Failed to create a dependent edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
 
 			return nil
 		}
@@ -185,8 +185,7 @@ func (b *Builder) buildDependent(ctx context.Context, l *log.KubehoundLogger, oi
 // Run constructs all the registered edges in the graph database.
 // NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
 func (b *Builder) Run(ctx context.Context) error {
-
-	l := log.Trace(ctx, log.WithComponent(globals.BuilderComponent))
+	l := log.Trace(ctx)
 	oic := converter.NewObjectID(b.cache)
 
 	if b.cfg.Builder.Edge.LargeClusterOptimizations {
@@ -195,19 +194,19 @@ func (b *Builder) Run(ctx context.Context) error {
 
 	// Mutating edges must be built first, sequentially
 	l.Info("Starting mutating edge construction")
-	if err := b.buildMutating(ctx, l, oic); err != nil {
+	if err := b.buildMutating(ctx, oic); err != nil {
 		return err
 	}
 
 	// Simple edges can be built in parallel
 	l.Info("Starting simple edge construction")
-	if err := b.buildSimple(ctx, l, oic); err != nil {
+	if err := b.buildSimple(ctx, oic); err != nil {
 		return err
 	}
 
 	// Dependent edges must be built last, sequentially
 	l.Info("Starting dependent edge construction")
-	if err := b.buildDependent(ctx, l, oic); err != nil {
+	if err := b.buildDependent(ctx, oic); err != nil {
 		return err
 	}
 
@@ -220,35 +219,35 @@ func (b *Builder) Run(ctx context.Context) error {
 // All I/O operations are performed asynchronously.
 func BuildGraph(outer context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
 	graphdb graphdb.Provider, cache cache.CacheReader) error {
-
+	l := log.Logger(outer)
 	start := time.Now()
-	span, ctx := span.SpanIngestRunFromContext(outer, span.BuildGraph)
+	span, ctx := span.SpanRunFromContext(outer, span.BuildGraph)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	log.I.Info("Loading graph edge definitions")
+	l.Info("Loading graph edge definitions")
 	edges := edge.Registered()
 	if err = edges.Verify(); err != nil {
 		return fmt.Errorf("edge registry verification: %w", err)
 	}
 
-	log.I.Info("Loading graph builder")
+	l.Info("Loading graph builder")
 	builder, err := NewBuilder(cfg, storedb, graphdb, cache, edges)
 	if err != nil {
 		return fmt.Errorf("graph builder creation: %w", err)
 	}
 
-	log.I.Info("Running dependency health checks")
+	l.Info("Running dependency health checks")
 	if err := builder.HealthCheck(ctx); err != nil {
 		return fmt.Errorf("graph builder dependency health check: %w", err)
 	}
 
-	log.I.Info("Constructing graph")
+	l.Info("Constructing graph")
 	if err := builder.Run(ctx); err != nil {
 		return fmt.Errorf("graph builder edge calculation: %w", err)
 	}
 
-	log.I.Infof("Completed graph construction in %s", time.Since(start))
+	l.Info("Completed graph construction", log.Duration("duration", time.Since(start)))
 
 	return nil
 }

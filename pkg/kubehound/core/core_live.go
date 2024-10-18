@@ -25,7 +25,8 @@ func CoreInitLive(ctx context.Context, khCfg *config.KubehoundConfig) error {
 
 // CoreLive will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func CoreLive(ctx context.Context, khCfg *config.KubehoundConfig) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.Launch, tracer.Measured())
+	l := log.Logger(ctx)
+	span, ctx := span.SpanRunFromContext(ctx, span.Launch)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
@@ -37,10 +38,10 @@ func CoreLive(ctx context.Context, khCfg *config.KubehoundConfig) error {
 
 	// Start the run
 	start := time.Now()
-	log.I.Infof("Starting KubeHound (run_id: %s, cluster: %s)", khCfg.Dynamic.RunID.String(), khCfg.Dynamic.ClusterName)
+	l.Info("Starting KubeHound", log.String(log.FieldRunIDKey, khCfg.Dynamic.RunID.String()), log.String("cluster_name", khCfg.Dynamic.ClusterName))
 
 	// Initialize the providers (graph, cache, store)
-	log.I.Info("Initializing providers (graph, cache, store)")
+	l.Info("Initializing providers (graph, cache, store)")
 	p, err := providers.NewProvidersFactoryConfig(ctx, khCfg)
 	if err != nil {
 		return fmt.Errorf("factory config creation: %w", err)
@@ -48,13 +49,13 @@ func CoreLive(ctx context.Context, khCfg *config.KubehoundConfig) error {
 	defer p.Close(ctx)
 
 	// Running the ingestion pipeline (ingestion and building the graph)
-	log.I.Info("Running the ingestion pipeline")
+	l.Info("Running the ingestion pipeline")
 	err = p.IngestBuildData(ctx, khCfg)
 	if err != nil {
 		return fmt.Errorf("ingest build data: %w", err)
 	}
 
-	log.I.Infof("KubeHound run (id=%s) complete in %s", khCfg.Dynamic.RunID.String(), time.Since(start))
+	l.Info("KubeHound run complete", log.String(log.FieldRunIDKey, khCfg.Dynamic.RunID.String()), log.Duration("duration", time.Since(start)))
 
 	return nil
 }

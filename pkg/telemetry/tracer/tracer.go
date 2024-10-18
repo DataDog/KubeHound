@@ -1,6 +1,7 @@
 package tracer
 
 import (
+	"context"
 	"strings"
 
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -10,16 +11,20 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-func Initialize(cfg *config.KubehoundConfig) {
+func Initialize(ctx context.Context, cfg *config.KubehoundConfig) {
+	l := log.Logger(ctx)
+
 	// Default options
 	opts := []tracer.StartOption{
 		tracer.WithEnv(globals.GetDDEnv()),
-		tracer.WithService(globals.DDServiceName),
+		tracer.WithService(globals.GetDDServiceName()),
 		tracer.WithServiceVersion(config.BuildVersion),
-		tracer.WithLogStartup(false),
+		tracer.WithLogStartup(true),
+		tracer.WithAnalytics(true),
 	}
+
 	if cfg.Telemetry.Tracer.URL != "" {
-		log.I.Infof("Using %s for tracer URL", cfg.Telemetry.Tracer.URL)
+		l.Infof("Using %s for tracer URL", cfg.Telemetry.Tracer.URL)
 		opts = append(opts, tracer.WithAgentAddr(cfg.Telemetry.Tracer.URL))
 	}
 
@@ -28,7 +33,7 @@ func Initialize(cfg *config.KubehoundConfig) {
 		const tagSplitLen = 2
 		split := strings.Split(t, ":")
 		if len(split) != tagSplitLen {
-			log.I.Fatalf("Invalid base tag in telemtry initialization: %s", t)
+			l.Fatal("Invalid base tag in telemetry initialization", log.String("tag", t))
 		}
 		opts = append(opts, tracer.WithGlobalTag(split[0], split[1]))
 	}
@@ -37,10 +42,11 @@ func Initialize(cfg *config.KubehoundConfig) {
 	for tk, tv := range cfg.Telemetry.Tags {
 		opts = append(opts, tracer.WithGlobalTag(tk, tv))
 	}
-
 	tracer.Start(opts...)
 }
 
-func Shutdown() {
+func Shutdown(ctx context.Context) {
+	l := log.Logger(ctx)
+	l.Debug("Stoping tracer")
 	tracer.Stop()
 }

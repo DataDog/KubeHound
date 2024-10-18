@@ -58,6 +58,8 @@ func NewIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller, notif
 
 // RehydrateLatest is just a GRPC wrapper around the Ingest method from the API package
 func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedCluster, error) {
+	l := log.Logger(ctx)
+	l.Error("id123")
 	// first level key are cluster names
 	directories, errRet := g.puller.ListFiles(ctx, "", false)
 	if errRet != nil {
@@ -74,7 +76,7 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 			return nil, err
 		}
 
-		if l := len(dumpKeys); l > 0 {
+		if k := len(dumpKeys); k > 0 {
 			// extracting the latest runID
 			latestDump := slices.MaxFunc(dumpKeys, func(a, b *puller.ListObject) int {
 				// return dumpKeys[a].ModTime.Before(dumpKeys[b].ModTime)
@@ -87,51 +89,50 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 			if clusterErr != nil {
 				errRet = errors.Join(errRet, fmt.Errorf("ingesting cluster %s: %w", latestDumpKey, clusterErr))
 			}
-			log.I.Infof("Rehydrated cluster: %s, date: %s, key: %s", clusterName, latestDumpIngestTime.Format("01-02-2006 15:04:05"), latestDumpKey)
+			l.Info("Rehydrated cluster", log.String(log.FieldClusterKey, clusterName), log.Time("dump_ingest_time", latestDumpIngestTime), log.String("dump_key", latestDumpKey))
 			ingestedCluster := &grpc.IngestedCluster{
 				ClusterName: clusterName,
 				Key:         latestDumpKey,
 				Date:        timestamppb.New(latestDumpIngestTime),
 			}
 			res = append(res, ingestedCluster)
-
 		}
 	}
 
 	return res, errRet
 }
 
-func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
-	// Settings global variables for the run in the context to propagate them to the spans
-	runCtx := context.Background()
+func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
+	l := log.Logger(ctx)
 
-	archivePath, err := g.puller.Pull(runCtx, path) //nolint: contextcheck
+	archivePath, err := g.puller.Pull(ctx, path)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		err = errors.Join(err, g.puller.Close(runCtx, archivePath))
+		err = errors.Join(err, g.puller.Close(ctx, archivePath))
 	}()
 
-	err = g.puller.Extract(runCtx, archivePath) //nolint: contextcheck
+	err = g.puller.Extract(ctx, archivePath)
 	if err != nil {
 		return err
 	}
 
 	metadataFilePath := filepath.Join(filepath.Dir(archivePath), collector.MetadataPath)
-	md, err := dump.ParseMetadata(runCtx, metadataFilePath) //nolint: contextcheck
+	md, err := dump.ParseMetadata(ctx, metadataFilePath)
 	if err != nil {
-		log.I.Warnf("no metadata has been parsed (old dump format from v1.4.0 or below do not embed metadata information): %v", err)
+		l.Warn("no metadata has been parsed (old dump format from v1.4.0 or below do not embed metadata information)", log.ErrorField(err))
 		// Backward Compatibility: Extracting the metadata from the path
-		dumpMetadata, err := dump.ParsePath(path)
+		dumpMetadata, err := dump.ParsePath(ctx, path)
 		if err != nil {
-			log.I.Warn("parsing path for metadata", err)
+			l.Warn("parsing path for metadata", log.ErrorField(err))
 
 			return err
 		}
 		md = dumpMetadata.Metadata
 	}
+
 	clusterName := md.ClusterName
 	runID := md.RunID
 
@@ -148,6 +149,14 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 		},
 	}
 
+	// Settings global variables for the run in the context to propagate them to the spans
+	runCtx := context.Background()
+	runCtx = context.WithValue(runCtx, log.ContextFieldCluster, clusterName)
+	runCtx = context.WithValue(runCtx, log.ContextFieldRunID, runID)
+	l = log.Logger(runCtx) //nolint: contextcheck
+	spanJob, runCtx := span.SpanRunFromContext(runCtx, span.IngestorStartJob)
+	defer func() { spanJob.Finish(tracer.WithError(err)) }()
+
 	events.PushEvent(
 		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
 		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
@@ -155,12 +164,6 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 			tag.IngestionRunID(runID),
 		},
 	)
-
-	runCtx = context.WithValue(runCtx, span.ContextLogFieldClusterName, clusterName)
-	runCtx = context.WithValue(runCtx, span.ContextLogFieldRunID, runID)
-
-	spanJob, runCtx := span.SpanIngestRunFromContext(runCtx, span.IngestorStartJob)
-	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 
 	alreadyIngested, err := g.isAlreadyIngestedInGraph(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
@@ -173,14 +176,14 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 
 	// We need to flush the cache to prevent warnings/errors when overwriting elements in cache from the previous ingestion
 	// This avoid conflicts from previous ingestion (there is no need to reuse the cache from a previous ingestion)
-	log.I.Info("Preparing cache provider")
+	l.Info("Preparing cache provider")
 	err = g.providers.CacheProvider.Prepare(runCtx) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("cache client creation: %w", err)
 	}
 
 	// Create the collector instance
-	log.I.Info("Loading Kubernetes data collector client")
+	l.Info("Loading Kubernetes data collector client")
 	collect, err := collector.ClientFactory(runCtx, runCfg) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("collector client creation: %w", err)
@@ -189,17 +192,17 @@ func (g *IngestorAPI) Ingest(_ context.Context, path string) error {
 	defer func() {
 		err = errors.Join(err, collect.Close(runCtx))
 	}()
-	log.I.Infof("Loaded %s collector client", collect.Name())
+	l.Info("Loaded collector client", log.String("collector", collect.Name()))
 
 	// Run the ingest pipeline
-	log.I.Info("Starting Kubernetes raw data ingest")
+	l.Info("Starting Kubernetes raw data ingest")
 	alreadyIngestedInDB, err := g.isAlreadyIngestedInDB(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
 
 	if alreadyIngestedInDB {
-		log.I.Infof("Data already ingested in the database for %s/%s, droping the current data", clusterName, runID)
+		l.Info("Data already ingested in the database for %s/%s, droping the current data", log.String(log.FieldClusterKey, clusterName), log.String(log.FieldRunIDKey, runID))
 		err := g.providers.StoreProvider.Clean(runCtx, runID, clusterName) //nolint: contextcheck
 		if err != nil {
 			return err
@@ -251,10 +254,11 @@ func (g *IngestorAPI) isAlreadyIngestedInGraph(_ context.Context, clusterName st
 }
 
 func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName string, runID string) (bool, error) {
+	l := log.Logger(ctx)
 	var resNum int64
 	var err error
 	for _, collection := range collections.GetCollections() {
-		mdb := adapter.MongoDB(g.providers.StoreProvider)
+		mdb := adapter.MongoDB(ctx, g.providers.StoreProvider)
 		db := mdb.Collection(collection)
 		filter := bson.M{
 			"runtime": bson.M{
@@ -267,11 +271,11 @@ func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName str
 			return false, fmt.Errorf("error counting documents in collection %s: %w", collection, err)
 		}
 		if resNum != 0 {
-			log.I.Infof("Found %d element in collection %s", resNum, collection)
+			l.Info("Found element(s) in collection", log.Int64(log.FieldCountKey, resNum), log.String("collection", collection))
 
 			return true, nil
 		}
-		log.I.Debugf("Found %d element in collection %s", resNum, collection)
+		l.Debug("No element found in collection", log.Int64(log.FieldCountKey, resNum), log.String("collection", collection))
 	}
 
 	return false, nil

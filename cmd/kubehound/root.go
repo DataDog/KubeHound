@@ -24,6 +24,7 @@ var (
 			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, false)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
+			l := log.Logger(cobraCmd.Context())
 			// auto spawning the backend stack
 			if !skipBackend {
 				// Forcing the embed docker config to be loaded
@@ -41,7 +42,7 @@ var (
 						return err
 					}
 				} else {
-					log.I.Info("Backend stack is already running")
+					l.Info("Backend stack is already running")
 				}
 			}
 
@@ -61,16 +62,13 @@ var (
 				return err
 			}
 
-			log.I.Warn("KubeHound as finished ingesting and building the graph successfully.")
-			log.I.Warn("Please visit the UI to view the graph by clicking the link below:")
-			log.I.Warn("http://localhost:8888")
+			l.Warn("KubeHound as finished ingesting and building the graph successfully.")
+			l.Warn("Please visit the UI to view the graph by clicking the link below:")
+			l.Warn("http://localhost:8888")
 			// Yes, we should change that :D
-			log.I.Warn("Password being 'admin'")
+			l.Warn("Default password being 'admin'")
 
 			return nil
-		},
-		PersistentPostRunE: func(cobraCmd *cobra.Command, args []string) error {
-			return cmd.CloseKubehoundConfig()
 		},
 		SilenceUsage:  true,
 		SilenceErrors: true,
