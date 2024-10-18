@@ -173,15 +173,15 @@ func (p *PipelineDumpIngestor) WaitAndClose(ctx context.Context) error {
 
 // Static wrapper to dump k8s object dynamically (streams Kubernetes objects to the collector writer).
 func dumpK8sObjs(ctx context.Context, operationName string, entity string, streamFunc StreamFunc) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, operationName, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, operationName)
 	span.SetTag(tag.EntityTag, entity)
 	l := log.Logger(ctx)
-	l.Info("Dumping entity", log.String("entity", entity))
+	l.Info("Dumping entity", log.String(log.FieldEntityKey, entity))
 
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 	err = streamFunc(ctx)
-	l.Info("Dumping entity done", log.String("entity", entity))
+	l.Info("Dumping entity done", log.String(log.FieldEntityKey, entity))
 
 	return err
 }

@@ -136,7 +136,7 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 }
 
 func (c *FileCollector) StreamPods(ctx context.Context, ingestor PodIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityPods)
 	l := log.Trace(ctx)
 	var err error
@@ -188,7 +188,7 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 }
 
 func (c *FileCollector) StreamRoles(ctx context.Context, ingestor RoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityRoles)
 	l := log.Trace(ctx)
 	var err error
@@ -240,7 +240,7 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 }
 
 func (c *FileCollector) StreamRoleBindings(ctx context.Context, ingestor RoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityRolebindings)
 	l := log.Trace(ctx)
 	var err error
@@ -292,7 +292,7 @@ func (c *FileCollector) streamEndpointsNamespace(ctx context.Context, fp string,
 }
 
 func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityEndpoints)
 	l := log.Trace(ctx)
 	var err error
@@ -324,7 +324,7 @@ func (c *FileCollector) StreamEndpoints(ctx context.Context, ingestor EndpointIn
 }
 
 func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityNodes)
 	l := log.Trace(ctx)
 	var err error
@@ -351,7 +351,7 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 }
 
 func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor ClusterRoleIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityClusterRoles)
 	l := log.Trace(ctx)
 	var err error
@@ -378,7 +378,7 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 }
 
 func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor ClusterRoleBindingIngestor) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.CollectorStream, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.CollectorStream)
 	span.SetTag(tag.EntityTag, tag.EntityClusterRolebindings)
 	l := log.Trace(ctx)
 	var err error
@@ -407,7 +407,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 // readList loads a list of K8s API objects into memory from a JSON file on disk.
 // NOTE: This implementation reads the entire array of objects from the file into memory at once.
 func readList[Tl types.ListInputType](ctx context.Context, inputPath string) (Tl, error) {
-	span, _ := tracer.StartSpanFromContext(ctx, span.DumperReadFile, tracer.Measured())
+	span, _ := span.SpanRunFromContext(ctx, span.DumperReadFile)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 

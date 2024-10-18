@@ -41,9 +41,9 @@ func CoreClientGRPCIngest(ctx context.Context, ingestorConfig config.IngestorCon
 	}
 	defer conn.Close()
 	client := pb.NewAPIClient(conn)
-	l.Info("Launching ingestion", log.String("endpoint", ingestorConfig.API.Endpoint), log.String("run_id", runID))
+	l.Info("Launching ingestion", log.String("endpoint", ingestorConfig.API.Endpoint), log.String(log.FieldRunIDKey, runID))
 
-	_, err = client.Ingest(context.Background(), &pb.IngestRequest{
+	_, err = client.Ingest(ctx, &pb.IngestRequest{
 		RunId:       runID,
 		ClusterName: clusteName,
 	})
@@ -64,13 +64,13 @@ func CoreClientGRPCRehydrateLatest(ctx context.Context, ingestorConfig config.In
 	client := pb.NewAPIClient(conn)
 
 	l.Info("Launching rehydratation [latest]", log.String("endpoint", ingestorConfig.API.Endpoint))
-	results, err := client.RehydrateLatest(context.Background(), &pb.RehydrateLatestRequest{})
+	results, err := client.RehydrateLatest(ctx, &pb.RehydrateLatestRequest{})
 	if err != nil {
 		return fmt.Errorf("call rehydratation (latest): %w", err)
 	}
 
 	for _, res := range results.IngestedCluster {
-		l.Info("Rehydrated cluster", log.String("cluster_name", res.ClusterName), log.Time("time", res.Date.AsTime()), log.String("key", res.Key))
+		l.Info("Rehydrated cluster", log.String(log.FieldClusterKey, res.ClusterName), log.Time("time", res.Date.AsTime()), log.String("key", res.Key))
 	}
 
 	return nil

@@ -18,7 +18,7 @@ import (
 func CoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) error {
 	l := log.Logger(ctx)
 	l.Info("Starting KubeHound Distributed Ingestor Service")
-	span, ctx := tracer.StartSpanFromContext(ctx, span.IngestorLaunch, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.IngestorLaunch)
 	var err error
 	defer func() {
 		span.Finish(tracer.WithError(err))

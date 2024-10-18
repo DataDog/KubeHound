@@ -60,7 +60,7 @@ func (f *FileWriter) WorkerNumber() int {
 // All buffer are stored in a map which is flushed at the end of every type processed
 func (f *FileWriter) Write(ctx context.Context, k8sObj []byte, pathObj string) error {
 	l := log.Logger(ctx)
-	l.Debug("Writing to file", log.String("path", pathObj))
+	l.Debug("Writing to file", log.String(log.FieldPathKey, pathObj))
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -110,7 +110,7 @@ func (f *FileWriter) Write(ctx context.Context, k8sObj []byte, pathObj string) e
 
 // No flush needed for the file writer as we are flushing the buffer at every write
 func (f *FileWriter) Flush(ctx context.Context) error {
-	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterFlush, tracer.Measured())
+	span, _ := span.SpanRunFromContext(ctx, span.DumperWriterFlush)
 	span.SetTag(tag.DumperWriterTypeTag, FileTypeTag)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -121,7 +121,7 @@ func (f *FileWriter) Flush(ctx context.Context) error {
 func (f *FileWriter) Close(ctx context.Context) error {
 	l := log.Logger(ctx)
 	l.Debug("Closing writers")
-	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterClose, tracer.Measured())
+	span, _ := span.SpanRunFromContext(ctx, span.DumperWriterClose)
 	span.SetTag(tag.DumperWriterTypeTag, FileTypeTag)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()

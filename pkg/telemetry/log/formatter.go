@@ -89,7 +89,7 @@ func newZapConfig() zap.Config {
 	}
 
 	zc.InitialFields = map[string]interface{}{
-		FieldServiceKey: "kubehound",
+		FieldAppKey: "kubehound",
 	}
 
 	return zc

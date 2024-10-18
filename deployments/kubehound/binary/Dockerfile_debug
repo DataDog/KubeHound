@@ -11,7 +11,8 @@ COPY deployments ./deployments
 
 RUN GOOS=linux GOARCH=amd64 go build -o "./bin/build/kubehound" ./cmd/kubehound/
 
-FROM ubuntu:24.04 AS build-release-stage
+FROM registry.ddbuild.io/images/base/gbi-ubuntu_2404:release
+# FROM ubuntu:24.04 AS build-release-stage
 
 WORKDIR /
 

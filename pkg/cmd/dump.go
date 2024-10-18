@@ -41,7 +41,7 @@ func InitRemoteDumpCmd(cmd *cobra.Command) {
 	viper.BindPFlag(config.IngestorBlobBucketURL, cmd.Flags().Lookup("bucket-url")) //nolint: errcheck
 
 	cmd.Flags().String("region", "", "Region to retrieve the configuration (only for s3) (e.g.: us-east-1)")
-	viper.BindPFlag(config.IngestorBlobBucketURL, cmd.Flags().Lookup("region")) //nolint: errcheck
+	viper.BindPFlag(config.IngestorBlobRegion, cmd.Flags().Lookup("region")) //nolint: errcheck
 }
 
 func InitLocalIngestCmd(cmd *cobra.Command) {

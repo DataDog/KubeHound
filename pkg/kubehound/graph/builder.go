@@ -221,7 +221,7 @@ func BuildGraph(outer context.Context, cfg *config.KubehoundConfig, storedb stor
 	graphdb graphdb.Provider, cache cache.CacheReader) error {
 	l := log.Logger(outer)
 	start := time.Now()
-	span, ctx := span.SpanIngestRunFromContext(outer, span.BuildGraph)
+	span, ctx := span.SpanRunFromContext(outer, span.BuildGraph)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 

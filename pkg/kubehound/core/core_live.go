@@ -26,7 +26,7 @@ func CoreInitLive(ctx context.Context, khCfg *config.KubehoundConfig) error {
 // CoreLive will launch the KubeHound application to ingest data from a collector and create an attack graph.
 func CoreLive(ctx context.Context, khCfg *config.KubehoundConfig) error {
 	l := log.Logger(ctx)
-	span, ctx := tracer.StartSpanFromContext(ctx, span.Launch, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.Launch)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
@@ -38,7 +38,7 @@ func CoreLive(ctx context.Context, khCfg *config.KubehoundConfig) error {
 
 	// Start the run
 	start := time.Now()
-	l.Info("Starting KubeHound", log.String("run_id", khCfg.Dynamic.RunID.String()), log.String("cluster_name", khCfg.Dynamic.ClusterName))
+	l.Info("Starting KubeHound", log.String(log.FieldRunIDKey, khCfg.Dynamic.RunID.String()), log.String("cluster_name", khCfg.Dynamic.ClusterName))
 
 	// Initialize the providers (graph, cache, store)
 	l.Info("Initializing providers (graph, cache, store)")
@@ -55,7 +55,7 @@ func CoreLive(ctx context.Context, khCfg *config.KubehoundConfig) error {
 		return fmt.Errorf("ingest build data: %w", err)
 	}
 
-	l.Info("KubeHound run complete", log.String("run_id", khCfg.Dynamic.RunID.String()), log.Duration("duration", time.Since(start)))
+	l.Info("KubeHound run complete", log.String(log.FieldRunIDKey, khCfg.Dynamic.RunID.String()), log.Duration("duration", time.Since(start)))
 
 	return nil
 }

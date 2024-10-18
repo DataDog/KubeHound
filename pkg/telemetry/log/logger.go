@@ -50,6 +50,10 @@ func Logger(ctx context.Context) LoggerI {
 const (
 	spanIDKey  = "dd.span_id"
 	traceIDKey = "dd.trace_id"
+
+	logFormatDD   = "dd"
+	logFormatJSON = "json"
+	logFormatText = "text"
 )
 
 // DefaultLogger returns the global logger

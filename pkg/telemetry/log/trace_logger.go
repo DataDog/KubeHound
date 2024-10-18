@@ -133,25 +133,25 @@ func (t *traceLogger) Fatal(msg string, fields ...Field) {
 }
 
 func (t *traceLogger) Debugf(msg string, params ...interface{}) {
-	t.logger.Debugf(t.appendTracingFields(msg), params...)
+	t.logger.With(t.fields...).Debugf(msg, params...)
 }
 
 func (t *traceLogger) Infof(msg string, params ...interface{}) {
-	t.logger.Infof(t.appendTracingFields(msg), params...)
+	t.logger.With(t.fields...).Infof(msg, params...)
 }
 
 func (t *traceLogger) Warnf(msg string, params ...interface{}) {
-	t.logger.Warnf(t.appendTracingFields(msg), params...)
+	t.logger.With(t.fields...).Warnf(msg, params...)
 }
 
 func (t *traceLogger) Errorf(msg string, params ...interface{}) {
-	t.logger.Errorf(t.appendTracingFields(msg), params...)
+	t.logger.With(t.fields...).Errorf(msg, params...)
 }
 
 func (t *traceLogger) Panicf(msg string, params ...interface{}) {
-	t.logger.Panicf(t.appendTracingFields(msg), params...)
+	t.logger.With(t.fields...).Panicf(msg, params...)
 }
 
 func (t *traceLogger) Fatalf(msg string, params ...interface{}) {
-	t.logger.Fatalf(t.appendTracingFields(msg), params...)
+	t.logger.With(t.fields...).Fatalf(msg, params...)
 }

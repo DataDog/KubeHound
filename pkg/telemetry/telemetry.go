@@ -41,7 +41,7 @@ func Initialize(ctx context.Context, khCfg *config.KubehoundConfig) error {
 
 func Shutdown(ctx context.Context, enabled bool) {
 	l := log.Logger(ctx)
-	if enabled {
+	if !enabled {
 		return
 	}
 
@@ -49,7 +49,7 @@ func Shutdown(ctx context.Context, enabled bool) {
 	profiler.Shutdown()
 
 	// Tracing
-	tracer.Shutdown()
+	tracer.Shutdown(ctx)
 
 	// Metrics
 	err := statsd.Flush()

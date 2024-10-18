@@ -14,6 +14,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/ext"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -34,7 +35,8 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 
 	start := time.Now()
 
-	span, ctx := tracer.StartSpanFromContext(ctx, span.DumperLaunch, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.DumperLaunch)
+	span.SetTag(ext.ManualKeep, true)
 	defer func() {
 		span.Finish(tracer.WithError(err))
 	}()
@@ -53,7 +55,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 	if err != nil {
 		return "", err
 	}
-	l.Info("result saved to file", log.String("path", filePath))
+	l.Info("result saved to file", log.String(log.FieldPathKey, filePath))
 
 	if upload {
 		// Clean up the temporary directory when done

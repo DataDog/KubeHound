@@ -123,8 +123,7 @@ func (jgv *JanusGraphVertexWriter) cacheIds(ctx context.Context, idMap []*gremli
 // batchWrite will write a batch of entries into the graph DB and block until the write completes.
 // Callers are responsible for doing an Add(1) to the writingInFlight wait group to ensure proper synchronization.
 func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []any) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphBatchWrite,
-		tracer.Measured(), tracer.ServiceName(TracerServicename))
+	span, ctx := span.SpanRunFromContext(ctx, span.JanusGraphBatchWrite)
 	span.SetTag(tag.LabelTag, jgv.builder)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
@@ -162,8 +161,7 @@ func (jgv *JanusGraphVertexWriter) Close(ctx context.Context) error {
 // Flush triggers writes of any remaining items in the queue.
 // This is blocking
 func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.JanusGraphFlush,
-		tracer.Measured(), tracer.ServiceName(TracerServicename))
+	span, ctx := span.SpanRunFromContext(ctx, span.JanusGraphFlush)
 	span.SetTag(tag.LabelTag, jgv.builder)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()

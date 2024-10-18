@@ -84,7 +84,7 @@ type VertexTestSuite struct {
 func (suite *VertexTestSuite) SetupSuite() {
 	require := suite.Require()
 	ctx := context.Background()
-	cfg := config.MustLoadConfig("./kubehound.yaml")
+	cfg := config.MustLoadConfig(ctx, "./kubehound.yaml")
 
 	// JanusGraph
 	gdb, err := graphdb.Factory(ctx, cfg)

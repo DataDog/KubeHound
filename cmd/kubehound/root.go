@@ -70,9 +70,6 @@ var (
 
 			return nil
 		},
-		PersistentPostRunE: func(cobraCmd *cobra.Command, args []string) error {
-			return cmd.CloseKubehoundConfig(cobraCmd.Context())
-		},
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}

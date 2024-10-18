@@ -34,7 +34,7 @@ func NewFSWriter(ctx context.Context) (*FSWriter, error) {
 // All buffer are stored in a map which is flushed at the end of every type processed
 func (f *FSWriter) WriteFile(ctx context.Context, pathObj string, k8sObj []byte) error {
 	l := log.Logger(ctx)
-	l.Debug("Writing to file", log.String("path", pathObj))
+	l.Debug("Writing to file", log.String(log.FieldPathKey, pathObj))
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -54,7 +54,7 @@ func (f *FSWriter) WriteFile(ctx context.Context, pathObj string, k8sObj []byte)
 
 // No flush needed for the file writer as we are flushing the buffer at every write
 func (f *FSWriter) Flush(ctx context.Context) error {
-	span, _ := tracer.StartSpanFromContext(ctx, span.DumperWriterFlush, tracer.Measured())
+	span, _ := span.SpanRunFromContext(ctx, span.DumperWriterFlush)
 	span.SetTag(tag.DumperWriterTypeTag, TarTypeTag)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()

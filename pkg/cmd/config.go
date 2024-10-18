@@ -39,14 +39,13 @@ func InitializeKubehoundConfig(ctx context.Context, configPath string, generateR
 	}
 
 	InitTags(ctx, khCfg)
-	InitTelemetry(khCfg)
+	InitTelemetry(ctx, khCfg)
 
 	return nil
 
 }
 
-func InitTelemetry(khCfg *config.KubehoundConfig) {
-	ctx := context.Background()
+func InitTelemetry(ctx context.Context, khCfg *config.KubehoundConfig) {
 	l := log.Logger(ctx)
 	l.Info("Initializing application telemetry")
 	err := telemetry.Initialize(ctx, khCfg)

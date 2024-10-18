@@ -76,7 +76,7 @@ func (d *DumpIngestor) OutputPath() string {
 }
 
 func (d *DumpIngestor) DumpK8sObjects(ctx context.Context) error {
-	spanDump, ctx := tracer.StartSpanFromContext(ctx, span.CollectorDump, tracer.Measured())
+	spanDump, ctx := span.SpanRunFromContext(ctx, span.CollectorDump)
 	var err error
 	defer func() { spanDump.Finish(tracer.WithError(err)) }()
 
@@ -114,7 +114,7 @@ const (
 
 func ParsePath(ctx context.Context, path string) (*DumpResult, error) {
 	l := log.Logger(ctx)
-	l.Warn("[Backward Compatibility] Extracting the metadata", log.String("path", path))
+	l.Warn("[Backward Compatibility] Extracting the metadata", log.String(log.FieldPathKey, path))
 
 	// ./<clusterName>/kubehound_<clusterName>_<run_id>[.tar.gz]
 	// re := regexp.MustCompile(`([a-z0-9\.\-_]+)/kubehound_([a-z0-9\.-_]+)_([a-z0-9]{26})\.?([a-z0-9\.]+)?`)

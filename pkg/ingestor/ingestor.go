@@ -21,7 +21,7 @@ func IngestData(ctx context.Context, cfg *config.KubehoundConfig, collect collec
 	l := log.Logger(ctx)
 
 	start := time.Now()
-	span, ctx := tracer.StartSpanFromContext(ctx, span.IngestData, tracer.Measured())
+	span, ctx := span.SpanRunFromContext(ctx, span.IngestData)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 

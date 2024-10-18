@@ -59,6 +59,7 @@ func NewIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller, notif
 // RehydrateLatest is just a GRPC wrapper around the Ingest method from the API package
 func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedCluster, error) {
 	l := log.Logger(ctx)
+	l.Error("id123")
 	// first level key are cluster names
 	directories, errRet := g.puller.ListFiles(ctx, "", false)
 	if errRet != nil {
@@ -88,7 +89,7 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 			if clusterErr != nil {
 				errRet = errors.Join(errRet, fmt.Errorf("ingesting cluster %s: %w", latestDumpKey, clusterErr))
 			}
-			l.Info("Rehydrated cluster", log.String("cluster_name", clusterName), log.Time("dump_ingest_time", latestDumpIngestTime), log.String("dump_key", latestDumpKey))
+			l.Info("Rehydrated cluster", log.String(log.FieldClusterKey, clusterName), log.Time("dump_ingest_time", latestDumpIngestTime), log.String("dump_key", latestDumpKey))
 			ingestedCluster := &grpc.IngestedCluster{
 				ClusterName: clusterName,
 				Key:         latestDumpKey,
@@ -102,9 +103,9 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 }
 
 func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
-	l := log.Logger(ctx)
 	// Settings global variables for the run in the context to propagate them to the spans
 	runCtx := context.Background()
+	l := log.Logger(runCtx)
 
 	archivePath, err := g.puller.Pull(runCtx, path) //nolint: contextcheck
 	if err != nil {
@@ -149,6 +150,12 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 		},
 	}
 
+	runCtx = context.WithValue(runCtx, log.ContextFieldCluster, clusterName)
+	runCtx = context.WithValue(runCtx, log.ContextFieldRunID, runID)
+	l = log.Logger(runCtx)
+	spanJob, runCtx := span.SpanRunFromContext(runCtx, span.IngestorStartJob)
+	defer func() { spanJob.Finish(tracer.WithError(err)) }()
+
 	events.PushEvent(
 		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
 		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
@@ -156,12 +163,6 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 			tag.IngestionRunID(runID),
 		},
 	)
-
-	runCtx = context.WithValue(runCtx, span.ContextLogFieldClusterName, clusterName)
-	runCtx = context.WithValue(runCtx, span.ContextLogFieldRunID, runID)
-
-	spanJob, runCtx := span.SpanIngestRunFromContext(runCtx, span.IngestorStartJob)
-	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 
 	alreadyIngested, err := g.isAlreadyIngestedInGraph(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
@@ -200,7 +201,7 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 	}
 
 	if alreadyIngestedInDB {
-		l.Info("Data already ingested in the database for %s/%s, droping the current data", log.String("cluster_name", clusterName), log.String("run_id", runID))
+		l.Info("Data already ingested in the database for %s/%s, droping the current data", log.String(log.FieldClusterKey, clusterName), log.String(log.FieldRunIDKey, runID))
 		err := g.providers.StoreProvider.Clean(runCtx, runID, clusterName) //nolint: contextcheck
 		if err != nil {
 			return err

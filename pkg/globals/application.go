@@ -5,9 +5,8 @@ import (
 )
 
 const (
-	DDServiceName    = "kubehound"
-	DefaultDDEnv     = "dev"
-	DefaultComponent = "kubehound-ingestor"
+	DDServiceName = "kubehound"
+	DefaultDDEnv  = "dev"
 )
 
 func GetDDEnv() string {
@@ -19,8 +18,11 @@ func GetDDEnv() string {
 	return env
 }
 
-const (
-	FileCollectorComponent = "file-collector"
-	IngestorComponent      = "pipeline-ingestor"
-	BuilderComponent       = "graph-builder"
-)
+func GetDDServiceName() string {
+	serviceName := os.Getenv("DD_SERVICE_NAME")
+	if serviceName == "" {
+		return DDServiceName
+	}
+
+	return serviceName
+}

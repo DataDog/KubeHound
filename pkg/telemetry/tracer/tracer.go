@@ -13,12 +13,14 @@ import (
 
 func Initialize(ctx context.Context, cfg *config.KubehoundConfig) {
 	l := log.Logger(ctx)
+
 	// Default options
 	opts := []tracer.StartOption{
 		tracer.WithEnv(globals.GetDDEnv()),
-		tracer.WithService(globals.DDServiceName),
+		tracer.WithService(globals.GetDDServiceName()),
 		tracer.WithServiceVersion(config.BuildVersion),
 		tracer.WithLogStartup(true),
+		tracer.WithAnalytics(true),
 	}
 
 	if cfg.Telemetry.Tracer.URL != "" {
@@ -43,6 +45,8 @@ func Initialize(ctx context.Context, cfg *config.KubehoundConfig) {
 	tracer.Start(opts...)
 }
 
-func Shutdown() {
+func Shutdown(ctx context.Context) {
+	l := log.Logger(ctx)
+	l.Debug("Stoping tracer")
 	tracer.Stop()
 }
