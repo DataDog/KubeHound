@@ -19,7 +19,8 @@ type EdgeTestSuite struct {
 }
 
 func (suite *EdgeTestSuite) SetupTest() {
-	gdb, err := graphdb.Factory(context.Background(), config.MustLoadConfig(KubeHoundConfigPath))
+	ctx := context.Background()
+	gdb, err := graphdb.Factory(ctx, config.MustLoadConfig(ctx, KubeHoundConfigPath))
 	suite.Require().NoError(err)
 	suite.gdb = gdb
 	suite.client = gdb.Raw().(*gremlingo.DriverRemoteConnection)

@@ -72,7 +72,7 @@ func TestTarWriter_Write(t *testing.T) {
 	writer.Close(ctx)
 
 	dryRun := false
-	err = puller.ExtractTarGz(dryRun, writer.OutputPath(), tmpTarExtractDir, config.DefaultMaxArchiveSize)
+	err = puller.ExtractTarGz(ctx, dryRun, writer.OutputPath(), tmpTarExtractDir, config.DefaultMaxArchiveSize)
 	if err != nil {
 		t.Fatalf("failed to extract tar.gz: %v", err)
 	}
