@@ -250,13 +250,13 @@ func getStacktrace(err error) errors.StackTrace {
 	for index := 0; index < len(errorsToTest); index++ {
 		testedErr := errorsToTest[index]
 
-		if stackTracer, ok := testedErr.(stackTracer); ok { //nolint: errorlint
+		if stackTracer, ok := testedErr.(stackTracer); ok {
 			return stackTracer.StackTrace()
 		}
 
-		if joinErr, ok := testedErr.(UnwrapJoin); ok { //nolint: errorlint
+		if joinErr, ok := testedErr.(UnwrapJoin); ok {
 			errorsToTest = append(errorsToTest, joinErr.Unwrap()...)
-		} else if joinErr, ok := testedErr.(UnwrapMultierror); ok { //nolint: errorlint
+		} else if joinErr, ok := testedErr.(UnwrapMultierror); ok {
 			errorsToTest = append(errorsToTest, joinErr.WrappedErrors()...)
 		} else if unwrapped := errors.Unwrap(testedErr); unwrapped != nil {
 			errorsToTest = append(errorsToTest, unwrapped)
