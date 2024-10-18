@@ -70,6 +70,9 @@ func tunedListOptions() metav1.ListOptions {
 
 // NewK8sAPICollector creates a new instance of the k8s live API collector from the provided application config.
 func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
+	ctx = context.WithValue(ctx, log.ContextFieldComponent, K8sAPICollectorName)
+	l := log.Trace(ctx)
+
 	clusterName, err := config.GetClusterName(ctx)
 	if err != nil {
 		return nil, err
