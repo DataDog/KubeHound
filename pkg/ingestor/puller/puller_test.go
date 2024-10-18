@@ -95,6 +95,7 @@ func TestCheckSanePath(t *testing.T) {
 
 func TestExtractTarGz(t *testing.T) {
 	t.Parallel()
+	ctx := context.Background()
 	type args struct {
 		maxArchiveSize int64
 	}
@@ -132,7 +133,7 @@ func TestExtractTarGz(t *testing.T) {
 				t.Error(err)
 			}
 			dryRun := false
-			if err := ExtractTarGz(dryRun, "./testdata/archive.tar.gz", tmpPath, tt.args.maxArchiveSize); (err != nil) != tt.wantErr {
+			if err := ExtractTarGz(ctx, dryRun, "./testdata/archive.tar.gz", tmpPath, tt.args.maxArchiveSize); (err != nil) != tt.wantErr {
 				t.Errorf("ExtractTarGz() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			for _, file := range tt.expectedFiles {
