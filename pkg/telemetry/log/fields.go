@@ -215,7 +215,7 @@ func RichError(err error) Field {
 	}
 
 	var callerStackTrace errors.StackTrace
-	if errWithStackTrace, ok := errors.WithStack(err).(stackTracer); ok { //nolint: errorlint
+	if errWithStackTrace, ok := errors.WithStack(err).(stackTracer); ok {
 		callerStackTrace = errWithStackTrace.StackTrace()
 		if len(callerStackTrace) > 0 {
 			callerStackTrace = callerStackTrace[1:]
