@@ -10,7 +10,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier/noop"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
-	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -42,17 +41,13 @@ func initCoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) (*api.I
 	noopNotifier := noop.NewNoopNotifier()
 
 	l.Info("Creating Ingestor API")
+
 	return api.NewIngestorAPI(khCfg, puller, noopNotifier, p), nil
 }
 
 func CoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) error {
 	ingestorApi, err := initCoreGrpcApi(ctx, khCfg)
 	defer ingestorApi.Close(ctx)
-	if err != nil {
-		events.PushEventIngestorFailed(ctx)
-		return err
-	}
-	events.PushEventIngestorInit(ctx)
 
 	l := log.Logger(ctx)
 	l.Info("Starting Ingestor API")
