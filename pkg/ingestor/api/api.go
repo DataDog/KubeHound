@@ -204,11 +204,6 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 		}
 	}
 
-	// Keeping only the latest dump for each cluster in memory
-	err = g.providers.GraphProvider.Clean(runCtx, clusterName) //nolint: contextcheck
-	if err != nil {
-		return err
-	}
 
 	err = g.providers.IngestBuildData(runCtx, runCfg) //nolint: contextcheck
 	if err != nil {
