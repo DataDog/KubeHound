@@ -204,15 +204,11 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 		}
 	}
 
-	err = ingestor.IngestData(runCtx, runCfg, collect, g.providers.CacheProvider, g.providers.StoreProvider, g.providers.GraphProvider) //nolint: contextcheck
-	if err != nil {
-		return fmt.Errorf("raw data ingest: %w", err)
-	}
-
-	err = graph.BuildGraph(runCtx, runCfg, g.providers.StoreProvider, g.providers.GraphProvider, g.providers.CacheProvider) //nolint: contextcheck
+	err = g.providers.IngestBuildData(runCtx, runCfg)
 	if err != nil {
 		return err
 	}
+	
 	err = g.notifier.Notify(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("notifying: %w", err)
