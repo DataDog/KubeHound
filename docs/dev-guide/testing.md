@@ -7,7 +7,7 @@ To ensure no regression in KubeHound, 2 kinds of tests are in place:
 
 ## Requirements test
 
-- [Golang](https://go.dev/doc/install) `>= 1.22`
+- [Golang](https://go.dev/doc/install) `>= 1.23`
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager)
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 
