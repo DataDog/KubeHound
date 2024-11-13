@@ -1,5 +1,29 @@
 # References
 
+## 2024 - HackLu Workshop
+
+### [KubeHound: Identifying attack paths in Kubernetes clusters at scale with no hustle](https://pretalx.com/hack-lu-2024/talk/HWDZGZ/)
+
+[Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/hacklu24/Kubehound-Workshop-HackLu24.pdf){ .md-button } [Jupyter notebook :fontawesome-brands-python:{ .python } ](https://github.com/DataDog/KubeHound/tree/main/deployments/kubehound/notebook/KubehoundDSL_101.ipynb){ .md-button }
+
+Updated version of the Pass The Salt Workshop. Prerequisites are listed on [kubehound.io/workshop](https://kubehound.io/workshop/). The workshop is a hands-on session where participants will learn how to use KubeHound to identify attack paths in Kubernetes clusters. The workshop will cover the following topics:
+
+- Hack a vulnerable Kubernetes cluster (exploiting 4 differents attacks in a local environement).
+- Use KubeHound to identify specific resources in the vulnerable cluster.
+- Use KubeHound to identify attack paths in the vulnerable cluster.
+
+## 2024 - HackLu presentation
+
+### [KubeHound: Identifying attack paths in Kubernetes clusters at scale with no hustle](https://pretalx.com/hack-lu-2024/talk/HWDZGZ/)
+
+[Recording :fontawesome-brands-youtube:{ .youtube } ](https://www.youtube.com/watch?v=h-dD7PQC4NA){ .md-button .md-button--youtube } [Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/hacklu24/Kubehound-HackLu24-slides.pdf){ .md-button }
+
+This presentation explains the genesis behind the tool and a brief introduction to what Kubernetes security is. We showcase the three main usage for KubeHound:
+
+- As a standalone tool to identify attack paths in a Kubernetes cluster from a laptop (the automatic mode and easy way to dump and ingest the data).
+- As a blue teamer with **KubeHound as a Service** or **KHaaS** which allow using KubeHound to be used with a distributed model across multiple Kuberentes Clusters to generate continuously a security posture on a daily basis.
+- As a consultant using the asynchronously mechanism to dump and rehydrate the KubeHound state from 2 different locations.
+
 ## 2024 - Pass The Salt (PTS) Workshop
 
 ### [KubeHound: Identifying attack paths in Kubernetes clusters at scale with no hustle](https://cfp.pass-the-salt.org/pts2024/talk/WA99YZ/)
