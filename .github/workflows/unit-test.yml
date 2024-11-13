@@ -17,7 +17,8 @@ jobs:
         uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
         with:
           egress-policy: block
-          allowed-endpoints: api.github.com:443
+          allowed-endpoints:
+            api.github.com:443
             github.com:443
             proxy.golang.org:443
             golang.org:443
