@@ -46,7 +46,7 @@ func initCoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) (*api.I
 }
 
 func CoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) error {
-	ingestorApi, err := initCoreGrpcApi(ctx, khCfg)
+	ingestorApi, _ := initCoreGrpcApi(ctx, khCfg)
 	defer ingestorApi.Close(ctx)
 	// TODO: need to merge fix-observability branch to get the following events
 	// if err != nil {
