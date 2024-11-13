@@ -47,6 +47,18 @@ func convertField(value any) string {
 	return val
 }
 
+func GetRunIDFromContext(ctx context.Context) string {
+	return convertField(ctx.Value(ContextFieldRunID))
+}
+
+func GetClusterFromContext(ctx context.Context) string {
+	return convertField(ctx.Value(ContextFieldCluster))
+}
+
+func GetComponentFromContext(ctx context.Context) string {
+	return convertField(ctx.Value(ContextFieldComponent))
+}
+
 func SpanSetDefaultField(ctx context.Context, span ddtrace.Span) {
 	runID := convertField(ctx.Value(ContextFieldRunID))
 	if runID != "" {

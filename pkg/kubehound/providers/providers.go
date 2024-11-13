@@ -3,6 +3,7 @@ package providers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -11,7 +12,11 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
+	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
+	"github.com/DataDog/KubeHound/pkg/telemetry/statsd"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 )
 
 type ProvidersFactoryConfig struct {
@@ -81,6 +86,7 @@ func (p *ProvidersFactoryConfig) IngestBuildData(ctx context.Context, khCfg *con
 	l := log.Logger(ctx)
 	// Create the collector instance
 	l.Info("Loading Kubernetes data collector client")
+	start := time.Now()
 	collect, err := collector.ClientFactory(ctx, khCfg)
 	if err != nil {
 		return fmt.Errorf("collector client creation: %w", err)
@@ -94,11 +100,21 @@ func (p *ProvidersFactoryConfig) IngestBuildData(ctx context.Context, khCfg *con
 	if err != nil {
 		return fmt.Errorf("raw data ingest: %w", err)
 	}
+	// Metric for IngestData
+	_ = statsd.Gauge(ctx, metric.IngestionIngestDuration, float64(time.Since(start)), tag.GetDefaultTags(ctx), 1)
 
+	startBuild := time.Now()
 	err = graph.BuildGraph(ctx, khCfg, p.StoreProvider, p.GraphProvider, p.CacheProvider)
 	if err != nil {
 		return err
 	}
+
+	// Metric for BuildGraph
+	_ = statsd.Gauge(ctx, metric.IngestionBuildDuration, float64(time.Since(startBuild)), tag.GetDefaultTags(ctx), 1)
+
+	// Metric for IngestBuildData
+	_ = statsd.Gauge(ctx, metric.IngestionRunDuration, float64(time.Since(start)), tag.GetDefaultTags(ctx), 1)
+	events.PushEventIngestFinished(ctx, start)
 
 	return nil
 }

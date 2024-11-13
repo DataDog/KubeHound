@@ -13,7 +13,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
-	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/ext"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -43,13 +42,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 
 	khCfg.Collector.Type = config.CollectorTypeK8sAPI
 
-	events.PushEvent(
-		fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
-		fmt.Sprintf("Starting KubeHound dump for %s", clusterName),
-		[]string{
-			tag.ActionType(events.DumperRun),
-		},
-	)
+	events.PushEventDumpStarted(ctx)
 
 	filePath, err := runLocalDump(ctx, khCfg)
 	if err != nil {
@@ -76,13 +69,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 		}
 	}
 
-	events.PushEvent(
-		fmt.Sprintf("Finish KubeHound dump for %s", clusterName),
-		fmt.Sprintf("KubeHound dump run has been completed in %s", time.Since(start)),
-		[]string{
-			tag.ActionType(events.DumperRun),
-		},
-	)
+	events.PushEventDumpFinished(ctx, start)
 	l.Info("KubeHound dump run has been completed", log.Duration("duration", time.Since(start)))
 
 	return filePath, nil

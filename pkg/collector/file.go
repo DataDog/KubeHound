@@ -124,7 +124,7 @@ func (c *FileCollector) streamPodsNamespace(ctx context.Context, fp string, inge
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, c.tags.pod, 1)
+		_ = statsd.Incr(ctx, metric.CollectorCount, c.tags.pod, 1)
 		i := item
 		err = ingestor.IngestPod(ctx, &i)
 		if err != nil {
@@ -176,7 +176,7 @@ func (c *FileCollector) streamRolesNamespace(ctx context.Context, fp string, ing
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, c.tags.role, 1)
+		_ = statsd.Incr(ctx, metric.CollectorCount, c.tags.role, 1)
 		i := item
 		err = ingestor.IngestRole(ctx, &i)
 		if err != nil {
@@ -228,7 +228,7 @@ func (c *FileCollector) streamRoleBindingsNamespace(ctx context.Context, fp stri
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, c.tags.rolebinding, 1)
+		_ = statsd.Incr(ctx, metric.CollectorCount, c.tags.rolebinding, 1)
 		i := item
 		err = ingestor.IngestRoleBinding(ctx, &i)
 		if err != nil {
@@ -280,7 +280,7 @@ func (c *FileCollector) streamEndpointsNamespace(ctx context.Context, fp string,
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, c.tags.endpoint, 1)
+		_ = statsd.Incr(ctx, metric.CollectorCount, c.tags.endpoint, 1)
 		i := item
 		err = ingestor.IngestEndpoint(ctx, &i)
 		if err != nil {
@@ -339,7 +339,7 @@ func (c *FileCollector) StreamNodes(ctx context.Context, ingestor NodeIngestor) 
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, c.tags.node, 1)
+		_ = statsd.Incr(ctx, metric.CollectorCount, c.tags.node, 1)
 		i := item
 		err = ingestor.IngestNode(ctx, &i)
 		if err != nil {
@@ -366,7 +366,7 @@ func (c *FileCollector) StreamClusterRoles(ctx context.Context, ingestor Cluster
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrole, 1)
+		_ = statsd.Incr(ctx, metric.CollectorCount, c.tags.clusterrole, 1)
 		i := item
 		err = ingestor.IngestClusterRole(ctx, &i)
 		if err != nil {
@@ -393,7 +393,7 @@ func (c *FileCollector) StreamClusterRoleBindings(ctx context.Context, ingestor 
 	}
 
 	for _, item := range list.Items {
-		_ = statsd.Incr(metric.CollectorCount, c.tags.clusterrolebinding, 1)
+		_ = statsd.Incr(ctx, metric.CollectorCount, c.tags.clusterrolebinding, 1)
 		i := item
 		err = ingestor.IngestClusterRoleBinding(ctx, &i)
 		if err != nil {
