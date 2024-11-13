@@ -56,10 +56,13 @@ func NewIngestorAPI(cfg *config.KubehoundConfig, puller puller.DataPuller, notif
 	}
 }
 
+func (g *IngestorAPI) Close(ctx context.Context) {
+	g.providers.Close(ctx)
+}
+
 // RehydrateLatest is just a GRPC wrapper around the Ingest method from the API package
 func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedCluster, error) {
 	l := log.Logger(ctx)
-	l.Error("id123")
 	// first level key are cluster names
 	directories, errRet := g.puller.ListFiles(ctx, "", false)
 	if errRet != nil {

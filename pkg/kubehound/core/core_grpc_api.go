@@ -10,12 +10,13 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier/noop"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
+	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-func CoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) error {
+func initCoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) (*api.IngestorAPI, error) {
 	l := log.Logger(ctx)
 	l.Info("Starting KubeHound Distributed Ingestor Service")
 	span, ctx := span.SpanRunFromContext(ctx, span.IngestorLaunch)
@@ -28,22 +29,32 @@ func CoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) error {
 	l.Info("Initializing providers (graph, cache, store)")
 	p, err := providers.NewProvidersFactoryConfig(ctx, khCfg)
 	if err != nil {
-		return fmt.Errorf("factory config creation: %w", err)
+		return nil, fmt.Errorf("factory config creation: %w", err)
 	}
-	defer p.Close(ctx)
 
 	l.Info("Creating Blob Storage provider")
 	puller, err := blob.NewBlobStorage(khCfg, khCfg.Ingestor.Blob)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	l.Info("Creating Noop Notifier")
 	noopNotifier := noop.NewNoopNotifier()
 
 	l.Info("Creating Ingestor API")
-	ingestorApi := api.NewIngestorAPI(khCfg, puller, noopNotifier, p)
+	return api.NewIngestorAPI(khCfg, puller, noopNotifier, p), nil
+}
 
+func CoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) error {
+	ingestorApi, err := initCoreGrpcApi(ctx, khCfg)
+	defer ingestorApi.Close(ctx)
+	if err != nil {
+		events.PushEventIngestorFailed(ctx)
+		return err
+	}
+	events.PushEventIngestorInit(ctx)
+
+	l := log.Logger(ctx)
 	l.Info("Starting Ingestor API")
 	err = grpc.Listen(ctx, ingestorApi)
 	if err != nil {

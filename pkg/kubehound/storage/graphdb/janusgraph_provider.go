@@ -145,3 +145,29 @@ func (jgp *JanusGraphProvider) Close(ctx context.Context) error {
 
 	return nil
 }
+
+// Raw returns a handle to the underlying provider to allow implementation specific operations e.g graph queries.
+func (jgp *JanusGraphProvider) Clean(ctx context.Context, cluster string) error {
+	l := log.Trace(ctx)
+	l.Infof("Cleaning cluster", log.FieldClusterKey, cluster)
+	g := gremlin.Traversal_().WithRemote(jgp.drc)
+	tx := g.Tx()
+	defer tx.Close()
+
+	gtx, err := tx.Begin()
+	if err != nil {
+		return err
+	}
+
+	err = <-gtx.V().Has("cluster", cluster).Drop().Iterate()
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
