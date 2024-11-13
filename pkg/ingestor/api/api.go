@@ -158,7 +158,7 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 	}
 
 	if alreadyIngested {
-		events.PushEventIngestSkip(runCtx)
+		events.PushEventIngestSkip(runCtx) //nolint: contextcheck
 
 		return fmt.Errorf("%w [%s:%s]", ErrAlreadyIngested, clusterName, runID)
 	}
@@ -167,7 +167,7 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 	spanJob.SetTag(ext.ManualKeep, true)
 	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 
-	events.PushEventIngestStarted(runCtx)
+	events.PushEventIngestStarted(runCtx) //nolint: contextcheck
 
 	// We need to flush the cache to prevent warnings/errors when overwriting elements in cache from the previous ingestion
 	// This avoid conflicts from previous ingestion (there is no need to reuse the cache from a previous ingestion)
@@ -204,11 +204,17 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 		}
 	}
 
-	err = g.providers.IngestBuildData(runCtx, runCfg)
+	// Keeping only the latest dump for each cluster in memory
+	err = g.providers.GraphProvider.Clean(runCtx, clusterName) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
-	
+
+	err = g.providers.IngestBuildData(runCtx, runCfg) //nolint: contextcheck
+	if err != nil {
+		return err
+	}
+
 	err = g.notifier.Notify(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("notifying: %w", err)

@@ -42,6 +42,7 @@ func geTitleTextMsg(ctx context.Context, actionMsg string) (string, string) {
 	runId := log.GetRunIDFromContext(ctx)
 	title := fmt.Sprintf("%s for %s", actionMsg, cluster)
 	text := fmt.Sprintf("%s for %s with run_id %s", actionMsg, cluster, runId)
+
 	return title, text
 }
 
