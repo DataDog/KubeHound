@@ -204,7 +204,6 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 		}
 	}
 
-
 	err = g.providers.IngestBuildData(runCtx, runCfg) //nolint: contextcheck
 	if err != nil {
 		return err
