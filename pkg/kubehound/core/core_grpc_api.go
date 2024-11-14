@@ -57,7 +57,7 @@ func CoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) error {
 
 	l := log.Logger(ctx)
 	l.Info("Starting Ingestor API")
-	err = grpc.Listen(ctx, ingestorApi)
+	err := grpc.Listen(ctx, ingestorApi)
 	if err != nil {
 		return err
 	}
