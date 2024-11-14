@@ -138,6 +138,8 @@ func (bs *BlobStore) ListFiles(ctx context.Context, prefix string, recursive boo
 func (bs *BlobStore) Put(outer context.Context, archivePath string, clusterName string, runID string) error {
 	l := log.Logger(outer)
 	var err error
+
+	// Triggering a span only when it is an actual run and not the rehydration process (download the kubehound dump to get the metadata)
 	if log.GetRunIDFromContext(outer) != "" {
 		var spanPut ddtrace.Span
 		spanPut, outer = span.SpanRunFromContext(outer, span.IngestorBlobPull)
