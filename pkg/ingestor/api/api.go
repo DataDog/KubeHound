@@ -212,6 +212,12 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 		}
 	}
 
+	// Keeping only the latest dump for each cluster in memory
+	err = g.providers.GraphProvider.Clean(runCtx, clusterName) //nolint: contextcheck
+	if err != nil {
+		return err
+	}
+
 	err = ingestor.IngestData(runCtx, runCfg, collect, g.providers.CacheProvider, g.providers.StoreProvider, g.providers.GraphProvider) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("raw data ingest: %w", err)
