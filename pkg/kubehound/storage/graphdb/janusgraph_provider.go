@@ -149,7 +149,8 @@ func (jgp *JanusGraphProvider) Close(ctx context.Context) error {
 }
 
 // Raw returns a handle to the underlying provider to allow implementation specific operations e.g graph queries.
-func (jgp *JanusGraphProvider) Clean(ctx context.Context, cluster string) (err error) {
+func (jgp *JanusGraphProvider) Clean(ctx context.Context, cluster string) error {
+	var err error
 	span, ctx := span.SpanRunFromContext(ctx, span.IngestorClean)
 	defer func() { span.Finish(tracer.WithError(err)) }()
 	l := log.Trace(ctx)
