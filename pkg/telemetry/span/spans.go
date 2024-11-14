@@ -39,6 +39,7 @@ const (
 	IngestorBlobPut     = "kubehound.ingestor.blob.put"
 	IngestorBlobExtract = "kubehound.ingestor.blob.extract"
 	IngestorBlobClose   = "kubehound.ingestor.blob.close"
+	IngestorClean       = "kubehound.ingestor.clean"
 
 	DumperLaunch = "kubehound.dumper.launch"
 

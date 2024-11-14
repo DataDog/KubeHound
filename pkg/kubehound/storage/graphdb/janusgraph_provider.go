@@ -10,8 +10,10 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const (
@@ -147,7 +149,9 @@ func (jgp *JanusGraphProvider) Close(ctx context.Context) error {
 }
 
 // Raw returns a handle to the underlying provider to allow implementation specific operations e.g graph queries.
-func (jgp *JanusGraphProvider) Clean(ctx context.Context, cluster string) error {
+func (jgp *JanusGraphProvider) Clean(ctx context.Context, cluster string) (err error) {
+	span, ctx := span.SpanRunFromContext(ctx, span.IngestorClean)
+	defer func() { span.Finish(tracer.WithError(err)) }()
 	l := log.Trace(ctx)
 	l.Infof("Cleaning cluster", log.FieldClusterKey, cluster)
 	g := gremlin.Traversal_().WithRemote(jgp.drc)
