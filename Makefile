@@ -82,7 +82,7 @@ kubehound: | build ## Prepare kubehound (build go binary, deploy backend)
 	./bin/build/kubehound
 
 .PHONY: test
-test: ## Run the full suite of unit tests 
+test: ## Run the full suite of unit tests
 	cd pkg && go test -count=1 -race $(BUILD_FLAGS) ./...
 
 .PHONY: system-test

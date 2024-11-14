@@ -67,7 +67,7 @@ jobs:
       - name: Setup Golang
         uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe
         with:
-          go-version: "1.22"
+          go-version: "1.23"
 
       - name: Run integration Tests
         run: make system-test

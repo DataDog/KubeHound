@@ -1,8 +1,8 @@
 module github.com/DataDog/KubeHound
 
-go 1.22.0
+go 1.23.0
 
-toolchain go1.22.1
+toolchain go1.23
 
 require (
 	github.com/DataDog/datadog-go/v5 v5.5.0
@@ -276,7 +276,7 @@ require (
 
 require (
 	github.com/oklog/ulid/v2 v2.1.0
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/viper v1.19.0
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
