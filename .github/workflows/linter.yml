@@ -16,7 +16,7 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
         with:
-          egress-policy: audit
+          egress-policy: block
           allowed-endpoints: >
             api.github.com:443
             github.com:443
@@ -28,6 +28,7 @@ jobs:
             storage.googleapis.com:443
             uploads.github.com:443
             sum.golang.org:443
+            raw.githubusercontent.com:443
 
       - name: Setup Golang
         uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe
