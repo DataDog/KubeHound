@@ -37,3 +37,10 @@ var (
 	CacheWrite     = "kubehound.cache.write"
 	CacheDuplicate = "kubehound.cache.duplicate"
 )
+
+// Ingestion metrics
+const (
+	IngestionRunDuration    = "kubehound.ingestion.run.duration"
+	IngestionBuildDuration  = "kubehound.ingestion.build.duration"
+	IngestionIngestDuration = "kubehound.ingestion.ingest.duration"
+)

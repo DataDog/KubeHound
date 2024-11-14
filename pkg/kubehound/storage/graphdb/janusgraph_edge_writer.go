@@ -77,13 +77,13 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 					return
 				}
 
-				_ = statsd.Count(metric.BackgroundWriterCall, 1, jgv.tags, 1)
+				_ = statsd.Count(ctx, metric.BackgroundWriterCall, 1, jgv.tags, 1)
 				err := jgv.batchWrite(ctx, data)
 				if err != nil {
 					log.Trace(ctx).Errorf("write data in background batch writer: %v", err)
 				}
 
-				_ = statsd.Decr(metric.QueueSize, jgv.tags, 1)
+				_ = statsd.Decr(ctx, metric.QueueSize, jgv.tags, 1)
 			case <-ctx.Done():
 				log.Trace(ctx).Info("Closed background janusgraph worker on context cancel")
 
@@ -103,7 +103,7 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 	defer jgv.writingInFlight.Done()
 
 	datalen := len(data)
-	_ = statsd.Count(metric.EdgeWrite, int64(datalen), jgv.tags, 1)
+	_ = statsd.Count(ctx, metric.EdgeWrite, int64(datalen), jgv.tags, 1)
 	log.Trace(ctx).Debugf("Batch write JanusGraphEdgeWriter with %d elements", datalen)
 	atomic.AddInt32(&jgv.wcounter, int32(datalen))
 
@@ -139,7 +139,7 @@ func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 	}
 
 	if len(jgv.inserts) != 0 {
-		_ = statsd.Incr(metric.FlushWriterCall, jgv.tags, 1)
+		_ = statsd.Incr(ctx, metric.FlushWriterCall, jgv.tags, 1)
 
 		jgv.writingInFlight.Add(1)
 		err = jgv.batchWrite(ctx, jgv.inserts)
@@ -175,7 +175,7 @@ func (jgv *JanusGraphEdgeWriter) Queue(ctx context.Context, v any) error {
 
 		jgv.writingInFlight.Add(1)
 		jgv.consumerChan <- copied
-		_ = statsd.Incr(metric.QueueSize, jgv.tags, 1)
+		_ = statsd.Incr(ctx, metric.QueueSize, jgv.tags, 1)
 
 		// cleanup the ops array after we have copied it to the channel
 		jgv.inserts = nil

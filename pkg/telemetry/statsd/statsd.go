@@ -50,46 +50,51 @@ func Setup(ctx context.Context, cfg *config.KubehoundConfig) error {
 }
 
 // Count tracks how many times something happened per second.
-func Count(name string, value int64, tags []string, rate float64) error {
+func Count(ctx context.Context, name string, value int64, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+	tags = append(tags, tag.GetDefaultTags(ctx)...)
 
 	return statsdClient.Count(name, value, tags, rate)
 }
 
 // Gauge measures the value of a metric at a particular time.
-func Gauge(name string, value float64, tags []string, rate float64) error {
+func Gauge(ctx context.Context, name string, value float64, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+	tags = append(tags, tag.GetDefaultTags(ctx)...)
 
 	return statsdClient.Gauge(name, value, tags, rate)
 }
 
 // Incr is just Count of 1
-func Incr(name string, tags []string, rate float64) error {
+func Incr(ctx context.Context, name string, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+	tags = append(tags, tag.GetDefaultTags(ctx)...)
 
 	return statsdClient.Incr(name, tags, rate)
 }
 
 // Decr is just Count of -1
-func Decr(name string, tags []string, rate float64) error {
+func Decr(ctx context.Context, name string, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+	tags = append(tags, tag.GetDefaultTags(ctx)...)
 
 	return statsdClient.Decr(name, tags, rate)
 }
 
 // Histogram tracks the statistical distribution of a set of values.
-func Histogram(name string, value float64, tags []string, rate float64) error {
+func Histogram(ctx context.Context, name string, value float64, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+	tags = append(tags, tag.GetDefaultTags(ctx)...)
 
 	return statsdClient.Histogram(name, value, tags, rate)
 }
@@ -113,28 +118,31 @@ func SimpleEvent(title string, text string) error {
 }
 
 // Set counts the number of unique elements in a group.
-func Set(name string, value string, tags []string, rate float64) error {
+func Set(ctx context.Context, name string, value string, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+	tags = append(tags, tag.GetDefaultTags(ctx)...)
 
 	return statsdClient.Set(name, value, tags, rate)
 }
 
 // Timing sends timing information, it is an alias for TimeInMilliseconds
-func Timing(name string, value time.Duration, tags []string, rate float64) error {
+func Timing(ctx context.Context, name string, value time.Duration, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+	tags = append(tags, tag.GetDefaultTags(ctx)...)
 
 	return statsdClient.Timing(name, value, tags, rate)
 }
 
 // TimingDist sends dt in milliseconds as a distribution (p50-p99)
-func TimingDist(name string, dt time.Duration, tags []string, rate float64) error {
+func TimingDist(ctx context.Context, name string, dt time.Duration, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+	tags = append(tags, tag.GetDefaultTags(ctx)...)
 
 	const secToMillis = 1000
 
@@ -142,19 +150,21 @@ func TimingDist(name string, dt time.Duration, tags []string, rate float64) erro
 }
 
 // TimeInMilliseconds sends timing information in milliseconds.
-func TimeInMilliseconds(name string, value float64, tags []string, rate float64) error {
+func TimeInMilliseconds(ctx context.Context, name string, value float64, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+	tags = append(tags, tag.GetDefaultTags(ctx)...)
 
 	return statsdClient.TimeInMilliseconds(name, value, tags, rate)
 }
 
 // Distribution tracks accurate global percentiles of a set of values.
-func Distribution(name string, value float64, tags []string, rate float64) error {
+func Distribution(ctx context.Context, name string, value float64, tags []string, rate float64) error {
 	if statsdClient == nil {
 		return nil
 	}
+	tags = append(tags, tag.GetDefaultTags(ctx)...)
 
 	return statsdClient.Distribution(name, value, tags, rate)
 }

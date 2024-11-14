@@ -1,26 +1,34 @@
 package tag
 
-import "sync"
+import (
+	"context"
+	"sync"
+
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+)
 
 const (
 	ActionTypeTag         = "action"
 	CollectorTag          = "collector"
-	CollectorClusterTag   = "cluster"
 	DumperS3BucketTag     = "s3_bucket"
 	DumperS3keyTag        = "s3_key"
-	DumperFilePathTag     = "file_path"
 	DumperWorkerNumberTag = "worker_number"
 	DumperWriterTypeTag   = "writer_type"
-	EntityTag             = "entity"
 	WaitTag               = "wait"
-	RunIdTag              = "run_id"
-	IngestionRunIdTag     = "ingestion_run_id"
 	LabelTag              = "label"
 	CollectionTag         = "collection"
 	BuilderTag            = "builder"
 	StorageTag            = "storage"
 	CacheKeyTag           = "cache_key"
 	EdgeTypeTag           = "edge_type"
+)
+
+var (
+	RunIdTag            = log.FieldRunIDKey
+	CollectorClusterTag = log.FieldClusterKey
+	DumperFilePathTag   = log.FieldPathKey
+	EntityTag           = log.FieldEntityKey
+	CompenentTag        = log.FieldComponentKey
 )
 
 const (
@@ -83,10 +91,6 @@ func RunID(uuid string) string {
 	return MakeTag(RunIdTag, uuid)
 }
 
-func IngestionRunID(uuid string) string {
-	return MakeTag(IngestionRunIdTag, uuid)
-}
-
 func Collector(collector string) string {
 	return MakeTag(CollectorTag, collector)
 }
@@ -133,4 +137,28 @@ func S3Bucket(bucket string) string {
 
 func S3Key(key string) string {
 	return MakeTag(DumperS3keyTag, key)
+}
+
+func ComponentName(component string) string {
+	return MakeTag(CompenentTag, component)
+}
+
+func GetDefaultTags(ctx context.Context) []string {
+	defaultTags := []string{}
+	runID := log.GetRunIDFromContext(ctx)
+	if runID != "" {
+		defaultTags = append(defaultTags, RunID(runID))
+	}
+
+	cluster := log.GetClusterFromContext(ctx)
+	if cluster != "" {
+		defaultTags = append(defaultTags, ClusterName(cluster))
+	}
+
+	component := log.GetComponentFromContext(ctx)
+	if component != "" {
+		defaultTags = append(defaultTags, ComponentName(component))
+	}
+
+	return defaultTags
 }
