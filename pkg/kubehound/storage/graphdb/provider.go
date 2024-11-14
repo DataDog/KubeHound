@@ -35,6 +35,9 @@ type Provider interface {
 	// Raw returns a handle to the underlying provider to allow implementation specific operations e.g graph queries.
 	Raw() any
 
+	// Droping all assets from the graph database from a cluster name
+	Clean(ctx context.Context, cluster string) error
+
 	// VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
 	VertexWriter(ctx context.Context, v vertex.Builder, c cache.CacheProvider, opts ...WriterOption) (AsyncVertexWriter, error)
 

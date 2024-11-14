@@ -10,8 +10,10 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const (
@@ -142,6 +144,35 @@ func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Builder, o
 // Close cleans up any resources used by the Provider implementation. Provider cannot be reused after this call.
 func (jgp *JanusGraphProvider) Close(ctx context.Context) error {
 	jgp.drc.Close()
+
+	return nil
+}
+
+// Raw returns a handle to the underlying provider to allow implementation specific operations e.g graph queries.
+func (jgp *JanusGraphProvider) Clean(ctx context.Context, cluster string) error {
+	var err error
+	span, ctx := span.SpanRunFromContext(ctx, span.IngestorClean)
+	defer func() { span.Finish(tracer.WithError(err)) }()
+	l := log.Trace(ctx)
+	l.Infof("Cleaning cluster", log.FieldClusterKey, cluster)
+	g := gremlin.Traversal_().WithRemote(jgp.drc)
+	tx := g.Tx()
+	defer tx.Close()
+
+	gtx, err := tx.Begin()
+	if err != nil {
+		return err
+	}
+
+	err = <-gtx.V().Has("cluster", cluster).Drop().Iterate()
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
