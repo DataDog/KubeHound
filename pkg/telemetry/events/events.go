@@ -12,6 +12,16 @@ import (
 )
 
 const (
+	IngestSkip = iota
+	IngestStarted
+	IngestFinished
+	IngestorInit
+	IngestorFailed
+	DumpStarted
+	DumpFinished
+)
+
+const (
 	EventActionFail   = "fail"
 	EventActionInit   = "init"
 	EventActionStart  = "start"
@@ -19,22 +29,48 @@ const (
 	EventActionFinish = "finish"
 )
 
-func pushEventInfo(title string, text string, tags []string) {
-	_ = kstatsd.Event(&statsd.Event{
-		Title:     title,
-		Text:      text,
-		Tags:      tags,
-		AlertType: statsd.Info,
-	})
+type EventAction int
+
+type EventActionDetails struct {
+	Title  string
+	Text   string
+	Level  statsd.EventAlertType
+	Action string
 }
 
-func pushEventError(title string, text string, tags []string) {
-	_ = kstatsd.Event(&statsd.Event{
-		Title:     title,
-		Text:      text,
-		Tags:      tags,
-		AlertType: statsd.Error,
-	})
+// Could also be a format stirng template in this case, if needed?
+var map2msg = map[EventAction]EventActionDetails{
+	IngestorFailed: {Title: "Ingestor/grpc endpoint init failed", Level: statsd.Error, Action: EventActionFail},
+	IngestorInit:   {Title: "Ingestor/grpc endpoint initiated", Level: statsd.Info, Action: EventActionInit},
+	IngestStarted:  {Title: "Ingestion started", Level: statsd.Info, Action: EventActionStart},
+	IngestSkip:     {Title: "Ingestion skipped", Level: statsd.Info, Action: EventActionSkip},
+	IngestFinished: {Title: "Ingestion finished", Level: statsd.Info, Action: EventActionFinish},
+
+	DumpStarted:  {Title: "Dump started", Level: statsd.Info, Action: EventActionStart},
+	DumpFinished: {Title: "Dump finished", Level: statsd.Info, Action: EventActionFinish},
+}
+
+func (ea EventAction) Tags(ctx context.Context) []string {
+	tags := tag.GetDefaultTags(ctx)
+	tags = append(tags, fmt.Sprintf("%s:%s", tag.ActionTypeTag, map2msg[ea].Action))
+
+	return tags
+}
+
+func (ea EventAction) Level() statsd.EventAlertType {
+	return map2msg[ea].Level
+}
+
+func (ea EventAction) Title(ctx context.Context) string {
+	title, _ := getTitleTextMsg(ctx, map2msg[ea].Title)
+
+	return title
+}
+
+func (ea EventAction) DefaultMessage(ctx context.Context) string {
+	_, msg := getTitleTextMsg(ctx, map2msg[ea].Title)
+
+	return msg
 }
 
 func getTitleTextMsg(ctx context.Context, actionMsg string) (string, string) {
@@ -46,61 +82,45 @@ func getTitleTextMsg(ctx context.Context, actionMsg string) (string, string) {
 	return title, text
 }
 
-func PushEventIngestSkip(ctx context.Context) {
-	tags := tag.GetDefaultTags(ctx)
-	tags = append(tags, tag.ActionType(EventActionSkip))
+func pushEvent(ctx context.Context, action EventAction, text string) error {
+	if text == "" {
+		text = action.DefaultMessage(ctx)
+	}
 
-	title, text := geTitleTextMsg(ctx, "Ingestion skipped")
-	pushEventInfo(title, text, tags)
+	return kstatsd.Event(&statsd.Event{
+		Title:     action.Title(ctx),
+		Text:      text,
+		Tags:      action.Tags(ctx),
+		AlertType: action.Level(),
+	})
+}
+
+func PushEventIngestSkip(ctx context.Context) {
+	_ = pushEvent(ctx, IngestSkip, "")
 }
 
 func PushEventIngestStarted(ctx context.Context) {
-	tags := tag.GetDefaultTags(ctx)
-	tags = append(tags, tag.ActionType(EventActionStart))
-
-	title, text := geTitleTextMsg(ctx, "Ingestion started")
-	pushEventInfo(title, text, tags)
+	_ = pushEvent(ctx, IngestStarted, "")
 }
 
 func PushEventIngestFinished(ctx context.Context, start time.Time) {
-	tags := tag.GetDefaultTags(ctx)
-	tags = append(tags, tag.ActionType(EventActionFinish))
-
-	title, _ := geTitleTextMsg(ctx, "Ingest finished")
 	text := fmt.Sprintf("KubeHound ingestion has been completed in %s", time.Since(start))
-	pushEventInfo(title, text, tags)
+	_ = pushEvent(ctx, IngestFinished, text)
 }
 
 func PushEventDumpStarted(ctx context.Context) {
-	tags := tag.GetDefaultTags(ctx)
-	tags = append(tags, tag.ActionType(EventActionStart))
-
-	title, text := geTitleTextMsg(ctx, "Dump started")
-	pushEventInfo(title, text, tags)
+	_ = pushEvent(ctx, DumpStarted, "")
 }
 
 func PushEventDumpFinished(ctx context.Context, start time.Time) {
-	tags := tag.GetDefaultTags(ctx)
-	tags = append(tags, tag.ActionType(EventActionFinish))
-
-	title, _ := geTitleTextMsg(ctx, "Dump finished")
-
 	text := fmt.Sprintf("KubeHound dump run has been completed in %s", time.Since(start))
-	pushEventInfo(title, text, tags)
+	_ = pushEvent(ctx, DumpFinished, text)
 }
 
 func PushEventIngestorInit(ctx context.Context) {
-	tags := tag.GetDefaultTags(ctx)
-	tags = append(tags, tag.ActionType(EventActionInit))
-
-	msg := "Ingestor/grpc endpoint initiated"
-	pushEventInfo(msg, msg, tags)
+	_ = pushEvent(ctx, IngestorInit, "")
 }
 
 func PushEventIngestorFailed(ctx context.Context) {
-	tags := tag.GetDefaultTags(ctx)
-	tags = append(tags, tag.ActionType(EventActionFail))
-
-	msg := "Ingestor/grpc endpoint init failed"
-	pushEventError(msg, msg, tags)
+	_ = pushEvent(ctx, IngestorFailed, "")
 }
