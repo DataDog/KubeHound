@@ -65,15 +65,6 @@ const (
 	BuildEdge = "kubehound.graph.builder.edge"
 )
 
-// to avoid the following lint error
-// should not use built-in type string as key for value; define your own type to avoid collisions (SA1029)
-type contextKey int
-
-const (
-	ContextLogFieldClusterName contextKey = iota
-	ContextLogFieldRunID
-)
-
 func convertTag(value any) string {
 	val, err := value.(string)
 	if !err {
@@ -81,6 +72,13 @@ func convertTag(value any) string {
 	}
 
 	return val
+}
+
+func StartSpanFromContext(runCtx context.Context, operationName string, opts ...tracer.StartSpanOption) (tracer.Span, context.Context) {
+	spanJob, runCtx := tracer.StartSpanFromContext(runCtx, operationName, opts...)
+	spanIngestRunSetDefaultTag(runCtx, spanJob)
+
+	return spanJob, runCtx
 }
 
 func SpanRunFromContext(runCtx context.Context, spanName string) (ddtrace.Span, context.Context) {

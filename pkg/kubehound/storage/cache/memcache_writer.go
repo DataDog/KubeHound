@@ -22,7 +22,7 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	tagCacheKey := tag.GetBaseTagsWith(tag.CacheKey(key.Shard()))
-	_ = statsd.Incr(metric.CacheWrite, tagCacheKey, 1)
+	_ = statsd.Incr(ctx, metric.CacheWrite, tagCacheKey, 1)
 	keyId := computeKey(key)
 	entry, ok := m.data[keyId]
 	if ok {
@@ -33,7 +33,7 @@ func (m *MemCacheAsyncWriter) Queue(ctx context.Context, key cachekey.CacheKey, 
 
 		if !m.opts.ExpectOverwrite {
 			// if overwrite is expected (e.g fast tracking of existence regardless of value), suppress metrics and logs
-			_ = statsd.Incr(metric.CacheDuplicate, tagCacheKey, 1)
+			_ = statsd.Incr(ctx, metric.CacheDuplicate, tagCacheKey, 1)
 			log.Trace(ctx).Warnf("overwriting cache entry key=%s old=%#v new=%#v", keyId, entry, value)
 		}
 	}

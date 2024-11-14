@@ -45,7 +45,7 @@ For more advanced use case and configuration, see
 * [common errors](https://kubehound.io/user-guide/troubleshooting/): troubleshooting guide.
 
 > Note: 
-  KubeHound can be deployed as a serivce (KHaaS), [for more information](https://kubehound.io/user-guide/khaas-101/).
+  KubeHound can be deployed as a serivce (KHaaS), [for more information](https://kubehound.io/khaas/getting-started/).
 
 ## Using KubeHound Data
 

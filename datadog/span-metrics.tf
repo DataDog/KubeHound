@@ -31,7 +31,7 @@ resource "datadog_spans_metric" "kubehound_ingest_duration" {
   }
 
   filter {
-    query = "service:kubehound operation_name:kubehound.ingestData"
+    query = "service:kubehound-ingestor operation_name:kubehound.ingestData"
   }
 
   dynamic "group_by" {
@@ -63,7 +63,7 @@ resource "datadog_spans_metric" "kubehound_graph_duration" {
   }
 
   filter {
-    query = "service:kubehound operation_name:kubehound.buildGraph"
+    query = "service:kubehound-ingestor operation_name:kubehound.buildGraph"
   }
 
   dynamic "group_by" {
@@ -103,7 +103,7 @@ resource "datadog_spans_metric" "kubehound_collector_stream_duration" {
   }
 
   filter {
-    query = "service:kubehound operation_name:kubehound.collector.stream"
+    query = "service:kubehound-collector operation_name:kubehound.collector.stream"
   }
 
   dynamic "group_by" {
@@ -144,7 +144,7 @@ resource "datadog_spans_metric" "kubehound_graph_builder_edge_duration" {
   }
 
   filter {
-    query = "service:kubehound operation_name:kubehound.graph.builder.edge"
+    query = "service:kubehound-ingestor operation_name:kubehound.graph.builder.edge"
   }
 
   dynamic "group_by" {

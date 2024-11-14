@@ -54,7 +54,7 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 
 // buildEdge inserts a class of edges into the graph database.
 func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, oic *converter.ObjectIDConverter) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, span.BuildEdge, tracer.Measured(), tracer.ResourceName(e.Label()))
+	span, ctx := span.StartSpanFromContext(ctx, span.BuildEdge, tracer.Measured(), tracer.ResourceName(e.Label()))
 	span.SetTag(tag.LabelTag, e.Label())
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()

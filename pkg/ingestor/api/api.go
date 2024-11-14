@@ -11,21 +11,19 @@ import (
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/dump"
-	"github.com/DataDog/KubeHound/pkg/ingestor"
 	grpc "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
-	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 	"go.mongodb.org/mongo-driver/bson"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/ext"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -156,26 +154,23 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 	runCtx := context.Background()
 	runCtx = context.WithValue(runCtx, log.ContextFieldCluster, clusterName)
 	runCtx = context.WithValue(runCtx, log.ContextFieldRunID, runID)
-	l = log.Logger(runCtx) //nolint: contextcheck
-	spanJob, runCtx := span.SpanRunFromContext(runCtx, span.IngestorStartJob)
-	defer func() { spanJob.Finish(tracer.WithError(err)) }()
-
-	events.PushEvent(
-		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
-		fmt.Sprintf("Ingesting cluster %s with runID %s", clusterName, runID),
-		[]string{
-			tag.IngestionRunID(runID),
-		},
-	)
-
+	l = log.Logger(runCtx)                                                         //nolint: contextcheck
 	alreadyIngested, err := g.isAlreadyIngestedInGraph(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
 
 	if alreadyIngested {
+		_ = events.PushEvent(runCtx, events.IngestSkip, "") //nolint: contextcheck
+
 		return fmt.Errorf("%w [%s:%s]", ErrAlreadyIngested, clusterName, runID)
 	}
+
+	spanJob, runCtx := span.SpanRunFromContext(runCtx, span.IngestorStartJob)
+	spanJob.SetTag(ext.ManualKeep, true)
+	defer func() { spanJob.Finish(tracer.WithError(err)) }()
+
+	_ = events.PushEvent(runCtx, events.IngestStarted, "") //nolint: contextcheck
 
 	// We need to flush the cache to prevent warnings/errors when overwriting elements in cache from the previous ingestion
 	// This avoid conflicts from previous ingestion (there is no need to reuse the cache from a previous ingestion)
@@ -218,15 +213,11 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 		return err
 	}
 
-	err = ingestor.IngestData(runCtx, runCfg, collect, g.providers.CacheProvider, g.providers.StoreProvider, g.providers.GraphProvider) //nolint: contextcheck
-	if err != nil {
-		return fmt.Errorf("raw data ingest: %w", err)
-	}
-
-	err = graph.BuildGraph(runCtx, runCfg, g.providers.StoreProvider, g.providers.GraphProvider, g.providers.CacheProvider) //nolint: contextcheck
+	err = g.providers.IngestBuildData(runCtx, runCfg) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
+
 	err = g.notifier.Notify(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return fmt.Errorf("notifying: %w", err)

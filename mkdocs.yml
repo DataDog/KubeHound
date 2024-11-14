@@ -81,6 +81,7 @@ nav:
       - Comparison with Other Tools: comparison.md
       - Contributing: contributing.md
       - References: references.md
+      - Workshop: workshop.md
   - User Guide:
       - Getting Started: user-guide/getting-started.md
       - Advanced config: user-guide/advanced-configuration.md

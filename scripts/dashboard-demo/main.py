@@ -3,7 +3,7 @@ from math import pi
 
 import panel as pn
 from gremlin_python.driver.client import Client
-from bokeh.palettes import Iridescent, Iridescent
+from bokeh.palettes import TolRainbow
 from bokeh.plotting import figure
 from bokeh.transform import cumsum
 import nest_asyncio
@@ -208,12 +208,19 @@ class GlobalKPI(KPI):
             styles=dict(background='whitesmoke'),
         )
 
+# Only print the top x attacks
 def BokehPieChart(raw_data):
-    data = pd.Series(raw_data).reset_index(name='value').rename(columns={'index':'attacks'})
-    data['angle'] = data['value']/data['value'].sum() * 2*pi
-    data['color'] = Iridescent[len(raw_data)]
+    sorted_data = dict(sorted(raw_data.items(), key=lambda item: item[1], reverse = True))
+    q = len(sorted_data) // TOP_ATTACKS
+    iter = len(sorted_data) % TOP_ATTACKS * q
+    for i in range(1, iter):
+        sorted_data.popitem()
 
-    p = figure( title="Attacks distribution", toolbar_location=None,
+    data = pd.Series(sorted_data).reset_index(name='value').rename(columns={'index':'attacks'})
+    data['angle'] = data['value']/data['value'].sum() * 2*pi
+    data['color'] = TolRainbow[len(sorted_data)]
+
+    p = figure( title=f"Attacks distribution (top{TOP_ATTACKS})", toolbar_location=None,
             tools="hover", tooltips="@attacks: @value", x_range=(-0.5, 1.0))
 
     r = p.wedge(x=0, y=1, radius=0.4,
@@ -238,6 +245,9 @@ def GetClusterName():
     return res[0]
 
 ACCENT = "teal"
+# Number of attacks to print out in the attack distribution graph
+# max value is 23 as the palette has only 23 colors (https://docs.bokeh.org/en/latest/docs/reference/palettes.html#accessible-palettes)
+TOP_ATTACKS = 15
 
 styles = {
     "box-shadow": "rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px",
