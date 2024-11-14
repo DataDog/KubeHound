@@ -37,7 +37,7 @@ func pushEventError(title string, text string, tags []string) {
 	})
 }
 
-func geTitleTextMsg(ctx context.Context, actionMsg string) (string, string) {
+func getTitleTextMsg(ctx context.Context, actionMsg string) (string, string) {
 	cluster := log.GetClusterFromContext(ctx)
 	runId := log.GetRunIDFromContext(ctx)
 	title := fmt.Sprintf("%s for %s", actionMsg, cluster)
