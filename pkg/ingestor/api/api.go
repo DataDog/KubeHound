@@ -102,7 +102,7 @@ func (g *IngestorAPI) RehydrateLatest(ctx context.Context) ([]*grpc.IngestedClus
 	return res, errRet
 }
 
-func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
+func (g *IngestorAPI) Ingest(ctx context.Context, path string) error { //nolint: contextcheck
 	l := log.Logger(ctx)
 
 	archivePath, err := g.puller.Pull(ctx, path)

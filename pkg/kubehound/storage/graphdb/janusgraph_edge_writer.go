@@ -105,7 +105,7 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 	datalen := len(data)
 	_ = statsd.Count(metric.EdgeWrite, int64(datalen), jgv.tags, 1)
 	log.Trace(ctx).Debugf("Batch write JanusGraphEdgeWriter with %d elements", datalen)
-	atomic.AddInt32(&jgv.wcounter, int32(datalen))
+	atomic.AddInt32(&jgv.wcounter, int32(datalen)) //nolint:gosec // disable G115
 
 	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()

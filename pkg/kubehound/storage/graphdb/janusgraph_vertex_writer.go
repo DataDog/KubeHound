@@ -132,7 +132,7 @@ func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []any) e
 	datalen := len(data)
 	_ = statsd.Count(metric.VertexWrite, int64(datalen), jgv.tags, 1)
 	log.Trace(ctx).Debugf("Batch write JanusGraphVertexWriter with %d elements", datalen)
-	atomic.AddInt32(&jgv.wcounter, int32(datalen))
+	atomic.AddInt32(&jgv.wcounter, int32(datalen)) //nolint:gosec // disable G115
 
 	op := jgv.gremlin(jgv.traversalSource, data)
 	raw, err := op.Project("id", "storeID").

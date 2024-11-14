@@ -28,7 +28,7 @@ func (r RunID) String() string {
 
 // Timestamp returns the timestamp embedded within the run id.
 func (r RunID) Timestamp() time.Time {
-	return time.UnixMilli(int64(r.val.Time()))
+	return time.UnixMilli(int64(r.val.Time())) //nolint:gosec
 }
 
 func LoadRunID(runid string) (*RunID, error) {
