@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-mkdocs = "^1.2"
+mkdocs = "^1.5"
 mkdocs-material = "^9.4.7"
 mkdocs-awesome-pages-plugin = "^2.9.2"
 markdown-captions = "^2.1.2"
