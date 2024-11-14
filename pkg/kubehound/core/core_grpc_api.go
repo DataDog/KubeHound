@@ -10,6 +10,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier/noop"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller/blob"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
+	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -46,18 +47,18 @@ func initCoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) (*api.I
 }
 
 func CoreGrpcApi(ctx context.Context, khCfg *config.KubehoundConfig) error {
-	ingestorApi, _ := initCoreGrpcApi(ctx, khCfg)
+	ingestorApi, err := initCoreGrpcApi(ctx, khCfg)
+	if err != nil {
+		_ = events.PushEvent(ctx, events.IngestorFailed, "")
+
+		return err
+	}
 	defer ingestorApi.Close(ctx)
-	// TODO: need to merge fix-observability branch to get the following events
-	// if err != nil {
-	// 	events.PushEventIngestorFailed(ctx)
-	// 	return err
-	// }
-	// events.PushEventIngestorInit(ctx)
+	_ = events.PushEvent(ctx, events.IngestorInit, "")
 
 	l := log.Logger(ctx)
 	l.Info("Starting Ingestor API")
-	err := grpc.Listen(ctx, ingestorApi)
+	err = grpc.Listen(ctx, ingestorApi)
 	if err != nil {
 		return err
 	}
