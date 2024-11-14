@@ -114,7 +114,9 @@ func (p *ProvidersFactoryConfig) IngestBuildData(ctx context.Context, khCfg *con
 
 	// Metric for IngestBuildData
 	_ = statsd.Gauge(ctx, metric.IngestionRunDuration, float64(time.Since(start)), tag.GetDefaultTags(ctx), 1)
-	events.PushEventIngestFinished(ctx, start)
+
+	text := fmt.Sprintf("KubeHound ingestion has been completed in %s", time.Since(start))
+	_ = events.PushEvent(ctx, events.IngestFinished, text)
 
 	return nil
 }

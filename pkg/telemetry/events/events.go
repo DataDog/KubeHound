@@ -3,7 +3,6 @@ package events
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	kstatsd "github.com/DataDog/KubeHound/pkg/telemetry/statsd"
@@ -82,7 +81,7 @@ func getTitleTextMsg(ctx context.Context, actionMsg string) (string, string) {
 	return title, text
 }
 
-func pushEvent(ctx context.Context, action EventAction, text string) error {
+func PushEvent(ctx context.Context, action EventAction, text string) error {
 	if text == "" {
 		text = action.DefaultMessage(ctx)
 	}
@@ -93,34 +92,4 @@ func pushEvent(ctx context.Context, action EventAction, text string) error {
 		Tags:      action.Tags(ctx),
 		AlertType: action.Level(),
 	})
-}
-
-func PushEventIngestSkip(ctx context.Context) {
-	_ = pushEvent(ctx, IngestSkip, "")
-}
-
-func PushEventIngestStarted(ctx context.Context) {
-	_ = pushEvent(ctx, IngestStarted, "")
-}
-
-func PushEventIngestFinished(ctx context.Context, start time.Time) {
-	text := fmt.Sprintf("KubeHound ingestion has been completed in %s", time.Since(start))
-	_ = pushEvent(ctx, IngestFinished, text)
-}
-
-func PushEventDumpStarted(ctx context.Context) {
-	_ = pushEvent(ctx, DumpStarted, "")
-}
-
-func PushEventDumpFinished(ctx context.Context, start time.Time) {
-	text := fmt.Sprintf("KubeHound dump run has been completed in %s", time.Since(start))
-	_ = pushEvent(ctx, DumpFinished, text)
-}
-
-func PushEventIngestorInit(ctx context.Context) {
-	_ = pushEvent(ctx, IngestorInit, "")
-}
-
-func PushEventIngestorFailed(ctx context.Context) {
-	_ = pushEvent(ctx, IngestorFailed, "")
 }

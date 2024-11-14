@@ -42,7 +42,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 
 	khCfg.Collector.Type = config.CollectorTypeK8sAPI
 
-	events.PushEventDumpStarted(ctx)
+	_ = events.PushEvent(ctx, events.DumpStarted, "")
 
 	filePath, err := runLocalDump(ctx, khCfg)
 	if err != nil {
@@ -69,7 +69,8 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 		}
 	}
 
-	events.PushEventDumpFinished(ctx, start)
+	text := fmt.Sprintf("KubeHound dump run has been completed in %s", time.Since(start))
+	_ = events.PushEvent(ctx, events.DumpFinished, text)
 	l.Info("KubeHound dump run has been completed", log.Duration("duration", time.Since(start)))
 
 	return filePath, nil

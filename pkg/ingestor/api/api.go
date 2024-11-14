@@ -158,7 +158,7 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 	}
 
 	if alreadyIngested {
-		events.PushEventIngestSkip(runCtx) //nolint: contextcheck
+		_ = events.PushEvent(runCtx, events.IngestSkip, "") //nolint: contextcheck
 
 		return fmt.Errorf("%w [%s:%s]", ErrAlreadyIngested, clusterName, runID)
 	}
@@ -167,7 +167,7 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error {
 	spanJob.SetTag(ext.ManualKeep, true)
 	defer func() { spanJob.Finish(tracer.WithError(err)) }()
 
-	events.PushEventIngestStarted(runCtx) //nolint: contextcheck
+	_ = events.PushEvent(runCtx, events.IngestStarted, "") //nolint: contextcheck
 
 	// We need to flush the cache to prevent warnings/errors when overwriting elements in cache from the previous ingestion
 	// This avoid conflicts from previous ingestion (there is no need to reuse the cache from a previous ingestion)
