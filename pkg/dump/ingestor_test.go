@@ -69,7 +69,7 @@ func TestNewDumpIngestor(t *testing.T) { //nolint:paralleltest,nolintlint
 	// Can not run parallel tests as the environment variable KUBECONFIG is set
 	// t.Setenv is not compatible with parallel tests
 	for _, tt := range tests { //nolint:paralleltest
-		tt := tt
+
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewDumpIngestor(ctx, tt.args.collectorClient, tt.args.compression, tt.args.directoryOutput, tt.args.runID)
 			if (err != nil) != tt.wantErr {
@@ -127,7 +127,6 @@ func TestDumpIngestor_DumpK8sObjects(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			mDumpWriter, mCollectorClient := tt.testfct(t)

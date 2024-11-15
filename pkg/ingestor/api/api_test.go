@@ -133,7 +133,6 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 		// },
 	}
 	for _, tt := range tests {
-		tt := tt
 		mt.Run(tt.name, func(mt *mtest.T) {
 			mt.Parallel()
 			mockedPuller := mocksPuller.NewDataPuller(t)
@@ -224,7 +223,6 @@ func TestIngestorAPI_isAlreadyIngestedInDB(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		mt.Run(tt.name, func(mt *mtest.T) {
 			mt.Parallel()
 			g := &IngestorAPI{

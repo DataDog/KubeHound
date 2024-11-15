@@ -140,7 +140,6 @@ func NewPipelineDumpIngestor(ctx context.Context, collector collector.CollectorC
 func (p *PipelineDumpIngestor) Run(ctx context.Context) error {
 	var err error
 	for _, v := range p.sequence {
-		v := v
 		p.wp.Submit(func() error {
 			errDump := dumpK8sObjs(ctx, v.operationName, v.entity, v.streamFunc)
 			if errDump != nil {
@@ -161,7 +160,6 @@ func (p *PipelineDumpIngestor) WaitAndClose(ctx context.Context) error {
 	}
 
 	for _, v := range p.closingSequence {
-		v := v
 		errDump := dumpK8sObjs(ctx, v.operationName, v.entity, v.streamFunc)
 		if errDump != nil {
 			err = errors.Join(err, errDump)

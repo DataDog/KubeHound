@@ -30,7 +30,6 @@ func Test_sanitizeExtractPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if err := sanitizeExtractPath(tt.args.filePath, tt.args.destination); (err != nil) != tt.wantErr {
@@ -83,7 +82,6 @@ func TestCheckSanePath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if err := CheckSanePath(tt.args.path, tt.args.baseFolder); (err != nil) != tt.wantErr {
@@ -124,7 +122,6 @@ func TestExtractTarGz(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			tmpPath, err := os.MkdirTemp("/tmp", "kubehound-test")
@@ -195,7 +192,6 @@ func TestIsTarGz(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := IsTarGz(context.TODO(), tt.args.filePath, tt.args.maxArchiveSize)

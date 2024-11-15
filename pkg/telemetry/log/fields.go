@@ -122,10 +122,10 @@ type msec time.Duration
 
 func (f msec) String() string {
 	ms := time.Duration(f) / time.Millisecond
-	if ms < 10 { //nolint: gomnd
+	if ms < 10 {
 		us := time.Duration(f) / time.Microsecond
 
-		return fmt.Sprintf("%0.1fms", float64(us)/1000.0) //nolint: gomnd
+		return fmt.Sprintf("%0.1fms", float64(us)/1000.0)
 	}
 
 	return strconv.Itoa(int(ms)) + "ms"
@@ -453,7 +453,7 @@ type pct struct {
 }
 
 func (p pct) String() string {
-	return fmt.Sprintf("%0.3f%%", (p.part/p.whole)*100) //nolint: gomnd
+	return fmt.Sprintf("%0.3f%%", (p.part/p.whole)*100)
 }
 
 // Percent writes out a percent out of 100%.

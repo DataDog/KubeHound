@@ -78,7 +78,6 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			v := viper.New()
@@ -157,7 +156,6 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
@@ -226,7 +224,6 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
@@ -295,7 +292,6 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
@@ -364,7 +360,6 @@ func Test_k8sAPICollector_StreamNodes(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
@@ -433,7 +428,6 @@ func Test_k8sAPICollector_StreamClusterRoles(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
@@ -502,7 +496,6 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)
@@ -571,7 +564,6 @@ func Test_k8sAPICollector_StreamEndpoints(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			clientset, mock := tt.testfct(t)

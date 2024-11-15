@@ -126,9 +126,6 @@ func (b *Builder) buildSimple(ctx context.Context, oic *converter.ObjectIDConver
 	}
 
 	for label, e := range b.edges.Simple() {
-		e := e
-		label := label
-
 		wp.Submit(func() error {
 			err := b.buildEdge(workCtx, label, e, oic)
 			if err != nil {

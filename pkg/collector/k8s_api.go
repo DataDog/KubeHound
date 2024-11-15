@@ -230,7 +230,7 @@ func (c *k8sAPICollector) computeMetrics(ctx context.Context) (Metrics, error) {
 		errMetric = errors.Join(errMetric, err)
 		l.Error("could not send gauge", log.ErrorField(err))
 	}
-	l.Info("Stats for the run time duration", log.Dur("run", runDuration), log.Dur("wait", runTotalWaitTime), log.Percent("throttling_percent", 100*runThrottlingPercentage, 100)) //nolint:gomnd
+	l.Info("Stats for the run time duration", log.Dur("run", runDuration), log.Dur("wait", runTotalWaitTime), log.Percent("throttling_percent", 100*runThrottlingPercentage, 100))
 
 	// SaveMetadata
 	metadata := Metrics{
