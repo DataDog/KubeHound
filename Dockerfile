@@ -2,7 +2,7 @@
 
 ARG GO_VERSION=1.23.0
 ARG XX_VERSION=1.2.1
-ARG GOLANGCI_LINT_VERSION=v1.55.2
+ARG GOLANGCI_LINT_VERSION=v1.62.0
 
 # xx is a helper for cross-compilation
 FROM --platform=${BUILDPLATFORM} tonistiigi/xx:${XX_VERSION} AS xx
@@ -72,11 +72,8 @@ RUN --mount=type=bind,target=. \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/cache/golangci-lint \
     --mount=from=golangci-lint,source=/usr/bin/golangci-lint,target=/usr/bin/golangci-lint \
-    golangci-lint cache status && \
-    find / -iname .golangci.yaml && \
-    pwd && \
-    find / -iname .golangci.yaml -exec cat {} \; && \
-    golangci-lint run --build-tags "$BUILD_TAGS" -c .golangci.yml ./...
+    echo "cache status: " && golangci-lint cache status && echo "" && \
+    golangci-lint run --build-tags "$BUILD_TAGS" -c /src/.golangci.yml /src/...
 
 FROM scratch AS binary-unix
 COPY --link --from=build /out/kubehound /

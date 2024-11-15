@@ -22,10 +22,10 @@ linters:
     - errchkjson
     - errname
     - errorlint
-    - execinquery
+    # - execinquery
     - exhaustive
     # - exhaustruct
-    - exportloopref
+    # - exportloopref
     - forbidigo
     - forcetypeassert
     # - gci
@@ -41,7 +41,7 @@ linters:
     # - gofumpt
     - goheader
     - goimports
-    - gomnd
+    # - gomnd
     - gomoddirectives
     - gomodguard
     - goprintffuncname
