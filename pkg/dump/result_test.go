@@ -86,7 +86,6 @@ func TestParsePath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := ParsePath(context.TODO(), tt.args.path)
@@ -138,7 +137,6 @@ func TestDumpResult_GetFilename(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
@@ -192,7 +190,6 @@ func TestDumpResult_GetFullPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
@@ -282,7 +279,6 @@ func TestNewDumpResult(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := NewDumpResult(tt.args.clusterName, tt.args.runID, tt.args.isCompressed)

@@ -13,6 +13,7 @@ linters:
     - bodyclose
     - containedctx
     - contextcheck
+    - copyloopvar
     # - cyclop
     - decorder
     - dogsled
@@ -22,10 +23,8 @@ linters:
     - errchkjson
     - errname
     - errorlint
-    - execinquery
     - exhaustive
     # - exhaustruct
-    - exportloopref
     - forbidigo
     - forcetypeassert
     # - gci
@@ -41,7 +40,6 @@ linters:
     # - gofumpt
     - goheader
     - goimports
-    - gomnd
     - gomoddirectives
     - gomodguard
     - goprintffuncname

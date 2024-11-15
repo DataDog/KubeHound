@@ -70,7 +70,6 @@ func TestCacheResult_ObjectID(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := &CacheResult{
@@ -142,7 +141,6 @@ func TestCacheResult_Int64(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := &CacheResult{
@@ -213,7 +211,6 @@ func TestCacheResult_Text(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := &CacheResult{
@@ -284,7 +281,6 @@ func TestCacheResult_Bool(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -370,7 +366,6 @@ func TestCacheResult_Role(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r := &CacheResult{

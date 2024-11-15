@@ -198,9 +198,9 @@ func (enc *kvEncoder) AppendDuration(value time.Duration) {
 func (enc *kvEncoder) AppendComplex128(value complex128) {
 	enc.addElementSeparator()
 	r, i := float64(real(value)), float64(imag(value))
-	enc.buf.AppendFloat(r, 64) //nolint: gomnd
+	enc.buf.AppendFloat(r, 64)
 	enc.buf.AppendByte('+')
-	enc.buf.AppendFloat(i, 64) //nolint: gomnd
+	enc.buf.AppendFloat(i, 64)
 	enc.buf.AppendByte('i')
 }
 
