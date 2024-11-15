@@ -2,7 +2,7 @@
 
 ARG GO_VERSION=1.23.0
 ARG XX_VERSION=1.2.1
-ARG GOLANGCI_LINT_VERSION=v1.55.2
+ARG GOLANGCI_LINT_VERSION=v1.60
 
 # xx is a helper for cross-compilation
 FROM --platform=${BUILDPLATFORM} tonistiigi/xx:${XX_VERSION} AS xx
