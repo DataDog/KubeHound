@@ -63,9 +63,7 @@ var (
 			}
 			// Running the ingestion on KHaaS
 			if cobraCmd.Flags().Lookup("khaas-server").Value.String() != "" {
-				err = core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.ClusterName, khCfg.Dynamic.RunID.String())
-
-				return err
+				return core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.ClusterName, khCfg.Dynamic.RunID.String())
 			}
 
 			return err
