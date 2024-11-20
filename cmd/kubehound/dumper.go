@@ -8,6 +8,7 @@ import (
 	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
+	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -44,6 +45,7 @@ var (
 
 			// Create a temporary directory
 			tmpDir, err := os.MkdirTemp("", "kubehound")
+			defer cmd.ReportError(cobraCmd.Context(), events.DumpFinished, err)
 			if err != nil {
 				return fmt.Errorf("create temporary directory: %w", err)
 			}
@@ -63,7 +65,9 @@ var (
 			}
 			// Running the ingestion on KHaaS
 			if cobraCmd.Flags().Lookup("khaas-server").Value.String() != "" {
-				return core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.ClusterName, khCfg.Dynamic.RunID.String())
+				err = core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.ClusterName, khCfg.Dynamic.RunID.String())
+
+				return err
 			}
 
 			return err
@@ -82,6 +86,7 @@ var (
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// Passing the Kubehound config from viper
 			khCfg, err := cmd.GetConfig()
+			defer cmd.ReportError(cobraCmd.Context(), events.DumpFinished, err)
 			if err != nil {
 				return fmt.Errorf("get config: %w", err)
 			}
