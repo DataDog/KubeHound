@@ -18,6 +18,7 @@ const (
 	IngestorFailed
 	DumpStarted
 	DumpFinished
+	DumpFailed
 )
 
 const (
@@ -47,6 +48,7 @@ var map2msg = map[EventAction]EventActionDetails{
 
 	DumpStarted:  {Title: "Dump started", Level: statsd.Info, Action: EventActionStart},
 	DumpFinished: {Title: "Dump finished", Level: statsd.Info, Action: EventActionFinish},
+	DumpFailed:   {Title: "Dump failed", Level: statsd.Error, Action: EventActionFail},
 }
 
 func (ea EventAction) Tags(ctx context.Context) []string {

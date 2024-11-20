@@ -25,6 +25,13 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 	l := log.Logger(ctx)
 
 	clusterName, err := config.GetClusterName(ctx)
+	defer func() {
+		if err != nil {
+			errMsg := fmt.Errorf("fatal error: %w", err)
+			l.Error("Error occurred", log.ErrorField(errMsg))
+			_ = events.PushEvent(ctx, events.DumpFailed, fmt.Sprintf("%s", errMsg))
+		}
+	}()
 	if err != nil {
 		return "", fmt.Errorf("collector cluster info: %w", err)
 	}
@@ -36,6 +43,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 
 	span, ctx := span.SpanRunFromContext(ctx, span.DumperLaunch)
 	span.SetTag(ext.ManualKeep, true)
+	l = log.Logger(ctx)
 	defer func() {
 		span.Finish(tracer.WithError(err))
 	}()
@@ -53,12 +61,16 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 	if upload {
 		// Clean up the temporary directory when done
 		defer func() {
-			err = os.RemoveAll(khCfg.Collector.File.Directory)
+			// This error is scope to the defer and not be handled by the other defer function
+			err := os.RemoveAll(khCfg.Collector.File.Directory)
 			if err != nil {
+				errMsg := fmt.Errorf("Failed to remove temporary directory: %w", err)
 				l.Error("Failed to remove temporary directory", log.ErrorField(err))
+				_ = events.PushEvent(ctx, events.DumpFailed, fmt.Sprintf("%s", errMsg))
 			}
 		}()
-		puller, err := blob.NewBlobStorage(khCfg, khCfg.Ingestor.Blob)
+		var puller *blob.BlobStore
+		puller, err = blob.NewBlobStorage(khCfg, khCfg.Ingestor.Blob)
 		if err != nil {
 			return "", err
 		}
