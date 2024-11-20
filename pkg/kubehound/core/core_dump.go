@@ -61,6 +61,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 	if upload {
 		// Clean up the temporary directory when done
 		defer func() {
+			// This error is scope to the defer and not be handled by the other defer function
 			err := os.RemoveAll(khCfg.Collector.File.Directory)
 			if err != nil {
 				errMsg := fmt.Errorf("Failed to remove temporary directory: %w", err)
