@@ -8,6 +8,7 @@ make help
 
 ## Requirements build
 
+- 16GB of RAM (minimum)
 - go (v1.23): https://go.dev/doc/install
 - [Docker](https://docs.docker.com/engine/install/) >= 19.03 (`docker version`)
 - [Docker Compose](https://docs.docker.com/compose/compose-file/compose-versioning/) >= v2.0 (`docker compose version`)
