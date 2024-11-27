@@ -13,9 +13,9 @@ mitreAttackTactic: TA0008 - Lateral Movement
 
 With the correct privileges an attacker can use the Kubernetes API to modify certain properties of an existing pod and achieve code execution within the pod
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [PermissionSet](../entities/permissionset.md)  | [Pod](../entities/pod.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/)  |
+| Source                                        | Destination               | MITRE                                                                |
+| --------------------------------------------- | ------------------------- | -------------------------------------------------------------------- |
+| [PermissionSet](../entities/permissionset.md) | [Pod](../entities/pod.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
 
 ## Details
 

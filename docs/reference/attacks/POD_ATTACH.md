@@ -11,9 +11,9 @@ mitreAttackTactic: TA0008 - Lateral Movement
 
 # POD_ATTACH
 
-| Source                      | Destination                           | MITRE                            |
-| --------------------------- | ------------------------------------- |----------------------------------|
-| [Node](../entities/node.md) | [Pod](../entities/pod.md)  | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+| Source                      | Destination               | MITRE                                                                |
+| --------------------------- | ------------------------- | -------------------------------------------------------------------- |
+| [Node](../entities/node.md) | [Pod](../entities/pod.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
 
 Attach to a running K8s pod from a K8s node.
 
