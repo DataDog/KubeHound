@@ -57,7 +57,7 @@
                 "vertices": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Edge"
+                        "$ref": "#/definitions/Vertex"
                     }
                 },
                 "verticeProperties": {
@@ -109,6 +109,23 @@
                 "label"
             ],
             "title": "Edge"
+        },
+        "Vertex": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "description",
+                "label"
+            ],
+            "title": "Vertex"
         },
         "Enum": {
             "type": "object",
