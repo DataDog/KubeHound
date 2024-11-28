@@ -2,14 +2,14 @@ package graphdb
 
 import "fmt"
 
-// errBatchWriter is an error type that wraps an error and indicates whether the
+// batchWriterError is an error type that wraps an error and indicates whether the
 // error is retryable.
-type errBatchWriter struct {
+type batchWriterError struct {
 	err       error
 	retryable bool
 }
 
-func (e errBatchWriter) Error() string {
+func (e batchWriterError) Error() string {
 	if e.err == nil {
 		return fmt.Sprintf("batch writer error (retriable:%v)", e.retryable)
 	}
@@ -17,6 +17,6 @@ func (e errBatchWriter) Error() string {
 	return fmt.Sprintf("batch writer error (retriable:%v): %v", e.retryable, e.err.Error())
 }
 
-func (e errBatchWriter) Unwrap() error {
+func (e batchWriterError) Unwrap() error {
 	return e.err
 }

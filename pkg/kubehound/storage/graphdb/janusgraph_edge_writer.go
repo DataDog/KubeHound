@@ -83,23 +83,26 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 				// If the channel is closed, return.
 				if !ok {
 					log.Trace(ctx).Info("Closed background janusgraph worker on channel close")
+
 					return
 				}
 
 				// If the batch is empty, return.
 				if len(batch.data) == 0 {
 					log.Trace(ctx).Warn("Empty edge batch received in background janusgraph worker, skipping")
+
 					return
 				}
 
 				_ = statsd.Count(ctx, metric.BackgroundWriterCall, 1, jgv.tags, 1)
 				err := jgv.batchWrite(ctx, batch.data)
 				if err != nil {
-					var e *errBatchWriter
+					var e *batchWriterError
 					if errors.As(err, &e) {
 						// If the error is retryable, retry the write operation with a smaller batch.
 						if e.retryable && batch.retryCount < jgv.maxRetry {
 							jgv.retrySplitAndRequeue(ctx, &batch, e)
+
 							continue
 						}
 
@@ -120,7 +123,7 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 }
 
 // retrySplitAndRequeue will split the batch into smaller chunks and requeue them for writing.
-func (jgv *JanusGraphEdgeWriter) retrySplitAndRequeue(ctx context.Context, batch *batchItem, e *errBatchWriter) {
+func (jgv *JanusGraphEdgeWriter) retrySplitAndRequeue(ctx context.Context, batch *batchItem, e *batchWriterError) {
 	_ = statsd.Count(ctx, metric.RetryWriterCall, 1, jgv.tags, 1)
 
 	// Compute the new batch size.
@@ -168,7 +171,7 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 		return ctx.Err()
 	case <-time.After(jgv.writerTimeout):
 		// If the write operation takes too long, return an error.
-		return &errBatchWriter{
+		return &batchWriterError{
 			err:       errors.New("edge write operation timed out"),
 			retryable: true,
 		}
