@@ -99,6 +99,8 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 					if errors.As(err, &e) && e.retryable {
 						// If the error is retryable, retry the write operation with a smaller batch.
 						if batch.retryCount < jgv.maxRetry {
+							_ = statsd.Count(ctx, metric.RetryWriterCall, 1, jgv.tags, 1)
+
 							// Compute the new batch size.
 							newBatchSize := len(batch.data) / 2
 							batch.retryCount++
