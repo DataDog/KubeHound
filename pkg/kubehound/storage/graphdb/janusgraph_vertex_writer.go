@@ -107,30 +107,10 @@ func (jgv *JanusGraphVertexWriter) startBackgroundWriter(ctx context.Context) {
 				err := jgv.batchWrite(ctx, batch.data)
 				if err != nil {
 					var e *errBatchWriter
-					if errors.As(err, &e) && e.retryable {
+					if errors.As(err, &e) {
 						// If the error is retryable, retry the write operation with a smaller batch.
-						if batch.retryCount < jgv.maxRetry {
-							_ = statsd.Count(ctx, metric.RetryWriterCall, 1, jgv.tags, 1)
-
-							// Compute the new batch size.
-							newBatchSize := len(batch.data) / 2
-							batch.retryCount++
-
-							log.Trace(ctx).Warnf("Retrying write operation with vertex smaller batch (n:%d -> %d, r:%d): %v", len(batch.data), newBatchSize, batch.retryCount, e.Unwrap())
-
-							// Split the batch into smaller chunks and requeue them.
-							if len(batch.data[:newBatchSize]) > 0 {
-								jgv.consumerChan <- batchItem{
-									data:       batch.data[:newBatchSize],
-									retryCount: batch.retryCount,
-								}
-							}
-							if len(batch.data[newBatchSize:]) > 0 {
-								jgv.consumerChan <- batchItem{
-									data:       batch.data[newBatchSize:],
-									retryCount: batch.retryCount,
-								}
-							}
+						if e.retryable && batch.retryCount < jgv.maxRetry {
+							jgv.retrySplitAndRequeue(ctx, &batch, e)
 							continue
 						}
 
@@ -148,6 +128,31 @@ func (jgv *JanusGraphVertexWriter) startBackgroundWriter(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+// retrySplitAndRequeue will split the batch into smaller chunks and requeue them for writing.
+func (jgv *JanusGraphVertexWriter) retrySplitAndRequeue(ctx context.Context, batch *batchItem, e *errBatchWriter) {
+	_ = statsd.Count(ctx, metric.RetryWriterCall, 1, jgv.tags, 1)
+
+	// Compute the new batch size.
+	newBatchSize := len(batch.data) / 2
+	batch.retryCount++
+
+	log.Trace(ctx).Warnf("Retrying write operation with smaller vertex batch (n:%d -> %d, r:%d): %v", len(batch.data), newBatchSize, batch.retryCount, e.Unwrap())
+
+	// Split the batch into smaller chunks and requeue them.
+	if len(batch.data[:newBatchSize]) > 0 {
+		jgv.consumerChan <- batchItem{
+			data:       batch.data[:newBatchSize],
+			retryCount: batch.retryCount,
+		}
+	}
+	if len(batch.data[newBatchSize:]) > 0 {
+		jgv.consumerChan <- batchItem{
+			data:       batch.data[newBatchSize:],
+			retryCount: batch.retryCount,
+		}
+	}
 }
 
 func (jgv *JanusGraphVertexWriter) cacheIds(ctx context.Context, idMap []*gremlin.Result) error {
