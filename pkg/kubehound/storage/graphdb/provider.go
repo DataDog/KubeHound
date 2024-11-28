@@ -2,6 +2,7 @@ package graphdb
 
 import (
 	"context"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
@@ -12,7 +13,9 @@ import (
 )
 
 type writerOptions struct {
-	Tags []string
+	Tags          []string
+	WriterTimeout time.Duration
+	MaxRetry      int
 }
 
 type WriterOption func(*writerOptions)
@@ -20,6 +23,20 @@ type WriterOption func(*writerOptions)
 func WithTags(tags []string) WriterOption {
 	return func(wo *writerOptions) {
 		wo.Tags = append(wo.Tags, tags...)
+	}
+}
+
+// WithWriterTimeout sets the timeout for the writer to complete the write operation.
+func WithWriterTimeout(timeout time.Duration) WriterOption {
+	return func(wo *writerOptions) {
+		wo.WriterTimeout = timeout
+	}
+}
+
+// WithWriterMaxRetry sets the maximum number of retries for failed writes.
+func WithWriterMaxRetry(maxRetry int) WriterOption {
+	return func(wo *writerOptions) {
+		wo.MaxRetry = maxRetry
 	}
 }
 
