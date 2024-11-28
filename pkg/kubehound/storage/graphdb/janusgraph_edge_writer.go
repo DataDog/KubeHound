@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -31,19 +32,24 @@ type JanusGraphEdgeWriter struct {
 	traversalSource *gremlingo.GraphTraversalSource   // Transacted graph traversal source
 	inserts         []any                             // Object data to be inserted in the graph
 	mu              sync.Mutex                        // Mutex protecting access to the inserts array
-	consumerChan    chan []any                        // Channel consuming inserts for async writing
+	consumerChan    chan batchItem                    // Channel consuming inserts for async writing
 	writingInFlight *sync.WaitGroup                   // Wait group tracking current unfinished writes
 	batchSize       int                               // Batchsize of graph DB inserts
 	qcounter        int32                             // Track items queued
 	wcounter        int32                             // Track items writtn
 	tags            []string                          // Telemetry tags
+	writerTimeout   time.Duration                     // Timeout for the writer
+	maxRetry        int                               // Maximum number of retries for failed writes
 }
 
 // NewJanusGraphAsyncEdgeWriter creates a new bulk edge writer instance.
 func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemoteConnection,
-	e edge.Builder, opts ...WriterOption) (*JanusGraphEdgeWriter, error) {
-
-	options := &writerOptions{}
+	e edge.Builder, opts ...WriterOption,
+) (*JanusGraphEdgeWriter, error) {
+	options := &writerOptions{
+		WriterTimeout: defaultWriterTimeout,
+		MaxRetry:      defaultMaxRetry,
+	}
 	for _, opt := range opts {
 		opt(options)
 	}
@@ -57,8 +63,10 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 		traversalSource: gremlingo.Traversal_().WithRemote(drc),
 		batchSize:       e.BatchSize(),
 		writingInFlight: &sync.WaitGroup{},
-		consumerChan:    make(chan []any, e.BatchSize()*channelSizeBatchFactor),
+		consumerChan:    make(chan batchItem, e.BatchSize()*channelSizeBatchFactor),
 		tags:            append(options.Tags, tag.Label(e.Label()), tag.Builder(builder)),
+		writerTimeout:   options.WriterTimeout,
+		maxRetry:        options.MaxRetry,
 	}
 
 	jw.startBackgroundWriter(ctx)
@@ -71,15 +79,51 @@ func (jgv *JanusGraphEdgeWriter) startBackgroundWriter(ctx context.Context) {
 	go func() {
 		for {
 			select {
-			case data := <-jgv.consumerChan:
-				// closing the channel shoud stop the go routine
-				if data == nil {
+			case batch, ok := <-jgv.consumerChan:
+				// If the channel is closed, return.
+				if !ok {
+					log.Trace(ctx).Info("Closed background janusgraph worker on channel close")
+					return
+				}
+
+				// If the batch is empty, return.
+				if len(batch.data) == 0 {
+					log.Trace(ctx).Warn("Empty edge batch received in background janusgraph worker, skipping")
 					return
 				}
 
 				_ = statsd.Count(ctx, metric.BackgroundWriterCall, 1, jgv.tags, 1)
-				err := jgv.batchWrite(ctx, data)
+				err := jgv.batchWrite(ctx, batch.data)
 				if err != nil {
+					var e *errBatchWriter
+					if errors.As(err, &e) && e.retryable {
+						// If the error is retryable, retry the write operation with a smaller batch.
+						if batch.retryCount < jgv.maxRetry {
+							// Compute the new batch size.
+							newBatchSize := len(batch.data) / 2
+							batch.retryCount++
+
+							log.Trace(ctx).Warnf("Retrying write operation with smaller edge batch (n:%d -> %d, r:%d): %v", len(batch.data), newBatchSize, batch.retryCount, e.Unwrap())
+
+							// Split the batch into smaller chunks and requeue them.
+							if len(batch.data[:newBatchSize]) > 0 {
+								jgv.consumerChan <- batchItem{
+									data:       batch.data[:newBatchSize],
+									retryCount: batch.retryCount,
+								}
+							}
+							if len(batch.data[newBatchSize:]) > 0 {
+								jgv.consumerChan <- batchItem{
+									data:       batch.data[newBatchSize:],
+									retryCount: batch.retryCount,
+								}
+							}
+							continue
+						}
+
+						log.Trace(ctx).Errorf("Retry limit exceeded for write operation: %v", err)
+					}
+
 					log.Trace(ctx).Errorf("write data in background batch writer: %v", err)
 				}
 
@@ -109,9 +153,22 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 
 	op := jgv.gremlin(jgv.traversalSource, data)
 	promise := op.Iterate()
-	err = <-promise
-	if err != nil {
-		return fmt.Errorf("%s edge insert: %w", jgv.builder, err)
+
+	// Wait for the write operation to complete or timeout.
+	select {
+	case <-ctx.Done():
+		// If the context is cancelled, return the error.
+		return ctx.Err()
+	case <-time.After(jgv.writerTimeout):
+		// If the write operation takes too long, return an error.
+		return &errBatchWriter{
+			err:       errors.New("edge write operation timed out"),
+			retryable: true,
+		}
+	case err := <-promise:
+		if err != nil {
+			return fmt.Errorf("%s edge insert: %w", jgv.builder, err)
+		}
 	}
 
 	return nil
@@ -174,7 +231,10 @@ func (jgv *JanusGraphEdgeWriter) Queue(ctx context.Context, v any) error {
 		copy(copied, jgv.inserts)
 
 		jgv.writingInFlight.Add(1)
-		jgv.consumerChan <- copied
+		jgv.consumerChan <- batchItem{
+			data:       copied,
+			retryCount: 0,
+		}
 		_ = statsd.Incr(ctx, metric.QueueSize, jgv.tags, 1)
 
 		// cleanup the ops array after we have copied it to the channel

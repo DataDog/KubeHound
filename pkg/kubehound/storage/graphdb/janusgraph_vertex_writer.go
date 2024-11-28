@@ -48,32 +48,13 @@ type batchItem struct {
 	retryCount int
 }
 
-// errBatchWriter is an error type that wraps an error and indicates whether the
-// error is retryable.
-type errBatchWriter struct {
-	err       error
-	retryable bool
-}
-
-func (e errBatchWriter) Error() string {
-	if e.err == nil {
-		return fmt.Sprintf("batch writer error (retriable:%v)", e.retryable)
-	}
-
-	return fmt.Sprintf("batch writer error (retriable:%v): %v", e.retryable, e.err.Error())
-}
-
-func (e errBatchWriter) Unwrap() error {
-	return e.err
-}
-
 // NewJanusGraphAsyncVertexWriter creates a new bulk vertex writer instance.
 func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlin.DriverRemoteConnection,
 	v vertex.Builder, c cache.CacheProvider, opts ...WriterOption,
 ) (*JanusGraphVertexWriter, error) {
 	options := &writerOptions{
-		WriterTimeout: 60 * time.Second,
-		MaxRetry:      3,
+		WriterTimeout: defaultWriterTimeout,
+		MaxRetry:      defaultMaxRetry,
 	}
 	for _, opt := range opts {
 		opt(options)
@@ -118,7 +99,7 @@ func (jgv *JanusGraphVertexWriter) startBackgroundWriter(ctx context.Context) {
 
 				// If the batch is empty, return.
 				if len(batch.data) == 0 {
-					log.Trace(ctx).Warn("Empty batch received in background janusgraph worker, skipping")
+					log.Trace(ctx).Warn("Empty vertex batch received in background janusgraph worker, skipping")
 					return
 				}
 
@@ -127,13 +108,13 @@ func (jgv *JanusGraphVertexWriter) startBackgroundWriter(ctx context.Context) {
 				if err != nil {
 					var e *errBatchWriter
 					if errors.As(err, &e) && e.retryable {
-						// If the context deadline is exceeded, retry the write operation with a smaller batch.
+						// If the error is retryable, retry the write operation with a smaller batch.
 						if batch.retryCount < jgv.maxRetry {
 							// Compute the new batch size.
 							newBatchSize := len(batch.data) / 2
 							batch.retryCount++
 
-							log.Trace(ctx).Warnf("Retrying write operation with smaller batch (n:%d -> %d, r:%d): %v", len(batch.data), newBatchSize, batch.retryCount, e.Unwrap())
+							log.Trace(ctx).Warnf("Retrying write operation with vertex smaller batch (n:%d -> %d, r:%d): %v", len(batch.data), newBatchSize, batch.retryCount, e.Unwrap())
 
 							// Split the batch into smaller chunks and requeue them.
 							if len(batch.data[:newBatchSize]) > 0 {
@@ -241,7 +222,7 @@ func (jgv *JanusGraphVertexWriter) batchWrite(ctx context.Context, data []any) e
 	case <-time.After(jgv.writerTimeout):
 		// If the write operation takes too long, return an error.
 		return &errBatchWriter{
-			err:       errors.New("write operation timed out"),
+			err:       errors.New("vertex write operation timed out"),
 			retryable: true,
 		}
 	case err = <-errChan:

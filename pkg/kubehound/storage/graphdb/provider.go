@@ -12,6 +12,11 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 )
 
+const (
+	defaultWriterTimeout = 60 * time.Second
+	defaultMaxRetry      = 3
+)
+
 type writerOptions struct {
 	Tags          []string
 	WriterTimeout time.Duration
