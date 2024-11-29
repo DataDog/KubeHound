@@ -154,7 +154,7 @@ func (jgp *JanusGraphProvider) Clean(ctx context.Context, cluster string) error 
 	span, ctx := span.SpanRunFromContext(ctx, span.IngestorClean)
 	defer func() { span.Finish(tracer.WithError(err)) }()
 	l := log.Trace(ctx)
-	l.Infof("Cleaning cluster", log.FieldClusterKey, cluster)
+	l.Info("Cleaning cluster", log.String(log.FieldClusterKey, cluster))
 	g := gremlin.Traversal_().WithRemote(jgp.drc)
 	tx := g.Tx()
 	defer tx.Close()
