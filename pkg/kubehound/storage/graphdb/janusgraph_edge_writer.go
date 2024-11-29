@@ -205,5 +205,6 @@ func (jgv *JanusGraphEdgeWriter) Flush(ctx context.Context) error {
 
 func (jgv *JanusGraphEdgeWriter) Queue(ctx context.Context, v any) error {
 	atomic.AddInt32(&jgv.qcounter, 1)
+
 	return jgv.mb.Enqueue(ctx, v)
 }
