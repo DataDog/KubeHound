@@ -66,6 +66,10 @@ func NewJanusGraphAsyncEdgeWriter(ctx context.Context, drc *gremlingo.DriverRemo
 
 	// Create a new micro batcher to batch the inserts with split and retry logic.
 	jw.mb = newMicroBatcher(log.Trace(ctx), e.BatchSize(), options.WriterWorkerCount, func(ctx context.Context, a []any) error {
+		// Increment the writingInFlight wait group to track the number of writes in progress.
+		jw.writingInFlight.Add(1)
+		defer jw.writingInFlight.Done()
+
 		// Try to write the batch to the graph DB.
 		if err := jw.batchWrite(ctx, a); err != nil {
 			var bwe *batchWriterError
@@ -139,10 +143,6 @@ func (jgv *JanusGraphEdgeWriter) batchWrite(ctx context.Context, data []any) err
 	span.SetTag(tag.LabelTag, jgv.builder)
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
-
-	// Increment the writingInFlight wait group to track the number of writes in progress.
-	jgv.writingInFlight.Add(1)
-	defer jgv.writingInFlight.Done()
 
 	datalen := len(data)
 	_ = statsd.Count(ctx, metric.EdgeWrite, int64(datalen), jgv.tags, 1)

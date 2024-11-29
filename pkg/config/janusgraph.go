@@ -9,7 +9,7 @@ const (
 
 	defaultJanusGraphWriterTimeout     = 60 * time.Second
 	defaultJanusGraphWriterMaxRetry    = 3
-	defaultJanusGraphWriterWorkerCount = 1
+	defaultJanusGraphWriterWorkerCount = 10
 
 	JanusGraphUrl               = "janusgraph.url"
 	JanusGrapTimeout            = "janusgraph.connection_timeout"

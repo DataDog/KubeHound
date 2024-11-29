@@ -172,6 +172,11 @@ func SetEnvOverrides(ctx context.Context, c *viper.Viper) {
 	res = multierror.Append(res, c.BindEnv(IngestorArchiveName, "KH_INGESTOR_ARCHIVE_NAME"))
 	res = multierror.Append(res, c.BindEnv(IngestorBlobRegion, "KH_INGESTOR_REGION"))
 
+	res = multierror.Append(res, c.BindEnv("builder.vertex.batch_size", "KH_BUILDER_VERTEX_BATCH_SIZE"))
+	res = multierror.Append(res, c.BindEnv("builder.vertex.batch_size_small", "KH_BUILDER_VERTEX_BATCH_SIZE_SMALL"))
+	res = multierror.Append(res, c.BindEnv("builder.edge.batch_size", "KH_BUILDER_EDGE_BATCH_SIZE"))
+	res = multierror.Append(res, c.BindEnv("builder.edge.batch_size_small", "KH_BUILDER_EDGE_BATCH_SIZE_SMALL"))
+
 	res = multierror.Append(res, c.BindEnv(TelemetryStatsdUrl, "STATSD_URL"))
 	res = multierror.Append(res, c.BindEnv(TelemetryTracerUrl, "TRACE_AGENT_URL"))
 

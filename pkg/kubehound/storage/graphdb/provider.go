@@ -15,7 +15,7 @@ import (
 const (
 	defaultWriterTimeout     = 60 * time.Second
 	defaultMaxRetry          = 3
-	defaultWriterWorkerCount = 1
+	defaultWriterWorkerCount = 10
 )
 
 type writerOptions struct {
