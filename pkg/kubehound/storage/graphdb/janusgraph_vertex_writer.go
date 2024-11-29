@@ -272,5 +272,6 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 }
 
 func (jgv *JanusGraphVertexWriter) Queue(ctx context.Context, v any) error {
+	atomic.AddInt32(&jgv.qcounter, 1)
 	return jgv.mb.Enqueue(ctx, v)
 }
