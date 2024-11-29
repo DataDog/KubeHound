@@ -52,6 +52,9 @@ func TestMustLoadConfig(t *testing.T) {
 				JanusGraph: JanusGraphConfig{
 					URL:               "ws://localhost:8182/gremlin",
 					ConnectionTimeout: DefaultConnectionTimeout,
+					WriterTimeout:     defaultJanusGraphWriterTimeout,
+					WriterMaxRetry:    defaultJanusGraphWriterMaxRetry,
+					WriterWorkerCount: defaultJanusGraphWriterWorkerCount,
 				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
@@ -126,6 +129,9 @@ func TestMustLoadConfig(t *testing.T) {
 				JanusGraph: JanusGraphConfig{
 					URL:               "ws://localhost:8182/gremlin",
 					ConnectionTimeout: DefaultConnectionTimeout,
+					WriterTimeout:     defaultJanusGraphWriterTimeout,
+					WriterMaxRetry:    defaultJanusGraphWriterMaxRetry,
+					WriterWorkerCount: defaultJanusGraphWriterWorkerCount,
 				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
