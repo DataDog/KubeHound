@@ -13,14 +13,16 @@ import (
 )
 
 const (
-	defaultWriterTimeout = 60 * time.Second
-	defaultMaxRetry      = 3
+	defaultWriterTimeout     = 60 * time.Second
+	defaultMaxRetry          = 3
+	defaultWriterWorkerCount = 1
 )
 
 type writerOptions struct {
-	Tags          []string
-	WriterTimeout time.Duration
-	MaxRetry      int
+	Tags              []string
+	WriterWorkerCount int
+	WriterTimeout     time.Duration
+	MaxRetry          int
 }
 
 type WriterOption func(*writerOptions)
@@ -42,6 +44,13 @@ func WithWriterTimeout(timeout time.Duration) WriterOption {
 func WithWriterMaxRetry(maxRetry int) WriterOption {
 	return func(wo *writerOptions) {
 		wo.MaxRetry = maxRetry
+	}
+}
+
+// WithWriterWorkerCount sets the number of workers to process the batch.
+func WithWriterWorkerCount(workerCount int) WriterOption {
+	return func(wo *writerOptions) {
+		wo.WriterWorkerCount = workerCount
 	}
 }
 
