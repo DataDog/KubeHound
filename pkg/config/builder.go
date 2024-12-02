@@ -3,11 +3,11 @@ package config
 const (
 	DefaultEdgeWorkerPoolSize         = 5
 	DefaultEdgeWorkerPoolCapacity     = 100
-	DefaultEdgeBatchSize              = 500
+	DefaultEdgeBatchSize              = 250
 	DefaultEdgeBatchSizeSmall         = DefaultEdgeBatchSize / 5
 	DefaultEdgeBatchSizeClusterImpact = 10
 
-	DefaultVertexBatchSize      = 500
+	DefaultVertexBatchSize      = 250
 	DefaultVertexBatchSizeSmall = DefaultVertexBatchSize / 5
 
 	DefaultStopOnError = false

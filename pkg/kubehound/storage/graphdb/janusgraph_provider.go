@@ -130,6 +130,9 @@ func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builde
 	c cache.CacheProvider, opts ...WriterOption) (AsyncVertexWriter, error) {
 
 	opts = append(opts, WithTags(jgp.tags))
+	opts = append(opts, WithWriterWorkerCount(jgp.cfg.JanusGraph.WriterWorkerCount))
+	opts = append(opts, WithWriterTimeout(jgp.cfg.JanusGraph.WriterTimeout))
+	opts = append(opts, WithWriterMaxRetry(jgp.cfg.JanusGraph.WriterMaxRetry))
 
 	return NewJanusGraphAsyncVertexWriter(ctx, jgp.drc, v, c, opts...)
 }
@@ -137,6 +140,9 @@ func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builde
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
 func (jgp *JanusGraphProvider) EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error) {
 	opts = append(opts, WithTags(jgp.tags))
+	opts = append(opts, WithWriterWorkerCount(jgp.cfg.JanusGraph.WriterWorkerCount))
+	opts = append(opts, WithWriterTimeout(jgp.cfg.JanusGraph.WriterTimeout))
+	opts = append(opts, WithWriterMaxRetry(jgp.cfg.JanusGraph.WriterMaxRetry))
 
 	return NewJanusGraphAsyncEdgeWriter(ctx, jgp.drc, e, opts...)
 }

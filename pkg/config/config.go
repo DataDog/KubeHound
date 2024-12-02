@@ -119,6 +119,9 @@ func SetDefaultValues(ctx context.Context, v *viper.Viper) {
 	// Defaults values for JanusGraph
 	v.SetDefault(JanusGraphUrl, DefaultJanusGraphUrl)
 	v.SetDefault(JanusGrapTimeout, DefaultConnectionTimeout)
+	v.SetDefault(JanusGraphWriterTimeout, defaultJanusGraphWriterTimeout)
+	v.SetDefault(JanusGraphWriterMaxRetry, defaultJanusGraphWriterMaxRetry)
+	v.SetDefault(JanusGraphWriterWorkerCount, defaultJanusGraphWriterWorkerCount)
 
 	// Profiler values
 	v.SetDefault(TelemetryProfilerPeriod, DefaultProfilerPeriod)
@@ -157,6 +160,9 @@ func SetEnvOverrides(ctx context.Context, c *viper.Viper) {
 
 	res = multierror.Append(res, c.BindEnv(MongoUrl, "KH_MONGODB_URL"))
 	res = multierror.Append(res, c.BindEnv(JanusGraphUrl, "KH_JANUSGRAPH_URL"))
+	res = multierror.Append(res, c.BindEnv(JanusGraphWriterMaxRetry, "KH_JANUSGRAPH_WRITER_MAX_RETRY"))
+	res = multierror.Append(res, c.BindEnv(JanusGraphWriterTimeout, "KH_JANUSGRAPH_WRITER_TIMEOUT"))
+	res = multierror.Append(res, c.BindEnv(JanusGraphWriterWorkerCount, "KH_JANUSGRAPH_WRITER_WORKER_COUNT"))
 
 	res = multierror.Append(res, c.BindEnv(IngestorAPIEndpoint, "KH_INGESTOR_API_ENDPOINT"))
 	res = multierror.Append(res, c.BindEnv(IngestorAPIInsecure, "KH_INGESTOR_API_INSECURE"))
@@ -165,6 +171,11 @@ func SetEnvOverrides(ctx context.Context, c *viper.Viper) {
 	res = multierror.Append(res, c.BindEnv(IngestorMaxArchiveSize, "KH_INGESTOR_MAX_ARCHIVE_SIZE"))
 	res = multierror.Append(res, c.BindEnv(IngestorArchiveName, "KH_INGESTOR_ARCHIVE_NAME"))
 	res = multierror.Append(res, c.BindEnv(IngestorBlobRegion, "KH_INGESTOR_REGION"))
+
+	res = multierror.Append(res, c.BindEnv("builder.vertex.batch_size", "KH_BUILDER_VERTEX_BATCH_SIZE"))
+	res = multierror.Append(res, c.BindEnv("builder.vertex.batch_size_small", "KH_BUILDER_VERTEX_BATCH_SIZE_SMALL"))
+	res = multierror.Append(res, c.BindEnv("builder.edge.batch_size", "KH_BUILDER_EDGE_BATCH_SIZE"))
+	res = multierror.Append(res, c.BindEnv("builder.edge.batch_size_small", "KH_BUILDER_EDGE_BATCH_SIZE_SMALL"))
 
 	res = multierror.Append(res, c.BindEnv(TelemetryStatsdUrl, "STATSD_URL"))
 	res = multierror.Append(res, c.BindEnv(TelemetryTracerUrl, "TRACE_AGENT_URL"))
