@@ -7,7 +7,7 @@ COPY dsl/kubehound/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean install
 
 # Now build our janusgraph wrapper container with KubeHound customizations
-FROM janusgraph/janusgraph:1.0.0
+FROM janusgraph/janusgraph:1.1.0
 LABEL org.opencontainers.image.source="https://github.com/DataDog/kubehound/"
 
 # Add our initialization script for the database schema to the startup directory
@@ -61,7 +61,7 @@ ENV gremlinserver.metrics.csvReporter.enabled=false
 
 # Performance tweaks based on: https://www.sailpoint.com/blog/souping-up-the-gremlin/
 # gremlinPool will default to Runtime.availableProcessors()
-ENV gremlinserver.gremlinPool=0 
+ENV gremlinserver.gremlinPool=0
 # threadPoolWorker should be 2x VCPU (TODO: can we set dynamically?)
 ENV gremlinserver.threadPoolWorker=16
 
