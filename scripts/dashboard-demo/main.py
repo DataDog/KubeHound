@@ -72,11 +72,11 @@ class EndpointKPI(KPI):
     KH_QUERY_EXTERNAL_COUNTS = "kh.endpoints().count()"
     KH_QUERY_DETAILS= 'kh.endpoints().criticalPaths().limit(local,1).dedup().valueMap("serviceEndpoint","port", "namespace")'
     KH_QUERY_EXTERNAL_CRITICAL_PATH = '''kh.V().
-    hasLabel("Endpoint").
+    has("class","Endpoint").
     count().
     aggregate("t").
     V().
-    hasLabel("Endpoint").
+    has("class","Endpoint").
     hasCriticalPath().
     count().
     as("e").
@@ -95,12 +95,12 @@ class IdentitiesKPI(KPI):
     KH_QUERY_EXTERNAL_COUNTS = "kh.identities().count()"
     KH_QUERY_DETAILS= 'kh.identities().criticalPaths().limit(local,1).dedup().valueMap("name","type","namespace")'
     KH_QUERY_EXTERNAL_CRITICAL_PATH = '''kh.V().
-    hasLabel("Identity").
+    has("class","Identity").
     has("critical", false).
     count().
     aggregate("t").
     V().
-    hasLabel("Identity").
+    has("class","Identity").
     has("critical", false).
     hasCriticalPath().
     count().
@@ -121,11 +121,11 @@ class ContainersKPI(KPI):
     KH_QUERY_EXTERNAL_COUNTS = "kh.containers().count()"
     KH_QUERY_DETAILS= 'kh.containers().criticalPaths().limit(local,1).dedup().valueMap("name","image","app","namespace")'
     KH_QUERY_EXTERNAL_CRITICAL_PATH = '''kh.V().
-    hasLabel("Container").
+    has("class","Container").
     count().
     aggregate("t").
     V().
-    hasLabel("Container").
+    has("class","Container").
     hasCriticalPath().
     count().
     as("e").
@@ -146,11 +146,11 @@ class VolumesKPI(KPI):
     KH_QUERY_DETAILS= 'kh.volumes().criticalPaths().limit(local,1).dedup().valueMap("name","sourcePath", "namespace")'
     KH_QUERY_DETAILS_KEYS = ["name", "sourcePath"]
     KH_QUERY_EXTERNAL_CRITICAL_PATH = '''kh.V().
-    hasLabel("Volume").
+    has("class","Volume").
     count().
     aggregate("t").
     V().
-    hasLabel("Volume").
+    has("class","Volume").
     hasCriticalPath().
     count().
     as("e").
