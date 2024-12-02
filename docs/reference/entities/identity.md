@@ -4,20 +4,22 @@ Identity represents a Kubernetes user or service account.
 
 ## Properties
 
-| Property            | Type      | Description |
-| ----------------| --------- |----------------------------------------|
-| name | `string` |  Name of the identity principal in Kubernetes |  
-| type | `string` |  Type of identity (user, serviceaccount, etc) |  
+| Property | Type     | Description                                    |
+| -------- | -------- | ---------------------------------------------- |
+| name     | `string` | Name of the identity principal in Kubernetes   |
+| type     | `string` | Type of identity (user, serviceaccount, group) |
 
 ## Common Properties
 
-+ [storeID](./common.md#store-information)
 + [app](./common.md#ownership-information)
-+ [team](./common.md#ownership-information)
-+ [service](./common.md#ownership-information)
++ [cluster](./common.md#run-information)
 + [critical](./common.md#risk-information)
-+ [namespace](./common.md#namespace-information)
 + [isNamespaced](./common.md#namespace-information)
++ [namespace](./common.md#namespace-information)
++ [runID](./common.md#run-information)
++ [service](./common.md#ownership-information)
++ [storeID](./common.md#store-information)
++ [team](./common.md#ownership-information)
 
 ## Definition
 

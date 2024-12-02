@@ -11,8 +11,8 @@ mitreAttackTactic: TA0004 - Privilege escalation
 
 # CE_SYS_PTRACE
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
+| Source                                | Destination                 | MITRE                                                               |
+| ------------------------------------- | --------------------------- | ------------------------------------------------------------------- |
 | [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
 
 Given the requisite capabilities, abuse the legitimate OS debugging mechanisms to escape the container via attaching to a node process.
@@ -84,4 +84,3 @@ Avoid running containers as the `root` user. Enforce running as an unprivileged 
 ## References:
 
 + [Container Escape: All You Need is Cap (Capabilities)](https://www.cybereason.com/blog/container-escape-all-you-need-is-cap-capabilities?hs_amp=true)
-

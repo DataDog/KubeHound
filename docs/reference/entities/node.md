@@ -4,20 +4,22 @@ A Kubernetes node. Kubernetes runs workloads by placing containers into Pods to 
 
 ## Properties
 
-| Property            | Type      | Description |
-| ----------------| --------- |----------------------------------------|
-| name | `string` |  Name of the node in Kubernetes |  
+| Property | Type     | Description                    |
+| -------- | -------- | ------------------------------ |
+| name     | `string` | Name of the node in Kubernetes |
 
 ## Common Properties
 
-+ [storeID](./common.md#store-information)
 + [app](./common.md#ownership-information)
-+ [team](./common.md#ownership-information)
-+ [service](./common.md#ownership-information)
++ [cluster](./common.md#run-information)
 + [compromised](./common.md#risk-information)
 + [critical](./common.md#risk-information)
-+ [namespace](./common.md#namespace-information)
 + [isNamespaced](./common.md#namespace-information)
++ [namespace](./common.md#namespace-information)
++ [runID](./common.md#run-information)
++ [service](./common.md#ownership-information)
++ [storeID](./common.md#store-information)
++ [team](./common.md#ownership-information)
 
 ## Definition
 
@@ -26,4 +28,3 @@ A Kubernetes node. Kubernetes runs workloads by placing containers into Pods to 
 ## References
 
 + [Official Kubernetes documentation](https://kubernetes.io/docs/concepts/architecture/nodes/) 
-

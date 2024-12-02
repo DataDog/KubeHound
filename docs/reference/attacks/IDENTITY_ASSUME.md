@@ -11,9 +11,9 @@ mitreAttackTactic: TA0004 - Privilege escalation
 
 # IDENTITY_ASSUME
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../entities/container.md), [Node](../entities/node.md) | [Identity](../entities/identity.md)  | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+| Source                                                             | Destination                         | MITRE                                                               |
+| ------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------- |
+| [Container](../entities/container.md), [Node](../entities/node.md) | [Identity](../entities/identity.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
 
 Represents the capacity to act as an [Identity](../entities/identity.md) via ownership of a service account token, user PKI certificate, etc.
 

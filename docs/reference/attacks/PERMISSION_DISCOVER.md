@@ -13,8 +13,8 @@ mitreAttackTactic: TA0007 - Discovery
 
 Represents the permissions granted to an identity that can be discovered by an attacker.
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
+| Source                              | Destination                                   | MITRE                                                                            |
+| ----------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------- |
 | [Identity](../entities/identity.md) | [PermissionSet](../entities/permissionset.md) | [Permission Groups Discovery, T1069](https://attack.mitre.org/techniques/T1078/) |
 
 ## Details
@@ -55,4 +55,3 @@ None
 
 + [Official Kubernetes Documentation:Using RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding)
 + [Kubernetes RBAC Details](https://octopus.com/blog/k8s-rbac-roles-and-bindings)
-

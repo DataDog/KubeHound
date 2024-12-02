@@ -9,9 +9,9 @@ mitreAttackTactic: TA0004 - Privilege escalation
 
 With a [user impersonation privilege](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation) an attacker can impersonate a more privileged account.
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [PermissionSet](../entities/permissionset.md)  | [Identity](../entities/identity.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+| Source                                        | Destination                         | MITRE                                                               |
+| --------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------- |
+| [PermissionSet](../entities/permissionset.md) | [Identity](../entities/identity.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
 
 ## Details
 

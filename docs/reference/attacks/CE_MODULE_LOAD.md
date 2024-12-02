@@ -11,8 +11,8 @@ mitreAttackTactic: TA0004 - Privilege escalation
 
 # CE_MODULE_LOAD
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
+| Source                                | Destination                 | MITRE                                                               |
+| ------------------------------------- | --------------------------- | ------------------------------------------------------------------- |
 | [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
 
 Load a kernel module from within an overprivileged container to breakout into the node.
