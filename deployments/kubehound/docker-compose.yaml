@@ -1,6 +1,6 @@
 services:
   mongodb:
-    image: mongo:6.0.6
+    image: mongo:8.0.3
     restart: unless-stopped
     networks:
       - kubenet
@@ -23,7 +23,7 @@ services:
       - kubenet
     healthcheck:
       test: ["CMD", "bin/gremlin.sh", "-e", "scripts/remote-connect.groovy"]
-      interval: 30s 
+      interval: 30s
       timeout: 30s
       retries: 3
     labels:
@@ -47,32 +47,6 @@ services:
     environment:
       - NOTEBOOK_PASSWORD=admin
       - GRAPH_NOTEBOOK_SSL=False
-  
-  ui-invana-engine:
-    image: invanalabs/invana-engine:latest
-    profiles:
-      - invana
-    restart: unless-stopped
-    networks:
-      - kubenet
-    ports:
-      - 127.0.0.1:8200:8200
-    environment:
-      GREMLIN_SERVER_URL: ws://kubegraph:8182/gremlin
-    depends_on:
-      - kubegraph
-
-  ui-invana-studio:
-    image: invanalabs/invana-studio:latest
-    restart: unless-stopped
-    profiles:
-      - invana
-    networks:
-      - kubenet
-    ports:
-      - 127.0.0.1:8300:8300
-    depends_on:
-      - ui-invana-engine
 
 networks:
   kubenet:
