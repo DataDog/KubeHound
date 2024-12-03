@@ -54,30 +54,30 @@ func (e *EscapeCorePattern) Stream(ctx context.Context, store storedb.Provider, 
 		},
 		{
 			"$lookup": bson.M{
-				"as":   "procMountContainers",
-				"from": "volumes",
-				"let": bson.M{
-					"rootContainerId": "$container_id",
-				},
+				"as":           "procMountContainers",
+				"from":         "volumes",
+				"foreignField": "pod_id",
+				"localField":   "pod_id",
 				"pipeline": []bson.M{
 					{
 						"$match": bson.M{
 							"$and": bson.A{
-								bson.M{"$expr": bson.M{
-									"$eq": bson.A{
-										"$container_id", "$$rootContainerId",
-									},
+								bson.M{"type": shared.VolumeTypeHost},
+								bson.M{"source": bson.M{
+									"$in": ProcMountList,
 								}},
+								bson.M{"runtime.runID": e.runtime.RunID.String()},
+								bson.M{"runtime.cluster": e.runtime.ClusterName},
 							},
-							"type": shared.VolumeTypeHost,
-							"source": bson.M{
-								"$in": ProcMountList,
-							},
-							"runtime.runID":   e.runtime.RunID.String(),
-							"runtime.cluster": e.runtime.ClusterName,
 						},
 					},
 				},
+			},
+		},
+		{
+			"$unwind": bson.M{
+				"path":                       "$procMountContainers",
+				"preserveNullAndEmptyArrays": false,
 			},
 		},
 		{
