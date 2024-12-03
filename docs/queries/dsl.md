@@ -17,21 +17,21 @@ _DSL definition code available [here](https://github.com/DataDog/KubeHound/blob/
 
 ### Retrieve cluster data
 
-| Method                      | Gremlin equivalent                                    |
-| --------------------------- | ----------------------------------------------------- |
-| `.cluster([string...])`     | `.hasLabel("Cluster")`                                |
-| `.containers([string...])`  | `.hasLabel("Container")`                              |
-| `.endpoints([int])`         | `.hasLabel("Endpoint")`                               |
-| `.groups([string...])`      | `.hasLabel("Group")`                                  |
-| `.hostMounts([string...])`  | `.hasLabel("Volume").has("type", "HostPath")`         |
-| `.nodes([string...])`       | `.hasLabel("Node")`                                   |
-| `.permissions([string...])` | `.hasLabel("PermissionSet")`                          |
-| `.pods([string...])`        | `.hasLabel("Pod")`                                    |
-| `.run([string...])`         | `.has("runID", P.within(ids)`                         |
-| `.sas([string...])`         | `.hasLabel("Identity").has("type", "ServiceAccount")` |
-| `.services([string...])`    | `.hasLabel("Endpoint").has("exposure", EXTERNAL)`     |
-| `.users([string...])`       | `.hasLabel("Identity").has("type", "User")`           |
-| `.volumes([string...])`     | `.hasLabel("Volume")`                                 |
+| Method                      | Gremlin equivalent                                       |
+| --------------------------- | -------------------------------------------------------- |
+| `.cluster([string...])`     | `.has("class","Cluster")`                                |
+| `.containers([string...])`  | `.has("class","Container")`                              |
+| `.endpoints([int])`         | `.has("class","Endpoint")`                               |
+| `.groups([string...])`      | `.has("class","Group")`                                  |
+| `.hostMounts([string...])`  | `.has("class","Volume").has("type", "HostPath")`         |
+| `.nodes([string...])`       | `.has("class","Node")`                                   |
+| `.permissions([string...])` | `.has("class","PermissionSet")`                          |
+| `.pods([string...])`        | `.has("class","Pod")`                                    |
+| `.run([string...])`         | `.has("runID", P.within(ids)`                            |
+| `.sas([string...])`         | `.has("class","Identity").has("type", "ServiceAccount")` |
+| `.services([string...])`    | `.has("class","Endpoint").has("exposure", EXTERNAL)`     |
+| `.users([string...])`       | `.has("class","Identity").has("type", "User")`           |
+| `.volumes([string...])`     | `.has("class","Volume")`                                 |
 
 ### Retrieving attack oriented data
 

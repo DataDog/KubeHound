@@ -60,13 +60,14 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
 
         if (names.length > 0) {
             traversal = traversal.has("cluster", P.within(names));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices from the specified KubeHound run(s)
+     * Starts a traversal that finds all vertices from the specified KubeHound
+     * run(s)
      *
      * @param ids list of run ids to filter on
      */
@@ -75,13 +76,14 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
 
         if (ids.length > 0) {
             traversal = traversal.has("runID", P.within(ids));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices with a "Container" label and optionally allows filtering of those
+     * Starts a traversal that finds all vertices with a "Container" label and
+     * optionally allows filtering of those
      * vertices on the "name" property.
      *
      * @param names list of container names to filter on
@@ -89,16 +91,17 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
     public GraphTraversal<Vertex, Vertex> containers(String... names) {
         GraphTraversal traversal = this.clone().V();
 
-        traversal = traversal.hasLabel("Container");
+        traversal = traversal.has("class", "Container");
         if (names.length > 0) {
             traversal = traversal.has("name", P.within(names));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices with a "Pod" label and optionally allows filtering of those
+     * Starts a traversal that finds all vertices with a "Pod" label and optionally
+     * allows filtering of those
      * vertices on the "name" property.
      *
      * @param names list of pod names to filter on
@@ -106,16 +109,17 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
     public GraphTraversal<Vertex, Vertex> pods(String... names) {
         GraphTraversal traversal = this.clone().V();
 
-        traversal = traversal.hasLabel("Pod");
+        traversal = traversal.has("class", "Pod");
         if (names.length > 0) {
             traversal = traversal.has("name", P.within(names));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices with a "Node" label and optionally allows filtering of those
+     * Starts a traversal that finds all vertices with a "Node" label and optionally
+     * allows filtering of those
      * vertices on the "name" property.
      *
      * @param names list of node names to filter on
@@ -123,33 +127,35 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
     public GraphTraversal<Vertex, Vertex> nodes(String... names) {
         GraphTraversal traversal = this.clone().V();
 
-        traversal = traversal.hasLabel("Node");
+        traversal = traversal.has("class", "Node");
         if (names.length > 0) {
             traversal = traversal.has("name", P.within(names));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all container escape edges from a Container vertex to a Node vertex 
-     * and optionally allows filtering of those vertices on the "nodeNames" property.
+     * Starts a traversal that finds all container escape edges from a Container
+     * vertex to a Node vertex
+     * and optionally allows filtering of those vertices on the "nodeNames"
+     * property.
      *
      * @param nodeNames list of node names to filter on
-
+     * 
      */
     public GraphTraversal<Vertex, Path> escapes(String... nodeNames) {
         GraphTraversal traversal = this.clone().V();
 
         traversal = traversal
-            .hasLabel("Container")
-            .outE()
-            .inV()
-            .hasLabel("Node");
+                .has("class", "Container")
+                .outE()
+                .inV()
+                .has("class", "Node");
 
         if (nodeNames.length > 0) {
             traversal = traversal.has("name", P.within(nodeNames));
-        } 
+        }
 
         return traversal.path();
     }
@@ -159,183 +165,194 @@ public class KubeHoundTraversalSourceDsl extends GraphTraversalSource {
      */
     public GraphTraversal<Vertex, Vertex> endpoints() {
         GraphTraversal traversal = this.clone().V();
-    
-        traversal = traversal.hasLabel("Endpoint");
+
+        traversal = traversal.has("class", "Endpoint");
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices with a "Endpoint" label and optionally allows filtering of those
+     * Starts a traversal that finds all vertices with a "Endpoint" label and
+     * optionally allows filtering of those
      * vertices on the "exposure" property.
      *
      * @param exposure EndpointExposure enum value to filter on
      */
     public GraphTraversal<Vertex, Vertex> endpoints(EndpointExposure exposure) {
         if (exposure.ordinal() > EndpointExposure.Max.ordinal()) {
-            throw new IllegalArgumentException(String.format("invalid exposure value (must be <= %d)", EndpointExposure.Max.ordinal()));
+            throw new IllegalArgumentException(
+                    String.format("invalid exposure value (must be <= %d)", EndpointExposure.Max.ordinal()));
         }
 
         if (exposure.ordinal() < EndpointExposure.None.ordinal()) {
-            throw new IllegalArgumentException(String.format("invalid exposure value (must be >= %d)", EndpointExposure.None.ordinal()));
+            throw new IllegalArgumentException(
+                    String.format("invalid exposure value (must be >= %d)", EndpointExposure.None.ordinal()));
         }
 
         GraphTraversal traversal = this.clone().V();
-        
+
         traversal = traversal
-            .hasLabel("Endpoint")
-            .has("exposure", P.gte(exposure.ordinal()));
+                .has("class", "Endpoint")
+                .has("exposure", P.gte(exposure.ordinal()));
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices with a "Endpoint" label exposed OUTSIDE the cluster as a service 
+     * Starts a traversal that finds all vertices with a "Endpoint" label exposed
+     * OUTSIDE the cluster as a service
      * and optionally allows filtering of those vertices on the "portName" property.
      *
      * @param portNames list of port names to filter on
      */
     public GraphTraversal<Vertex, Vertex> services(String... portNames) {
         GraphTraversal traversal = this.clone().V();
-        
+
         traversal = traversal
-            .hasLabel("Endpoint")
-            .has("exposure", P.gte(EndpointExposure.External.ordinal()));
+                .has("class", "Endpoint")
+                .has("exposure", P.gte(EndpointExposure.External.ordinal()));
 
         if (portNames.length > 0) {
             traversal = traversal.has("portName", P.within(portNames));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices with a "Volume" label and optionally allows filtering of those
+     * Starts a traversal that finds all vertices with a "Volume" label and
+     * optionally allows filtering of those
      * vertices on the "name" property.
      *
      * @param names list of volume names to filter on
      */
     public GraphTraversal<Vertex, Vertex> volumes(String... names) {
         GraphTraversal traversal = this.clone().V();
-        
-        traversal = traversal.hasLabel("Volume");
+
+        traversal = traversal.has("class", "Volume");
         if (names.length > 0) {
             traversal = traversal.has("name", P.within(names));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices representing volume host mounts and optionally allows filtering of those
+     * Starts a traversal that finds all vertices representing volume host mounts
+     * and optionally allows filtering of those
      * vertices on the "sourcePath" property.
      *
      * @param sourcePaths list of host source paths to filter on
      */
     public GraphTraversal<Vertex, Vertex> hostMounts(String... sourcePaths) {
         GraphTraversal traversal = this.clone().V();
-        
+
         traversal = traversal
-            .hasLabel("Volume")
-            .has("type", "HostPath");
+                .has("class", "Volume")
+                .has("type", "HostPath");
 
         if (sourcePaths.length > 0) {
             traversal = traversal.has("sourcePath", P.within(sourcePaths));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices with a "Identity" label and optionally allows filtering of those
+     * Starts a traversal that finds all vertices with a "Identity" label and
+     * optionally allows filtering of those
      * vertices on the "name" property.
      *
      * @param names list of identity names to filter on
      */
     public GraphTraversal<Vertex, Vertex> identities(String... names) {
         GraphTraversal traversal = this.clone().V();
-        
-        traversal = traversal.hasLabel("Identity");
+
+        traversal = traversal.has("class", "Identity");
         if (names.length > 0) {
             traversal = traversal.has("name", P.within(names));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices representing service accounts and optionally allows filtering of those
+     * Starts a traversal that finds all vertices representing service accounts and
+     * optionally allows filtering of those
      * vertices on the "name" property.
      *
      * @param names list of service account names to filter on
      */
     public GraphTraversal<Vertex, Vertex> sas(String... names) {
         GraphTraversal traversal = this.clone().V();
-        
+
         traversal = traversal
-            .hasLabel("Identity")
-            .has("type", "ServiceAccount");
+                .has("class", "Identity")
+                .has("type", "ServiceAccount");
 
         if (names.length > 0) {
             traversal = traversal.has("name", P.within(names));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices representing users and optionally allows filtering of those
+     * Starts a traversal that finds all vertices representing users and optionally
+     * allows filtering of those
      * vertices on the "name" property.
      *
      * @param names list of user names to filter on
      */
     public GraphTraversal<Vertex, Vertex> users(String... names) {
         GraphTraversal traversal = this.clone().V();
-        
+
         traversal = traversal
-            .hasLabel("Identity")
-            .has("type", "User");
+                .has("class", "Identity")
+                .has("type", "User");
 
         if (names.length > 0) {
             traversal = traversal.has("name", P.within(names));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices representing groups and optionally allows filtering of those
+     * Starts a traversal that finds all vertices representing groups and optionally
+     * allows filtering of those
      * vertices on the "name" property.
      *
      * @param names list of groups names to filter on
      */
     public GraphTraversal<Vertex, Vertex> groups(String... names) {
         GraphTraversal traversal = this.clone().V();
-         
+
         traversal = traversal
-            .hasLabel("Identity")
-            .has("type", "Group");
+                .has("class", "Identity")
+                .has("type", "Group");
 
         if (names.length > 0) {
             traversal = traversal.has("name", P.within(names));
-        } 
+        }
 
         return traversal;
     }
 
     /**
-     * Starts a traversal that finds all vertices with a "PermissionSet" label and optionally allows filtering of those
+     * Starts a traversal that finds all vertices with a "PermissionSet" label and
+     * optionally allows filtering of those
      * vertices on the "role" property.
      *
      * @param roles list of underlying role names to filter on
      */
     public GraphTraversal<Vertex, Vertex> permissions(String... roles) {
         GraphTraversal traversal = this.clone().V();
-        
-        traversal = traversal.hasLabel("PermissionSet");
+
+        traversal = traversal.has("class", "PermissionSet");
         if (roles.length > 0) {
             traversal = traversal.has("role", P.within(roles));
-        } 
+        }
 
         return traversal;
     }

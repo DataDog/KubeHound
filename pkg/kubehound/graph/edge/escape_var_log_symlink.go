@@ -60,13 +60,13 @@ func (e *EscapeVarLogSymlink) Traversal() types.EdgeTraversal {
 	return func(source *gremlin.GraphTraversalSource, inserts []any) *gremlin.GraphTraversal {
 		g := source.GetGraphTraversal()
 		// reduce the graph to only these permission sets
-		g.V(inserts...).HasLabel("PermissionSet").
+		g.V(inserts...).Has("class", "PermissionSet").
 			// get identity vertices
 			InE("PERMISSION_DISCOVER").OutV().
 			// get container vertices
 			InE("IDENTITY_ASSUME").OutV().
 			// save container vertices as "c" so we can link to it to the node via CE_VAR_LOG_SYMLINK
-			HasLabel("Container").As("c").
+			Has("class", "Container").As("c").
 			// Get all the volumes
 			OutE("VOLUME_DISCOVER").InV().
 			Has("type", shared.VolumeTypeHost).
@@ -74,7 +74,7 @@ func (e *EscapeVarLogSymlink) Traversal() types.EdgeTraversal {
 			Has("sourcePath", P.Within("/", "/var", "/var/log")).
 			// get the node related to that volume mount
 			InE("VOLUME_ACCESS").OutV().
-			HasLabel("Node").As("n").
+			Has("class", "Node").As("n").
 			AddE("CE_VAR_LOG_SYMLINK").From("c").To("n").
 			Barrier().Limit(0)
 

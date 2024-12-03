@@ -106,7 +106,7 @@ func (suite *VertexTestSuite) resultsToStringArray(results []*gremlingo.Result) 
 }
 
 func (suite *VertexTestSuite) TestVertexContainer() {
-	results, err := suite.g.V().HasLabel(vertex.ContainerLabel).ElementMap().ToList()
+	results, err := suite.g.V().Has("class", vertex.ContainerLabel).ElementMap().ToList()
 	suite.NoError(err)
 
 	suite.Equal(len(expectedContainers), len(results)-numberOfKindDefaultContainer)
@@ -183,7 +183,7 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 }
 
 func (suite *VertexTestSuite) TestVertexNode() {
-	results, err := suite.g.V().HasLabel(vertex.NodeLabel).ElementMap().ToList()
+	results, err := suite.g.V().Has("class", vertex.NodeLabel).ElementMap().ToList()
 	suite.NoError(err)
 
 	suite.Equal(len(expectedNodes), len(results))
@@ -219,7 +219,7 @@ func (suite *VertexTestSuite) TestVertexNode() {
 }
 
 func (suite *VertexTestSuite) TestVertexPod() {
-	results, err := suite.g.V().HasLabel(vertex.PodLabel).ElementMap().ToList()
+	results, err := suite.g.V().Has("class", vertex.PodLabel).ElementMap().ToList()
 	suite.NoError(err)
 
 	suite.Equal(len(expectedPods), len(results)-numberOfKindDefaultPod)
@@ -269,7 +269,7 @@ func (suite *VertexTestSuite) TestVertexPod() {
 
 func (suite *VertexTestSuite) TestVertexPermissionSet() {
 	results, err := suite.g.V().
-		HasLabel(vertex.PermissionSetLabel).
+		Has("class", vertex.PermissionSetLabel).
 		Has("namespace", "default").
 		Values("name").
 		ToList()
@@ -292,7 +292,7 @@ func (suite *VertexTestSuite) TestVertexPermissionSet() {
 
 func (suite *VertexTestSuite) TestVertexCritical() {
 	results, err := suite.g.V().
-		HasLabel(vertex.PermissionSetLabel).
+		Has("class", vertex.PermissionSetLabel).
 		Has("critical", true).
 		Values("role").
 		ToList()
@@ -311,45 +311,45 @@ func (suite *VertexTestSuite) TestVertexCritical() {
 }
 
 func (suite *VertexTestSuite) TestVertexVolume() {
-	results, err := suite.g.V().HasLabel(vertex.VolumeLabel).ElementMap().ToList()
+	results, err := suite.g.V().Has("class", vertex.VolumeLabel).ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(61, len(results))
 
-	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("sourcePath", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
+	results, err = suite.g.V().Has("class", vertex.VolumeLabel).Has("sourcePath", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(1, len(results))
 
-	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("sourcePath", "/lib/modules").Has("name", "lib-modules").ElementMap().ToList()
+	results, err = suite.g.V().Has("class", vertex.VolumeLabel).Has("sourcePath", "/lib/modules").Has("name", "lib-modules").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Greater(len(results), 1) // Not sure why it has "6"
 
-	results, err = suite.g.V().HasLabel(vertex.VolumeLabel).Has("sourcePath", "/var/log").Has("name", "nodelog").ElementMap().ToList()
+	results, err = suite.g.V().Has("class", vertex.VolumeLabel).Has("sourcePath", "/var/log").Has("name", "nodelog").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(len(results), 1)
 }
 
 func (suite *VertexTestSuite) TestVertexIdentity() {
-	results, err := suite.g.V().HasLabel(vertex.IdentityLabel).ElementMap().ToList()
+	results, err := suite.g.V().Has("class", vertex.IdentityLabel).ElementMap().ToList()
 	suite.NoError(err)
 	suite.Greater(len(results), 50)
 
-	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "tokenget-sa").ElementMap().ToList()
+	results, err = suite.g.V().Has("class", vertex.IdentityLabel).Has("name", "tokenget-sa").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(len(results), 1)
 
-	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "impersonate-sa").ElementMap().ToList()
+	results, err = suite.g.V().Has("class", vertex.IdentityLabel).Has("name", "impersonate-sa").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(len(results), 1)
 
-	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "tokenlist-sa").ElementMap().ToList()
+	results, err = suite.g.V().Has("class", vertex.IdentityLabel).Has("name", "tokenlist-sa").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(len(results), 1)
 
-	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "pod-patch-sa").ElementMap().ToList()
+	results, err = suite.g.V().Has("class", vertex.IdentityLabel).Has("name", "pod-patch-sa").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(len(results), 1)
 
-	results, err = suite.g.V().HasLabel(vertex.IdentityLabel).Has("name", "pod-create-sa").ElementMap().ToList()
+	results, err = suite.g.V().Has("class", vertex.IdentityLabel).Has("name", "pod-create-sa").ElementMap().ToList()
 	suite.NoError(err)
 	suite.Equal(len(results), 1)
 }
