@@ -29,7 +29,7 @@ var (
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			cmd.BindFlagCluster(cobraCmd)
 
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// Passing the Kubehound config from viper

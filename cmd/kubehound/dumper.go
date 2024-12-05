@@ -36,7 +36,7 @@ var (
 			viper.BindPFlag(config.IngestorAPIEndpoint, cobraCmd.Flags().Lookup("khaas-server")) //nolint: errcheck
 			viper.BindPFlag(config.IngestorAPIInsecure, cobraCmd.Flags().Lookup("insecure"))     //nolint: errcheck
 
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// using compress feature
