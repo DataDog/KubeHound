@@ -36,7 +36,7 @@ var (
 			viper.BindPFlag(config.IngestorAPIEndpoint, cobraCmd.Flags().Lookup("khaas-server")) //nolint: errcheck
 			viper.BindPFlag(config.IngestorAPIInsecure, cobraCmd.Flags().Lookup("insecure"))     //nolint: errcheck
 
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// using compress feature
@@ -62,7 +62,7 @@ var (
 				return fmt.Errorf("dump core: %w", err)
 			}
 			// Running the ingestion on KHaaS
-			if cobraCmd.Flags().Lookup("khaas-server").Value.String() != "" {
+			if khCfg.Ingestor.API.Endpoint != "" {
 				return core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.ClusterName, khCfg.Dynamic.RunID.String())
 			}
 
@@ -77,7 +77,7 @@ var (
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			viper.Set(config.CollectorFileDirectory, args[0])
 
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// Passing the Kubehound config from viper

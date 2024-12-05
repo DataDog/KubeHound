@@ -80,7 +80,6 @@ func NewKubehoundConfig(ctx context.Context, configPath string, inLine bool) *Ku
 	var cfg *KubehoundConfig
 	switch {
 	case len(configPath) != 0:
-		l.Info("Loading application configuration from file", log.String("path", configPath))
 		cfg = MustLoadConfig(ctx, configPath)
 	case inLine:
 		l.Info("Loading application from inline command")
@@ -207,10 +206,12 @@ func unmarshalConfig(v *viper.Viper) (*KubehoundConfig, error) {
 
 // NewConfig creates a new config instance from the provided file using viper.
 func NewConfig(ctx context.Context, v *viper.Viper, configPath string) (*KubehoundConfig, error) {
+	l := log.Logger(ctx)
 	// Configure default values
 	SetDefaultValues(ctx, v)
 
 	// Loading inLine config path
+	l.Info("Loading application configuration from file", log.String("path", configPath))
 	v.SetConfigType(DefaultConfigType)
 	v.SetConfigFile(configPath)
 
