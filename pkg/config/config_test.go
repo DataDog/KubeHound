@@ -81,7 +81,7 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				Ingestor: IngestorConfig{
 					API: IngestorAPIConfig{
-						Endpoint: "127.0.0.1:9000",
+						Endpoint: "",
 						Insecure: false,
 					},
 					Blob: &BlobConfig{
@@ -158,7 +158,7 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				Ingestor: IngestorConfig{
 					API: IngestorAPIConfig{
-						Endpoint: "127.0.0.1:9000",
+						Endpoint: "",
 						Insecure: false,
 					},
 					Blob: &BlobConfig{
