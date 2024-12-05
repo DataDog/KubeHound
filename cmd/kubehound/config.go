@@ -20,7 +20,7 @@ var (
 		Short: "Show the current configuration",
 		Long:  `[devOnly] Show the current configuration`,
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// Adding datadog setup
