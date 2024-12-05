@@ -77,7 +77,7 @@ var (
 		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			viper.Set(config.CollectorFileDirectory, args[0])
 
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", true, true)
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// Passing the Kubehound config from viper

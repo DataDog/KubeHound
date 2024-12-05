@@ -56,7 +56,7 @@ var (
 				cobraCmd.MarkFlagRequired("cluster") //nolint: errcheck
 			}
 
-			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), "", false, true)
+			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, false, true)
 		},
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			// Passing the Kubehound config from viper
