@@ -62,7 +62,7 @@ var (
 				return fmt.Errorf("dump core: %w", err)
 			}
 			// Running the ingestion on KHaaS
-			if cobraCmd.Flags().Lookup("khaas-server").Value.String() != "" {
+			if khCfg.Ingestor.API.Endpoint != "" {
 				return core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.ClusterName, khCfg.Dynamic.RunID.String())
 			}
 
