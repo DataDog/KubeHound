@@ -70,19 +70,47 @@ func (jgp *JanusGraphProvider) Prepare(ctx context.Context) error {
 	tx := g.Tx()
 	defer tx.Close()
 
-	gtx, err := tx.Begin()
-	if err != nil {
-		return err
-	}
+	for {
+		// Begin a new transaction.
+		gtx, err := tx.Begin()
+		if err != nil {
+			return err
+		}
 
-	err = <-gtx.V().Drop().Iterate()
-	if err != nil {
-		return err
-	}
+		// Retrieve the number of vertices in the graph.
+		page, err := gtx.V().Count().Next()
+		if err != nil {
+			return err
+		}
 
-	err = tx.Commit()
-	if err != nil {
-		return err
+		// Decode the number of vertices from the page.
+		count, err := page.GetInt()
+		if err != nil {
+			return err
+		}
+
+		// If there are no more vertices to delete, break the loop.
+		if count == 0 {
+			break
+		}
+
+		// Delete the vertices in the graph.
+		err = <-gtx.V().Limit(10000).Drop().Iterate()
+		if err != nil {
+			return err
+		}
+
+		// Commit the transaction.
+		if err := tx.Commit(); err != nil {
+			return err
+		}
+
+		// Check context for cancellation.
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
 	}
 
 	return nil
@@ -154,7 +182,7 @@ func (jgp *JanusGraphProvider) Close(ctx context.Context) error {
 	return nil
 }
 
-// Raw returns a handle to the underlying provider to allow implementation specific operations e.g graph queries.
+// Clean removes all vertices in the graph for the given cluster.
 func (jgp *JanusGraphProvider) Clean(ctx context.Context, cluster string) error {
 	var err error
 	span, ctx := span.SpanRunFromContext(ctx, span.IngestorClean)
@@ -165,19 +193,47 @@ func (jgp *JanusGraphProvider) Clean(ctx context.Context, cluster string) error 
 	tx := g.Tx()
 	defer tx.Close()
 
-	gtx, err := tx.Begin()
-	if err != nil {
-		return err
-	}
+	for {
+		// Begin a new transaction.
+		gtx, err := tx.Begin()
+		if err != nil {
+			return err
+		}
 
-	err = <-gtx.V().Has("cluster", cluster).Drop().Iterate()
-	if err != nil {
-		return err
-	}
+		// Retrieve the number of vertices in the graph for the given cluster.
+		page, err := gtx.V().Has("cluster", cluster).Count().Next()
+		if err != nil {
+			return err
+		}
 
-	err = tx.Commit()
-	if err != nil {
-		return err
+		// Decode the number of vertices from the page.
+		count, err := page.GetInt()
+		if err != nil {
+			return err
+		}
+
+		// If there are no more vertices to delete, break the loop.
+		if count == 0 {
+			break
+		}
+
+		// Delete the vertices in the graph for the given cluster.
+		err = <-gtx.V().Has("cluster", cluster).Limit(10000).Drop().Iterate()
+		if err != nil {
+			return err
+		}
+
+		// Commit the transaction.
+		if err := tx.Commit(); err != nil {
+			return err
+		}
+
+		// Check context for cancellation.
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
 	}
 
 	return nil
