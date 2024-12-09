@@ -17,33 +17,37 @@ _DSL definition code available [here](https://github.com/DataDog/KubeHound/blob/
 
 ### Retrieve cluster data
 
-| Method                      | Gremlin equivalent                                       |
-| --------------------------- | -------------------------------------------------------- |
-| `.cluster([string...])`     | `.has("class","Cluster")`                                |
-| `.containers([string...])`  | `.has("class","Container")`                              |
-| `.endpoints([int])`         | `.has("class","Endpoint")`                               |
-| `.groups([string...])`      | `.has("class","Group")`                                  |
-| `.hostMounts([string...])`  | `.has("class","Volume").has("type", "HostPath")`         |
-| `.nodes([string...])`       | `.has("class","Node")`                                   |
-| `.permissions([string...])` | `.has("class","PermissionSet")`                          |
-| `.pods([string...])`        | `.has("class","Pod")`                                    |
-| `.run([string...])`         | `.has("runID", P.within(ids)`                            |
-| `.sas([string...])`         | `.has("class","Identity").has("type", "ServiceAccount")` |
-| `.services([string...])`    | `.has("class","Endpoint").has("exposure", EXTERNAL)`     |
-| `.users([string...])`       | `.has("class","Identity").has("type", "User")`           |
-| `.volumes([string...])`     | `.has("class","Volume")`                                 |
+> These methods are defined in the [`KubeHoundTraversalSourceDsl`](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/graph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalSourceDsl.java) class. 
+
+| Method                      | Gremlin equivalent                                    | Example usage                                                               |
+| --------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------- |
+| `.cluster([string...])`     | `.has("class","Cluster")`                                | `kh.cluster("kind-kubehound.local")`                                        |
+| `.containers([string...])`  | `.has("class","Container")`                              | `kh.cluster("kind-kubehound.local").containers("nginx")`                    |
+| `.endpoints([int])`         | `.has("class","Endpoint")`                               | `kh.cluster("kind-kubehound.local").endpoints(3)`                           |
+| `.hostMounts([string...])`  | `.has("class","Volume").has("type", "HostPath")`         | `kh.cluster("kind-kubehound.local").hostMounts("/proc")`                    |
+| `.nodes([string...])`       | `.has("class","Node")`                                   | `kh.cluster("kind-kubehound.local").nodes("control-plane")`                 |
+| `.permissions([string...])` | `.has("class","PermissionSet")`                          | `kh.cluster("kind-kubehound.local").permissions("system::kube-controller")` |
+| `.pods([string...])`        | `.has("class","Pod")`                                    | `kh.cluster("kind-kubehound.local").pods("app-pod")`                        |
+| `.run([string...])`         | `.has("runID", P.within(ids))`                           | `kh.run("01he5ebh73tah762qgdd5k4wqp")`                                      |
+| `.services([string...])`    | `.has("class","Endpoint").has("exposure", "EXTERNAL")`   | `kh.cluster("kind-kubehound.local").services("app-front-proxy")`            |
+| `.sas([string...])`         | `.has("class","Identity").has("type", "ServiceAccount")` | `kh.cluster("kind-kubehound.local").sas("postgres-admin")`                  |
+| `.users([string...])`       | `.has("class","Identity").has("type", "User")`           | `kh.cluster("kind-kubehound.local").users("user@domain.tld")`               |
+| `.groups([string...])`      | `.has("class","Identity").has("type", "Group")`          | `kh.cluster("kind-kubehound.local").groups("engineering")`                  |
+| `.volumes([string...])`     | `.has("class","Volume")`                                 | `kh.cluster("kind-kubehound.local").volumes("db-data")`                     |
 
 ### Retrieving attack oriented data
+
+> These methods are defined in the [`KubeHoundTraversalDsl`](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/graph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) class.
 
 | Method                                 | Gremlin equivalent                                                                                                                                                                                |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `.attacks()`                           | `.outE().inV().path()`                                                                                                                                                                            |
 | `.critical()`                          | `.has("critical", true)`                                                                                                                                                                          |
-| `.criticalPaths(int)`                  | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/kubegraph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
-| `.criticalPathsFilter(int, string...)` | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/kubegraph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
-| `.criticalPathsFreq([maxHops])`        | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/kubegraph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
+| `.criticalPaths(int)`                  | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/graph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
+| `.criticalPathsFilter(int, string...)` | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/graph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
+| `.criticalPathsFreq([maxHops])`        | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/graph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
 | `.hasCriticalPath()`                   | `.where(__.criticalPaths().limit(1))`                                                                                                                                                             |
-| `.minHopsToCritical([maxHops])`        | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/kubegraph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
+| `.minHopsToCritical([maxHops])`        | see [KubeHoundTraversalDsl.java](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/graph/dsl/kubehound/src/main/java/com/datadog/ase/kubehound/KubeHoundTraversalDsl.java) |
 
 For more detailed explanation, please see below.
 
