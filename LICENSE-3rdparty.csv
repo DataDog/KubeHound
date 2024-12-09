@@ -1,279 +1,279 @@
-cloud.google.com/go/auth,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/cloud.google.com/go/auth/LICENSE,Apache-2.0,Datadog, Inc.
-cloud.google.com/go/auth/oauth2adapt,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/cloud.google.com/go/auth/oauth2adapt/LICENSE,Apache-2.0,Datadog, Inc.
-cloud.google.com/go/compute/metadata,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/cloud.google.com/go/compute/metadata/LICENSE,Apache-2.0,Datadog, Inc.
-cloud.google.com/go/iam,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/cloud.google.com/go/iam/LICENSE,Apache-2.0,Datadog, Inc.
-cloud.google.com/go/internal,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/cloud.google.com/go/LICENSE,Apache-2.0,Datadog, Inc.
-cloud.google.com/go/storage,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/cloud.google.com/go/storage/LICENSE,Apache-2.0,Datadog, Inc.
-dario.cat/mergo,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/dario.cat/mergo/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/AlecAivazis/survey/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/AlecAivazis/survey/v2/LICENSE,MIT,Datadog, Inc.
-github.com/AlecAivazis/survey/v2/terminal,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/AlecAivazis/survey/v2/terminal/LICENSE.txt,MIT,Datadog, Inc.
-github.com/Azure/azure-sdk-for-go/sdk/azcore,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/Azure/azure-sdk-for-go/sdk/azcore/LICENSE.txt,MIT,Datadog, Inc.
-github.com/Azure/azure-sdk-for-go/sdk/azidentity,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/Azure/azure-sdk-for-go/sdk/azidentity/LICENSE.txt,MIT,Datadog, Inc.
-github.com/Azure/azure-sdk-for-go/sdk/internal,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/Azure/azure-sdk-for-go/sdk/internal/LICENSE.txt,MIT,Datadog, Inc.
-github.com/Azure/azure-sdk-for-go/sdk/storage/azblob,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/LICENSE.txt,MIT,Datadog, Inc.
-github.com/Azure/go-autorest/autorest/to,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/Azure/go-autorest/autorest/to/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/AzureAD/microsoft-authentication-library-for-go/apps,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/AzureAD/microsoft-authentication-library-for-go/LICENSE,MIT,Datadog, Inc.
+cloud.google.com/go/auth,https://github.com/googleapis/google-cloud-go/blob/auth/v0.5.1/auth/LICENSE,Apache-2.0,Google APIs
+cloud.google.com/go/auth/oauth2adapt,https://github.com/googleapis/google-cloud-go/blob/auth/oauth2adapt/v0.2.2/auth/oauth2adapt/LICENSE,Apache-2.0,Google APIs
+cloud.google.com/go/compute/metadata,https://github.com/googleapis/google-cloud-go/blob/compute/metadata/v0.3.0/compute/metadata/LICENSE,Apache-2.0,Google APIs
+cloud.google.com/go/iam,https://github.com/googleapis/google-cloud-go/blob/iam/v1.1.8/iam/LICENSE,Apache-2.0,Google APIs
+cloud.google.com/go/internal,https://github.com/googleapis/google-cloud-go/blob/v0.114.0/LICENSE,Apache-2.0,Google APIs
+cloud.google.com/go/storage,https://github.com/googleapis/google-cloud-go/blob/storage/v1.41.0/storage/LICENSE,Apache-2.0,Google APIs
+dario.cat/mergo,https://github.com/imdario/mergo/blob/v1.0.0/LICENSE,BSD-3-Clause,imdario
+github.com/AlecAivazis/survey/v2,https://github.com/AlecAivazis/survey/blob/v2.3.7/LICENSE,MIT,Alec Aivazis
+github.com/AlecAivazis/survey/v2/terminal,https://github.com/AlecAivazis/survey/blob/v2.3.7/terminal/LICENSE.txt,MIT,Alec Aivazis
+github.com/Azure/azure-sdk-for-go/sdk/azcore,https://github.com/Azure/azure-sdk-for-go/blob/sdk/azcore/v1.12.0/sdk/azcore/LICENSE.txt,MIT,Microsoft Azure
+github.com/Azure/azure-sdk-for-go/sdk/azidentity,https://github.com/Azure/azure-sdk-for-go/blob/sdk/azidentity/v1.6.0/sdk/azidentity/LICENSE.txt,MIT,Microsoft Azure
+github.com/Azure/azure-sdk-for-go/sdk/internal,https://github.com/Azure/azure-sdk-for-go/blob/sdk/internal/v1.9.0/sdk/internal/LICENSE.txt,MIT,Microsoft Azure
+github.com/Azure/azure-sdk-for-go/sdk/storage/azblob,https://github.com/Azure/azure-sdk-for-go/blob/sdk/storage/azblob/v1.3.2/sdk/storage/azblob/LICENSE.txt,MIT,Microsoft Azure
+github.com/Azure/go-autorest/autorest/to,https://github.com/Azure/go-autorest/blob/autorest/to/v0.4.0/autorest/to/LICENSE,Apache-2.0,Microsoft Azure
+github.com/AzureAD/microsoft-authentication-library-for-go/apps,https://github.com/AzureAD/microsoft-authentication-library-for-go/blob/v1.2.2/LICENSE,MIT,Azure Active Directory
 github.com/DataDog/KubeHound,https://github.com/DataDog/KubeHound/blob/HEAD/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/DataDog/appsec-internal-go,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/DataDog/appsec-internal-go/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/DataDog/datadog-agent/pkg/obfuscate,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/DataDog/datadog-agent/pkg/obfuscate/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/DataDog/datadog-agent/pkg/remoteconfig/state,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/DataDog/datadog-agent/pkg/remoteconfig/state/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/DataDog/datadog-go/v5/statsd,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/DataDog/datadog-go/v5/LICENSE.txt,MIT,Datadog, Inc.
-github.com/DataDog/go-libddwaf/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/DataDog/go-libddwaf/v2/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/DataDog/go-sqllexer,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/DataDog/go-sqllexer/LICENSE,MIT,Datadog, Inc.
-github.com/DataDog/go-tuf,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/DataDog/go-tuf/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/DataDog/gostackparse,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/DataDog/gostackparse/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/DataDog/sketches-go/ddsketch,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/DataDog/sketches-go/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/Masterminds/semver/v3,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/Masterminds/semver/v3/LICENSE.txt,MIT,Datadog, Inc.
-github.com/acarl005/stripansi,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/acarl005/stripansi/LICENSE,MIT,Datadog, Inc.
-github.com/alitto/pond,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/alitto/pond/LICENSE,MIT,Datadog, Inc.
-github.com/apache/tinkerpop/gremlin-go/v3/driver,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/apache/tinkerpop/gremlin-go/v3/driver/README.md,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/config,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/config/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/credentials,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/credentials/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/feature/ec2/imds,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/feature/ec2/imds/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/feature/s3/manager,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/feature/s3/manager/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/internal/configsources,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/internal/configsources/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/internal/endpoints/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/internal/endpoints/v2/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/internal/ini,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/internal/ini/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/internal/sync/singleflight,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/internal/sync/singleflight/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/internal/v4a,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/internal/v4a/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/service/internal/checksum,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/service/internal/checksum/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/service/internal/presigned-url,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/service/internal/presigned-url/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/service/internal/s3shared,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/service/internal/s3shared/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/service/s3,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/service/s3/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/service/sso,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/service/sso/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/service/ssooidc,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/service/ssooidc/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go-v2/service/sts,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go-v2/service/sts/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/aws/aws-sdk-go/internal/sync/singleflight,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/aws-sdk-go/internal/sync/singleflight/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/aws/smithy-go,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/smithy-go/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/aws/smithy-go/internal/sync/singleflight,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/aws/smithy-go/internal/sync/singleflight/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/benbjohnson/clock,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/benbjohnson/clock/LICENSE,MIT,Datadog, Inc.
-github.com/beorn7/perks/quantile,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/beorn7/perks/LICENSE,MIT,Datadog, Inc.
-github.com/buger/goterm,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/buger/goterm/LICENSE,MIT,Datadog, Inc.
-github.com/cenkalti/backoff/v4,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/cenkalti/backoff/v4/LICENSE,MIT,Datadog, Inc.
-github.com/cespare/xxhash/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/cespare/xxhash/v2/LICENSE.txt,MIT,Datadog, Inc.
-github.com/compose-spec/compose-go/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/compose-spec/compose-go/v2/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/compose-spec/compose-go/v2/dotenv,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/compose-spec/compose-go/v2/dotenv/LICENSE,MIT,Datadog, Inc.
-github.com/containerd/console,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/containerd/console/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/containerd/containerd,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/containerd/containerd/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/containerd/continuity,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/containerd/continuity/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/containerd/errdefs,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/containerd/errdefs/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/containerd/log,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/containerd/log/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/containerd/platforms,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/containerd/platforms/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/containerd/ttrpc,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/containerd/ttrpc/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/containerd/typeurl/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/containerd/typeurl/v2/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/davecgh/go-spew/spew,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/davecgh/go-spew/LICENSE,ISC,Datadog, Inc.
-github.com/distribution/reference,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/distribution/reference/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/docker/buildx,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/docker/buildx/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/docker/cli,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/docker/cli/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/docker/compose/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/docker/compose/v2/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/docker/distribution,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/docker/distribution/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/docker/docker,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/docker/docker/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/docker/docker-credential-helpers,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/docker/docker-credential-helpers/LICENSE,MIT,Datadog, Inc.
-github.com/docker/go-connections,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/docker/go-connections/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/docker/go-metrics,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/docker/go-metrics/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/docker/go-units,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/docker/go-units/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/docker/go/canonical/json,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/docker/go/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/dustin/go-humanize,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/dustin/go-humanize/LICENSE,MIT,Datadog, Inc.
-github.com/eiannone/keyboard,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/eiannone/keyboard/LICENSE,MIT,Datadog, Inc.
-github.com/emicklei/go-restful/v3,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/emicklei/go-restful/v3/LICENSE,MIT,Datadog, Inc.
-github.com/evanphx/json-patch,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/evanphx/json-patch/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/evanphx/json-patch/v5,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/evanphx/json-patch/v5/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/felixge/httpsnoop,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/felixge/httpsnoop/LICENSE.txt,MIT,Datadog, Inc.
-github.com/fsnotify/fsevents,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/fsnotify/fsevents/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/fsnotify/fsnotify,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/fsnotify/fsnotify/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/fvbommel/sortorder,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/fvbommel/sortorder/LICENSE,MIT,Datadog, Inc.
-github.com/gabriel-vasile/mimetype,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/gabriel-vasile/mimetype/LICENSE,MIT,Datadog, Inc.
-github.com/go-logr/logr,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/go-logr/logr/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/go-logr/stdr,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/go-logr/stdr/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/go-openapi/jsonpointer,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/go-openapi/jsonpointer/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/go-openapi/jsonreference,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/go-openapi/jsonreference/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/go-openapi/swag,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/go-openapi/swag/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/go-playground/locales,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/go-playground/locales/LICENSE,MIT,Datadog, Inc.
-github.com/go-playground/universal-translator,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/go-playground/universal-translator/LICENSE,MIT,Datadog, Inc.
-github.com/go-playground/validator/v10,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/go-playground/validator/v10/LICENSE,MIT,Datadog, Inc.
-github.com/go-viper/mapstructure/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/go-viper/mapstructure/v2/LICENSE,MIT,Datadog, Inc.
-github.com/gofrs/flock,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/gofrs/flock/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/gogo/googleapis/google/rpc,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/gogo/googleapis/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/gogo/protobuf,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/gogo/protobuf/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/golang-jwt/jwt/v5,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/golang-jwt/jwt/v5/LICENSE,MIT,Datadog, Inc.
-github.com/golang/groupcache/lru,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/golang/groupcache/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/golang/protobuf,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/golang/protobuf/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/golang/snappy,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/golang/snappy/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/google/gnostic-models,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/google/gnostic-models/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/google/go-cmp/cmp,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/google/go-cmp/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/google/gofuzz,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/google/gofuzz/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/google/pprof/profile,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/google/pprof/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/google/s2a-go,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/google/s2a-go/LICENSE.md,Apache-2.0,Datadog, Inc.
-github.com/google/shlex,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/google/shlex/COPYING,Apache-2.0,Datadog, Inc.
-github.com/google/uuid,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/google/uuid/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/google/wire,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/google/wire/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/googleapis/enterprise-certificate-proxy/client,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/googleapis/enterprise-certificate-proxy/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/googleapis/gax-go/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/googleapis/gax-go/v2/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/gorilla/mux,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/gorilla/mux/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/gorilla/websocket,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/gorilla/websocket/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/grpc-ecosystem/go-grpc-middleware,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/grpc-ecosystem/go-grpc-middleware/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/grpc-ecosystem/grpc-gateway/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/grpc-ecosystem/grpc-gateway/v2/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/hashicorp/errwrap,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/hashicorp/errwrap/LICENSE,MPL-2.0,Datadog, Inc.
-github.com/hashicorp/go-cleanhttp,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/hashicorp/go-cleanhttp/LICENSE,MPL-2.0,Datadog, Inc.
-github.com/hashicorp/go-multierror,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/hashicorp/go-multierror/LICENSE,MPL-2.0,Datadog, Inc.
-github.com/hashicorp/go-version,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/hashicorp/go-version/LICENSE,MPL-2.0,Datadog, Inc.
-github.com/hashicorp/hcl,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/hashicorp/hcl/LICENSE,MPL-2.0,Datadog, Inc.
-github.com/imdario/mergo,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/imdario/mergo/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/in-toto/in-toto-golang/in_toto,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/in-toto/in-toto-golang/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/jmespath/go-jmespath,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/jmespath/go-jmespath/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/jonboulle/clockwork,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/jonboulle/clockwork/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/josharian/intern,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/josharian/intern/license.md,MIT,Datadog, Inc.
-github.com/json-iterator/go,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/json-iterator/go/LICENSE,MIT,Datadog, Inc.
-github.com/kballard/go-shellquote,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/kballard/go-shellquote/LICENSE,MIT,Datadog, Inc.
-github.com/klauspost/compress,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/klauspost/compress/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/klauspost/compress/internal/snapref,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/klauspost/compress/internal/snapref/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/klauspost/compress/zstd/internal/xxhash,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/klauspost/compress/zstd/internal/xxhash/LICENSE.txt,MIT,Datadog, Inc.
-github.com/kylelemons/godebug,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/kylelemons/godebug/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/leodido/go-urn,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/leodido/go-urn/LICENSE,MIT,Datadog, Inc.
-github.com/magiconair/properties,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/magiconair/properties/LICENSE.md,BSD-2-Clause,Datadog, Inc.
-github.com/mailru/easyjson,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/mailru/easyjson/LICENSE,MIT,Datadog, Inc.
-github.com/mattn/go-colorable,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/mattn/go-colorable/LICENSE,MIT,Datadog, Inc.
-github.com/mattn/go-isatty,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/mattn/go-isatty/LICENSE,MIT,Datadog, Inc.
-github.com/mattn/go-runewidth,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/mattn/go-runewidth/LICENSE,MIT,Datadog, Inc.
-github.com/mattn/go-shellwords,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/mattn/go-shellwords/LICENSE,MIT,Datadog, Inc.
-github.com/mgutz/ansi,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/mgutz/ansi/LICENSE,MIT,Datadog, Inc.
-github.com/mitchellh/copystructure,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/mitchellh/copystructure/LICENSE,MIT,Datadog, Inc.
-github.com/mitchellh/mapstructure,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/mitchellh/mapstructure/LICENSE,MIT,Datadog, Inc.
-github.com/mitchellh/reflectwalk,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/mitchellh/reflectwalk/LICENSE,MIT,Datadog, Inc.
-github.com/moby/buildkit,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/buildkit/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/moby/docker-image-spec/specs-go/v1,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/docker-image-spec/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/moby/locker,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/locker/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/moby/patternmatcher,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/patternmatcher/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/moby/spdystream,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/spdystream/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/moby/sys/mountinfo,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/sys/mountinfo/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/moby/sys/sequential,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/sys/sequential/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/moby/sys/signal,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/sys/signal/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/moby/sys/symlink,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/sys/symlink/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/moby/sys/user,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/sys/user/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/moby/term,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/moby/term/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/modern-go/concurrent,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/modern-go/concurrent/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/modern-go/reflect2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/modern-go/reflect2/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/montanaflynn/stats,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/montanaflynn/stats/LICENSE,MIT,Datadog, Inc.
-github.com/morikuni/aec,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/morikuni/aec/LICENSE,MIT,Datadog, Inc.
-github.com/munnerz/goautoneg,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/munnerz/goautoneg/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/mxk/go-flowrate/flowrate,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/mxk/go-flowrate/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/nicksnyder/go-i18n/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/nicksnyder/go-i18n/v2/LICENSE,MIT,Datadog, Inc.
-github.com/oklog/ulid/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/oklog/ulid/v2/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/opencontainers/go-digest,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/opencontainers/go-digest/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/opencontainers/image-spec/specs-go,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/opencontainers/image-spec/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/outcaste-io/ristretto,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/outcaste-io/ristretto/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/outcaste-io/ristretto/z,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/outcaste-io/ristretto/z/LICENSE,MIT,Datadog, Inc.
-github.com/pelletier/go-toml,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/pelletier/go-toml/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/pelletier/go-toml/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/pelletier/go-toml/v2/LICENSE,MIT,Datadog, Inc.
-github.com/philhofer/fwd,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/philhofer/fwd/LICENSE.md,MIT,Datadog, Inc.
-github.com/pkg/browser,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/pkg/browser/LICENSE,BSD-2-Clause,Datadog, Inc.
-github.com/pkg/errors,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/pkg/errors/LICENSE,BSD-2-Clause,Datadog, Inc.
-github.com/pmezard/go-difflib/difflib,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/pmezard/go-difflib/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/prometheus/client_golang/prometheus,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/prometheus/client_golang/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/prometheus/client_model/go,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/prometheus/client_model/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/prometheus/common,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/prometheus/common/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg/README.txt,BSD-3-Clause,Datadog, Inc.
-github.com/prometheus/procfs,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/prometheus/procfs/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/r3labs/sse,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/r3labs/sse/LICENSE,MPL-2.0,Datadog, Inc.
-github.com/richardartoul/molecule,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/richardartoul/molecule/LICENSE,MIT,Datadog, Inc.
-github.com/richardartoul/molecule/src/codec,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/richardartoul/molecule/src/codec/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/richardartoul/molecule/src/protowire,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/richardartoul/molecule/src/protowire/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/rivo/uniseg,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/rivo/uniseg/LICENSE.txt,MIT,Datadog, Inc.
-github.com/sagikazarmark/slog-shim,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/sagikazarmark/slog-shim/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/secure-systems-lab/go-securesystemslib,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/secure-systems-lab/go-securesystemslib/LICENSE,MIT,Datadog, Inc.
-github.com/serialx/hashring,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/serialx/hashring/LICENSE,MIT,Datadog, Inc.
-github.com/shibumi/go-pathspec,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/shibumi/go-pathspec/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/sirupsen/logrus,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/sirupsen/logrus/LICENSE,MIT,Datadog, Inc.
-github.com/skratchdot/open-golang/open,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/skratchdot/open-golang/LICENSE,MIT,Datadog, Inc.
-github.com/spaolacci/murmur3,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/spaolacci/murmur3/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/spf13/afero,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/spf13/afero/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/spf13/cast,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/spf13/cast/LICENSE,MIT,Datadog, Inc.
-github.com/spf13/cobra,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/spf13/cobra/LICENSE.txt,Apache-2.0,Datadog, Inc.
-github.com/spf13/pflag,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/spf13/pflag/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/spf13/viper,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/spf13/viper/LICENSE,MIT,Datadog, Inc.
-github.com/stretchr/objx,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/stretchr/objx/LICENSE,MIT,Datadog, Inc.
-github.com/stretchr/testify,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/stretchr/testify/LICENSE,MIT,Datadog, Inc.
-github.com/subosito/gotenv,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/subosito/gotenv/LICENSE,MIT,Datadog, Inc.
-github.com/theupdateframework/notary,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/theupdateframework/notary/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/theupdateframework/notary/tuf,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/theupdateframework/notary/tuf/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/tilt-dev/fsnotify,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/tilt-dev/fsnotify/LICENSE,BSD-3-Clause,Datadog, Inc.
-github.com/tinylib/msgp/msgp,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/tinylib/msgp/LICENSE,MIT,Datadog, Inc.
-github.com/tonistiigi/fsutil,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/tonistiigi/fsutil/LICENSE,MIT,Datadog, Inc.
-github.com/tonistiigi/units,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/tonistiigi/units/LICENSE,MIT,Datadog, Inc.
-github.com/tonistiigi/vt100,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/tonistiigi/vt100/LICENSE,MIT,Datadog, Inc.
-github.com/xdg-go/pbkdf2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/xdg-go/pbkdf2/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/xdg-go/scram,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/xdg-go/scram/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/xdg-go/stringprep,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/xdg-go/stringprep/LICENSE,Apache-2.0,Datadog, Inc.
-github.com/xeipuuv/gojsonpointer,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/xeipuuv/gojsonpointer/LICENSE-APACHE-2.0.txt,Apache-2.0,Datadog, Inc.
-github.com/xeipuuv/gojsonreference,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/xeipuuv/gojsonreference/LICENSE-APACHE-2.0.txt,Apache-2.0,Datadog, Inc.
-github.com/xeipuuv/gojsonschema,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/xeipuuv/gojsonschema/LICENSE-APACHE-2.0.txt,Apache-2.0,Datadog, Inc.
-github.com/youmark/pkcs8,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/github.com/youmark/pkcs8/LICENSE,MIT,Datadog, Inc.
-go.mongodb.org/mongo-driver,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.mongodb.org/mongo-driver/LICENSE,Apache-2.0,Datadog, Inc.
-go.opencensus.io,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opencensus.io/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel/exporters/otlp/otlptrace,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/exporters/otlp/otlptrace/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel/exporters/prometheus,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/exporters/prometheus/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel/metric,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/metric/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel/sdk,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/sdk/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel/sdk/metric,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/sdk/metric/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/otel/trace,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/otel/trace/LICENSE,Apache-2.0,Datadog, Inc.
-go.opentelemetry.io/proto/otlp,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.opentelemetry.io/proto/otlp/LICENSE,Apache-2.0,Datadog, Inc.
-go.uber.org/atomic,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.uber.org/atomic/LICENSE.txt,MIT,Datadog, Inc.
-go.uber.org/mock/gomock,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.uber.org/mock/LICENSE,Apache-2.0,Datadog, Inc.
-go.uber.org/multierr,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.uber.org/multierr/LICENSE.txt,MIT,Datadog, Inc.
-go.uber.org/ratelimit,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.uber.org/ratelimit/LICENSE,MIT,Datadog, Inc.
-go.uber.org/zap,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/go.uber.org/zap/LICENSE,MIT,Datadog, Inc.
-gocloud.dev,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/gocloud.dev/LICENSE,Apache-2.0,Datadog, Inc.
-golang.org/x/crypto,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/golang.org/x/crypto/LICENSE,BSD-3-Clause,Datadog, Inc.
-golang.org/x/exp,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/golang.org/x/exp/LICENSE,BSD-3-Clause,Datadog, Inc.
-golang.org/x/net,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/golang.org/x/net/LICENSE,BSD-3-Clause,Datadog, Inc.
-golang.org/x/oauth2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/golang.org/x/oauth2/LICENSE,BSD-3-Clause,Datadog, Inc.
-golang.org/x/sync,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/golang.org/x/sync/LICENSE,BSD-3-Clause,Datadog, Inc.
-golang.org/x/sys,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/golang.org/x/sys/LICENSE,BSD-3-Clause,Datadog, Inc.
-golang.org/x/term,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/golang.org/x/term/LICENSE,BSD-3-Clause,Datadog, Inc.
-golang.org/x/text,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/golang.org/x/text/LICENSE,BSD-3-Clause,Datadog, Inc.
-golang.org/x/time/rate,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/golang.org/x/time/LICENSE,BSD-3-Clause,Datadog, Inc.
-golang.org/x/xerrors,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/golang.org/x/xerrors/LICENSE,BSD-3-Clause,Datadog, Inc.
-gomodules.xyz/jsonpatch/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/gomodules.xyz/jsonpatch/v2/LICENSE,Apache-2.0,Datadog, Inc.
-google.golang.org/api,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/google.golang.org/api/LICENSE,BSD-3-Clause,Datadog, Inc.
-google.golang.org/api/internal/third_party/uritemplates,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/google.golang.org/api/internal/third_party/uritemplates/LICENSE,BSD-3-Clause,Datadog, Inc.
-google.golang.org/genproto,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/google.golang.org/genproto/LICENSE,Apache-2.0,Datadog, Inc.
-google.golang.org/genproto/googleapis/api,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/google.golang.org/genproto/googleapis/api/LICENSE,Apache-2.0,Datadog, Inc.
-google.golang.org/genproto/googleapis/rpc,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/google.golang.org/genproto/googleapis/rpc/LICENSE,Apache-2.0,Datadog, Inc.
-google.golang.org/grpc,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/google.golang.org/grpc/LICENSE,Apache-2.0,Datadog, Inc.
-google.golang.org/protobuf,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/google.golang.org/protobuf/LICENSE,BSD-3-Clause,Datadog, Inc.
-gopkg.in/DataDog/dd-trace-go.v1,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/gopkg.in/DataDog/dd-trace-go.v1/LICENSE,Apache-2.0,Datadog, Inc.
-gopkg.in/cenkalti/backoff.v1,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/gopkg.in/cenkalti/backoff.v1/LICENSE,MIT,Datadog, Inc.
-gopkg.in/inf.v0,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/gopkg.in/inf.v0/LICENSE,BSD-3-Clause,Datadog, Inc.
-gopkg.in/ini.v1,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/gopkg.in/ini.v1/LICENSE,Apache-2.0,Datadog, Inc.
-gopkg.in/yaml.v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/gopkg.in/yaml.v2/LICENSE,Apache-2.0,Datadog, Inc.
-gopkg.in/yaml.v3,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/gopkg.in/yaml.v3/LICENSE,MIT,Datadog, Inc.
-k8s.io/api,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/api/LICENSE,Apache-2.0,Datadog, Inc.
-k8s.io/apiextensions-apiserver/pkg/apis/apiextensions,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/apiextensions-apiserver/LICENSE,Apache-2.0,Datadog, Inc.
-k8s.io/apimachinery/pkg,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/apimachinery/LICENSE,Apache-2.0,Datadog, Inc.
-k8s.io/apimachinery/third_party/forked/golang,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/apimachinery/third_party/forked/golang/LICENSE,BSD-3-Clause,Datadog, Inc.
-k8s.io/apiserver/pkg/storage/names,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/apiserver/LICENSE,Apache-2.0,Datadog, Inc.
-k8s.io/client-go,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/client-go/LICENSE,Apache-2.0,Datadog, Inc.
-k8s.io/klog/v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/klog/v2/LICENSE,Apache-2.0,Datadog, Inc.
-k8s.io/kube-openapi/pkg,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/kube-openapi/LICENSE,Apache-2.0,Datadog, Inc.
-k8s.io/kube-openapi/pkg/internal/third_party/go-json-experiment/json,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/kube-openapi/pkg/internal/third_party/go-json-experiment/json/LICENSE,BSD-3-Clause,Datadog, Inc.
-k8s.io/kube-openapi/pkg/validation/spec,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/kube-openapi/pkg/validation/spec/LICENSE,Apache-2.0,Datadog, Inc.
-k8s.io/utils,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/utils/LICENSE,Apache-2.0,Datadog, Inc.
-k8s.io/utils/internal/third_party/forked/golang/net,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/k8s.io/utils/internal/third_party/forked/golang/LICENSE,BSD-3-Clause,Datadog, Inc.
-sigs.k8s.io/controller-runtime,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/sigs.k8s.io/controller-runtime/LICENSE,Apache-2.0,Datadog, Inc.
-sigs.k8s.io/json,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/sigs.k8s.io/json/LICENSE,Apache-2.0,Datadog, Inc.
-sigs.k8s.io/structured-merge-diff/v4,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/sigs.k8s.io/structured-merge-diff/v4/LICENSE,Apache-2.0,Datadog, Inc.
-sigs.k8s.io/yaml,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/sigs.k8s.io/yaml/LICENSE,Apache-2.0,Datadog, Inc.
-sigs.k8s.io/yaml/goyaml.v2,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/sigs.k8s.io/yaml/goyaml.v2/LICENSE,Apache-2.0,Datadog, Inc.
-tags.cncf.io/container-device-interface/pkg/parser,https://github.com/DataDog/KubeHound/blob/HEAD/vendor/tags.cncf.io/container-device-interface/LICENSE,Apache-2.0,Datadog, Inc.
+github.com/DataDog/appsec-internal-go,https://github.com/DataDog/appsec-internal-go/blob/v1.6.0/LICENSE,Apache-2.0,Datadog, Inc.
+github.com/DataDog/datadog-agent/pkg/obfuscate,https://github.com/DataDog/datadog-agent/blob/pkg/obfuscate/v0.54.0/pkg/obfuscate/LICENSE,Apache-2.0,Datadog, Inc.
+github.com/DataDog/datadog-agent/pkg/remoteconfig/state,https://github.com/DataDog/datadog-agent/blob/pkg/remoteconfig/state/v0.54.0/pkg/remoteconfig/state/LICENSE,Apache-2.0,Datadog, Inc.
+github.com/DataDog/datadog-go/v5/statsd,https://github.com/DataDog/datadog-go/blob/v5.5.0/LICENSE.txt,MIT,Datadog, Inc.
+github.com/DataDog/go-libddwaf/v2,https://github.com/DataDog/go-libddwaf/blob/v2.4.2/LICENSE,Apache-2.0,Datadog, Inc.
+github.com/DataDog/go-sqllexer,https://github.com/DataDog/go-sqllexer/blob/v0.0.12/LICENSE,MIT,Datadog, Inc.
+github.com/DataDog/go-tuf,https://github.com/DataDog/go-tuf/blob/v1.1.0-0.5.2/LICENSE,BSD-3-Clause,Datadog, Inc.
+github.com/DataDog/gostackparse,https://github.com/DataDog/gostackparse/blob/v0.7.0/LICENSE,Apache-2.0,Datadog, Inc.
+github.com/DataDog/sketches-go/ddsketch,https://github.com/DataDog/sketches-go/blob/v1.4.5/LICENSE,Apache-2.0,Datadog, Inc.
+github.com/Masterminds/semver/v3,https://github.com/Masterminds/semver/blob/v3.2.1/LICENSE.txt,MIT,Masterminds
+github.com/acarl005/stripansi,https://github.com/acarl005/stripansi/blob/5a71ef0e047d/LICENSE,MIT,Andy
+github.com/alitto/pond,https://github.com/alitto/pond/blob/v1.8.3/LICENSE,MIT,Alejandro Durante
+github.com/apache/tinkerpop/gremlin-go/v3/driver,https://github.com/apache/tinkerpop/blob/gremlin-go/v3.7.2/gremlin-go/driver/README.md,Apache-2.0,The Apache Software Foundation
+github.com/aws/aws-sdk-go,https://github.com/aws/aws-sdk-go/blob/v1.53.19/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2,https://github.com/aws/aws-sdk-go-v2/blob/v1.27.2/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream,https://github.com/aws/aws-sdk-go-v2/blob/aws/protocol/eventstream/v1.6.2/aws/protocol/eventstream/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/config,https://github.com/aws/aws-sdk-go-v2/blob/config/v1.27.18/config/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/credentials,https://github.com/aws/aws-sdk-go-v2/blob/credentials/v1.17.18/credentials/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/feature/ec2/imds,https://github.com/aws/aws-sdk-go-v2/blob/feature/ec2/imds/v1.16.5/feature/ec2/imds/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/feature/s3/manager,https://github.com/aws/aws-sdk-go-v2/blob/feature/s3/manager/v1.16.24/feature/s3/manager/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/internal/configsources,https://github.com/aws/aws-sdk-go-v2/blob/internal/configsources/v1.3.9/internal/configsources/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/internal/endpoints/v2,https://github.com/aws/aws-sdk-go-v2/blob/internal/endpoints/v2.6.9/internal/endpoints/v2/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/internal/ini,https://github.com/aws/aws-sdk-go-v2/blob/internal/ini/v1.8.0/internal/ini/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/internal/sync/singleflight,https://github.com/aws/aws-sdk-go-v2/blob/v1.27.2/internal/sync/singleflight/LICENSE,BSD-3-Clause,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/internal/v4a,https://github.com/aws/aws-sdk-go-v2/blob/internal/v4a/v1.3.9/internal/v4a/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding,https://github.com/aws/aws-sdk-go-v2/blob/service/internal/accept-encoding/v1.11.2/service/internal/accept-encoding/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/service/internal/checksum,https://github.com/aws/aws-sdk-go-v2/blob/service/internal/checksum/v1.3.11/service/internal/checksum/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/service/internal/presigned-url,https://github.com/aws/aws-sdk-go-v2/blob/service/internal/presigned-url/v1.11.11/service/internal/presigned-url/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/service/internal/s3shared,https://github.com/aws/aws-sdk-go-v2/blob/service/internal/s3shared/v1.17.9/service/internal/s3shared/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/service/s3,https://github.com/aws/aws-sdk-go-v2/blob/service/s3/v1.55.1/service/s3/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/service/sso,https://github.com/aws/aws-sdk-go-v2/blob/service/sso/v1.20.11/service/sso/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/service/ssooidc,https://github.com/aws/aws-sdk-go-v2/blob/service/ssooidc/v1.24.5/service/ssooidc/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go-v2/service/sts,https://github.com/aws/aws-sdk-go-v2/blob/service/sts/v1.28.12/service/sts/LICENSE.txt,Apache-2.0,Amazon Web Services
+github.com/aws/aws-sdk-go/internal/sync/singleflight,https://github.com/aws/aws-sdk-go/blob/v1.53.19/internal/sync/singleflight/LICENSE,BSD-3-Clause,Amazon Web Services
+github.com/aws/smithy-go,https://github.com/aws/smithy-go/blob/v1.20.2/LICENSE,Apache-2.0,Amazon Web Services
+github.com/aws/smithy-go/internal/sync/singleflight,https://github.com/aws/smithy-go/blob/v1.20.2/internal/sync/singleflight/LICENSE,BSD-3-Clause,Amazon Web Services
+github.com/benbjohnson/clock,https://github.com/benbjohnson/clock/blob/v1.3.5/LICENSE,MIT,Ben Johnson
+github.com/beorn7/perks/quantile,https://github.com/beorn7/perks/blob/v1.0.1/LICENSE,MIT,Björn Rabenstein
+github.com/buger/goterm,https://github.com/buger/goterm/blob/v1.0.4/LICENSE,MIT,Leonid Bugaev
+github.com/cenkalti/backoff/v4,https://github.com/cenkalti/backoff/blob/v4.3.0/LICENSE,MIT,Cenk Altı
+github.com/cespare/xxhash/v2,https://github.com/cespare/xxhash/blob/v2.3.0/LICENSE.txt,MIT,Caleb Spare
+github.com/compose-spec/compose-go/v2,https://github.com/compose-spec/compose-go/blob/v2.1.2/LICENSE,Apache-2.0,Compose Specification
+github.com/compose-spec/compose-go/v2/dotenv,https://github.com/compose-spec/compose-go/blob/v2.1.2/dotenv/LICENSE,MIT,Compose Specification
+github.com/containerd/console,https://github.com/containerd/console/blob/v1.0.4/LICENSE,Apache-2.0,containerd
+github.com/containerd/containerd,https://github.com/containerd/containerd/blob/v1.7.18/LICENSE,Apache-2.0,containerd
+github.com/containerd/continuity,https://github.com/containerd/continuity/blob/v0.4.3/LICENSE,Apache-2.0,containerd
+github.com/containerd/errdefs,https://github.com/containerd/errdefs/blob/v0.1.0/LICENSE,Apache-2.0,containerd
+github.com/containerd/log,https://github.com/containerd/log/blob/v0.1.0/LICENSE,Apache-2.0,containerd
+github.com/containerd/platforms,https://github.com/containerd/platforms/blob/v0.2.0/LICENSE,Apache-2.0,containerd
+github.com/containerd/ttrpc,https://github.com/containerd/ttrpc/blob/v1.2.4/LICENSE,Apache-2.0,containerd
+github.com/containerd/typeurl/v2,https://github.com/containerd/typeurl/blob/v2.1.1/LICENSE,Apache-2.0,containerd
+github.com/davecgh/go-spew/spew,https://github.com/davecgh/go-spew/blob/d8f796af33cc/LICENSE,ISC,Dave Collins
+github.com/distribution/reference,https://github.com/distribution/reference/blob/v0.6.0/LICENSE,Apache-2.0,Distribution
+github.com/docker/buildx,https://github.com/docker/buildx/blob/v0.14.1/LICENSE,Apache-2.0,Docker
+github.com/docker/cli,https://github.com/docker/cli/blob/v26.1.4/LICENSE,Apache-2.0,Docker
+github.com/docker/compose/v2,https://github.com/docker/compose/blob/v2.27.1/LICENSE,Apache-2.0,Docker
+github.com/docker/distribution,https://github.com/docker/distribution/blob/v2.8.3/LICENSE,Apache-2.0,Docker
+github.com/docker/docker,https://github.com/docker/docker/blob/v26.1.4/LICENSE,Apache-2.0,Docker
+github.com/docker/docker-credential-helpers,https://github.com/docker/docker-credential-helpers/blob/v0.8.2/LICENSE,MIT,Docker
+github.com/docker/go-connections,https://github.com/docker/go-connections/blob/v0.5.0/LICENSE,Apache-2.0,Docker
+github.com/docker/go-metrics,https://github.com/docker/go-metrics/blob/v0.0.1/LICENSE,Apache-2.0,Docker
+github.com/docker/go-units,https://github.com/docker/go-units/blob/v0.5.0/LICENSE,Apache-2.0,Docker
+github.com/docker/go/canonical/json,https://github.com/docker/go/blob/d30aec9fd63c/LICENSE,BSD-3-Clause,Docker
+github.com/dustin/go-humanize,https://github.com/dustin/go-humanize/blob/v1.0.1/LICENSE,MIT,Dustin Sallings
+github.com/eiannone/keyboard,https://github.com/eiannone/keyboard/blob/0d226195f203/LICENSE,MIT,Emanuele Iannone
+github.com/emicklei/go-restful/v3,https://github.com/emicklei/go-restful/blob/v3.12.1/LICENSE,MIT,Ernest Micklei
+github.com/evanphx/json-patch,https://github.com/evanphx/json-patch/blob/v5.9.0/LICENSE,BSD-3-Clause,Evan Phoenix
+github.com/evanphx/json-patch/v5,https://github.com/evanphx/json-patch/blob/v5.9.0/v5/LICENSE,BSD-3-Clause,Evan Phoenix
+github.com/felixge/httpsnoop,https://github.com/felixge/httpsnoop/blob/v1.0.4/LICENSE.txt,MIT,Felix Geisendörfer
+github.com/fsnotify/fsevents,https://github.com/fsnotify/fsevents/blob/v0.2.0/LICENSE,BSD-3-Clause,fsnotify
+github.com/fsnotify/fsnotify,https://github.com/fsnotify/fsnotify/blob/v1.7.0/LICENSE,BSD-3-Clause,fsnotify
+github.com/fvbommel/sortorder,https://github.com/fvbommel/sortorder/blob/v1.1.0/LICENSE,MIT,fvbommel
+github.com/gabriel-vasile/mimetype,https://github.com/gabriel-vasile/mimetype/blob/v1.4.4/LICENSE,MIT,Gabriel Vasile
+github.com/go-logr/logr,https://github.com/go-logr/logr/blob/v1.4.2/LICENSE,Apache-2.0,go-logr
+github.com/go-logr/stdr,https://github.com/go-logr/stdr/blob/v1.2.2/LICENSE,Apache-2.0,go-logr
+github.com/go-openapi/jsonpointer,https://github.com/go-openapi/jsonpointer/blob/v0.21.0/LICENSE,Apache-2.0,OpenAPI Initiative golang toolkit
+github.com/go-openapi/jsonreference,https://github.com/go-openapi/jsonreference/blob/v0.21.0/LICENSE,Apache-2.0,OpenAPI Initiative golang toolkit
+github.com/go-openapi/swag,https://github.com/go-openapi/swag/blob/v0.23.0/LICENSE,Apache-2.0,OpenAPI Initiative golang toolkit
+github.com/go-playground/locales,https://github.com/go-playground/locales/blob/v0.14.1/LICENSE,MIT,Go Playgound
+github.com/go-playground/universal-translator,https://github.com/go-playground/universal-translator/blob/v0.18.1/LICENSE,MIT,Go Playgound
+github.com/go-playground/validator/v10,https://github.com/go-playground/validator/blob/v10.21.0/LICENSE,MIT,Go Playgound
+github.com/go-viper/mapstructure/v2,https://github.com/go-viper/mapstructure/blob/v2.0.0/LICENSE,MIT,Viper
+github.com/gofrs/flock,https://github.com/gofrs/flock/blob/v0.8.1/LICENSE,BSD-3-Clause,The Go Commune
+github.com/gogo/googleapis/google/rpc,https://github.com/gogo/googleapis/blob/v1.4.1/LICENSE,Apache-2.0,gogoprotobuf
+github.com/gogo/protobuf,https://github.com/gogo/protobuf/blob/v1.3.2/LICENSE,BSD-3-Clause,gogoprotobuf
+github.com/golang-jwt/jwt/v5,https://github.com/golang-jwt/jwt/blob/v5.2.1/LICENSE,MIT,golang-jwt
+github.com/golang/groupcache/lru,https://github.com/golang/groupcache/blob/41bb18bfe9da/LICENSE,Apache-2.0,Go
+github.com/golang/protobuf,https://github.com/golang/protobuf/blob/v1.5.4/LICENSE,BSD-3-Clause,Go
+github.com/golang/snappy,https://github.com/golang/snappy/blob/v0.0.4/LICENSE,BSD-3-Clause,Go
+github.com/google/gnostic-models,https://github.com/google/gnostic-models/blob/v0.6.8/LICENSE,Apache-2.0,Google
+github.com/google/go-cmp/cmp,https://github.com/google/go-cmp/blob/v0.6.0/LICENSE,BSD-3-Clause,Google
+github.com/google/gofuzz,https://github.com/google/gofuzz/blob/v1.2.0/LICENSE,Apache-2.0,Google
+github.com/google/pprof/profile,https://github.com/google/pprof/blob/186aa0362fba/LICENSE,Apache-2.0,Google
+github.com/google/s2a-go,https://github.com/google/s2a-go/blob/v0.1.7/LICENSE.md,Apache-2.0,Google
+github.com/google/shlex,https://github.com/google/shlex/blob/e7afc7fbc510/COPYING,Apache-2.0,Google
+github.com/google/uuid,https://github.com/google/uuid/blob/v1.6.0/LICENSE,BSD-3-Clause,Google
+github.com/google/wire,https://github.com/google/wire/blob/v0.6.0/LICENSE,Apache-2.0,Google
+github.com/googleapis/enterprise-certificate-proxy/client,https://github.com/googleapis/enterprise-certificate-proxy/blob/v0.3.2/LICENSE,Apache-2.0,Google APIs
+github.com/googleapis/gax-go/v2,https://github.com/googleapis/gax-go/blob/v2.12.4/v2/LICENSE,BSD-3-Clause,Google APIs
+github.com/gorilla/mux,https://github.com/gorilla/mux/blob/v1.8.1/LICENSE,BSD-3-Clause,Gorilla web toolkit
+github.com/gorilla/websocket,https://github.com/gorilla/websocket/blob/v1.5.1/LICENSE,BSD-3-Clause,Gorilla web toolkit
+github.com/grpc-ecosystem/go-grpc-middleware,https://github.com/grpc-ecosystem/go-grpc-middleware/blob/v1.4.0/LICENSE,Apache-2.0,gRPC Ecosystem
+github.com/grpc-ecosystem/grpc-gateway/v2,https://github.com/grpc-ecosystem/grpc-gateway/blob/v2.20.0/LICENSE,BSD-3-Clause,gRPC Ecosystem
+github.com/hashicorp/errwrap,https://github.com/hashicorp/errwrap/blob/v1.1.0/LICENSE,MPL-2.0,HashiCorp
+github.com/hashicorp/go-cleanhttp,https://github.com/hashicorp/go-cleanhttp/blob/v0.5.2/LICENSE,MPL-2.0,HashiCorp
+github.com/hashicorp/go-multierror,https://github.com/hashicorp/go-multierror/blob/v1.1.1/LICENSE,MPL-2.0,HashiCorp
+github.com/hashicorp/go-version,https://github.com/hashicorp/go-version/blob/v1.7.0/LICENSE,MPL-2.0,HashiCorp
+github.com/hashicorp/hcl,https://github.com/hashicorp/hcl/blob/v1.0.1-vault-5/LICENSE,MPL-2.0,HashiCorp
+github.com/imdario/mergo,https://github.com/imdario/mergo/blob/v0.3.16/LICENSE,BSD-3-Clause,imdario
+github.com/in-toto/in-toto-golang/in_toto,https://github.com/in-toto/in-toto-golang/blob/v0.9.0/LICENSE,Apache-2.0,in-toto
+github.com/jmespath/go-jmespath,https://github.com/jmespath/go-jmespath/blob/v0.4.0/LICENSE,Apache-2.0,jmespath
+github.com/jonboulle/clockwork,https://github.com/jonboulle/clockwork/blob/v0.4.0/LICENSE,Apache-2.0,Nell Boulle
+github.com/josharian/intern,https://github.com/josharian/intern/blob/v1.0.0/license.md,MIT,Josh Bleecher Snyder
+github.com/json-iterator/go,https://github.com/json-iterator/go/blob/v1.1.12/LICENSE,MIT,Jsoniter
+github.com/kballard/go-shellquote,https://github.com/kballard/go-shellquote/blob/95032a82bc51/LICENSE,MIT,Lily Ballard
+github.com/klauspost/compress,https://github.com/klauspost/compress/blob/v1.17.8/LICENSE,Apache-2.0,Klaus Post
+github.com/klauspost/compress/internal/snapref,https://github.com/klauspost/compress/blob/v1.17.8/internal/snapref/LICENSE,BSD-3-Clause,Klaus Post
+github.com/klauspost/compress/zstd/internal/xxhash,https://github.com/klauspost/compress/blob/v1.17.8/zstd/internal/xxhash/LICENSE.txt,MIT,Klaus Post
+github.com/kylelemons/godebug,https://github.com/kylelemons/godebug/blob/v1.1.0/LICENSE,Apache-2.0,Kyle Lemons
+github.com/leodido/go-urn,https://github.com/leodido/go-urn/blob/v1.4.0/LICENSE,MIT,Leo Di Donato
+github.com/magiconair/properties,https://github.com/magiconair/properties/blob/v1.8.7/LICENSE.md,BSD-2-Clause,Frank Schröder
+github.com/mailru/easyjson,https://github.com/mailru/easyjson/blob/v0.7.7/LICENSE,MIT,Free and open source software developed at VK
+github.com/mattn/go-colorable,https://github.com/mattn/go-colorable/blob/v0.1.13/LICENSE,MIT,mattn
+github.com/mattn/go-isatty,https://github.com/mattn/go-isatty/blob/v0.0.20/LICENSE,MIT,mattn
+github.com/mattn/go-runewidth,https://github.com/mattn/go-runewidth/blob/v0.0.15/LICENSE,MIT,mattn
+github.com/mattn/go-shellwords,https://github.com/mattn/go-shellwords/blob/v1.0.12/LICENSE,MIT,mattn
+github.com/mgutz/ansi,https://github.com/mgutz/ansi/blob/d51e80ef957d/LICENSE,MIT,Mario Gutierrez
+github.com/mitchellh/copystructure,https://github.com/mitchellh/copystructure/blob/v1.2.0/LICENSE,MIT,Mitchell Hashimoto
+github.com/mitchellh/mapstructure,https://github.com/mitchellh/mapstructure/blob/v1.5.0/LICENSE,MIT,Mitchell Hashimoto
+github.com/mitchellh/reflectwalk,https://github.com/mitchellh/reflectwalk/blob/v1.0.2/LICENSE,MIT,Mitchell Hashimoto
+github.com/moby/buildkit,https://github.com/moby/buildkit/blob/v0.13.2/LICENSE,Apache-2.0,Moby
+github.com/moby/docker-image-spec/specs-go/v1,https://github.com/moby/docker-image-spec/blob/v1.3.1/LICENSE,Apache-2.0,Moby
+github.com/moby/locker,https://github.com/moby/locker/blob/v1.0.1/LICENSE,Apache-2.0,Moby
+github.com/moby/patternmatcher,https://github.com/moby/patternmatcher/blob/v0.6.0/LICENSE,Apache-2.0,Moby
+github.com/moby/spdystream,https://github.com/moby/spdystream/blob/v0.2.0/LICENSE,Apache-2.0,Moby
+github.com/moby/sys/mountinfo,https://github.com/moby/sys/blob/mountinfo/v0.7.1/mountinfo/LICENSE,Apache-2.0,Moby
+github.com/moby/sys/sequential,https://github.com/moby/sys/blob/sequential/v0.5.0/sequential/LICENSE,Apache-2.0,Moby
+github.com/moby/sys/signal,https://github.com/moby/sys/blob/signal/v0.7.0/signal/LICENSE,Apache-2.0,Moby
+github.com/moby/sys/symlink,https://github.com/moby/sys/blob/symlink/v0.2.0/symlink/LICENSE,Apache-2.0,Moby
+github.com/moby/sys/user,https://github.com/moby/sys/blob/user/v0.1.0/user/LICENSE,Apache-2.0,Moby
+github.com/moby/term,https://github.com/moby/term/blob/v0.5.0/LICENSE,Apache-2.0,Moby
+github.com/modern-go/concurrent,https://github.com/modern-go/concurrent/blob/bacd9c7ef1dd/LICENSE,Apache-2.0,Modern Go Programming
+github.com/modern-go/reflect2,https://github.com/modern-go/reflect2/blob/v1.0.2/LICENSE,Apache-2.0,Modern Go Programming
+github.com/montanaflynn/stats,https://github.com/montanaflynn/stats/blob/v0.7.1/LICENSE,MIT,Montana Flynn
+github.com/morikuni/aec,https://github.com/morikuni/aec/blob/v1.0.0/LICENSE,MIT,morikuni
+github.com/munnerz/goautoneg,https://github.com/munnerz/goautoneg/blob/a7dc8b61c822/LICENSE,BSD-3-Clause,James Munnelly
+github.com/mxk/go-flowrate/flowrate,https://github.com/mxk/go-flowrate/blob/cca7078d478f/LICENSE,BSD-3-Clause,Maxim Khitrov
+github.com/nicksnyder/go-i18n/v2,https://github.com/nicksnyder/go-i18n/blob/v2.4.0/v2/LICENSE,MIT,Nick Snyder
+github.com/oklog/ulid/v2,https://github.com/oklog/ulid/blob/v2.1.0/LICENSE,Apache-2.0,OK Log
+github.com/opencontainers/go-digest,https://github.com/opencontainers/go-digest/blob/v1.0.0/LICENSE,Apache-2.0,Open Container Initiative
+github.com/opencontainers/image-spec/specs-go,https://github.com/opencontainers/image-spec/blob/v1.1.0/LICENSE,Apache-2.0,Open Container Initiative
+github.com/outcaste-io/ristretto,https://github.com/outcaste-io/ristretto/blob/v0.2.3/LICENSE,Apache-2.0,Outcaste LLC
+github.com/outcaste-io/ristretto/z,https://github.com/outcaste-io/ristretto/blob/v0.2.3/z/LICENSE,MIT,Outcaste LLC
+github.com/pelletier/go-toml,https://github.com/pelletier/go-toml/blob/v1.9.5/LICENSE,Apache-2.0,Thomas Pelletier
+github.com/pelletier/go-toml/v2,https://github.com/pelletier/go-toml/blob/v2.2.2/LICENSE,MIT,Thomas Pelletier
+github.com/philhofer/fwd,https://github.com/philhofer/fwd/blob/v1.1.2/LICENSE.md,MIT,Phil
+github.com/pkg/browser,https://github.com/pkg/browser/blob/5ac0b6a4141c/LICENSE,BSD-2-Clause,pkg
+github.com/pkg/errors,https://github.com/pkg/errors/blob/v0.9.1/LICENSE,BSD-2-Clause,pkg
+github.com/pmezard/go-difflib/difflib,https://github.com/pmezard/go-difflib/blob/5d4384ee4fb2/LICENSE,BSD-3-Clause,Patrick Mézard
+github.com/prometheus/client_golang/prometheus,https://github.com/prometheus/client_golang/blob/v1.19.1/LICENSE,Apache-2.0,Prometheus
+github.com/prometheus/client_model/go,https://github.com/prometheus/client_model/blob/v0.6.1/LICENSE,Apache-2.0,Prometheus
+github.com/prometheus/common,https://github.com/prometheus/common/blob/v0.54.0/LICENSE,Apache-2.0,Prometheus
+github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg,https://github.com/prometheus/common/blob/v0.54.0/internal/bitbucket.org/ww/goautoneg/README.txt,BSD-3-Clause,Prometheus
+github.com/prometheus/procfs,https://github.com/prometheus/procfs/blob/v0.15.1/LICENSE,Apache-2.0,Prometheus
+github.com/r3labs/sse,https://github.com/r3labs/sse/blob/26fe804710bc/LICENSE,MPL-2.0,R3 Labs
+github.com/richardartoul/molecule,https://github.com/richardartoul/molecule/blob/32cfee06a052/LICENSE,MIT,Richard Artoul
+github.com/richardartoul/molecule/src/codec,https://github.com/richardartoul/molecule/blob/32cfee06a052/src/codec/LICENSE,Apache-2.0,Richard Artoul
+github.com/richardartoul/molecule/src/protowire,https://github.com/richardartoul/molecule/blob/32cfee06a052/src/protowire/LICENSE,BSD-3-Clause,Richard Artoul
+github.com/rivo/uniseg,https://github.com/rivo/uniseg/blob/v0.4.7/LICENSE.txt,MIT,rivo
+github.com/sagikazarmark/slog-shim,https://github.com/sagikazarmark/slog-shim/blob/v0.1.0/LICENSE,BSD-3-Clause,Márk Sági-Kazár
+github.com/secure-systems-lab/go-securesystemslib,https://github.com/secure-systems-lab/go-securesystemslib/blob/v0.8.0/LICENSE,MIT,Secure Systems Lab at NYU
+github.com/serialx/hashring,https://github.com/serialx/hashring/blob/22c0c7ab6b1b/LICENSE,MIT,Sung-jin Brian Hong
+github.com/shibumi/go-pathspec,https://github.com/shibumi/go-pathspec/blob/v1.3.0/LICENSE,Apache-2.0,Christian Rebischke
+github.com/sirupsen/logrus,https://github.com/sirupsen/logrus/blob/v1.9.3/LICENSE,MIT,Simon Eskildsen
+github.com/skratchdot/open-golang/open,https://github.com/skratchdot/open-golang/blob/eef842397966/LICENSE,MIT,◬
+github.com/spaolacci/murmur3,https://github.com/spaolacci/murmur3/blob/v1.1.0/LICENSE,BSD-3-Clause,Sébastien Paolacci
+github.com/spf13/afero,https://github.com/spf13/afero/blob/v1.11.0/LICENSE.txt,Apache-2.0,Steve Francia
+github.com/spf13/cast,https://github.com/spf13/cast/blob/v1.6.0/LICENSE,MIT,Steve Francia
+github.com/spf13/cobra,https://github.com/spf13/cobra/blob/v1.8.0/LICENSE.txt,Apache-2.0,Steve Francia
+github.com/spf13/pflag,https://github.com/spf13/pflag/blob/v1.0.5/LICENSE,BSD-3-Clause,Steve Francia
+github.com/spf13/viper,https://github.com/spf13/viper/blob/v1.19.0/LICENSE,MIT,Steve Francia
+github.com/stretchr/objx,https://github.com/stretchr/objx/blob/v0.5.2/LICENSE,MIT,Stretchr, Inc.
+github.com/stretchr/testify,https://github.com/stretchr/testify/blob/v1.9.0/LICENSE,MIT,Stretchr, Inc.
+github.com/subosito/gotenv,https://github.com/subosito/gotenv/blob/v1.6.0/LICENSE,MIT,Alif Rachmawadi
+github.com/theupdateframework/notary,https://github.com/theupdateframework/notary/blob/v0.7.0/LICENSE,Apache-2.0,The Update Framework (TUF)
+github.com/theupdateframework/notary/tuf,https://github.com/theupdateframework/notary/blob/v0.7.0/tuf/LICENSE,BSD-3-Clause,The Update Framework (TUF)
+github.com/tilt-dev/fsnotify,https://github.com/tilt-dev/fsnotify/blob/fff9c274a375/LICENSE,BSD-3-Clause,Tilt Dev
+github.com/tinylib/msgp/msgp,https://github.com/tinylib/msgp/blob/v1.1.9/LICENSE,MIT,tinylib
+github.com/tonistiigi/fsutil,https://github.com/tonistiigi/fsutil/blob/91a3fc46842c/LICENSE,MIT,Tõnis Tiigi
+github.com/tonistiigi/units,https://github.com/tonistiigi/units/blob/6950e57a87ea/LICENSE,MIT,Tõnis Tiigi
+github.com/tonistiigi/vt100,https://github.com/tonistiigi/vt100/blob/90bafcd6abab/LICENSE,MIT,Tõnis Tiigi
+github.com/xdg-go/pbkdf2,https://github.com/xdg-go/pbkdf2/blob/v1.0.0/LICENSE,Apache-2.0,xdg Go code
+github.com/xdg-go/scram,https://github.com/xdg-go/scram/blob/v1.1.2/LICENSE,Apache-2.0,xdg Go code
+github.com/xdg-go/stringprep,https://github.com/xdg-go/stringprep/blob/v1.0.4/LICENSE,Apache-2.0,xdg Go code
+github.com/xeipuuv/gojsonpointer,https://github.com/xeipuuv/gojsonpointer/blob/02993c407bfb/LICENSE-APACHE-2.0.txt,Apache-2.0,xeipuuv
+github.com/xeipuuv/gojsonreference,https://github.com/xeipuuv/gojsonreference/blob/bd5ef7bd5415/LICENSE-APACHE-2.0.txt,Apache-2.0,xeipuuv
+github.com/xeipuuv/gojsonschema,https://github.com/xeipuuv/gojsonschema/blob/v1.2.0/LICENSE-APACHE-2.0.txt,Apache-2.0,xeipuuv
+github.com/youmark/pkcs8,https://github.com/youmark/pkcs8/blob/3c2c7870ae76/LICENSE,MIT,Yutong Wang
+go.mongodb.org/mongo-driver,https://github.com/mongodb/mongo-go-driver/blob/v1.15.0/LICENSE,Apache-2.0,mongodb
+go.opencensus.io,Unknown,Apache-2.0,mongodb
+go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc,https://github.com/open-telemetry/opentelemetry-go-contrib/blob/instrumentation/google.golang.org/grpc/otelgrpc/v0.52.0/instrumentation/google.golang.org/grpc/otelgrpc/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace,https://github.com/open-telemetry/opentelemetry-go-contrib/blob/instrumentation/net/http/httptrace/otelhttptrace/v0.52.0/instrumentation/net/http/httptrace/otelhttptrace/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp,https://github.com/open-telemetry/opentelemetry-go-contrib/blob/instrumentation/net/http/otelhttp/v0.52.0/instrumentation/net/http/otelhttp/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel,https://github.com/open-telemetry/opentelemetry-go/blob/v1.27.0/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc,https://github.com/open-telemetry/opentelemetry-go/blob/exporters/otlp/otlpmetric/otlpmetricgrpc/v1.27.0/exporters/otlp/otlpmetric/otlpmetricgrpc/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp,https://github.com/open-telemetry/opentelemetry-go/blob/exporters/otlp/otlpmetric/otlpmetrichttp/v1.27.0/exporters/otlp/otlpmetric/otlpmetrichttp/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel/exporters/otlp/otlptrace,https://github.com/open-telemetry/opentelemetry-go/blob/exporters/otlp/otlptrace/v1.27.0/exporters/otlp/otlptrace/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc,https://github.com/open-telemetry/opentelemetry-go/blob/exporters/otlp/otlptrace/otlptracegrpc/v1.27.0/exporters/otlp/otlptrace/otlptracegrpc/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp,https://github.com/open-telemetry/opentelemetry-go/blob/exporters/otlp/otlptrace/otlptracehttp/v1.27.0/exporters/otlp/otlptrace/otlptracehttp/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel/exporters/prometheus,https://github.com/open-telemetry/opentelemetry-go/blob/exporters/prometheus/v0.49.0/exporters/prometheus/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel/metric,https://github.com/open-telemetry/opentelemetry-go/blob/metric/v1.27.0/metric/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel/sdk,https://github.com/open-telemetry/opentelemetry-go/blob/sdk/v1.27.0/sdk/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel/sdk/metric,https://github.com/open-telemetry/opentelemetry-go/blob/sdk/metric/v1.27.0/sdk/metric/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/otel/trace,https://github.com/open-telemetry/opentelemetry-go/blob/trace/v1.27.0/trace/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.opentelemetry.io/proto/otlp,https://github.com/open-telemetry/opentelemetry-proto-go/blob/otlp/v1.2.0/otlp/LICENSE,Apache-2.0,OpenTelemetry - CNCF
+go.uber.org/atomic,https://github.com/uber-go/atomic/blob/v1.11.0/LICENSE.txt,MIT,Uber Go
+go.uber.org/mock/gomock,https://github.com/uber/mock/blob/v0.4.0/LICENSE,Apache-2.0,Uber Open Source
+go.uber.org/multierr,https://github.com/uber-go/multierr/blob/v1.11.0/LICENSE.txt,MIT,Uber Go
+go.uber.org/ratelimit,https://github.com/uber-go/ratelimit/blob/v0.3.1/LICENSE,MIT,Uber Go
+go.uber.org/zap,https://github.com/uber-go/zap/blob/v1.27.0/LICENSE,MIT,Uber Go
+gocloud.dev,https://github.com/google/go-cloud/blob/v0.37.0/LICENSE,Apache-2.0,Google
+golang.org/x/crypto,https://cs.opensource.google/go/x/crypto/+/v0.24.0:LICENSE,BSD-3-Clause,Google
+golang.org/x/exp,https://cs.opensource.google/go/x/exp/+/fc45aab8:LICENSE,BSD-3-Clause,Google
+golang.org/x/net,https://cs.opensource.google/go/x/net/+/v0.26.0:LICENSE,BSD-3-Clause,Google
+golang.org/x/oauth2,https://cs.opensource.google/go/x/oauth2/+/v0.21.0:LICENSE,BSD-3-Clause,Google
+golang.org/x/sync,https://cs.opensource.google/go/x/sync/+/v0.7.0:LICENSE,BSD-3-Clause,Google
+golang.org/x/sys,https://cs.opensource.google/go/x/sys/+/v0.21.0:LICENSE,BSD-3-Clause,Google
+golang.org/x/term,https://cs.opensource.google/go/x/term/+/v0.21.0:LICENSE,BSD-3-Clause,Google
+golang.org/x/text,https://cs.opensource.google/go/x/text/+/v0.16.0:LICENSE,BSD-3-Clause,Google
+golang.org/x/time/rate,https://cs.opensource.google/go/x/time/+/v0.5.0:LICENSE,BSD-3-Clause,Google
+golang.org/x/xerrors,https://cs.opensource.google/go/x/xerrors/+/104605ab:LICENSE,BSD-3-Clause,Google
+gomodules.xyz/jsonpatch/v2,https://github.com/gomodules/jsonpatch/blob/v2.4.0/v2/LICENSE,Apache-2.0,Go Modules
+google.golang.org/api,https://github.com/googleapis/google-api-go-client/blob/v0.183.0/LICENSE,BSD-3-Clause,Google APIs
+google.golang.org/api/internal/third_party/uritemplates,https://github.com/googleapis/google-api-go-client/blob/v0.183.0/internal/third_party/uritemplates/LICENSE,BSD-3-Clause,Google APIs
+google.golang.org/genproto,https://github.com/googleapis/go-genproto/blob/ef581f913117/LICENSE,Apache-2.0,Google APIs
+google.golang.org/genproto/googleapis/api,https://github.com/googleapis/go-genproto/blob/ef581f913117/googleapis/api/LICENSE,Apache-2.0,Google APIs
+google.golang.org/genproto/googleapis/rpc,https://github.com/googleapis/go-genproto/blob/ef581f913117/googleapis/rpc/LICENSE,Apache-2.0,Google APIs
+google.golang.org/grpc,https://github.com/grpc/grpc-go/blob/v1.64.1/LICENSE,Apache-2.0,grpc
+google.golang.org/protobuf,https://github.com/protocolbuffers/protobuf-go/blob/v1.34.2/LICENSE,BSD-3-Clause,Protocol Buffers
+gopkg.in/DataDog/dd-trace-go.v1,https://github.com/DataDog/dd-trace-go/blob/v1.64.1/LICENSE,Apache-2.0,Datadog, Inc.
+gopkg.in/cenkalti/backoff.v1,https://github.com/cenkalti/backoff/blob/v1.1.0/LICENSE,MIT,Cenk Altı
+gopkg.in/inf.v0,https://github.com/go-inf/inf/blob/v0.9.1/LICENSE,BSD-3-Clause,go-inf
+gopkg.in/ini.v1,https://github.com/go-ini/ini/blob/v1.67.0/LICENSE,Apache-2.0,INI
+gopkg.in/yaml.v2,https://github.com/go-yaml/yaml/blob/v2.4.0/LICENSE,Apache-2.0,go-yaml
+gopkg.in/yaml.v3,https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE,MIT,go-yaml
+k8s.io/api,https://github.com/kubernetes/api/blob/v0.30.1/LICENSE,Apache-2.0,Kubernetes
+k8s.io/apiextensions-apiserver/pkg/apis/apiextensions,https://github.com/kubernetes/apiextensions-apiserver/blob/v0.30.1/LICENSE,Apache-2.0,Kubernetes
+k8s.io/apimachinery/pkg,https://github.com/kubernetes/apimachinery/blob/v0.30.1/LICENSE,Apache-2.0,Kubernetes
+k8s.io/apimachinery/third_party/forked/golang,https://github.com/kubernetes/apimachinery/blob/v0.30.1/third_party/forked/golang/LICENSE,BSD-3-Clause,Kubernetes
+k8s.io/apiserver/pkg/storage/names,https://github.com/kubernetes/apiserver/blob/v0.30.1/LICENSE,Apache-2.0,Kubernetes
+k8s.io/client-go,https://github.com/kubernetes/client-go/blob/v0.30.1/LICENSE,Apache-2.0,Kubernetes
+k8s.io/klog/v2,https://github.com/kubernetes/klog/blob/v2.120.1/LICENSE,Apache-2.0,Kubernetes
+k8s.io/kube-openapi/pkg,https://github.com/kubernetes/kube-openapi/blob/835d969ad83a/LICENSE,Apache-2.0,Kubernetes
+k8s.io/kube-openapi/pkg/internal/third_party/go-json-experiment/json,https://github.com/kubernetes/kube-openapi/blob/835d969ad83a/pkg/internal/third_party/go-json-experiment/json/LICENSE,BSD-3-Clause,Kubernetes
+k8s.io/kube-openapi/pkg/validation/spec,https://github.com/kubernetes/kube-openapi/blob/835d969ad83a/pkg/validation/spec/LICENSE,Apache-2.0,Kubernetes
+k8s.io/utils,https://github.com/kubernetes/utils/blob/fe8a2dddb1d0/LICENSE,Apache-2.0,Kubernetes
+k8s.io/utils/internal/third_party/forked/golang/net,https://github.com/kubernetes/utils/blob/fe8a2dddb1d0/internal/third_party/forked/golang/LICENSE,BSD-3-Clause,Kubernetes
+sigs.k8s.io/controller-runtime,https://github.com/kubernetes-sigs/controller-runtime/blob/v0.18.4/LICENSE,Apache-2.0,Kubernetes SIGs
+sigs.k8s.io/json,https://github.com/kubernetes-sigs/json/blob/bc3834ca7abd/LICENSE,Apache-2.0,Kubernetes SIGs
+sigs.k8s.io/structured-merge-diff/v4,https://github.com/kubernetes-sigs/structured-merge-diff/blob/v4.4.1/LICENSE,Apache-2.0,Kubernetes SIGs
+sigs.k8s.io/yaml,https://github.com/kubernetes-sigs/yaml/blob/v1.4.0/LICENSE,Apache-2.0,Kubernetes SIGs
+sigs.k8s.io/yaml/goyaml.v2,https://github.com/kubernetes-sigs/yaml/blob/v1.4.0/goyaml.v2/LICENSE,Apache-2.0,Kubernetes SIGs
+tags.cncf.io/container-device-interface/pkg/parser,https://github.com/cncf-tags/container-device-interface/blob/v0.7.2/LICENSE,Apache-2.0,CNCF Technical Advisory Groups
