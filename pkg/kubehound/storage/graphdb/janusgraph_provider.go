@@ -19,6 +19,7 @@ import (
 const (
 	channelSizeBatchFactor = 4 // TODO maybe move that into a config file?
 	StorageProviderName    = "janusgraph"
+	deleteBatchSize        = 10000
 )
 
 var (
@@ -95,7 +96,7 @@ func (jgp *JanusGraphProvider) Prepare(ctx context.Context) error {
 		}
 
 		// Delete the vertices in the graph.
-		err = <-gtx.V().Limit(10000).Drop().Iterate()
+		err = <-gtx.V().Limit(deleteBatchSize).Drop().Iterate()
 		if err != nil {
 			return err
 		}
@@ -218,7 +219,7 @@ func (jgp *JanusGraphProvider) Clean(ctx context.Context, cluster string) error 
 		}
 
 		// Delete the vertices in the graph for the given cluster.
-		err = <-gtx.V().Has("cluster", cluster).Limit(10000).Drop().Iterate()
+		err = <-gtx.V().Has("cluster", cluster).Limit(deleteBatchSize).Drop().Iterate()
 		if err != nil {
 			return err
 		}
