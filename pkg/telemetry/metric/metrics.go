@@ -28,6 +28,7 @@ var (
 	QueueSize            = "kubehound.storage.queue.size"
 	BackgroundWriterCall = "kubehound.storage.writer.background"
 	FlushWriterCall      = "kubehound.storage.writer.flush"
+	RetryWriterCall      = "kubehound.storage.writer.retry"
 )
 
 // Cache metrics

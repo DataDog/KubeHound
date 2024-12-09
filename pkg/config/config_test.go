@@ -52,6 +52,9 @@ func TestMustLoadConfig(t *testing.T) {
 				JanusGraph: JanusGraphConfig{
 					URL:               "ws://localhost:8182/gremlin",
 					ConnectionTimeout: DefaultConnectionTimeout,
+					WriterTimeout:     defaultJanusGraphWriterTimeout,
+					WriterMaxRetry:    defaultJanusGraphWriterMaxRetry,
+					WriterWorkerCount: defaultJanusGraphWriterWorkerCount,
 				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
@@ -64,21 +67,21 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				Builder: BuilderConfig{
 					Vertex: VertexBuilderConfig{
-						BatchSize:      500,
-						BatchSizeSmall: 100,
+						BatchSize:      250,
+						BatchSizeSmall: 50,
 					},
 					Edge: EdgeBuilderConfig{
 						LargeClusterOptimizations: DefaultLargeClusterOptimizations,
 						WorkerPoolSize:            5,
 						WorkerPoolCapacity:        100,
-						BatchSize:                 500,
-						BatchSizeSmall:            100,
+						BatchSize:                 250,
+						BatchSizeSmall:            50,
 						BatchSizeClusterImpact:    10,
 					},
 				},
 				Ingestor: IngestorConfig{
 					API: IngestorAPIConfig{
-						Endpoint: "127.0.0.1:9000",
+						Endpoint: "",
 						Insecure: false,
 					},
 					Blob: &BlobConfig{
@@ -126,6 +129,9 @@ func TestMustLoadConfig(t *testing.T) {
 				JanusGraph: JanusGraphConfig{
 					URL:               "ws://localhost:8182/gremlin",
 					ConnectionTimeout: DefaultConnectionTimeout,
+					WriterTimeout:     defaultJanusGraphWriterTimeout,
+					WriterMaxRetry:    defaultJanusGraphWriterMaxRetry,
+					WriterWorkerCount: defaultJanusGraphWriterWorkerCount,
 				},
 				Telemetry: TelemetryConfig{
 					Statsd: StatsdConfig{
@@ -139,7 +145,7 @@ func TestMustLoadConfig(t *testing.T) {
 				Builder: BuilderConfig{
 					Vertex: VertexBuilderConfig{
 						BatchSize:      1000,
-						BatchSizeSmall: 100,
+						BatchSizeSmall: 50,
 					},
 					Edge: EdgeBuilderConfig{
 						LargeClusterOptimizations: true,
@@ -152,7 +158,7 @@ func TestMustLoadConfig(t *testing.T) {
 				},
 				Ingestor: IngestorConfig{
 					API: IngestorAPIConfig{
-						Endpoint: "127.0.0.1:9000",
+						Endpoint: "",
 						Insecure: false,
 					},
 					Blob: &BlobConfig{

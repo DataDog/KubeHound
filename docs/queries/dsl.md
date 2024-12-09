@@ -21,19 +21,19 @@ _DSL definition code available [here](https://github.com/DataDog/KubeHound/blob/
 
 | Method                      | Gremlin equivalent                                    | Example usage                                                               |
 | --------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------- |
-| `.cluster([string...])`     | `.hasLabel("Cluster")`                                | `kh.cluster("kind-kubehound.local")`                                        |
-| `.containers([string...])`  | `.hasLabel("Container")`                              | `kh.cluster("kind-kubehound.local").containers("nginx")`                    |
-| `.endpoints([int])`         | `.hasLabel("Endpoint")`                               | `kh.cluster("kind-kubehound.local").endpoints(3)`                           |
-| `.hostMounts([string...])`  | `.hasLabel("Volume").has("type", "HostPath")`         | `kh.cluster("kind-kubehound.local").hostMounts("/proc")`                    |
-| `.nodes([string...])`       | `.hasLabel("Node")`                                   | `kh.cluster("kind-kubehound.local").nodes("control-plane")`                 |
-| `.permissions([string...])` | `.hasLabel("PermissionSet")`                          | `kh.cluster("kind-kubehound.local").permissions("system::kube-controller")` |
-| `.pods([string...])`        | `.hasLabel("Pod")`                                    | `kh.cluster("kind-kubehound.local").pods("app-pod")`                        |
-| `.run([string...])`         | `.has("runID", P.within(ids)`                         | `kh.run("01he5ebh73tah762qgdd5k4wqp")`                                      |
-| `.services([string...])`    | `.hasLabel("Endpoint").has("exposure", EXTERNAL)`     | `kh.cluster("kind-kubehound.local").services("app-front-proxy")`            |
-| `.sas([string...])`         | `.hasLabel("Identity").has("type", "ServiceAccount")` | `kh.cluster("kind-kubehound.local").sas("postgres-admin")`                  |
-| `.users([string...])`       | `.hasLabel("Identity").has("type", "User")`           | `kh.cluster("kind-kubehound.local").users("user@domain.tld")`               |
-| `.groups([string...])`      | `.hasLabel("Identity").has("type", "Group")`          | `kh.cluster("kind-kubehound.local").groups("engineering")`                  |
-| `.volumes([string...])`     | `.hasLabel("Volume")`                                 | `kh.cluster("kind-kubehound.local").volumes("db-data")`                     |
+| `.cluster([string...])`     | `.has("class","Cluster")`                                | `kh.cluster("kind-kubehound.local")`                                        |
+| `.containers([string...])`  | `.has("class","Container")`                              | `kh.cluster("kind-kubehound.local").containers("nginx")`                    |
+| `.endpoints([int])`         | `.has("class","Endpoint")`                               | `kh.cluster("kind-kubehound.local").endpoints(3)`                           |
+| `.hostMounts([string...])`  | `.has("class","Volume").has("type", "HostPath")`         | `kh.cluster("kind-kubehound.local").hostMounts("/proc")`                    |
+| `.nodes([string...])`       | `.has("class","Node")`                                   | `kh.cluster("kind-kubehound.local").nodes("control-plane")`                 |
+| `.permissions([string...])` | `.has("class","PermissionSet")`                          | `kh.cluster("kind-kubehound.local").permissions("system::kube-controller")` |
+| `.pods([string...])`        | `.has("class","Pod")`                                    | `kh.cluster("kind-kubehound.local").pods("app-pod")`                        |
+| `.run([string...])`         | `.has("runID", P.within(ids))`                           | `kh.run("01he5ebh73tah762qgdd5k4wqp")`                                      |
+| `.services([string...])`    | `.has("class","Endpoint").has("exposure", "EXTERNAL")`   | `kh.cluster("kind-kubehound.local").services("app-front-proxy")`            |
+| `.sas([string...])`         | `.has("class","Identity").has("type", "ServiceAccount")` | `kh.cluster("kind-kubehound.local").sas("postgres-admin")`                  |
+| `.users([string...])`       | `.has("class","Identity").has("type", "User")`           | `kh.cluster("kind-kubehound.local").users("user@domain.tld")`               |
+| `.groups([string...])`      | `.has("class","Identity").has("type", "Group")`          | `kh.cluster("kind-kubehound.local").groups("engineering")`                  |
+| `.volumes([string...])`     | `.has("class","Volume")`                                 | `kh.cluster("kind-kubehound.local").volumes("db-data")`                     |
 
 ### Retrieving attack oriented data
 

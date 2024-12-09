@@ -123,6 +123,14 @@ func (ib *IndexBuilder) containers(ctx context.Context) error {
 			},
 			Options: options.Index().SetName("byRun"),
 		},
+		{
+			Keys: bson.D{
+				{Key: "k8.securitycontext.runasuser", Value: 1},
+				{Key: "runtime.runID", Value: 1},
+				{Key: "runtime.cluster", Value: 1},
+			},
+			Options: options.Index().SetName("byRunAsUser"),
+		},
 	}
 
 	_, err := containers.Indexes().CreateMany(ctx, indices)
