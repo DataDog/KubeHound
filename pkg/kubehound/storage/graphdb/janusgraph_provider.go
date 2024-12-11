@@ -67,50 +67,63 @@ func (jgp *JanusGraphProvider) Prepare(ctx context.Context) error {
 		return nil
 	}
 
-	g := gremlin.Traversal_().WithRemote(jgp.drc)
-	tx := g.Tx()
-	defer tx.Close()
+	// These vertex types are defined in the schema.
+	vertexTypes := []string{
+		"Container",
+		"Identity",
+		"Node",
+		"Pod",
+		"PermissionSet",
+		"Volume",
+		"Endpoint",
+	}
 
-	for {
-		// Begin a new transaction.
-		gtx, err := tx.Begin()
-		if err != nil {
-			return err
-		}
+	for _, vertexType := range vertexTypes {
+		g := gremlin.Traversal_().WithRemote(jgp.drc)
+		tx := g.Tx()
+		defer tx.Close()
 
-		// Retrieve the number of vertices in the graph.
-		page, err := gtx.V().Count().Next()
-		if err != nil {
-			return err
-		}
+		for {
+			// Begin a new transaction.
+			gtx, err := tx.Begin()
+			if err != nil {
+				return err
+			}
 
-		// Decode the number of vertices from the page.
-		count, err := page.GetInt()
-		if err != nil {
-			return err
-		}
+			// Retrieve the number of vertices in the graph.
+			page, err := gtx.V().Has("class", vertexType).Count().Next()
+			if err != nil {
+				return err
+			}
 
-		// If there are no more vertices to delete, break the loop.
-		if count == 0 {
-			break
-		}
+			// Decode the number of vertices from the page.
+			count, err := page.GetInt()
+			if err != nil {
+				return err
+			}
 
-		// Delete the vertices in the graph.
-		err = <-gtx.V().Limit(deleteBatchSize).Drop().Iterate()
-		if err != nil {
-			return err
-		}
+			// If there are no more vertices to delete, break the loop.
+			if count == 0 {
+				break
+			}
 
-		// Commit the transaction.
-		if err := tx.Commit(); err != nil {
-			return err
-		}
+			// Delete the vertices in the graph.
+			err = <-gtx.V().Has("class", vertexType).Limit(deleteBatchSize).Drop().Iterate()
+			if err != nil {
+				return err
+			}
 
-		// Check context for cancellation.
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
+			// Commit the transaction.
+			if err := tx.Commit(); err != nil {
+				return err
+			}
+
+			// Check context for cancellation.
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+			}
 		}
 	}
 
