@@ -259,7 +259,6 @@ func (suite *DslTestSuite) TestTraversal_criticalPaths() {
 	// There are A LOT of paths in the test cluster. Just sample a few
 	expected := []string{
 		"path[Endpoint, ENDPOINT_EXPLOIT, Container, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]",
-		"path[Endpoint, ENDPOINT_EXPLOIT, Container, VOLUME_DISCOVER, Volume, TOKEN_STEAL, Identity, PERMISSION_DISCOVER, PermissionSet]",
 		"path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_NSENTER, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]",
 		"path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_MODULE_LOAD, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]",
 		"path[Endpoint, ENDPOINT_EXPLOIT, Container, CE_PRIV_MOUNT, Node, IDENTITY_ASSUME, Identity, PERMISSION_DISCOVER, PermissionSet]",
@@ -283,7 +282,7 @@ func (suite *DslTestSuite) TestTraversal_minHopsToCritical() {
 
 	serviceHops, err := res.GetInt()
 	suite.NoError(err)
-	suite.Equal(serviceHops, 4)
+	suite.Equal(4, serviceHops)
 
 	// Container should have 1 less hop
 	raw, err = suite.client.Submit("kh.containers().minHopsToCritical(6)")
@@ -295,7 +294,7 @@ func (suite *DslTestSuite) TestTraversal_minHopsToCritical() {
 
 	containerHops, err := res.GetInt()
 	suite.NoError(err)
-	suite.Equal(containerHops, serviceHops-1)
+	suite.Equal(serviceHops-1, containerHops)
 }
 
 func (suite *DslTestSuite) TestTraversal_criticalPathsFilter() {

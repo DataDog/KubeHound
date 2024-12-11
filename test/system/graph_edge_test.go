@@ -234,7 +234,7 @@ func (suite *EdgeTestSuite) TestEdge_IDENTITY_ASSUME_Node() {
 func (suite *EdgeTestSuite) TestEdge_POD_ATTACH() {
 	// Every pod should have a POD_ATTACH incoming from a node
 	rawCount, err := suite.g.V().
-		HasLabel("Pod").
+		Has("class", "Pod").
 		Count().Next()
 
 	suite.NoError(err)

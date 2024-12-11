@@ -63,6 +63,7 @@
 #################
 
 -XX:+UseG1GC
+-XX:+UseContainerSupport
 -XX:SurvivorRatio=8
 -XX:MaxTenuringThreshold=1
 
