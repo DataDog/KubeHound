@@ -60,10 +60,10 @@ ENV gremlinserver.metrics.graphiteReporter.enabled=false
 ENV gremlinserver.metrics.csvReporter.enabled=false
 
 # Add safety net settings to prevent OOM and other issues
-ENV janusgraph.query.force-index=true
+ENV janusgraph.query.force-index=false
 ENV janusgraph.cluster.max-partitions=512
 ENV janusgraph.query.batch=true
-ENV janusgraph.query.hard-max-limit=10000
+ENV janusgraph.query.hard-max-limit=100000
 ENV janusgraph.query.smart-limit=true
 
 # Performance tweaks based on: https://www.sailpoint.com/blog/souping-up-the-gremlin/
