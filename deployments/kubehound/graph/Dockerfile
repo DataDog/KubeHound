@@ -74,7 +74,7 @@ ENV janusgraph.cache.db-cache-size=0.5
 
 # Performance tweaks based on: https://www.sailpoint.com/blog/souping-up-the-gremlin/
 # gremlinPool will default to Runtime.availableProcessors()
-ENV gremlinserver.gremlinPool=8
+ENV gremlinserver.gremlinPool=0
 # threadPoolWorker should be 2x VCPU (TODO: can we set dynamically?)
 ENV gremlinserver.threadPoolWorker=16
 
