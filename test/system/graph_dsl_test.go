@@ -282,7 +282,7 @@ func (suite *DslTestSuite) TestTraversal_minHopsToCritical() {
 
 	serviceHops, err := res.GetInt()
 	suite.NoError(err)
-	suite.Equal(serviceHops, 3)
+	suite.Equal(5, serviceHops)
 
 	// Container should have 1 less hop
 	raw, err = suite.client.Submit("kh.containers().minHopsToCritical(6)")
@@ -294,7 +294,7 @@ func (suite *DslTestSuite) TestTraversal_minHopsToCritical() {
 
 	containerHops, err := res.GetInt()
 	suite.NoError(err)
-	suite.Equal(containerHops, serviceHops-1)
+	suite.Equal(serviceHops-1, containerHops)
 }
 
 func (suite *DslTestSuite) TestTraversal_criticalPathsFilter() {

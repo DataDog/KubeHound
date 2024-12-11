@@ -90,7 +90,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
 
         return repeat(((KubeHoundTraversalDsl) __.outE())
                 .inV()
-                .simplePath().dedup()).until(
+                .simplePath()).until(
                         __.has("critical", true)
                                 .or()
                                 .loops()
@@ -126,7 +126,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
         return repeat(((KubeHoundTraversalDsl) __.outE())
                 .has("class", P.not(P.within(exclusions)))
                 .inV()
-                .simplePath().dedup()).until(
+                .simplePath()).until(
                         __.has("critical", true)
                                 .or()
                                 .loops()
@@ -167,7 +167,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
             throw new IllegalArgumentException(String.format("maxHops must be <= %d", PATH_HOPS_MAX));
 
         return repeat(((KubeHoundTraversalDsl) __.out())
-                .simplePath().dedup()).until(
+                .simplePath()).until(
                         __.has("critical", true)
                                 .or()
                                 .loops()
@@ -202,7 +202,7 @@ public interface KubeHoundTraversalDsl<S, E> extends GraphTraversal.Admin<S, E> 
         return repeat(
                 (KubeHoundTraversalDsl) __.outE()
                         .inV()
-                        .simplePath().dedup())
+                        .simplePath())
                 .emit()
                 .until(
                         __.has("critical", true)

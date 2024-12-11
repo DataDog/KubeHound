@@ -66,12 +66,6 @@ ENV janusgraph.query.batch=true
 ENV janusgraph.query.hard-max-limit=10000
 ENV janusgraph.query.smart-limit=true
 
-# Enable cache
-ENV janusgraph.cache.db-cache=true
-ENV janusgraph.cache.db-cache-clean-wait=20
-ENV janusgraph.cache.db-cache-time=180000
-ENV janusgraph.cache.db-cache-size=0.5
-
 # Performance tweaks based on: https://www.sailpoint.com/blog/souping-up-the-gremlin/
 # gremlinPool will default to Runtime.availableProcessors()
 ENV gremlinserver.gremlinPool=0
