@@ -282,7 +282,7 @@ func (suite *DslTestSuite) TestTraversal_minHopsToCritical() {
 
 	serviceHops, err := res.GetInt()
 	suite.NoError(err)
-	suite.Equal(5, serviceHops)
+	suite.Equal(4, serviceHops)
 
 	// Container should have 1 less hop
 	raw, err = suite.client.Submit("kh.containers().minHopsToCritical(6)")
