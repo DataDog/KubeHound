@@ -179,6 +179,16 @@ mgmt.buildIndex('byServiceEndpoint', Vertex.class).addKey(serviceEndpoint).build
 mgmt.buildIndex('byServiceDns', Vertex.class).addKey(serviceDns).buildCompositeIndex();
 mgmt.buildIndex('byExposure', Vertex.class).addKey(exposure).buildCompositeIndex();
 
+// Create composite indices for the properties we want to search on
+mgmt.buildIndex('byClusterAndRunIDComposite', Vertex.class).addKey(cluster).addKey(runID).buildCompositeIndex();
+mgmt.buildIndex('byClassAndRunIDComposite', Vertex.class).addKey(cls).addKey(runID).buildCompositeIndex();
+mgmt.buildIndex('byClassAndClusterComposite', Vertex.class).addKey(cls).addKey(cluster).buildCompositeIndex();
+mgmt.buildIndex('byClassAndTypeComposite', Vertex.class).addKey(cls).addKey(type).buildCompositeIndex();
+mgmt.buildIndex('byClassAndExposureComposite', Vertex.class).addKey(cls).addKey(exposure).buildCompositeIndex();
+mgmt.buildIndex('byTypeAndNameComposite', Vertex.class).addKey(type).addKey(name).buildCompositeIndex();
+mgmt.buildIndex('byImageAndRunIDComposite', Vertex.class).addKey(image).addKey(runID).buildCompositeIndex();
+mgmt.buildIndex('byAppAndRunIDComposite', Vertex.class).addKey(app).addKey(runID).buildCompositeIndex();
+mgmt.buildIndex('byNamespaceAndRunIDComposite', Vertex.class).addKey(namespace).addKey(runID).buildCompositeIndex();
 
 mgmt.commit();
 
@@ -194,6 +204,21 @@ ManagementSystem.awaitGraphIndexStatus(graph, 'byName').status(SchemaStatus.ENAB
 ManagementSystem.awaitGraphIndexStatus(graph, 'byNamespace').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byType').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byCritical').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byPort').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byPortName').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byServiceEndpoint').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byServiceDns').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byExposure').status(SchemaStatus.ENABLED).call();
+
+ManagementSystem.awaitGraphIndexStatus(graph, 'byClusterAndRunIDComposite').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byClassAndRunIDComposite').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byClassAndClusterComposite').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byClassAndTypeComposite').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byClassAndExposureComposite').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byTypeAndNameComposite').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byImageAndRunIDComposite').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byAppAndRunIDComposite').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'byNamespaceAndRunIDComposite').status(SchemaStatus.ENABLED).call();
 
 System.out.println("[KUBEHOUND] graph schema and indexes ready");
 mgmt.close();
