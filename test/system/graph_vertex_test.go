@@ -356,20 +356,26 @@ func (suite *VertexTestSuite) TestVertexIdentity() {
 
 func (suite *VertexTestSuite) TestVertexClusterProperty() {
 	// All vertices should have the cluster property set
-	results, err := suite.g.V().
-		Values("cluster").
-		Dedup().
-		ToList()
+	for _, label := range vertex.Labels {
+		suite.Run(label, func() {
+			results, err := suite.g.V().
+				Has("class", label).
+				Values("cluster").
+				Dedup().
+				ToList()
 
-	suite.NoError(err)
-	suite.GreaterOrEqual(len(results), 1)
+			suite.NoError(err)
+			suite.GreaterOrEqual(len(results), 1)
 
-	present := suite.resultsToStringArray(results)
-	expected := []string{
-		"kind-kubehound.test.local",
+			present := suite.resultsToStringArray(results)
+			expected := []string{
+				"kind-kubehound.test.local",
+			}
+
+			suite.Subset(present, expected)
+		})
 	}
 
-	suite.Subset(present, expected)
 }
 
 func (suite *VertexTestSuite) TearDownSuite() {

@@ -68,17 +68,7 @@ func (jgp *JanusGraphProvider) Prepare(ctx context.Context) error {
 	}
 
 	// These vertex types are defined in the schema.
-	vertexTypes := []string{
-		"Container",
-		"Identity",
-		"Node",
-		"Pod",
-		"PermissionSet",
-		"Volume",
-		"Endpoint",
-	}
-
-	for _, vertexType := range vertexTypes {
+	for _, vertexType := range vertex.Labels {
 		g := gremlin.Traversal_().WithRemote(jgp.drc)
 		tx := g.Tx()
 		defer tx.Close()
