@@ -16,7 +16,7 @@ Updated version of the Pass The Salt Workshop. Prerequisites are listed on [kube
 
 ### [KubeHound: Identifying attack paths in Kubernetes clusters at scale with no hustle](https://pretalx.com/hack-lu-2024/talk/HWDZGZ/)
 
-[Recording :fontawesome-brands-youtube:{ .youtube } ](https://www.youtube.com/watch?v=h-dD7PQC4NA){ .md-button .md-button--youtube } [Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/hacklu24/Kubehound-HackLu24-slides.pdf){ .md-button }
+[Recording :fontawesome-brands-youtube:{ .youtube } ](https://www.youtube.com/watch?v=h-dD7PQC4NA){ .md-button .md-button--youtube } [Slides :fontawesome-solid-file-pdf:{ .pdf } ](files/hacklu24/Kubehound-HackLu2024-slides.pdf){ .md-button }
 
 This presentation explains the genesis behind the tool and a brief introduction to what Kubernetes security is. We showcase the three main usage for KubeHound:
 

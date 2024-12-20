@@ -122,6 +122,10 @@ We also provide a showcase [Jupyter Notebook](https://github.com/DataDog/KubeHou
 
 ## Visualize and query the KubeHound data
 
+!!! note
+
+    You can find the visual representation of the KubeHound graph model [here](/reference/).
+
 Once the data is loaded in the graph database, it's time to visualize and query it!
 
 You can explore it interactively in your graph client. Then, refer to KubeHound's [query library](../queries/index.md) to start asking questions to your data.

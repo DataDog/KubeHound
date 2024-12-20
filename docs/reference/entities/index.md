@@ -7,6 +7,8 @@ hide:
 
 Tne entities represents all the vertices in KubeHound graph model. Those are an abstract representation of a Kubernetes component that form the vertices of the graph.
 
+## Entities
+
 !!! note
 
     For instance: [PERMISSION_SET](./permissionset.md) is an abstract of Role and RoleBinding.
