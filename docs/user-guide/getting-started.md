@@ -124,7 +124,7 @@ We also provide a showcase [Jupyter Notebook](https://github.com/DataDog/KubeHou
 
 !!! note
 
-    You can find the visual representation of the KubeHound graph model [here](/reference/).
+    You can find the visual representation of the KubeHound graph model [here](../reference/graph/index.md).
 
 Once the data is loaded in the graph database, it's time to visualize and query it!
 
