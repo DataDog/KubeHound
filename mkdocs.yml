@@ -97,6 +97,7 @@ nav:
       - Wiki: dev-guide/wiki.md
       - Datadog setup: dev-guide/datadog.md
   - Attack Techniques Reference:
+      - Graph: reference/graph/index.md
       - ... |reference/*/*.md
       #- Attacks: reference/attacks/index.md
       #- Entities: reference/entities/index.md
