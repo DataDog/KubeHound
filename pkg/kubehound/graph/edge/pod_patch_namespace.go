@@ -66,7 +66,7 @@ func (e *PodPatchNamespace) Stream(ctx context.Context, store storedb.Provider, 
 							bson.M{"$or": bson.A{
 								bson.M{"resources": "pods"},
 								bson.M{"resources": "cronjobs"},
-								bson.M{"resources": "deamonsets"},
+								bson.M{"resources": "daemonsets"},
 								bson.M{"resources": "deployments"},
 								bson.M{"resources": "jobs"},
 								bson.M{"resources": "replicasets"},

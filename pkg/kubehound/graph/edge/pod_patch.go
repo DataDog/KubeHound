@@ -122,7 +122,7 @@ func (e *PodPatch) Stream(ctx context.Context, store storedb.Provider, _ cache.C
 							bson.M{"$or": bson.A{
 								bson.M{"resources": "pods"},
 								bson.M{"resources": "cronjobs"},
-								bson.M{"resources": "deamonsets"},
+								bson.M{"resources": "daemonsets"},
 								bson.M{"resources": "deployments"},
 								bson.M{"resources": "jobs"},
 								bson.M{"resources": "replicasets"},
