@@ -36,6 +36,9 @@ require (
 	sigs.k8s.io/controller-runtime v0.19.3
 )
 
+// Freezing in-toto-golang to v0.9.0 to avoid breaking changes in future releases
+replace github.com/in-toto/in-toto-golang => github.com/in-toto/in-toto-golang v0.9.0
+
 require (
 	cloud.google.com/go v0.115.0 // indirect
 	cloud.google.com/go/auth v0.8.1 // indirect
@@ -161,7 +164,7 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
-	github.com/in-toto/in-toto-golang v0.5.0 // indirect
+	github.com/in-toto/in-toto-golang v0.9.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jonboulle/clockwork v0.4.0 // indirect
