@@ -59,14 +59,14 @@ mount /dev/vda1 /mnt/hostfs
 ls -lah /mnt/hostfs/
 ```
 
-With the disk now writeable from the container, follow the steps in [EXPLOIT_HOST_WRITE](./EXPLOIT_HOST_WRITE.md#Exploitation).
+With the disk now writeable from the container, follow the steps in [EXPLOIT_HOST_WRITE](./EXPLOIT_HOST_WRITE.md#exploitation).
 
 ## Defences
 
 ### Monitoring
 
 + Monitor `mount` events originating from containers
-+ See [EXPLOIT_HOST_WRITE](./EXPLOIT_HOST_WRITE.md#Defences)
++ See [EXPLOIT_HOST_WRITE](./EXPLOIT_HOST_WRITE.md#defences)
 
 ### Implement security policies
 
