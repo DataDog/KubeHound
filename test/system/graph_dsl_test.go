@@ -220,6 +220,8 @@ func (suite *DslTestSuite) TestTraversalSource_groups() {
 		// Default "system:nodes" group being used in IDENTITY_ASSUME attack
 		"system:monitoring", "system:unauthenticated", "system:serviceaccounts",
 		"system:bootstrappers:kubeadm:default-node-token", "system:authenticated", "system:masters",
+		// KubeAdm groups
+		"kubeadm:cluster-admins",
 	}
 	for _, identity := range expectedIdentities {
 		if identity.Type == "Group" {
