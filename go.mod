@@ -3,6 +3,15 @@ module github.com/DataDog/KubeHound
 go 1.23.0
 
 require (
+	// Freezing in-toto-golang to v0.9.0 to avoid breaking changes in future releases
+	github.com/in-toto/in-toto-golang v0.9.0 // indirect
+	// CVE-2024-45337
+	golang.org/x/crypto v0.31.0 // indirect
+	// CVE-2024-45338
+	golang.org/x/net v0.33.0 // indirect
+)
+
+require (
 	github.com/DataDog/datadog-go/v5 v5.6.0
 	github.com/alitto/pond v1.9.2
 	github.com/apache/tinkerpop/gremlin-go/v3 v3.7.3
@@ -35,9 +44,6 @@ require (
 	k8s.io/client-go v0.32.0
 	sigs.k8s.io/controller-runtime v0.19.3
 )
-
-// Freezing in-toto-golang to v0.9.0 to avoid breaking changes in future releases
-replace github.com/in-toto/in-toto-golang => github.com/in-toto/in-toto-golang v0.9.0
 
 require (
 	cloud.google.com/go v0.115.0 // indirect
@@ -164,7 +170,6 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
-	github.com/in-toto/in-toto-golang v0.9.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jonboulle/clockwork v0.4.0 // indirect
@@ -279,9 +284,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/oauth2 v0.23.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
