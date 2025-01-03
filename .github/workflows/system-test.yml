@@ -47,12 +47,13 @@ jobs:
             repo.maven.apache.org:443
             *.datadoghq.com:443
             dl.k8s.io:443
+            cdn.dl.k8s.io:443
 
       - name: Checkout Git Repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Create K8s Kind Cluster
-        uses: helm/kind-action@9e8295d178de23cbfbd8fa16cf844eec1d773a07 # v1.4.0
+        uses: helm/kind-action@a1b0e391336a6ee6713a0583f8c6240d70863de3 # v1.12.0
         with:
           cluster_name: kubehound.test.local
           config: test/setup/test-cluster/cluster.yaml
