@@ -46,6 +46,8 @@ jobs:
             gcr.io:443
             repo.maven.apache.org:443
             *.datadoghq.com:443
+            dl.k8s.io:443
+            cdn.dl.k8s.io:443
 
       - name: Checkout Git Repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
