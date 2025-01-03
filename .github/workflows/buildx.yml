@@ -84,7 +84,7 @@ jobs:
             *.cache-to=type=gha,scope=binary-${{ env.PLATFORM_PAIR }},mode=max
       -
         name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
           name: kubehound
           path: ./bin/release/*
