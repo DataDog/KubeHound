@@ -103,17 +103,17 @@
                 "description": {
                     "type": "string"
                 },
-                "attck": {
+                "references": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/AttckRef"
+                        "$ref": "#/definitions/StandardRef"
                     }
                 }
             },
             "required": [
                 "description",
                 "label",
-                "attck"
+                "references"
             ],
             "title": "Edge"
         },
@@ -225,22 +225,29 @@
             ],
             "title": "From"
         },
-        "AttckRef": {
+        "StandardRef": {
             "type": "object",
             "additionalProperties": false,
             "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "ATTCK",
+                        "URL"
+                    ]
+                },
                 "id": {
                     "type": "string"
                 },
-                "name": {
+                "label": {
                     "type": "string"
                 }
             },
             "required": [
-                "id",
-                "name"
+                "type",
+                "id"
             ],
-            "title": "AttckRef"
+            "title": "StandardRef"
         },
         "Type": {
             "type": "string",

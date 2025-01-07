@@ -412,154 +412,180 @@ spec:
   edges:
     - label: CE_MODULE_LOAD
       description: A container can load a kernel module on the node.
-      attck: 
-        - id: T1611
-          name: Escape to Host
+      references: 
+        - type: ATTCK
+          id: T1611
+          label: Escape to Host
     - label: CE_NSENTER
       description: >-
         Container escape via the nsenter built-in linux program that allows
         executing a binary into another namespace.
-      attck:
-        - id: T1611
-          name: Escape to Host
+      references:
+        - type: ATTCK
+          id: T1611
+          label: Escape to Host
     - label: CE_PRIV_MOUNT
       description: >-
         Mount the host disk and gain access to the host via arbitrary filesystem
         write
-      attck:
-        - id: T1611
-          name: Escape to Host
+      references:
+        - type: ATTCK
+          id: T1611
+          label: Escape to Host
     - label: CE_SYS_TRACE
       description: >-
         Given the requisite capabilities, abuse the legitimate OS debugging
         mechanisms to escape the container via attaching to a node process.
-      attck:
-        - id: T1611
-          name: Escape to Host
+      references:
+        - type: ATTCK
+          id: T1611
+          label: Escape to Host
     - label: CE_UMH_CORE_PATTERN
       description: >-
         Abuse the User Mode Helper (UMH) mechanism to execute arbitrary code in
         the host.
-      attck:
-        - id: T1611
-          name: Escape to Host
+      references:
+        - type: ATTCK
+          id: T1611
+          label: Escape to Host
     - label: CE_VAR_LOG_SYMLINK
       description: Abuse the /var/log symlink to gain access to the host filesystem.
-      attck:
-        - id: T1611
-          name: Escape to Host
+      references:
+        - type: ATTCK
+          id: T1611
+          label: Escape to Host
     - label: EXPLOIT_HOST_READ
       description: Read sensitive files on the host.
-      attck:
-        - id: T1611
-          name: Escape to Host
+      references:
+        - type: ATTCK
+          id: T1611
+          label: Escape to Host
     - label: EXPLOIT_HOST_WRITE
       description: Write sensitive files on the host.
-      attck:
-        - id: T1611
-          name: Escape to Host
+      references:
+        - type: ATTCK
+          id: T1611
+          label: Escape to Host
     - label: EXPLOIT_CONTAINERD_SOCK
       description: Exploit the containerd socket to gain access to the host.
-      attck:
-        - id: TA0008
-          name: Lateral Movement
+      references:
+        - type: ATTCK
+          id: TA0008
+          label: Lateral Movement
     - label: IDENTITY_ASSUME
       description: >-
         Represents the capacity to act as an Identity via ownership of a service
         account token, user PKI certificate, etc.
-      attck:
-        - id: T1078
-          name: Valid Accounts
+      references:
+        - type: ATTCK
+          id: T1078
+          label: Valid Accounts
     - label: CONTAINER_ATTACH
       description: >-
         Attach to a running container to execute commands or inspect the
         container.
-      attck:
-        - id: TA0008
-          name: Lateral Movement
+      references:
+        - type: ATTCK
+          id: TA0008
+          label: Lateral Movement
     - label: ENDPOINT_EXPLOIT
       description: >-
         Represents a network endpoint exposed by a container that could be
         exploited by an attacker (via means known or unknown). This can correspond
         to a Kubernetes service, node service, node port, or container port.
-      attck:
-        - id: T1210
-          name: Exploitation of Remote Services
+      references:
+        - type: ATTCK
+          id: T1210
+          label: Exploitation of Remote Services
     - label: PERMISSION_DISCOVER
       description: Discover permissions granted to an identity.
-      attck:
-        - id: T1069
-          name: Permission Groups Discovery
+      references:
+        - type: ATTCK
+          id: T1069
+          label: Permission Groups Discovery
     - label: EXPLOIT_HOST_TRAVERSE
       description: >-
         This attack represents the ability to steal a K8s API token from a
         container via access to a mounted parent volume of the
         /var/lib/kubelet/pods directory.
-      attck:
-        - id: T1552
-          name: Unsecured Credentials
+      references:
+        - type: ATTCK
+          id: T1552
+          label: Unsecured Credentials
     - label: TOKEN_STEAL
       description: >-
         This attack represents the ability to steal a K8s API token from an
         accessible volume.
-      attck:
-        - id: T1552
-          name: Unsecured Credentials
+      references:
+        - type: ATTCK
+          id: T1552
+          label: Unsecured Credentials
     - label: ROLE_BIND
       description: Bind a role to an identity.
-      attck:
-        - id: T1078
-          name: Valid Accounts
+      references:
+        - type: ATTCK
+          id: T1078
+          label: Valid Accounts
     - label: IDENTITY_IMPERSONATE
       description: Impersonate an identity.
-      attck:
-        - id: T1078
-          name: Valid Accounts
+      references:
+        - type: ATTCK
+          id: T1078
+          label: Valid Accounts
     - label: POD_ATTACH
       description: Attach to a running pod to execute commands or inspect the pod.
-      attck:
-        - id: TA0008
-          name: Lateral Movement
+      references:
+        - type: ATTCK
+          id: TA0008
+          label: Lateral Movement
     - label: POD_CREATE
       description: Create a pod on a node.
-      attck:
-        - id: TA0008
-          name: Lateral Movement
+      references:
+        - type: ATTCK
+          id: TA0008
+          label: Lateral Movement
     - label: POD_EXEC
       description: Execute a command in a pod.
-      attck:
-        - id: TA0008
-          name: Lateral Movement
+      references:
+        - type: ATTCK
+          id: TA0008
+          label: Lateral Movement
     - label: POD_PATCH
       description: Patch a pod on a node.
-      attck:
-        - id: TA0008
-          name: Lateral Movement
+      references:
+        - type: ATTCK
+          id: TA0008
+          label: Lateral Movement
     - label: SHARE_PS_NAMESPACE
       description: All containers in a pod share the same process namespace.
-      attck:
-        - id: TA0008
-          name: Lateral Movement
+      references:
+        - type: ATTCK
+          id: TA0008
+          label: Lateral Movement
     - label: TOKEN_BRUTEFORCE
       description: Bruteforce a token.
-      attck:
-        - id: T1528
-          name: Steal Application Access Token
+      references:
+        - type: ATTCK
+          id: T1528
+          label: Steal Application Access Token
     - label: TOKEN_LIST
       description: List tokens.
-      attck:
-        - id: T1528
-          name: Steal Application Access Token
+      references:
+        - type: ATTCK
+          id: T1528
+          label: Steal Application Access Token
     - label: VOLUME_ACCESS
       description: Access a volume mounted in a container.
-      attck:
-        - id: T1613
-          name: Container and Resource Discovery
+      references:
+        - type: ATTCK
+          id: T1613
+          label: Container and Resource Discovery
     - label: VOLUME_DISCOVER
       description: Discover volumes mounted in a container.
-      attck:
-        - id: T1613
-          name: Container and Resource Discovery
+      references:
+        - type: ATTCK
+          id: T1613
+          label: Container and Resource Discovery
 
   # Define the properties for each edge in the graph.
   edgeProperties: []
