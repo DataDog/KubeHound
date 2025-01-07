@@ -42,6 +42,14 @@ func (e *EscapeVarLogSymlink) Name() string {
 	return "ContainerEscapeVarLogSymlink"
 }
 
+func (e *EscapeVarLogSymlink) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueUnsecuredCredentials
+}
+
+func (e *EscapeVarLogSymlink) AttckTacticID() AttckTacticID {
+	return AttckTacticCredentialAccess
+}
+
 func (e *EscapeVarLogSymlink) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*permissionSetIDEscapeGroup)
 	if !ok {
@@ -76,6 +84,8 @@ func (e *EscapeVarLogSymlink) Traversal() types.EdgeTraversal {
 			InE("VOLUME_ACCESS").OutV().
 			Has("class", "Node").As("n").
 			AddE("CE_VAR_LOG_SYMLINK").From("c").To("n").
+			Property("attckTechniqueID", string(e.AttckTechniqueID())).
+			Property("attckTacticID", string(e.AttckTacticID())).
 			Barrier().Limit(0)
 
 		return g
@@ -83,8 +93,8 @@ func (e *EscapeVarLogSymlink) Traversal() types.EdgeTraversal {
 }
 
 func (e *EscapeVarLogSymlink) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
-	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-
+	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback,
+) error {
 	permissionSets := adapter.MongoDB(ctx, store).Collection(collections.PermissionSetName)
 	pipeline := []bson.M{
 		{

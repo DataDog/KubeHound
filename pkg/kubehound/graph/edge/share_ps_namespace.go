@@ -38,6 +38,14 @@ func (e *SharePSNamespace) Name() string {
 	return "SharePSNamespace"
 }
 
+func (e *SharePSNamespace) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueEscapeToHost
+}
+
+func (e *SharePSNamespace) AttckTacticID() AttckTacticID {
+	return AttckTacticPrivilegeEscalation
+}
+
 // Processor delegates the processing tasks to the generic containerEscapeProcessor.
 func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*sharedPsNamespaceGroupPair)
@@ -45,7 +53,10 @@ func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectI
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.ContainerA, typed.ContainerB)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.ContainerA, typed.ContainerB, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

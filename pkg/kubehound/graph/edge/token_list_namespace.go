@@ -35,13 +35,24 @@ func (e *TokenListNamespace) Name() string {
 	return "TokenListNamespace"
 }
 
+func (e *TokenListNamespace) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueStealApplicationAccessTokens
+}
+
+func (e *TokenListNamespace) AttckTacticID() AttckTacticID {
+	return AttckTacticCredentialAccess
+}
+
 func (e *TokenListNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*tokenListNSGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Role, typed.Identity)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Role, typed.Identity, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 // Stream finds all roles that are namespaced and have secrets/list or equivalent wildcard permissions and matching identities.

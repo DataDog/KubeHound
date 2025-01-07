@@ -39,13 +39,24 @@ func (e *RoleBindRbRbR) Name() string {
 	return RoleBindspaceName
 }
 
+func (e *RoleBindRbRbR) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueValidAccounts
+}
+
+func (e *RoleBindRbRbR) AttckTacticID() AttckTacticID {
+	return AttckTacticPrivilegeEscalation
+}
+
 func (e *RoleBindRbRbR) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*roleBindNameSpaceGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.FromPerm, typed.ToPerm)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.FromPerm, typed.ToPerm, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,

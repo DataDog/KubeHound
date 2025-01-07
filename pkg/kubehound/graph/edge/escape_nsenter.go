@@ -29,9 +29,20 @@ func (e *EscapeNsenter) Name() string {
 	return "ContainerEscapeNsenter"
 }
 
+func (e *EscapeNsenter) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueEscapeToHost
+}
+
+func (e *EscapeNsenter) AttckTacticID() AttckTacticID {
+	return AttckTacticPrivilegeEscalation
+}
+
 // Processor delegates the processing tasks to the generic containerEscapeProcessor.
 func (e *EscapeNsenter) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
+	return containerEscapeProcessor(ctx, oic, e.Label(), entry, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 func (e *EscapeNsenter) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

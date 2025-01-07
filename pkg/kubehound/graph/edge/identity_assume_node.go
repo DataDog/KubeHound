@@ -36,13 +36,24 @@ func (e *IdentityAssumeNode) Name() string {
 	return "IdentityAssumeNode"
 }
 
+func (e *IdentityAssumeNode) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueValidAccounts
+}
+
+func (e *IdentityAssumeNode) AttckTacticID() AttckTacticID {
+	return AttckTacticPrivilegeEscalation
+}
+
 func (e *IdentityAssumeNode) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*nodeIdentityGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Node, typed.Identity)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Node, typed.Identity, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 func (e *IdentityAssumeNode) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
