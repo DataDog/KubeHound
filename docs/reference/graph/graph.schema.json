@@ -102,11 +102,18 @@
                 },
                 "description": {
                     "type": "string"
+                },
+                "references": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/StandardRef"
+                    }
                 }
             },
             "required": [
                 "description",
-                "label"
+                "label",
+                "references"
             ],
             "title": "Edge"
         },
@@ -217,6 +224,30 @@
                 "Volume"
             ],
             "title": "From"
+        },
+        "StandardRef": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "ATTCK",
+                        "URL"
+                    ]
+                },
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "id"
+            ],
+            "title": "StandardRef"
         },
         "Type": {
             "type": "string",
