@@ -102,11 +102,18 @@
                 },
                 "description": {
                     "type": "string"
+                },
+                "attck": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AttckRef"
+                    }
                 }
             },
             "required": [
                 "description",
-                "label"
+                "label",
+                "attck"
             ],
             "title": "Edge"
         },
@@ -217,6 +224,23 @@
                 "Volume"
             ],
             "title": "From"
+        },
+        "AttckRef": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id",
+                "name"
+            ],
+            "title": "AttckRef"
         },
         "Type": {
             "type": "string",
