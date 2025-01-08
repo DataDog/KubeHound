@@ -16,7 +16,7 @@ With a [user impersonation privilege](https://kubernetes.io/docs/reference/acces
 
 !!! warning
 
-    This attack is currently __NOT PROCESSED__ during the cluster ingestion.
+    This attack detection is currently __NOT IMPLEMENTED__.
 
 ## Details
 
