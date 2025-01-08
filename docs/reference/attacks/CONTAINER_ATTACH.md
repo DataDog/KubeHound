@@ -5,15 +5,15 @@ title: CONTAINER_ATTACH
 <!--
 id: CONTAINER_ATTACH
 name: "Attach to running container"
-mitreAttackTechnique: N/A - N/A
-mitreAttackTactic: TA0008 - Lateral Movement
+mitreAttackTechnique: T1609 - Container Administration Command
+mitreAttackTactic: TA0002 - Execution
 -->
 
 # CONTAINER_ATTACH
 
-| Source                    | Destination                           | MITRE                                                                |
+| Source                    | Destination                           | MITRE ATT&CK                                                         |
 | ------------------------- | ------------------------------------- | -------------------------------------------------------------------- |
-| [Pod](../entities/pod.md) | [Container](../entities/container.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+| [Pod](../entities/pod.md) | [Container](../entities/container.md) | [Container Administration Command, T1609](https://attack.mitre.org/techniques/T1609/) |
 
 Attach to a container running within a pod given access to the pod.
 

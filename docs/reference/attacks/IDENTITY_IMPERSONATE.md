@@ -3,15 +3,20 @@ id: IDENTITY_IMPERSONATE
 name: "Impersonate user/group"
 mitreAttackTechnique: T1078 - Valid Accounts
 mitreAttackTactic: TA0004 - Privilege escalation
+coverage: None
 -->
 
 # IDENTITY_IMPERSONATE
 
 With a [user impersonation privilege](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation) an attacker can impersonate a more privileged account.
 
-| Source                                        | Destination                         | MITRE                                                               |
+| Source                                        | Destination                         | MITRE ATT&CK                                                        |
 | --------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------- |
 | [PermissionSet](../entities/permissionset.md) | [Identity](../entities/identity.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+
+!!! warning
+
+    This attack is currently __NOT PROCESSED__ during the cluster ingestion.
 
 ## Details
 
@@ -37,7 +42,7 @@ kubectl auth can-i impersonate groups
 Execute any action in the K8s API impersonating a privileged group (e.g `system:masters`) or user using the syntax:
 
 ```bash
-$ kubectl <verb> <noun> –as=null –as-group=system:masters -o json | jq
+$ kubectl <verb> <noun> -as=null -as-group=system:masters -o json | jq
 ```
 
 ## Defences

@@ -7,8 +7,8 @@ id: ROLE_BIND
 name: "Create role binding"
 mitreAttackTechnique: T1078 - Valid Accounts
 mitreAttackTactic: TA0004 - Privilege Escalation
+coverage: Partial
 -->
-
 
 # ROLE_BIND
 
@@ -17,6 +17,10 @@ A role that grants permission to create or modify `(Cluster)RoleBindings` can al
 | Source                                    | Destination                           | MITRE                            |
 | ----------------------------------------- | ------------------------------------- |----------------------------------|
 | [PermissionSet](../entities/permissionset.md)  | [PermissionSet](../entities/permissionset.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+
+!!! warning
+
+    This attack has __LIMITATIONS__ in the current implementation. Consult the [RBAC](#rbac) section for more details.
 
 ## Details
 

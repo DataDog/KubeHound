@@ -5,13 +5,13 @@ title: POD_ATTACH
 <!--
 id: POD_ATTACH
 name: "Attach to running pod"
-mitreAttackTechnique: N/A
-mitreAttackTactic: TA0008 - Lateral Movement
+mitreAttackTechnique: T1609 - Container Administration Command
+mitreAttackTactic: TA0002 - Execution
 -->
 
 # POD_ATTACH
 
-| Source                      | Destination               | MITRE                                                                |
+| Source                      | Destination               | MITRE ATT&CK                                                         |
 | --------------------------- | ------------------------- | -------------------------------------------------------------------- |
 | [Node](../entities/node.md) | [Pod](../entities/pod.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
 

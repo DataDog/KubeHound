@@ -37,11 +37,11 @@ func (e *PodAttach) Name() string {
 }
 
 func (e *PodAttach) AttckTechniqueID() AttckTechniqueID {
-	return AttckTechniqueUndefined
+	return AttckTechniqueContainerAdministrationCommand
 }
 
 func (e *PodAttach) AttckTacticID() AttckTacticID {
-	return AttckTacticLateralMovement
+	return AttckTacticExecution
 }
 
 func (e *PodAttach) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {

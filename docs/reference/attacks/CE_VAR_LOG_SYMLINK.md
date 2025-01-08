@@ -5,13 +5,13 @@ title: CE_VAR_LOG_SYMLINK
 <!--
 id: CE_VAR_LOG_SYMLINK
 name: "Arbitrary file reads on the host"
-mitreAttackTechnique: T1552 - Unsecured Credentials
-mitreAttackTactic: TA0006 - Credential Access
+mitreAttackTechnique: T1611 - Escape to host
+mitreAttackTactic: TA0004 - Privilege escalation
 -->
 
 # CE_VAR_LOG_SYMLINK
 
-| Source                                | Destination                 | MITRE                                                               |
+| Source                                | Destination                 | MITRE ATT&CK                                                        |
 | ------------------------------------- | --------------------------- | ------------------------------------------------------------------- |
 | [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
 

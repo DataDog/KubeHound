@@ -37,11 +37,11 @@ func (e *PodPatch) Name() string {
 }
 
 func (e *PodPatch) AttckTechniqueID() AttckTechniqueID {
-	return AttckTechniqueCreateOrModifySystemProcessContainerService
+	return AttckTechniqueContainerAdministrationCommand
 }
 
 func (e *PodPatch) AttckTacticID() AttckTacticID {
-	return AttckTacticPersistence
+	return AttckTacticExecution
 }
 
 func (e *PodPatch) BatchSize() int {

@@ -5,8 +5,8 @@ title: POD_PATCH
 <!--
 id: POD_PATCH
 name: "Patch running pod"
-mitreAttackTechnique: N/A - N/A
-mitreAttackTactic: TA0008 - Lateral Movement
+mitreAttackTechnique: T1609 - Container Administration Command
+mitreAttackTactic: TA0002 - Execution
 -->
 
 # POD_PATCH
@@ -15,7 +15,7 @@ With the correct privileges an attacker can use the Kubernetes API to modify cer
 
 | Source                                        | Destination               | MITRE                                                                |
 | --------------------------------------------- | ------------------------- | -------------------------------------------------------------------- |
-| [PermissionSet](../entities/permissionset.md) | [Pod](../entities/pod.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+| [PermissionSet](../entities/permissionset.md) | [Pod](../entities/pod.md) | [Container Administration Command, T1609](https://attack.mitre.org/techniques/T1609/) |
 
 ## Details
 
@@ -24,7 +24,7 @@ The `kubectl patch` command enables updating specific fields of a resource, incl
 + `spec.initContainers[*].image`
 + `spec.activeDeadlineSeconds`
 + `spec.tolerations` (only additions to existing tolerations)
- + `spec.terminationGracePeriodSeconds` (allow it to be set to 1 if it was previously negative)
++ `spec.terminationGracePeriodSeconds` (allow it to be set to 1 if it was previously negative)
 
 However, this is still just enough to allow an attacker to achieve execution in a pod by modifying the container image of a running pod to a backdoored container image in an accessible container registry.
 

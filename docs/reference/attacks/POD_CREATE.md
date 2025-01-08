@@ -5,8 +5,8 @@ title: POD_CREATE
 <!--
 id: POD_CREATE
 name: "Create privileged pod"
-mitreAttackTactic: TA0004 - Privilege escalation
-mitreAttackTechnique: "T1053.007 - Scheduled Task/Job: Container Orchestration Job" 
+mitreAttackTechnique: T1610 - Deploy Container
+mitreAttackTactic: TA0002 - Execution
 -->
 
 # POD_CREATE
