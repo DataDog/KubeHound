@@ -13,8 +13,8 @@ mitreAttackTactic: TA0002 - Execution
 
 With the correct privileges an attacker can use the Kubernetes API to modify certain properties of an existing pod and achieve code execution within the pod
 
-| Source                                        | Destination               | MITRE                                                                |
-| --------------------------------------------- | ------------------------- | -------------------------------------------------------------------- |
+| Source                                        | Destination               | MITRE ATT&CK                                                                          |
+| --------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------- |
 | [PermissionSet](../entities/permissionset.md) | [Pod](../entities/pod.md) | [Container Administration Command, T1609](https://attack.mitre.org/techniques/T1609/) |
 
 ## Details

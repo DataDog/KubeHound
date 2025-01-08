@@ -11,8 +11,8 @@ mitreAttackTactic: TA0008 - Lateral Movement
 
 # SHARE_PS_NAMESPACE
 
-| Source                      | Destination                           | MITRE                            |
-| --------------------------- | ------------------------------------- |----------------------------------|
+| Source                                | Destination                           | MITRE ATT&CK                                                              |
+| ------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------- |
 | [Container](../entities/container.md) | [Container](../entities/container.md) | [Taint Shared Content, T1080](https://attack.mitre.org/techniques/T1080/) |
 
 Represents a relationship between containers within the same pod that share a process namespace. 

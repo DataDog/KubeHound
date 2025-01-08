@@ -13,7 +13,7 @@ mitreAttackTactic: TA0002 - Execution
 
 Create a pod with significant privilege (`CAP_SYSADMIN`, `hostPath=/`, etc) and schedule on a target node via setting the `nodeName` selector.
 
-| Source                                        | Destination                 | MITRE                                                                                    |
+| Source                                        | Destination                 | MITRE ATT&CK                                                                             |
 | --------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------- |
 | [PermissionSet](../entities/permissionset.md) | [Node](../entities/node.md) | [Container Orchestration Job, T1053.007](https://attack.mitre.org/techniques/T1053/007/) |
 

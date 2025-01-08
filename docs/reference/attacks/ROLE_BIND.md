@@ -14,9 +14,9 @@ coverage: Partial
 
 A role that grants permission to create or modify `(Cluster)RoleBindings` can allow an attacker to escalate privileges on a compromised user.
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
-| [PermissionSet](../entities/permissionset.md)  | [PermissionSet](../entities/permissionset.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
+| Source                                        | Destination                                   | MITRE ATT&CK                                                        |
+| --------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------- |
+| [PermissionSet](../entities/permissionset.md) | [PermissionSet](../entities/permissionset.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
 
 !!! warning
 
@@ -66,12 +66,12 @@ But, the PermissionSet object is created only if a role is linked by a rolebindi
 
 So some of the usecases are not fully covered:
 
-| Usecase #| Coverage | Limitation description| 
-|------|-------|---------|
-| 1 | Full | N/A |
-| 2 | Limited | All the PermissionSet that are not namespaced are linked to a single specific namespace. Yet, this attack allow to bind a role to any namespace. Therefore, we would need to create additional PermissionSet for every namespace if we want to fully cover the attack|
-| 3 | Full | N/A |
-| 4 | None | To cover this usecase, we need duplicate a non-namespaced PermissionSet to a namespace one. |
+| Usecase # | Coverage | Limitation description                                                                                                                                                                                                                                                |
+| --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1         | Full     | N/A                                                                                                                                                                                                                                                                   |
+| 2         | Limited  | All the PermissionSet that are not namespaced are linked to a single specific namespace. Yet, this attack allow to bind a role to any namespace. Therefore, we would need to create additional PermissionSet for every namespace if we want to fully cover the attack |
+| 3         | Full     | N/A                                                                                                                                                                                                                                                                   |
+| 4         | None     | To cover this usecase, we need duplicate a non-namespaced PermissionSet to a namespace one.                                                                                                                                                                           |
 
 
 ### Limitation of the can-i Kubernetes API

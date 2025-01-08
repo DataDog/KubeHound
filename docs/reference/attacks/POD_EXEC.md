@@ -13,7 +13,7 @@ mitreAttackTactic: TA0002 - Execution
 
 With the correct privileges an attacker can use the Kubernetes API to obtain a shell on a running pod.
 
-| Source                                        | Destination               | MITRE                                                                                 |
+| Source                                        | Destination               | MITRE ATT&CK                                                                          |
 | --------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------- |
 | [PermissionSet](../entities/permissionset.md) | [Pod](../entities/pod.md) | [Container Administration Command, T1609](https://attack.mitre.org/techniques/T1609/) |
 

@@ -11,8 +11,8 @@ mitreAttackTactic: TA0006 - Credential Access
 
 # TOKEN_BRUTEFORCE
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
+| Source                                        | Destination                         | MITRE ATT&CK                                                                        |
+| --------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------- |
 | [PermissionSet](../entities/permissionset.md) | [Identity](../entities/identity.md) | [Steal Application Access Token, T1528](https://attack.mitre.org/techniques/T1528/) |
 
 An identity with a role that allows *get* on secrets (vs list) can potentially view all the serviceaccount tokens in a specific namespace or in the whole cluster (with ClusterRole).

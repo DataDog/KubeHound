@@ -11,8 +11,8 @@ mitreAttackTactic: TA0006 - Credential Access
 
 # TOKEN_STEAL
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
+| Source                          | Destination                         | MITRE ATT&CK                                                               |
+| ------------------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
 | [Volume](../entities/volume.md) | [Identity](../entities/identity.md) | [Unsecured Credentials, T1552](https://attack.mitre.org/techniques/T1552/) |
 
 This attack represents the ability to steal a K8s API token from an accessible volume.
