@@ -36,11 +36,11 @@ func (e *PodPatchNamespace) Name() string {
 }
 
 func (e *PodPatchNamespace) AttckTechniqueID() AttckTechniqueID {
-	return AttckTechniqueCreateOrModifySystemProcessContainerService
+	return AttckTechniqueContainerAdministrationCommand
 }
 
 func (e *PodPatchNamespace) AttckTacticID() AttckTacticID {
-	return AttckTacticPersistence
+	return AttckTacticExecution
 }
 
 func (e *PodPatchNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {

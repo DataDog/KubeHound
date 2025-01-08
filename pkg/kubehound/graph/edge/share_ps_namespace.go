@@ -39,11 +39,11 @@ func (e *SharePSNamespace) Name() string {
 }
 
 func (e *SharePSNamespace) AttckTechniqueID() AttckTechniqueID {
-	return AttckTechniqueEscapeToHost
+	return AttckTechniqueTaintedSharedContent
 }
 
 func (e *SharePSNamespace) AttckTacticID() AttckTacticID {
-	return AttckTacticPrivilegeEscalation
+	return AttckTacticLateralMovement
 }
 
 // Processor delegates the processing tasks to the generic containerEscapeProcessor.

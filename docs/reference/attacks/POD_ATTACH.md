@@ -13,7 +13,7 @@ mitreAttackTactic: TA0002 - Execution
 
 | Source                      | Destination               | MITRE ATT&CK                                                         |
 | --------------------------- | ------------------------- | -------------------------------------------------------------------- |
-| [Node](../entities/node.md) | [Pod](../entities/pod.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+| [Node](../entities/node.md) | [Pod](../entities/pod.md) | [Container Administration Command, T1609](https://attack.mitre.org/tactics/T1609/) |
 
 Attach to a running K8s pod from a K8s node.
 
