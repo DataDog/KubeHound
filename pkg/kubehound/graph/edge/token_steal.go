@@ -37,13 +37,24 @@ func (e *TokenSteal) Name() string {
 	return "TokenSteal"
 }
 
+func (e *TokenSteal) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueUnsecuredCredentials
+}
+
+func (e *TokenSteal) AttckTacticID() AttckTacticID {
+	return AttckTacticCredentialAccess
+}
+
 func (e *TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*tokenStealGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Volume, typed.Identity)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Volume, typed.Identity, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 func (e *TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.CacheReader,

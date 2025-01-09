@@ -28,6 +28,12 @@ type Builder interface {
 	// Label returns the label for the edge (convention is all uppercase i.e EDGE_NAME).
 	Label() string
 
+	// AttckTechniqueID returns the ATT&CK technique ID for the edge.
+	AttckTechniqueID() AttckTechniqueID
+
+	// AttckTacticID returns the ATT&CK tactic ID for the edge.
+	AttckTacticID() AttckTacticID
+
 	// BatchSize returns the batch size of bulk inserts (and threshold for triggering a flush).
 	BatchSize() int
 

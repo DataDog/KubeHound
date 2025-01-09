@@ -36,8 +36,19 @@ func (e *EscapeCorePattern) Name() string {
 	return "ContainerEscapeCorePattern"
 }
 
+func (e *EscapeCorePattern) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueEscapeToHost
+}
+
+func (e *EscapeCorePattern) AttckTacticID() AttckTacticID {
+	return AttckTacticPrivilegeEscalation
+}
+
 func (e *EscapeCorePattern) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
-	return containerEscapeProcessor(ctx, oic, e.Label(), entry)
+	return containerEscapeProcessor(ctx, oic, e.Label(), entry, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 func (e *EscapeCorePattern) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

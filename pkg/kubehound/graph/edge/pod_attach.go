@@ -36,13 +36,24 @@ func (e *PodAttach) Name() string {
 	return "PodAttach"
 }
 
+func (e *PodAttach) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueContainerAdministrationCommand
+}
+
+func (e *PodAttach) AttckTacticID() AttckTacticID {
+	return AttckTacticExecution
+}
+
 func (e *PodAttach) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*podAttachGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Node, typed.Pod)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Node, typed.Pod, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 func (e *PodAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,

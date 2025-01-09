@@ -11,7 +11,7 @@ mitreAttackTactic: TA0004 - Privilege escalation
 
 # IDENTITY_ASSUME
 
-| Source                                                             | Destination                         | MITRE                                                               |
+| Source                                                             | Destination                         | MITRE ATT&CK                                                        |
 | ------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------- |
 | [Container](../entities/container.md), [Node](../entities/node.md) | [Identity](../entities/identity.md) | [Valid Accounts, T1078](https://attack.mitre.org/techniques/T1078/) |
 

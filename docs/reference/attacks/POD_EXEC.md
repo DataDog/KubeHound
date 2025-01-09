@@ -5,17 +5,17 @@ title: POD_EXEC
 <!--
 id: POD_EXEC
 name: "Exec into running pod"
-mitreAttackTechnique: N/A - N/A
-mitreAttackTactic: TA0008 - Lateral Movement
+mitreAttackTechnique: T1609 - Container Administration Command
+mitreAttackTactic: TA0002 - Execution
 -->
 
 # POD_EXEC
 
 With the correct privileges an attacker can use the Kubernetes API to obtain a shell on a running pod.
 
-| Source                                        | Destination               | MITRE                                                                |
-| --------------------------------------------- | ------------------------- | -------------------------------------------------------------------- |
-| [PermissionSet](../entities/permissionset.md) | [Pod](../entities/pod.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+| Source                                        | Destination               | MITRE ATT&CK                                                                          |
+| --------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------- |
+| [PermissionSet](../entities/permissionset.md) | [Pod](../entities/pod.md) | [Container Administration Command, T1609](https://attack.mitre.org/techniques/T1609/) |
 
 ## Details
 

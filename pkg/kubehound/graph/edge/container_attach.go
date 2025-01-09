@@ -36,13 +36,24 @@ func (e *ContainerAttach) Name() string {
 	return "ContainerAttach"
 }
 
+func (e *ContainerAttach) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueContainerAdministrationCommand
+}
+
+func (e *ContainerAttach) AttckTacticID() AttckTacticID {
+	return AttckTacticExecution
+}
+
 func (e *ContainerAttach) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*containerAttachGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Pod, typed.Container)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Pod, typed.Container, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 func (e *ContainerAttach) Traversal() types.EdgeTraversal {

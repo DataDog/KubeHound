@@ -11,8 +11,8 @@ mitreAttackTactic: TA0006 - Credential Access
 
 # TOKEN_STEAL
 
-| Source                                    | Destination                           | MITRE                            |
-| ----------------------------------------- | ------------------------------------- |----------------------------------|
+| Source                          | Destination                         | MITRE ATT&CK                                                               |
+| ------------------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
 | [Volume](../entities/volume.md) | [Identity](../entities/identity.md) | [Unsecured Credentials, T1552](https://attack.mitre.org/techniques/T1552/) |
 
 This attack represents the ability to steal a K8s API token from an accessible volume.
@@ -112,4 +112,3 @@ automountServiceAccountToken: false
 + [The Path Less Traveled: Abusing Kubernetes Defaults (Video)](https://www.youtube.com/watch?v=HmoVSmTIOxM)
 + [The Path Less Traveled: Abusing Kubernetes Defaults (GitHub)](https://github.com/mauilion/blackhat-2019)
 + [Securing Kubernetes Clusters by Eliminating Risky Permissions](https://www.cyberark.com/resources/threat-research-blog/securing-kubernetes-clusters-by-eliminating-risky-permissions)
-

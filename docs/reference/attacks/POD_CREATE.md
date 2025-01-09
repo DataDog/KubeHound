@@ -5,17 +5,17 @@ title: POD_CREATE
 <!--
 id: POD_CREATE
 name: "Create privileged pod"
-mitreAttackTactic: TA0004 - Privilege escalation
-mitreAttackTechnique: "T1053.007 - Scheduled Task/Job: Container Orchestration Job" 
+mitreAttackTechnique: T1610 - Deploy Container
+mitreAttackTactic: TA0002 - Execution
 -->
 
 # POD_CREATE
 
 Create a pod with significant privilege (`CAP_SYSADMIN`, `hostPath=/`, etc) and schedule on a target node via setting the `nodeName` selector.
 
-| Source                                        | Destination                 | MITRE                                                                                    |
+| Source                                        | Destination                 | MITRE ATT&CK                                                                             |
 | --------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------- |
-| [PermissionSet](../entities/permissionset.md) | [Node](../entities/node.md) | [Container Orchestration Job, T1053.007](https://attack.mitre.org/techniques/T1053/007/) |
+| [PermissionSet](../entities/permissionset.md) | [Node](../entities/node.md) | [Deploy Container, T1610](https://attack.mitre.org/techniques/T1610/) |
 
 ## Details
 

@@ -9,7 +9,7 @@ mitreAttackTactic: TA0004 - Privilege escalation
 
 Container escape via the `core_pattern` `usermode_helper` in the case of an exposed `/proc` mount.
 
-| Source                                | Destination                 | MITRE                                                               |
+| Source                                | Destination                 | MITRE ATT&CK                                                        |
 | ------------------------------------- | --------------------------- | ------------------------------------------------------------------- |
 | [Container](../entities/container.md) | [Node](../entities/node.md) | [Escape to Host, T1611](https://attack.mitre.org/techniques/T1611/) |
 

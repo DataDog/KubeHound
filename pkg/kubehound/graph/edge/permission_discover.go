@@ -35,13 +35,24 @@ func (e *PermissionDiscover) Name() string {
 	return "PermissionDiscover"
 }
 
+func (e *PermissionDiscover) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniquePermissionGroupsDiscovery
+}
+
+func (e *PermissionDiscover) AttckTacticID() AttckTacticID {
+	return AttckTacticDiscovery
+}
+
 func (e *PermissionDiscover) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*permissionDiscoverGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Identity, typed.PermissionSet)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Identity, typed.PermissionSet, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 func (e *PermissionDiscover) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,

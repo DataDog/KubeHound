@@ -19,13 +19,13 @@ type containerEscapeGroup struct {
 	Container primitive.ObjectID `bson:"_id" json:"container"`
 }
 
-func containerEscapeProcessor(ctx context.Context, oic *converter.ObjectIDConverter, edgeLabel string, entry any) (any, error) {
+func containerEscapeProcessor(ctx context.Context, oic *converter.ObjectIDConverter, edgeLabel string, entry any, attributes map[string]any) (any, error) {
 	typed, ok := entry.(*containerEscapeGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, edgeLabel, typed.Container, typed.Node)
+	return adapter.GremlinEdgeProcessor(ctx, oic, edgeLabel, typed.Container, typed.Node, attributes)
 }
 func (e *BaseContainerEscape) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()

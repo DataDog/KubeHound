@@ -40,8 +40,8 @@ mgmt.addConnection(hostRead, volume, node);
 hostTraverse = mgmt.makeEdgeLabel('EXPLOIT_HOST_TRAVERSE').multiplicity(MULTI).make();
 mgmt.addConnection(hostTraverse, volume, volume);
 
-sharedPs = mgmt.makeEdgeLabel('SHARE_PS_NAMESPACE').multiplicity(MULTI).make();
-mgmt.addConnection(sharedPs, container, container);
+sharedPsNamespace = mgmt.makeEdgeLabel('SHARE_PS_NAMESPACE').multiplicity(MULTI).make();
+mgmt.addConnection(sharedPsNamespace, container, container);
 
 containerAttach = mgmt.makeEdgeLabel('CONTAINER_ATTACH').multiplicity(ONE2MANY).make();
 mgmt.addConnection(containerAttach, pod, container);
@@ -149,6 +149,9 @@ protocol = mgmt.makePropertyKey('protocol').dataType(String.class).cardinality(C
 role = mgmt.makePropertyKey('role').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 roleBinding = mgmt.makePropertyKey('roleBinding').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 
+// All edge properties
+attckTechniqueID = mgmt.makePropertyKey('attckTechniqueID').dataType(String.class).cardinality(Cardinality.SINGLE).make();
+attckTacticID = mgmt.makePropertyKey('attckTacticID').dataType(String.class).cardinality(Cardinality.SINGLE).make();
 
 // Define properties for each vertex 
 mgmt.addProperties(container, cls, cluster, runID, storeID, app, team, service, isNamespaced, namespace, name, image, privileged, privesc, hostPid, hostIpc, hostNetwork, runAsUser, podName, nodeName, compromised, command, args, capabilities, ports);
@@ -159,6 +162,32 @@ mgmt.addProperties(permissionSet, cls, cluster, runID, storeID, app, team, servi
 mgmt.addProperties(volume, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, type, sourcePath, mountPath, readonly);
 mgmt.addProperties(endpoint, cls, cluster, runID, storeID, app, team, service, name, isNamespaced, namespace, serviceEndpoint, serviceDns, addressType, addresses, port, portName, protocol, exposure, compromised);
 
+// Define properties for each edge
+mgmt.addProperties(permissionDiscover, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(volumeDiscover, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(volumeAccess, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(hostWrite, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(hostRead, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(hostTraverse, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(sharedPsNamespace, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(containerAttach, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(idAssume, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(idImpersonate, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(roleBind, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(podAttach, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(podCreate, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(podPatch, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(podExec, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(tokenSteal, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(tokenBruteforce, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(tokenList, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(nsenter, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(moduleLoad, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(umhCorePattern, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(privMount, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(sysPtrace, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(varLogSymLink, runID, attckTechniqueID, attckTacticID);
+mgmt.addProperties(endpointExploit, runID, attckTechniqueID, attckTacticID);
 
 // Create the indexes on vertex properties
 // NOTE: labels cannot be indexed so we create the class property to mirror the vertex label and allow indexing
@@ -190,6 +219,11 @@ mgmt.buildIndex('byImageAndRunIDComposite', Vertex.class).addKey(image).addKey(r
 mgmt.buildIndex('byAppAndRunIDComposite', Vertex.class).addKey(app).addKey(runID).buildCompositeIndex();
 mgmt.buildIndex('byNamespaceAndRunIDComposite', Vertex.class).addKey(namespace).addKey(runID).buildCompositeIndex();
 
+// Create the indexes on edge properties
+mgmt.buildIndex('edgesByAttckTechniqueID', Edge.class).addKey(attckTechniqueID).buildCompositeIndex();
+mgmt.buildIndex('edgesByAttckTacticID', Edge.class).addKey(attckTacticID).buildCompositeIndex();
+mgmt.buildIndex('edgesByRunID', Edge.class).addKey(runID).buildCompositeIndex();
+
 mgmt.commit();
 
 // Wait for indexes to become available
@@ -219,6 +253,10 @@ ManagementSystem.awaitGraphIndexStatus(graph, 'byTypeAndNameComposite').status(S
 ManagementSystem.awaitGraphIndexStatus(graph, 'byImageAndRunIDComposite').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byAppAndRunIDComposite').status(SchemaStatus.ENABLED).call();
 ManagementSystem.awaitGraphIndexStatus(graph, 'byNamespaceAndRunIDComposite').status(SchemaStatus.ENABLED).call();
+
+ManagementSystem.awaitGraphIndexStatus(graph, 'edgesByAttckTechniqueID').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'edgesByAttckTacticID').status(SchemaStatus.ENABLED).call();
+ManagementSystem.awaitGraphIndexStatus(graph, 'edgesByRunID').status(SchemaStatus.ENABLED).call();
 
 System.out.println("[KUBEHOUND] graph schema and indexes ready");
 mgmt.close();

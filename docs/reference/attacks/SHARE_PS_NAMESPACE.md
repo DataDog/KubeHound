@@ -5,15 +5,15 @@ title: SHARE_PS_NAMESPACE
 <!--
 id: SHARE_PS_NAMESPACE
 name: "Access container in shared process namespace"
-mitreAttackTechnique: N/A - N/A
+mitreAttackTechnique: T1080 - Taint Shared Content
 mitreAttackTactic: TA0008 - Lateral Movement
 -->
 
 # SHARE_PS_NAMESPACE
 
-| Source                      | Destination                           | MITRE                            |
-| --------------------------- | ------------------------------------- |----------------------------------|
-| [Container](../entities/container.md) | [Container](../entities/container.md) | [Lateral Movement, TA0008](https://attack.mitre.org/tactics/TA0008/) |
+| Source                                | Destination                           | MITRE ATT&CK                                                              |
+| ------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------- |
+| [Container](../entities/container.md) | [Container](../entities/container.md) | [Taint Shared Content, T1080](https://attack.mitre.org/techniques/T1080/) |
 
 Represents a relationship between containers within the same pod that share a process namespace. 
 

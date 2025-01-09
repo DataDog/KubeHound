@@ -13,7 +13,7 @@ mitreAttackTactic: TA0007 - Discovery
 
 Represents the permissions granted to an identity that can be discovered by an attacker.
 
-| Source                              | Destination                                   | MITRE                                                                            |
+| Source                              | Destination                                   | MITRE ATT&CK                                                                     |
 | ----------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------- |
 | [Identity](../entities/identity.md) | [PermissionSet](../entities/permissionset.md) | [Permission Groups Discovery, T1069](https://attack.mitre.org/techniques/T1078/) |
 

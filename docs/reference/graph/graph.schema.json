@@ -232,8 +232,8 @@
                 "type": {
                     "type": "string",
                     "enum": [
-                        "ATTCK",
-                        "URL"
+                        "ATTCK Technique",
+                        "ATTCK Tactic"
                     ]
                 },
                 "id": {

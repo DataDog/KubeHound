@@ -35,13 +35,24 @@ func (e *PodPatchNamespace) Name() string {
 	return "PodPatchNamespace"
 }
 
+func (e *PodPatchNamespace) AttckTechniqueID() AttckTechniqueID {
+	return AttckTechniqueContainerAdministrationCommand
+}
+
+func (e *PodPatchNamespace) AttckTacticID() AttckTacticID {
+	return AttckTacticExecution
+}
+
 func (e *PodPatchNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*podPatchNSGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Role, typed.Pod)
+	return adapter.GremlinEdgeProcessor(ctx, oic, e.Label(), typed.Role, typed.Pod, map[string]any{
+		"attckTechniqueID": string(e.AttckTechniqueID()),
+		"attckTacticID":    string(e.AttckTacticID()),
+	})
 }
 
 // Stream finds all roles that are namespaced and have pod/exec or equivalent wildcard permissions and matching pods.
