@@ -122,13 +122,6 @@ func (e *PermissionDiscover) Stream(ctx context.Context, store storedb.Provider,
 								"",
 							},
 						},
-						// service account so no namespace checks needed
-						bson.M{
-							"$eq": bson.A{
-								"$result.subjects.subject.kind",
-								"ServiceAccount",
-							},
-						},
 						// clusterrolerbinding so no namespace checks needed
 						bson.M{
 							"$eq": bson.A{
