@@ -90,6 +90,7 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 
 // buildMutating constructs all the mutating edges in the graph database.
 func (b *Builder) buildMutating(ctx context.Context, oic *converter.ObjectIDConverter) error {
+	l := log.Logger(ctx)
 	for label, e := range b.edges.Mutating() {
 		err := b.buildEdge(ctx, label, e, oic)
 		if err != nil {
@@ -102,7 +103,7 @@ func (b *Builder) buildMutating(ctx context.Context, oic *converter.ObjectIDConv
 			// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
 			// values to the user (permissions of the users etc...)
 			// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
-			// l.Errorf("Failed to create a mutating edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+			l.Warnf("Failed to create a mutating edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead): %v", e.Name(), err)
 
 			return nil
 		}
@@ -139,7 +140,7 @@ func (b *Builder) buildSimple(ctx context.Context, oic *converter.ObjectIDConver
 				// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
 				// values to the user (permissions of the users etc...)
 				// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
-				// l.Errorf("Failed to create a simple edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+				l.Warnf("Failed to create a simple edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead): %v", e.Name(), err)
 
 				return nil
 			}
@@ -158,6 +159,7 @@ func (b *Builder) buildSimple(ctx context.Context, oic *converter.ObjectIDConver
 
 // buildDependent constructs all the dependent edges in the graph database.
 func (b *Builder) buildDependent(ctx context.Context, oic *converter.ObjectIDConverter) error {
+	l := log.Logger(ctx)
 	for label, e := range b.edges.Dependent() {
 		err := b.buildEdge(ctx, label, e, oic)
 		if err != nil {
@@ -170,7 +172,7 @@ func (b *Builder) buildDependent(ctx context.Context, oic *converter.ObjectIDCon
 			// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
 			// values to the user (permissions of the users etc...)
 			// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
-			// l.Errorf("Failed to create a dependent edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead)", e.Name())
+			l.Warnf("Failed to create a dependent edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead): %v", e.Name(), err)
 
 			return nil
 		}
