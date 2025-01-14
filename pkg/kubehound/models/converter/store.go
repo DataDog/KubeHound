@@ -310,6 +310,10 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 	}
 
 	for _, s := range subj {
+		// ServiceAccount are bounded to a namespace
+		if s.Namespace == "" && s.Kind == rbacv1.ServiceAccountKind {
+			s.Namespace = input.Namespace
+		}
 		s, err := c.convertSubject(ctx, s)
 		if err != nil {
 			return nil, fmt.Errorf("role binding subject convert: %w", err)
@@ -366,7 +370,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 
 // Identity returns the store representation of a K8s identity role binding from an input store BindSubject (subfield of RoleBinding) object.
 // NOTE: store.Identity does not map directly to a K8s API object and instead derives from the subject of a role binding.
-func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, parent *store.RoleBinding) (*store.Identity, error) {
+func (c *StoreConverter) Identity(ctx context.Context, input *store.BindSubject, parent *store.RoleBinding) (*store.Identity, error) {
 	output := &store.Identity{
 		Id:        input.IdentityId,
 		Name:      input.Subject.Name,
@@ -374,6 +378,21 @@ func (c *StoreConverter) Identity(_ context.Context, input *store.BindSubject, p
 		Type:      input.Subject.Kind,
 		Ownership: parent.Ownership,
 		Runtime:   store.Runtime(c.runtime),
+	}
+
+	// ServiceAccount are bounded to a namespace
+	// In a rolebindings definition, namespace is optional for ServiceAccount
+	// Since we are parsing rolebindings to get the list of ServiceAccount we need to fix the ServiceAccount namespace if it is missing
+	if input.Subject.Kind == "ServiceAccount" && len(input.Subject.Namespace) == 0 {
+		// This should never happen but ¯\_(ツ)_/¯
+		if len(parent.Namespace) == 0 {
+			log.Trace(ctx).Errorf("Namespace not found for service account (%s), using input(rolebinding) namespace (%s) for PermissionSet (%s)\n", input.Subject.Name, parent.Namespace, input.IdentityId)
+		} else {
+			output.Namespace = parent.Namespace
+			output.IsNamespaced = true
+		}
+
+		return output, nil
 	}
 
 	if len(input.Subject.Namespace) != 0 {
