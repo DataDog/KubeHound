@@ -27,7 +27,6 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: impersonate-sa
-    namespace: default
 ---
 apiVersion: v1
 kind: Pod
