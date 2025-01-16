@@ -66,11 +66,11 @@ generate: ## Generate code for the application
 
 .PHONY: build
 build: ## Build the application
-	go build $(BUILD_FLAGS) -o "$(or $(DESTDIR),./bin/build)/kubehound$(BINARY_EXT)" ./cmd/kubehound/
+	go build $(BUILD_FLAGS) -o "$(or $(DESTDIR),./bin/build)/kubehound$(BINARY_EXT)" -tags no_backend ./cmd/kubehound/
 
 .PHONY: binary
 binary:
-	$(BUILDX_CMD) bake binary-with-coverage
+	$(BUILDX_CMD) bake binary
 
 .PHONY: lint
 lint:
