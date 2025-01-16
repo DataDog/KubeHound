@@ -1,3 +1,5 @@
+//go:build no_backend
+
 package main
 
 import (
@@ -5,7 +7,6 @@ import (
 	"os"
 
 	"github.com/DataDog/KubeHound/pkg/backend"
-	docker "github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/spf13/cobra"
 )
 
@@ -64,15 +65,15 @@ func runEnv(ctx context.Context, composePaths []string) error {
 		profiles = append(profiles, backend.DevUIProfile)
 	}
 
-	err := docker.NewBackend(ctx, composePaths, profiles)
+	err := backend.NewBackend(ctx, composePaths, profiles)
 	if err != nil {
 		return err
 	}
 	if downTesting {
-		return docker.Down(ctx)
+		return backend.Down(ctx)
 	}
 
-	return docker.BuildUp(ctx, noCache)
+	return backend.BuildUp(ctx, noCache)
 }
 
 func init() {
