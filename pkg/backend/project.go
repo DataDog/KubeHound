@@ -1,3 +1,5 @@
+//go:build no_backend
+
 package backend
 
 import (

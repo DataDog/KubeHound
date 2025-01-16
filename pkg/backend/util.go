@@ -1,3 +1,5 @@
+//go:build no_backend
+
 package backend
 
 func mergeMaps(currentMap map[interface{}]interface{}, newMap map[interface{}]interface{}) map[interface{}]interface{} {

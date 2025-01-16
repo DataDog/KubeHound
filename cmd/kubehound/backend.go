@@ -1,16 +1,18 @@
+//go:build no_backend
+
 package main
 
 import (
-	docker "github.com/DataDog/KubeHound/pkg/backend"
+	"github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/spf13/cobra"
 )
 
 var (
-	Backend     *docker.Backend
+	Backend     *backend.Backend
 	hard        bool
 	composePath []string
 
-	uiProfile = docker.DefaultUIProfile
+	uiProfile = backend.DefaultUIProfile
 	uiInvana  bool
 )
 
@@ -24,7 +26,7 @@ var (
 				uiProfile = append(uiProfile, "invana")
 			}
 
-			return docker.NewBackend(cobraCmd.Context(), composePath, uiProfile)
+			return backend.NewBackend(cobraCmd.Context(), composePath, uiProfile)
 		},
 	}
 
@@ -33,7 +35,7 @@ var (
 		Short: "Spawn the kubehound stack",
 		Long:  `Spawn the kubehound stack`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			return docker.Up(cobraCmd.Context())
+			return backend.Up(cobraCmd.Context())
 		},
 	}
 
@@ -42,7 +44,7 @@ var (
 		Short: "Wipe the persisted backend data",
 		Long:  `Wipe the persisted backend data`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			return docker.Wipe(cobraCmd.Context())
+			return backend.Wipe(cobraCmd.Context())
 		},
 	}
 
@@ -51,7 +53,7 @@ var (
 		Short: "Tear down the kubehound stack",
 		Long:  `Tear down the kubehound stack`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			return docker.Down(cobraCmd.Context())
+			return backend.Down(cobraCmd.Context())
 		},
 	}
 
@@ -60,19 +62,19 @@ var (
 		Short: "Restart the kubehound stack",
 		Long:  `Restart the kubehound stack`,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			err := docker.Down(cobraCmd.Context())
+			err := backend.Down(cobraCmd.Context())
 			if err != nil {
 				return err
 			}
 
 			if hard {
-				err = docker.Wipe(cobraCmd.Context())
+				err = backend.Wipe(cobraCmd.Context())
 				if err != nil {
 					return err
 				}
 			}
 
-			return docker.Reset(cobraCmd.Context())
+			return backend.Reset(cobraCmd.Context())
 		},
 	}
 )

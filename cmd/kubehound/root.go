@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/backend"
 	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -27,22 +26,9 @@ var (
 			l := log.Logger(cobraCmd.Context())
 			// auto spawning the backend stack
 			if !skipBackend {
-				// Forcing the embed docker config to be loaded
-				err := backend.NewBackend(cobraCmd.Context(), []string{""}, backend.DefaultUIProfile)
+				err := runBackend(cobraCmd.Context())
 				if err != nil {
 					return err
-				}
-				res, err := backend.IsStackRunning(cobraCmd.Context())
-				if err != nil {
-					return err
-				}
-				if !res {
-					err = backend.Up(cobraCmd.Context())
-					if err != nil {
-						return err
-					}
-				} else {
-					l.Info("Backend stack is already running")
 				}
 			}
 
