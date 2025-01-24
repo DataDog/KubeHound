@@ -20,6 +20,8 @@ In order to run, KubeHound needs some docker containers to be running. Every com
 
 ### Starting the backend
 
+#### Starting the backend with default images
+
 The backend stack can be started by using:
 
 ```bash
@@ -27,6 +29,40 @@ kubehound backend up
 ```
 
 It will use the latest [kubehound images releases](https://github.com/orgs/DataDog/packages?repo_name=KubeHound)
+
+#### Starting the backend with overrides
+
+For various reasons, you might want to use a specific version or pull the image from a specific registry. You can override the [default behaviour](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/docker-compose.yaml) by using the following `docker-compose.overrides.yaml` file:
+
+```yaml
+name: kubehound-release
+services:
+  mongodb:
+    image: your.registry.tld/mongo/mongo:6.0.6
+    ports:
+      - "127.0.0.1:27017:27017"
+
+  kubegraph:
+    image: your.registry.tld/datadog/kubehound-graph:my-specific-tag
+    ports:
+      - "127.0.0.1:8182:8182"
+      - "127.0.0.1:8099:8099"
+  
+  ui-jupyter:
+    image: your.registry.tld/datadog/kubehound-ui:my-specific-tag
+
+  ui-invana-engine:
+    image: your.registry.tld/invanalabs/invana-engine:latest
+
+  ui-invana-studio:
+    image: your.registry.tld/invanalabs/invana-studio:latest
+```
+
+Then you can start the backend with the following command:
+
+```bash
+kubehound backend up -f docker-compose.overrides.yml
+```
 
 ### Restarting/stopping the backend
 
