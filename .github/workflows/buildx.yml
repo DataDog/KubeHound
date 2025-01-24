@@ -18,16 +18,13 @@ jobs:
     outputs:
       matrix: ${{ steps.platforms.outputs.matrix }}
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      -
-        name: Create matrix
+      - name: Create matrix
         id: platforms
         run: |
           echo matrix=$(docker buildx bake binary-cross --print | jq -cr '.target."binary-cross".platforms') >> $GITHUB_OUTPUT
-      -
-        name: Show matrix
+      - name: Show matrix
         run: |
           echo ${{ steps.platforms.outputs.matrix }}
 
@@ -39,14 +36,11 @@ jobs:
         target:
           - lint
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3.8.0
-      -
-        name: Run
+      - name: Run
         run: |
           make ${{ matrix.target }}
 
@@ -59,22 +53,17 @@ jobs:
       matrix:
         platform: ${{ fromJson(needs.prepare.outputs.matrix) }}
     steps:
-      -
-        name: Prepare
+      - name: Prepare
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      -
-        name: Set up QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3.8.0
-      -
-        name: Build
+      - name: Build
         uses: docker/bake-action@3fc70e1131fee40a422dd8dd0ff22014ae20a1f3 # v5.11.0
         with:
           targets: release
@@ -82,11 +71,10 @@ jobs:
             *.platform=${{ matrix.platform }}
             *.cache-from=type=gha,scope=binary-${{ env.PLATFORM_PAIR }}
             *.cache-to=type=gha,scope=binary-${{ env.PLATFORM_PAIR }},mode=max
-      -
-        name: Upload artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
-          name: kubehound
+          name: kubehound-${{ matrix.platform }}
           path: ./bin/release/*
           if-no-files-found: error
 
@@ -98,33 +86,27 @@ jobs:
     needs:
       - binary
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      -
-        name: Download artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: kubehound
           path: bin/release
-      -
-        name: Create checksums
+      - name: Create checksums
         working-directory: bin/release
         run: |
           find . -type f -print0 | sort -z | xargs -r0 shasum -a 256 -b | sed 's# \*\./# *#' > $RUNNER_TEMP/checksums.txt
           shasum -a 256 -U -c $RUNNER_TEMP/checksums.txt
           mv $RUNNER_TEMP/checksums.txt .
           cat checksums.txt | while read sum file; do echo "$sum $file" > ${file#\*}.sha256; done
-      -
-        name: List artifacts
+      - name: List artifacts
         run: |
           tree -nh bin/release
-      -
-        name: Check artifacts
+      - name: Check artifacts
         run: |
           find bin/release -type f -exec file -e ascii -- {} +
-      -
-        name: GitHub Release
+      - name: GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
         with:
