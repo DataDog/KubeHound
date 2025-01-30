@@ -1,6 +1,7 @@
 services:
   mongodb:
-    image: mongo:6.0.6
+    # image: mongo:6.0.6
+    image: mongo@sha256:e3fa459b4f4b72f3257c67a23c145e250b8b5700f033860392c68539b998bbe3
     restart: unless-stopped
     networks:
       - kubenet
@@ -49,7 +50,8 @@ services:
       - GRAPH_NOTEBOOK_SSL=False
   
   ui-invana-engine:
-    image: invanalabs/invana-engine:latest
+    # image: invanalabs/invana-engine:latest
+    image: invanalabs/invana-engine@sha256:00971a0f2d39150000b3bca4150adcac3281158ec9979dfff818ad2d64dda179
     profiles:
       - invana
     restart: unless-stopped
@@ -63,7 +65,8 @@ services:
       - kubegraph
 
   ui-invana-studio:
-    image: invanalabs/invana-studio:latest
+    # image: invanalabs/invana-studio:latest
+    image: invanalabs/invana-studio@sha256:e6ca59a7ee3e1da147cd3da1a3b2a7ab2aa9f5298161e2e7d81d50a447c1f590
     restart: unless-stopped
     profiles:
       - invana

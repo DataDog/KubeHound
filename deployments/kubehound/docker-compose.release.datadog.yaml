@@ -1,6 +1,7 @@
 services:
   datadog:
-    image: gcr.io/datadoghq/agent:7-jmx
+    # image: gcr.io/datadoghq/agent:7-jmx
+    image: gcr.io/datadoghq/agent@sha256:465da828947d6c055eacf399df8d0f96423f6e029fd1218a806f091a0dc0200b
     restart: unless-stopped
     ports:
       - "127.0.0.1:8225:8125/UDP"

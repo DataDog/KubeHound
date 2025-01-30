@@ -1,5 +1,6 @@
 # Build the KubeHound DSL .jar in a separate container
-FROM maven:3-openjdk-11-slim AS build
+# maven:3-openjdk-11-slim
+FROM maven@sha256:2cb7c73ba2fd0f7ae64cfabd99180030ec85841a1197b4ae821d21836cb0aa3b AS build
 
 COPY dsl/kubehound/src /home/app/src
 COPY dsl/kubehound/pom.xml /home/app
@@ -7,7 +8,8 @@ COPY dsl/kubehound/pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean install
 
 # Now build our janusgraph wrapper container with KubeHound customizations
-FROM janusgraph/janusgraph:1.1.0
+# janusgraph/janusgraph:1.1.0
+FROM janusgraph/janusgraph@sha256:75f57aff4b152ca86b4cdaeefb5335154d7fad412cffef75fa44c7504adc96d4
 LABEL org.opencontainers.image.source="https://github.com/DataDog/kubehound/"
 
 # Add our initialization script for the database schema to the startup directory
@@ -29,7 +31,8 @@ COPY --chown=janusgraph:janusgraph scripts/health-check.groovy ${JANUS_HOME}/scr
 COPY --chown=janusgraph:janusgraph scripts/kubehound-dsl-init.groovy ${JANUS_HOME}/scripts/
 
 # grpcurl to rehydrate dumps on startup
-COPY --from=fullstorydev/grpcurl:v1.9.1 --chown=janusgraph:janusgraph /bin/grpcurl /usr/local/bin/grpcurl
+# fullstorydev/grpcurl:v1.9.1
+COPY --from=fullstorydev/grpcurl@sha256:8bc96d11c8c08388b30cffafd177a1083a84e18c5bed314de5520c81171236a9 --chown=janusgraph:janusgraph /bin/grpcurl /usr/local/bin/grpcurl
 
 # Set JVM configuration
 ENV JAVA_OPTIONS_FILE ${JANUS_HOME}/conf/jvm.options
