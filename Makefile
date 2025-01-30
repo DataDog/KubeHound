@@ -137,5 +137,5 @@ thirdparty-licenses: ## Generate the list of 3rd party dependencies and write to
 
 .PHONY: local-wiki
 local-wiki: ## Generate and serve the mkdocs wiki on localhost
-	poetry install || pip install mkdocs-material mkdocs-awesome-pages-plugin markdown-captions
+	poetry install --no-root || pip install mkdocs-material mkdocs-awesome-pages-plugin markdown-captions
 	poetry run mkdocs serve || mkdocs serve
