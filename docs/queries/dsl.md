@@ -398,9 +398,14 @@ GraphTraversal<S, Path> attacks()
 
 Example usage:
 
+!!!note
+    The `attacks()` step returns paths, which can be further processed with other steps. You can use 
+    the `elementMap()` step to display the properties of the vertices and edges in the path. 
+    Invoking the `attacks()` step alone will raise a query error.
+
 ```groovy
 // All attacks possible from a specific container in the graph
-kh.containers("pwned-container").attacks()
+kh.containers("pwned-container").attacks().by(elementMap())
 ```
 
 ### Critical Step
@@ -432,12 +437,17 @@ GraphTraversal<S, Path> criticalPaths(int maxHops)
 
 Example usage:
 
+!!!note
+    The `criticalPaths()` step returns paths, which can be further processed with other steps. You can use 
+    the `elementMap()` step to display the properties of the vertices and edges in the path. 
+    Invoking the `criticalPaths()` step alone will raise a query error.
+
 ```groovy
 // All attack paths from services to a critical asset
-kh.services().criticalPaths()
+kh.services().criticalPaths().by(elementMap())
 
 // All attack paths (up to 5 hops) from a compromised credential to a critical asset
-kh.group("engineering").criticalPaths(5)
+kh.group("engineering").criticalPaths(5).by(elementMap())
 ```
 
 ### CriticalPathsFilter Step
@@ -450,9 +460,14 @@ GraphTraversal<S, Path> criticalPathsFilter(int maxHops, String... exclusions)
 
 Example usage:
 
+!!!note
+    The `criticalPathsFilter()` step returns paths, which can be further processed with other steps. You can use 
+    the `elementMap()` step to display the properties of the vertices and edges in the path. 
+    Invoking the `criticalPathsFilter()` step alone will raise a query error.
+
 ```groovy
 // All attack paths (up to 10 hops) from services to a critical asset excluding the TOKEN_BRUTEFORCE and TOKEN_LIST attacks
-kh.services().criticalPathsFilter(10, "TOKEN_BRUTEFORCE", "TOKEN_LIST")
+kh.services().criticalPathsFilter(10, "TOKEN_BRUTEFORCE", "TOKEN_LIST").by(elementMap())
 ```
 
 ### HasCriticalPath Step
