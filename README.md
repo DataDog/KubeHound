@@ -13,11 +13,9 @@ To run KubeHound, you need a couple dependencies
 + [Docker](https://docs.docker.com/engine/install/) `>= 19.03` 
 + [Docker Compose](https://docs.docker.com/compose/compose-file/compose-versioning/) `V2`
 
-### Install and run
+### Install
 
-Select a target Kubernetes cluster, either:
-* Using [kubectx](https://github.com/ahmetb/kubectx)
-* Using specific kubeconfig file by exporting the env variable: `export KUBECONFIG=/your/path/to/.kube/config`
+#### From Release
 
 Download binaries are available for Linux / Windows / Mac OS via the [releases](https://github.com/DataDog/KubeHound/releases) page or by running the following (Mac OS/Linux):
 ```bash
@@ -32,10 +30,43 @@ If downloading the releases via a browser you must run e.g `xattr -d com.apple.q
 
 </details>
 
+#### With homebrew
 
-Then, simply run
+KubeHound is available in homebrew-core and you can simply run
 ```bash
+brew update && brew install kubehound
+```
+
+`kubehound` should now be in your path.
+
+#### From source
+
+If you wish to build KubeHound from source, you will need to checkout a tag before building
+```bash
+git clone https://github.com/DataDog/KubeHound.git
+cd KubeHound
+git checkout $(git describe --tags --abbrev=0)
+make build
+```
+
+KubeHound binary will be output to `./bin/build/kubehound`.
+
+### Run
+
+Select a target Kubernetes cluster, either:
+* Using [kubectx](https://github.com/ahmetb/kubectx)
+* Using specific kubeconfig file by exporting the env variable: `export KUBECONFIG=/your/path/to/.kube/config`
+
+Then, simply run the `kubehound` binary:
+```bash
+# If you installed it from brew, it is in your path
+kubehound
+
+# If you installed it from release, it should be were you downloaded it
 ./kubehound
+
+# If you installed it from source, it should be in the <repo_path>/bin/build folder
+./bin/build/kubehound
 ```
 
 For more advanced use case and configuration, see 
