@@ -123,9 +123,9 @@ func loadEmbeddedDockerCompose(ctx context.Context, filepath string, dockerCompo
 		// Setting the version tag for the release dynamically
 		version := map[string]string{"VersionTag": config.BuildVersion}
 
-		// For local version (when the version is "dirty", using latest to have a working binary)
-		// For any branch outside of main, using latest image as the current tag will cover (including the commit sha in the tag)
-		if strings.HasSuffix(config.BuildBranch, "dirty") || config.BuildBranch != "main" {
+		// If we are on a detached commit, we are probably on a release tag and git rev-parse --abbrev-ref HEAD will return "HEAD"
+		// For any branch outside of main and the detached states, using latest image as the current tag will cover (including the commit sha in the tag)
+		if config.BuildBranch != "main" && config.BuildBranch != "HEAD" {
 			l.Warn("Loading the kubehound images with tag latest - dev branch detected")
 			version["VersionTag"] = "latest"
 		}

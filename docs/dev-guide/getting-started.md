@@ -56,8 +56,22 @@ kubehound dev --down
 To build KubeHound locally from the sources, use the Makefile:
 
 ```bash
+# Ensure you are pulling a release tag
+git checkout tags/vX.X.X
+# Build the binary
 make build
 ```
+
+!!! note
+
+    While building the binary using a `main` revision, the binary will not be able 
+    to spin up the KubeHound stack. You should use a release tag to build the binary or
+    use the `kubehound dev` command to spin up the dev stack.
+
+!!! note
+
+    Being on a commit older than the latest one will also pull older images, to avoid dependency incompatibility.
+    We strongly advise to use the latest tag to enjoy all features and performance improvements.
 
 KubeHound binary will be output to `./bin/build/kubehound`.
 
