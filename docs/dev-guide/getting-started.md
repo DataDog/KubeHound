@@ -68,6 +68,11 @@ make build
     to spin up the KubeHound stack. You should use a release tag to build the binary or
     use the `kubehound dev` command to spin up the dev stack.
 
+!!! note
+
+    Being on a commit older than the latest one will also pull older images, to avoid dependency incompatibility.
+    We strongly advise to use the latest tag to enjoy all features and performance improvements.
+
 KubeHound binary will be output to `./bin/build/kubehound`.
 
 ### Releases
