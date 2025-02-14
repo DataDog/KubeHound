@@ -72,12 +72,9 @@ jobs:
           go-version: "1.23"
 
       - name: Run integration Tests
-        run: make system-test
+        run: |-
+          make system-test
+          docker logs kubehound-testing-kubegraph-1
+          docker logs kubehound-testing-mongodb-1
         env:
           KIND_KUBECONFIG: .kube-config
-
-      - name: Dump JanusGraph Logs
-        run: docker logs kubehound-testing-kubegraph-1
-
-      - name: Dump MongoDB Logs
-        run: docker logs kubehound-testing-mongodb-1
