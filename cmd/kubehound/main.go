@@ -1,9 +1,11 @@
 package main
 
-import "os"
+import (
+	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+)
 
 func main() {
 	if err := Execute(); err != nil {
-		os.Exit(1)
+		log.DefaultLogger().Fatal("unable to execute command", log.ErrorField(err))
 	}
 }
