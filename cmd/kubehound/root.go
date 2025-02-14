@@ -95,47 +95,67 @@ var (
 func rootPreRun(cobraCmd *cobra.Command, _ []string) error {
 	l := log.Logger(cobraCmd.Context())
 
-	if cpuProfile != "" {
-		l.Info("starting cpu profile")
+	if err := startCPUProfile(l); err != nil {
+		return err
+	}
 
-		f, err := os.Create(path.Clean(cpuProfile))
-		if err != nil {
-			return fmt.Errorf("%w: unable to create CPU profile file", err)
-		}
-		if err := pprof.StartCPUProfile(f); err != nil {
-			if err := f.Close(); err != nil {
-				l.Error("error while closing cpu profile file", log.ErrorField(err))
-			}
-			return err
-		}
+	if err := startBlockProfile(l); err != nil {
+		return err
+	}
 
-		cpuProfileCleanup = func() {
-			l.Info("stopping cpu profile")
-			pprof.StopCPUProfile()
-			if err := f.Close(); err != nil {
-				l.Error("error while closing cpu profile file", log.ErrorField(err))
-			}
+	return nil
+}
+
+func startCPUProfile(l log.LoggerI) error {
+	if cpuProfile == "" {
+		return nil
+	}
+
+	l.Info("starting cpu profile")
+
+	f, err := os.Create(path.Clean(cpuProfile))
+	if err != nil {
+		return fmt.Errorf("%w: unable to create CPU profile file", err)
+	}
+	if err := pprof.StartCPUProfile(f); err != nil {
+		if err := f.Close(); err != nil {
+			l.Error("error while closing cpu profile file", log.ErrorField(err))
+		}
+		return err
+	}
+
+	cpuProfileCleanup = func() {
+		l.Info("stopping cpu profile")
+		pprof.StopCPUProfile()
+		if err := f.Close(); err != nil {
+			l.Error("error while closing cpu profile file", log.ErrorField(err))
 		}
 	}
 
-	if blockProfile != "" {
-		l.Info("starting block profile")
+	return nil
+}
 
-		runtime.SetBlockProfileRate(1)
-		f, err := os.Create(path.Clean(blockProfile))
-		if err != nil {
-			return fmt.Errorf("%w: unable to create block profile file", err)
+func startBlockProfile(l log.LoggerI) error {
+	if blockProfile == "" {
+		return nil
+	}
+
+	l.Info("starting block profile")
+
+	runtime.SetBlockProfileRate(1)
+	f, err := os.Create(path.Clean(blockProfile))
+	if err != nil {
+		return fmt.Errorf("%w: unable to create block profile file", err)
+	}
+
+	p := pprof.Lookup("block")
+	blockProfileCleanup = func() {
+		l.Info("writing block profile")
+		if err := p.WriteTo(f, 0); err != nil {
+			l.Error("error while writing block profile file", log.ErrorField(err))
 		}
-
-		p := pprof.Lookup("block")
-		blockProfileCleanup = func() {
-			l.Info("writing block profile")
-			if err := p.WriteTo(f, 0); err != nil {
-				l.Error("error while writing block profile file", log.ErrorField(err))
-			}
-			if err := f.Close(); err != nil {
-				l.Error("error while closing block profile file", log.ErrorField(err))
-			}
+		if err := f.Close(); err != nil {
+			l.Error("error while closing block profile file", log.ErrorField(err))
 		}
 	}
 
@@ -158,56 +178,35 @@ func rootPostRun(ctx context.Context) {
 	if memProfile != "" {
 		l.Info("writing mem profiles")
 
+		// writeProfile writes the profile to a file.
+		writeProfile := func(profileName string, profile *pprof.Profile) {
+			file, err := os.Create(path.Clean(memProfile + profileName))
+			if err != nil {
+				l.Error(fmt.Sprintf("error while creating mem-profile %s file", profileName), log.ErrorField(err))
+				return
+			}
+			defer func() {
+				if err := file.Close(); err != nil {
+					l.Error(fmt.Sprintf("error while closing mem-profile %s file", profileName), log.ErrorField(err))
+				}
+			}()
+			if err := profile.WriteTo(file, 0); err != nil {
+				l.Error(fmt.Sprintf("error while writing mem-profile %s profile", profileName), log.ErrorField(err))
+			}
+		}
+
 		// If the memProfile does not have a suffix, add a dot to the end.
 		if !strings.HasSuffix(memProfile, ".") {
 			memProfile += "."
 		}
 
-		// Write the heap profile.
-		hp, err := os.Create(path.Clean(memProfile + "heap"))
-		if err != nil {
-			l.Error("error while creating mem-profile heap file", log.ErrorField(err))
-			return
-		}
-		defer func() {
-			if err := hp.Close(); err != nil {
-				l.Error("error while closing mem-profile heap file", log.ErrorField(err))
-			}
-		}()
-
-		ap, err := os.Create(path.Clean(memProfile + "allocs"))
-		if err != nil {
-			l.Error("error while creating mem-profile allocs file", log.ErrorField(err))
-			return
-		}
-		defer func() {
-			if err := ap.Close(); err != nil {
-				l.Error("error while closing mem-profile allocs file", log.ErrorField(err))
-			}
-		}()
-
-		gp, err := os.Create(path.Clean(memProfile + "goroutine"))
-		if err != nil {
-			l.Error("error while creating mem-profile goroutine file", log.ErrorField(err))
-			return
-		}
-		defer func() {
-			if err := gp.Close(); err != nil {
-				l.Error("error while closing mem-profile goroutine file", log.ErrorField(err))
-			}
-		}()
-
+		// Trigger a garbage collection to get up-to-date statistics.
 		runtime.GC()
 
-		if err := pprof.Lookup("heap").WriteTo(hp, 0); err != nil {
-			l.Error("error while writing heap profile", log.ErrorField(err))
-		}
-		if err := pprof.Lookup("allocs").WriteTo(ap, 0); err != nil {
-			l.Error("error while writing allocs profile", log.ErrorField(err))
-		}
-		if err := pprof.Lookup("goroutine").WriteTo(gp, 2); err != nil {
-			l.Error("error while writing goroutine profile", log.ErrorField(err))
-		}
+		// Write the profiles.
+		writeProfile("heap", pprof.Lookup("heap"))
+		writeProfile("allocs", pprof.Lookup("allocs"))
+		writeProfile("goroutine", pprof.Lookup("goroutine"))
 	}
 }
 
