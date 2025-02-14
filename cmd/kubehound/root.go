@@ -68,6 +68,7 @@ var (
 		},
 		PersistentPostRunE: func(cobraCmd *cobra.Command, _ []string) error {
 			defer rootPostRun(cobraCmd.Context())
+
 			return cmd.CloseKubehoundConfig(cobraCmd.Context())
 		},
 		SilenceUsage:  true,
@@ -121,6 +122,7 @@ func startCPUProfile(l log.LoggerI) error {
 		if err := f.Close(); err != nil {
 			l.Error("error while closing cpu profile file", log.ErrorField(err))
 		}
+
 		return err
 	}
 
@@ -182,16 +184,17 @@ func rootPostRun(ctx context.Context) {
 		writeProfile := func(profileName string, profile *pprof.Profile) {
 			file, err := os.Create(path.Clean(memProfile + profileName))
 			if err != nil {
-				l.Error(fmt.Sprintf("error while creating mem-profile %s file", profileName), log.ErrorField(err))
+				l.With(log.ErrorField(err)).Errorf("error while creating mem-profile %s file", profileName)
+
 				return
 			}
 			defer func() {
 				if err := file.Close(); err != nil {
-					l.Error(fmt.Sprintf("error while closing mem-profile %s file", profileName), log.ErrorField(err))
+					l.With(log.ErrorField(err)).Errorf("error while closing mem-profile %s file", profileName)
 				}
 			}()
 			if err := profile.WriteTo(file, 0); err != nil {
-				l.Error(fmt.Sprintf("error while writing mem-profile %s profile", profileName), log.ErrorField(err))
+				l.With(log.ErrorField(err)).Errorf("error while writing mem-profile %s profile", profileName)
 			}
 		}
 
