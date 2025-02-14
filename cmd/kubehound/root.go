@@ -216,7 +216,7 @@ func rootPostRun(ctx context.Context) {
 // Execute the root command.
 func Execute() error {
 	tag.SetupBaseTags()
-	
+
 	return rootCmd.Execute()
 }
 
