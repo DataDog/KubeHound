@@ -83,6 +83,6 @@ jobs:
         run: sleep 30
 
       - name: Run integration Tests
-        run: cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "180s" -count=1 -race ./...
+        run: make system-test-fast
         env:
-          KIND_KUBECONFIG: .kube-config
+          KIND_KUBECONFIG: ./test/setup/.kube-config

@@ -99,7 +99,7 @@ system-test: | build ## Run the system tests
 
 .PHONY: system-test-fast
 system-test-fast: ## Run the system tests WITHOUT recreating the backend
-	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "60s" -count=1 -race ./...
+	cd test/system && export KUBECONFIG=$(ROOT_DIR)/test/setup/${KIND_KUBECONFIG} && go test -v -timeout "120s" -count=1 -race ./...
 
 .PHONY: system-test-clean
 system-test-clean: | build ## Tear down the kubehound stack for the system-test
