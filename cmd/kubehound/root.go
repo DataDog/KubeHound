@@ -1,11 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"path"
+	"runtime"
+	"runtime/pprof"
+	"strings"
 
 	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/kubehound/core"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
+	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/spf13/cobra"
 )
 
@@ -19,10 +26,10 @@ var (
 		Use:   "kubehound",
 		Short: "A local Kubehound instance",
 		Long:  `A local instance of Kubehound - a Kubernetes attack path generator`,
-		PreRunE: func(cobraCmd *cobra.Command, args []string) error {
+		PreRunE: func(cobraCmd *cobra.Command, _ []string) error {
 			return cmd.InitializeKubehoundConfig(cobraCmd.Context(), cfgFile, true, false)
 		},
-		RunE: func(cobraCmd *cobra.Command, args []string) error {
+		RunE: func(cobraCmd *cobra.Command, _ []string) error {
 			l := log.Logger(cobraCmd.Context())
 			// auto spawning the backend stack
 			if !skipBackend {
@@ -56,15 +63,171 @@ var (
 
 			return nil
 		},
+		PersistentPreRunE: func(cobraCmd *cobra.Command, _ []string) error {
+			return rootPreRun(cobraCmd, nil)
+		},
+		PersistentPostRunE: func(cobraCmd *cobra.Command, _ []string) error {
+			defer rootPostRun(cobraCmd.Context())
+			return cmd.CloseKubehoundConfig(cobraCmd.Context())
+		},
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
+
+	// Profiling flags
+	cpuProfile   string
+	memProfile   string
+	blockProfile string
+
+	// cpuProfileCleanup is called after the root command is executed to
+	// cleanup a running cpu profile.
+	cpuProfileCleanup func()
+
+	// blockProfileCleanup is called after the root command is executed to
+	// cleanup a running block profile.
+	blockProfileCleanup func()
 )
 
-func init() {
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", cfgFile, "application config file")
+// rootPreRun is executed before the root command runs and sets up cpu
+// profiling.
+//
+// Bassed on https://golang.org/pkg/runtime/pprof/#hdr-Profiling_a_Go_program
+func rootPreRun(cobraCmd *cobra.Command, _ []string) error {
+	l := log.Logger(cobraCmd.Context())
 
-	rootCmd.PersistentFlags().BoolVar(&skipBackend, "skip-backend", skipBackend, "skip the auto deployment of the backend stack (janusgraph, mongodb, and UI)")
+	if cpuProfile != "" {
+		l.Info("starting cpu profile")
+
+		f, err := os.Create(path.Clean(cpuProfile))
+		if err != nil {
+			return fmt.Errorf("%w: unable to create CPU profile file", err)
+		}
+		if err := pprof.StartCPUProfile(f); err != nil {
+			if err := f.Close(); err != nil {
+				l.Error("error while closing cpu profile file", log.ErrorField(err))
+			}
+			return err
+		}
+
+		cpuProfileCleanup = func() {
+			l.Info("stopping cpu profile")
+			pprof.StopCPUProfile()
+			if err := f.Close(); err != nil {
+				l.Error("error while closing cpu profile file", log.ErrorField(err))
+			}
+		}
+	}
+
+	if blockProfile != "" {
+		l.Info("starting block profile")
+
+		runtime.SetBlockProfileRate(1)
+		f, err := os.Create(path.Clean(blockProfile))
+		if err != nil {
+			return fmt.Errorf("%w: unable to create block profile file", err)
+		}
+
+		p := pprof.Lookup("block")
+		blockProfileCleanup = func() {
+			l.Info("writing block profile")
+			if err := p.WriteTo(f, 0); err != nil {
+				l.Error("error while writing block profile file", log.ErrorField(err))
+			}
+			if err := f.Close(); err != nil {
+				l.Error("error while closing block profile file", log.ErrorField(err))
+			}
+		}
+	}
+
+	return nil
+}
+
+// rootPostRun is executed after the root command runs and performs memory
+// profiling.
+func rootPostRun(ctx context.Context) {
+	l := log.Logger(ctx)
+
+	if cpuProfileCleanup != nil {
+		cpuProfileCleanup()
+	}
+
+	if blockProfileCleanup != nil {
+		blockProfileCleanup()
+	}
+
+	if memProfile != "" {
+		l.Info("writing mem profiles")
+
+		// If the memProfile does not have a suffix, add a dot to the end.
+		if !strings.HasSuffix(memProfile, ".") {
+			memProfile += "."
+		}
+
+		// Write the heap profile.
+		hp, err := os.Create(path.Clean(memProfile + "heap"))
+		if err != nil {
+			l.Error("error while creating mem-profile heap file", log.ErrorField(err))
+			return
+		}
+		defer func() {
+			if err := hp.Close(); err != nil {
+				l.Error("error while closing mem-profile heap file", log.ErrorField(err))
+			}
+		}()
+
+		ap, err := os.Create(path.Clean(memProfile + "allocs"))
+		if err != nil {
+			l.Error("error while creating mem-profile allocs file", log.ErrorField(err))
+			return
+		}
+		defer func() {
+			if err := ap.Close(); err != nil {
+				l.Error("error while closing mem-profile allocs file", log.ErrorField(err))
+			}
+		}()
+
+		gp, err := os.Create(path.Clean(memProfile + "goroutine"))
+		if err != nil {
+			l.Error("error while creating mem-profile goroutine file", log.ErrorField(err))
+			return
+		}
+		defer func() {
+			if err := gp.Close(); err != nil {
+				l.Error("error while closing mem-profile goroutine file", log.ErrorField(err))
+			}
+		}()
+
+		runtime.GC()
+
+		if err := pprof.Lookup("heap").WriteTo(hp, 0); err != nil {
+			l.Error("error while writing heap profile", log.ErrorField(err))
+		}
+		if err := pprof.Lookup("allocs").WriteTo(ap, 0); err != nil {
+			l.Error("error while writing allocs profile", log.ErrorField(err))
+		}
+		if err := pprof.Lookup("goroutine").WriteTo(gp, 2); err != nil {
+			l.Error("error while writing goroutine profile", log.ErrorField(err))
+		}
+	}
+}
+
+// Execute the root command.
+func Execute() error {
+	tag.SetupBaseTags()
+	return rootCmd.Execute()
+}
+
+func init() {
+	rootFlags := rootCmd.PersistentFlags()
+
+	rootFlags.StringVarP(&cfgFile, "config", "c", cfgFile, "application config file")
+
+	rootFlags.BoolVar(&skipBackend, "skip-backend", skipBackend, "skip the auto deployment of the backend stack (janusgraph, mongodb, and UI)")
+
+	// Profiling flags
+	rootFlags.StringVar(&cpuProfile, "cpu-profile", "", "Save the pprof cpu profile in the specified file")
+	rootFlags.StringVar(&memProfile, "mem-profile", "", "Save the pprof mem profile in the specified file")
+	rootFlags.StringVar(&blockProfile, "block-profile", "", "Save the pprof block profile in the specified file")
 
 	cmd.InitRootCmd(rootCmd)
 }
