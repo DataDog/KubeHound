@@ -75,3 +75,9 @@ jobs:
         run: make system-test
         env:
           KIND_KUBECONFIG: .kube-config
+
+      - name: Dump JanusGraph Logs
+        run: docker logs kubehound-testing-kubegraph-1
+
+      - name: Dump MongoDB Logs
+        run: docker logs kubehound-testing-mongodb-1
