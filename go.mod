@@ -2,6 +2,11 @@ module github.com/DataDog/KubeHound
 
 go 1.23.0
 
+// in-toto dependency must be bumped to v0.9.0 to fix a breaking change in the
+// github.com/secure-systems-lab/go-securesystemslib package which breaks docker
+// compose.
+require github.com/in-toto/in-toto-golang v0.9.0 // indirect
+
 require (
 	github.com/DataDog/datadog-go/v5 v5.6.0
 	github.com/alitto/pond v1.9.2
@@ -173,7 +178,6 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
-	github.com/in-toto/in-toto-golang v0.5.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
