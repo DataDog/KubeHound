@@ -23,7 +23,6 @@ func (v *BaseVertex) BatchSize() int {
 func (v *BaseVertex) DefaultTraversal(label string) types.VertexTraversal {
 	return func(source *gremlingo.GraphTraversalSource, inserts []any) *gremlingo.GraphTraversal {
 		g := source.GetGraphTraversal().
-			//nolint:asasalint // required due to constraints in the gremlin API
 			Inject(inserts).
 			Unfold().As("entities").
 			AddV(label).As("vtx").

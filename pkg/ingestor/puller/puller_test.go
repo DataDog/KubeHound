@@ -124,11 +124,7 @@ func TestExtractTarGz(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			tmpPath, err := os.MkdirTemp("/tmp", "kubehound-test")
-			defer os.RemoveAll(tmpPath)
-			if err != nil {
-				t.Error(err)
-			}
+			tmpPath := t.TempDir()
 			dryRun := false
 			if err := ExtractTarGz(ctx, dryRun, "./testdata/archive.tar.gz", tmpPath, tt.args.maxArchiveSize); (err != nil) != tt.wantErr {
 				t.Errorf("ExtractTarGz() error = %v, wantErr %v", err, tt.wantErr)
