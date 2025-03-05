@@ -21,10 +21,7 @@ func TestFileWriter_Write(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	tmpDir, err := os.MkdirTemp("/tmp/", "kh-unit-tests-*")
-	if err != nil {
-		t.Fatalf("failer to create temp dir for test: %v", err)
-	}
+	tmpDir := t.TempDir()
 
 	fileNameK8sObject := collector.EndpointPath
 	dummyK8sObject := []*discoveryv1.EndpointSlice{

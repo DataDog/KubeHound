@@ -21,15 +21,8 @@ func TestTarWriter_Write(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	tmpTarFileDir, err := os.MkdirTemp("/tmp/", "kh-unit-tests-*")
-	if err != nil {
-		t.Fatalf("failed to create temporary directory: %v", err)
-	}
-
-	tmpTarExtractDir, err := os.MkdirTemp("/tmp/", "kh-unit-tests-*")
-	if err != nil {
-		t.Fatalf("failed to create temporary directory: %v", err)
-	}
+	tmpTarFileDir := t.TempDir()
+	tmpTarExtractDir := t.TempDir()
 
 	// Constructing a buffer of Endpoints objects in different namespaces/files
 	tarBundle := make(map[string]any)
