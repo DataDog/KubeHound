@@ -118,7 +118,7 @@ WARN[01:43:36] Password being 'admin'
 
 At this point, the KubeHound data has been ingested in KubeHound's [graph database](../architecture.md).
 You can use any client that supports accessing JanusGraph - a comprehensive list is available on the [JanusGraph home page](https://janusgraph.org/).
-We also provide a showcase [Jupyter Notebook](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/ui/KubeHound.ipynb) to get you started. This is accessible on [http://locahost:8888](http://locahost:8888) after starting KubeHound backend. The default password is `admin` but you can change this by setting the `NOTEBOOK_PASSWORD` environment variable in your `.env file`.
+We also provide a showcase [Jupyter Notebook](https://github.com/DataDog/KubeHound/blob/main/deployments/kubehound/ui/KubeHound.ipynb) to get you started. This is accessible on [http://localhost:8888](http://localhost:8888) after starting KubeHound backend. The default password is `admin` but you can change this by setting the `NOTEBOOK_PASSWORD` environment variable in your `.env file`.
 
 ## Visualize and query the KubeHound data
 
