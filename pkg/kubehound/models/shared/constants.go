@@ -3,6 +3,8 @@ package shared
 const (
 	VolumeTypeHost      = "HostPath"
 	VolumeTypeProjected = "Projected"
+	VolumeTypeSecret    = "Secret"
+	VolumeTypeConfigMap = "ConfigMap"
 )
 
 const (
