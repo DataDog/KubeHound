@@ -206,10 +206,6 @@ func (c *StoreConverter) Volume(ctx context.Context, input types.VolumeMountType
 
 			// Only a subset of volumes are currently supported
 			switch {
-			case v.ConfigMap != nil:
-				output.Type = shared.VolumeTypeConfigMap
-				output.TargetName = v.ConfigMap.Name
-				output.TargetNamespace = pod.K8.Namespace
 			case v.Secret != nil:
 				output.Type = shared.VolumeTypeSecret
 				output.TargetName = v.Secret.SecretName

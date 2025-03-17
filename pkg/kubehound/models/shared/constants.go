@@ -4,7 +4,6 @@ const (
 	VolumeTypeHost      = "HostPath"
 	VolumeTypeProjected = "Projected"
 	VolumeTypeSecret    = "Secret"
-	VolumeTypeConfigMap = "ConfigMap"
 )
 
 const (
