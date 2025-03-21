@@ -16,7 +16,7 @@ As stated in the 101 notebook, to launch gremlin queries against the KubeHound g
 
 This magic can take a bunch of parameters, you can get the help message by running a cell containing just
 ```python
-&&gremlin --help
+%%gremlin --help
 g
 ```
 
