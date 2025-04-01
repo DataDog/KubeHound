@@ -2,6 +2,8 @@ module github.com/DataDog/KubeHound
 
 go 1.23.0
 
+toolchain go1.24.1
+
 // in-toto dependency must be bumped to v0.9.0 to fix a breaking change in the
 // github.com/secure-systems-lab/go-securesystemslib package which breaks docker
 // compose.
@@ -156,7 +158,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.0.0 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
