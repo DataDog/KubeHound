@@ -64,6 +64,8 @@ RUN mkdir -p "${WORKING_DIR}" && \
     # Clone the repo and install python dependencies
     git clone https://github.com/aws/graph-notebook && \
     cd "${WORKING_DIR}/graph-notebook" && \
+    # setup.py doesn't exist in later versions of graph-notebook
+    git checkout v4.6.2 && \
     chown -R nonroot:nonroot "${WORKING_DIR}/graph-notebook" && \
     pip3 install --upgrade pip setuptools wheel && \
     pip3 install twine==3.7.1 && \
