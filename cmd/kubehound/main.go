@@ -6,6 +6,9 @@ import (
 	"github.com/DataDog/KubeHound/pkg/cmd"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
+
+	// Import all auth providers for kubernetes client.
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
 func main() {
