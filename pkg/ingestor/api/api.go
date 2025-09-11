@@ -139,7 +139,7 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error { //nolint:
 		md = dumpMetadata.Metadata
 	}
 
-	clusterName := md.ClusterName
+	clusterName := md.Cluster.Name
 	runID := md.RunID
 
 	err = g.lockRunID(runID)
@@ -149,7 +149,7 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error { //nolint:
 
 	defer g.unlockRunID(runID)
 
-	err = g.Cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID))
+	err = g.Cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithClusterVersionMajor(md.Cluster.VersionMajor), config.WithClusterVersionMinor(md.Cluster.VersionMinor), config.WithRunID(runID))
 	if err != nil {
 		return err
 	}

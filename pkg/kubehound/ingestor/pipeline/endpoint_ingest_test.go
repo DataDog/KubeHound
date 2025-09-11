@@ -124,8 +124,10 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 				Edge: config.EdgeBuilderConfig{},
 			},
 			Dynamic: config.DynamicConfig{
-				RunID:       testID,
-				ClusterName: "test-cluster",
+				RunID: testID,
+				Cluster: config.DynamicClusterInfo{
+					Name: "test-cluster",
+				},
 			},
 		},
 	}

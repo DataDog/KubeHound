@@ -55,8 +55,8 @@ func InitTelemetry(ctx context.Context, khCfg *config.KubehoundConfig) {
 
 func InitTags(ctx context.Context, khCfg *config.KubehoundConfig) {
 
-	if khCfg.Dynamic.ClusterName != "" {
-		tag.AppendBaseTags(tag.ClusterName(khCfg.Dynamic.ClusterName))
+	if khCfg.Dynamic.Cluster.Name != "" {
+		tag.AppendBaseTags(tag.ClusterName(khCfg.Dynamic.Cluster.Name))
 	}
 
 	if khCfg.Dynamic.RunID != nil {

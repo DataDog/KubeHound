@@ -29,8 +29,11 @@ const (
 func NewDumpResult(clusterName, runID string, isCompressed bool) (*DumpResult, error) {
 	dumpResult := &DumpResult{
 		Metadata: collector.Metadata{
-			ClusterName: clusterName,
-			RunID:       runID,
+			Cluster: collector.ClusterInfo{
+				Name: clusterName,
+				// Version info is populated at collection time
+			},
+			RunID: runID,
 		},
 		isDir: true,
 	}
@@ -74,11 +77,11 @@ func (i *DumpResult) Compressed() {
 func (i *DumpResult) GetFullPath() string {
 	filename := i.GetFilename()
 
-	return path.Join(i.Metadata.ClusterName, filename)
+	return path.Join(i.Metadata.Cluster.Name, filename)
 }
 
 func (i *DumpResult) GetFilename() string {
-	filename := fmt.Sprintf("%s%s_%s", DumpResultPrefix, i.Metadata.ClusterName, i.Metadata.RunID)
+	filename := fmt.Sprintf("%s%s_%s", DumpResultPrefix, i.Metadata.Cluster.Name, i.Metadata.RunID)
 	if i.isDir {
 		return filename
 	}

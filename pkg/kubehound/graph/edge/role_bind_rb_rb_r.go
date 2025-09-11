@@ -67,9 +67,9 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 		bson.M{
 			"$match": bson.M{
 				// looking for RB CR/R role only
-				"is_namespaced":   true,
-				"runtime.runID":   e.runtime.RunID.String(),
-				"runtime.cluster": e.runtime.ClusterName,
+				"is_namespaced":        true,
+				"runtime.runID":        e.runtime.RunID.String(),
+				"runtime.cluster.name": e.runtime.Cluster.Name,
 				"$and": []bson.M{
 					// Looking for RBAC objects
 					{
@@ -156,8 +156,8 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, store storedb.Provider, c ca
 								}},
 								bson.M{"is_namespaced": true},
 							},
-							"runtime.runID":   e.runtime.RunID.String(),
-							"runtime.cluster": e.runtime.ClusterName,
+							"runtime.runID":        e.runtime.RunID.String(),
+							"runtime.cluster.name": e.runtime.Cluster.Name,
 						},
 					},
 					{

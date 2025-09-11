@@ -62,7 +62,7 @@ var (
 			}
 			// Running the ingestion on KHaaS
 			if khCfg.Ingestor.API.Endpoint != "" {
-				return core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.ClusterName, khCfg.Dynamic.RunID.String())
+				return core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.Cluster.Name, khCfg.Dynamic.RunID.String())
 			}
 
 			return err

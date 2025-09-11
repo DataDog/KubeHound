@@ -69,7 +69,7 @@ var (
 				return core.CoreClientGRPCRehydrateLatest(cobraCmd.Context(), khCfg.Ingestor)
 			}
 
-			return core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.ClusterName, runID)
+			return core.CoreClientGRPCIngest(cobraCmd.Context(), khCfg.Ingestor, khCfg.Dynamic.Cluster.Name, runID)
 		},
 	}
 )

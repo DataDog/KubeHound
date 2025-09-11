@@ -55,7 +55,7 @@ func (e *EscapeNsenter) Stream(ctx context.Context, store storedb.Provider, _ ca
 		"k8.securitycontext.privileged": true,
 		"inherited.host_pid":            true,
 		"runtime.runID":                 e.runtime.RunID.String(),
-		"runtime.cluster":               e.runtime.ClusterName,
+		"runtime.cluster.name":          e.runtime.Cluster.Name,
 	}
 
 	// We just need a 1:1 mapping of the node and container to create this edge

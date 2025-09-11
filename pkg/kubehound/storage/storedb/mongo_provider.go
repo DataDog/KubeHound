@@ -119,8 +119,8 @@ func (mp *MongoProvider) Clean(ctx context.Context, cluster string, runId string
 		return fmt.Errorf("listing mongo DB collections: %w", err)
 	}
 	filter := bson.M{
-		"runtime.runID":   runId,
-		"runtime.cluster": cluster,
+		"runtime.runID":        runId,
+		"runtime.cluster.name": cluster,
 	}
 	for _, collectionName := range collections {
 		res, err := db.Collection(collectionName).DeleteMany(ctx, filter)

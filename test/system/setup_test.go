@@ -228,7 +228,7 @@ func DumpAndRun(ctx context.Context, compress bool, p *providers.ProvidersFactor
 	// Extracting info from Dump phase
 	runArgs := &runArgs{
 		runID:         khCfg.Dynamic.RunID.String(),
-		cluster:       khCfg.Dynamic.ClusterName,
+		cluster:       khCfg.Dynamic.Cluster.Name,
 		collectorPath: khCfg.Collector.File.Directory,
 		resultPath:    resultPath,
 	}
@@ -334,7 +334,7 @@ func (s *GRPCTestSuite) SetupSuite() {
 	// Extracting info from Dump phase
 	runArgs := &runArgs{
 		runID:         khCfg.Dynamic.RunID.String(),
-		cluster:       khCfg.Dynamic.ClusterName,
+		cluster:       khCfg.Dynamic.Cluster.Name,
 		collectorPath: khCfg.Collector.File.Directory,
 	}
 

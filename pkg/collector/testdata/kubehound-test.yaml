@@ -3,4 +3,7 @@ collector:
   file:
     directory: testdata/test-cluster/
 dynamic:
-  cluster_name: test-cluster
+  cluster:
+    name: test-cluster
+    version_major: "1"
+    version_minor: "31"

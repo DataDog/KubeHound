@@ -47,17 +47,22 @@ func CoreLocalIngest(ctx context.Context, khCfg *config.KubehoundConfig, resultP
 		// Backward Compatibility: not returning error for now as the metadata feature is new
 		l.Warn("no metadata has been parsed (old dump format from v1.4.0 or below do not embed metadata information)", log.ErrorField(err))
 	} else {
-		khCfg.Dynamic.ClusterName = md.ClusterName
+		khCfg.Dynamic.Cluster.Name = md.Cluster.Name
+		khCfg.Dynamic.Cluster.VersionMajor = md.Cluster.VersionMajor
+		khCfg.Dynamic.Cluster.VersionMinor = md.Cluster.VersionMinor
 	}
 
 	// Backward Compatibility: Extracting the metadata from the path or input args
 	// If the cluster name is not provided by the command args (deprecated flag), we try to get it from the path
-	if khCfg.Dynamic.ClusterName == "" {
+	if khCfg.Dynamic.Cluster.Name == "" {
 		dumpMetadata, err := dump.ParsePath(ctx, resultPath)
 		if err != nil {
 			l.Warnf("parsing path for metadata", log.ErrorField(err))
 		}
-		khCfg.Dynamic.ClusterName = dumpMetadata.Metadata.ClusterName
+		khCfg.Dynamic.Cluster.Name = dumpMetadata.Metadata.Cluster.Name
+		// Version major and minor are not available in the old dump format
+		khCfg.Dynamic.Cluster.VersionMajor = ""
+		khCfg.Dynamic.Cluster.VersionMinor = ""
 	}
 
 	return CoreLive(ctx, khCfg)

@@ -68,7 +68,7 @@ func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _
 			"$match": bson.M{
 				"k8.spec.shareprocessnamespace": true,
 				"runtime.runID":                 e.runtime.RunID.String(),
-				"runtime.cluster":               e.runtime.ClusterName,
+				"runtime.cluster.name":          e.runtime.Cluster.Name,
 			},
 		},
 		{

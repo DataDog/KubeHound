@@ -33,7 +33,7 @@ func getGrpcConn(ingestorConfig config.IngestorConfig) (*grpc.ClientConn, error)
 	return conn, nil
 }
 
-func CoreClientGRPCIngest(ctx context.Context, ingestorConfig config.IngestorConfig, clusteName string, runID string) error {
+func CoreClientGRPCIngest(ctx context.Context, ingestorConfig config.IngestorConfig, clusterName string, runID string) error {
 	l := log.Logger(ctx)
 	conn, err := getGrpcConn(ingestorConfig)
 	if err != nil {
@@ -45,10 +45,10 @@ func CoreClientGRPCIngest(ctx context.Context, ingestorConfig config.IngestorCon
 
 	_, err = client.Ingest(ctx, &pb.IngestRequest{
 		RunId:       runID,
-		ClusterName: clusteName,
+		ClusterName: clusterName,
 	})
 	if err != nil {
-		return fmt.Errorf("call Ingest (%s:%s): %w", clusteName, runID, err)
+		return fmt.Errorf("call Ingest (%s:%s): %w", clusterName, runID, err)
 	}
 
 	return nil
