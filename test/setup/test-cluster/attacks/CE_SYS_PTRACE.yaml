@@ -13,6 +13,8 @@ spec:
       command: [ "/bin/sh", "-c", "--" ]
       args: [ "while true; do sleep 30; done;" ]
       securityContext:
+        appArmorProfile:
+          type: Unconfined
         capabilities:
           add:
           - SYS_PTRACE

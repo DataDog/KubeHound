@@ -56,9 +56,25 @@ func (e *EscapeSysPtrace) Stream(ctx context.Context, store storedb.Provider, _ 
 			bson.M{"inherited.host_pid": true},
 			bson.M{"k8.securitycontext.capabilities.add": "SYS_PTRACE"},
 			bson.M{"k8.securitycontext.capabilities.add": "SYS_ADMIN"},
+			bson.M{
+				"$or": bson.A{
+					bson.M{"k8.securitycontext.apparmorprofile.type": "Unconfined"},
+					// Technically true, but in this case the CE_NSENTER attack is also possible and easier to execute
+					// bson.M{"k8.securitycontext.privileged": true},
+					// AppArmor is enabled by default since Kubernetes 1.31
+					bson.M{
+						"$expr": bson.M{
+							"$and": bson.A{
+								bson.M{"$lte": bson.A{bson.M{"$toInt": "$runtime.cluster.version_major"}, 1}},
+								bson.M{"$lt": bson.A{bson.M{"$toInt": "$runtime.cluster.version_minor"}, 31}},
+							},
+						},
+					},
+				},
+			},
 		},
-		"runtime.runID":   e.runtime.RunID.String(),
-		"runtime.cluster": e.runtime.ClusterName,
+		"runtime.runID":        e.runtime.RunID.String(),
+		"runtime.cluster.name": e.runtime.Cluster.Name,
 	}
 
 	// We just need a 1:1 mapping of the node and container to create this edge
