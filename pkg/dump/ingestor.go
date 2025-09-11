@@ -120,13 +120,13 @@ func ParsePath(ctx context.Context, path string) (*DumpResult, error) {
 	// re := regexp.MustCompile(`([a-z0-9\.\-_]+)/kubehound_([a-z0-9\.-_]+)_([a-z0-9]{26})\.?([a-z0-9\.]+)?`)
 	re := regexp.MustCompile(DumpResultPathRegex)
 	if !re.MatchString(path) {
-		return nil, fmt.Errorf("Invalid path provided: %q", path)
+		return nil, fmt.Errorf("invalid path provided: %q", path)
 	}
 
 	matches := re.FindStringSubmatch(path)
 	// The cluster name should match (parent dir and in the filename)
 	if matches[1] != matches[2] {
-		return nil, fmt.Errorf("Cluster name does not match in the path provided: %q", path)
+		return nil, fmt.Errorf("cluster name does not match in the path provided: %q", path)
 	}
 
 	clusterName := matches[1]

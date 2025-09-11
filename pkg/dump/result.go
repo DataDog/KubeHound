@@ -51,18 +51,18 @@ func NewDumpResult(clusterName, runID string, isCompressed bool) (*DumpResult, e
 
 func (i *DumpResult) Validate() error {
 	re := regexp.MustCompile(DumpResultClusterNameRegex)
-	if !re.MatchString(i.Metadata.ClusterName) {
-		return fmt.Errorf("Invalid clustername: %q", i.Metadata.ClusterName)
+	if !re.MatchString(i.Metadata.Cluster.Name) {
+		return fmt.Errorf("invalid clustername: %q", i.Metadata.Cluster.Name)
 	}
 
-	matches := re.FindStringSubmatch(i.Metadata.ClusterName)
-	if len(matches) == 2 && matches[1] != i.Metadata.ClusterName {
-		return fmt.Errorf("Invalid clustername: %q", i.Metadata.ClusterName)
+	matches := re.FindStringSubmatch(i.Metadata.Cluster.Name)
+	if len(matches) == 2 && matches[1] != i.Metadata.Cluster.Name {
+		return fmt.Errorf("invalid clustername: %q", i.Metadata.Cluster.Name)
 	}
 
 	re = regexp.MustCompile(DumpResultRunIDRegex)
 	if !re.MatchString(i.Metadata.RunID) {
-		return fmt.Errorf("Invalid runID: %q", i.Metadata.RunID)
+		return fmt.Errorf("invalid runID: %q", i.Metadata.RunID)
 	}
 
 	return nil
