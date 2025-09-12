@@ -21,7 +21,7 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 	t.Parallel()
 
 	ri := &RoleIngest{}
-	ctx := context.Background()
+	ctx := t.Context()
 	fakeRole, err := loadTestObject[types.RoleType]("testdata/role.json")
 	assert.NoError(t, err)
 

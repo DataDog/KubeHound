@@ -45,7 +45,7 @@ func closingSequence(ctx context.Context, t *testing.T, mDumpWriter *mockwriter.
 
 func TestPipelineDumpIngestor_Run(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	singleThreadedPipeline := func(t *testing.T) (*mockwriter.DumperWriter, collector.CollectorClient) {
 		t.Helper()

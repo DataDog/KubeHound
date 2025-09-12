@@ -15,7 +15,7 @@ import (
 )
 
 func TestNewK8sAPICollectorConfig(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 	t.Parallel()
 
 	type args struct {
@@ -81,7 +81,7 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			v := viper.New()
-			cfg, err := config.NewConfig(context.TODO(), v, tt.args.path)
+			cfg, err := config.NewConfig(t.Context(), v, tt.args.path)
 			assert.NoError(t, err)
 			err = checkK8sAPICollectorConfig(cfg.Collector.Type)
 			if (err != nil) != tt.wantErr {
@@ -101,7 +101,7 @@ func TestNewK8sAPICollectorConfig(t *testing.T) {
 
 func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// 0 pod found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.PodIngestor) {
@@ -169,7 +169,7 @@ func Test_k8sAPICollector_streamPodsNamespace(t *testing.T) {
 
 func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// 0 roles
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.RoleIngestor) {
@@ -237,7 +237,7 @@ func Test_k8sAPICollector_StreamRoles(t *testing.T) {
 
 func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// 0 role bindings found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.RoleBindingIngestor) {
@@ -305,7 +305,7 @@ func Test_k8sAPICollector_StreamRoleBindings(t *testing.T) {
 
 func Test_k8sAPICollector_StreamNodes(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// 0 nodes found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.NodeIngestor) {
@@ -373,7 +373,7 @@ func Test_k8sAPICollector_StreamNodes(t *testing.T) {
 
 func Test_k8sAPICollector_StreamClusterRoles(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// 0 cluster roles found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.ClusterRoleIngestor) {
@@ -441,7 +441,7 @@ func Test_k8sAPICollector_StreamClusterRoles(t *testing.T) {
 
 func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// 0 cluster role bindings found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.ClusterRoleBindingIngestor) {
@@ -509,7 +509,7 @@ func Test_k8sAPICollector_StreamClusterRoleBindings(t *testing.T) {
 
 func Test_k8sAPICollector_StreamEndpoints(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// 0 endpoints found
 	test1 := func(t *testing.T) (*fake.Clientset, *mocks.EndpointIngestor) {

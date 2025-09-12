@@ -31,7 +31,7 @@ func TestMicroBatcher_AfterBatchSize(t *testing.T) {
 
 	underTest, writerFuncCalledCount := microBatcherTestInstance(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 	underTest.Start(ctx)
 
@@ -49,7 +49,7 @@ func TestMicroBatcher_AfterFlush(t *testing.T) {
 
 	underTest, writerFuncCalledCount := microBatcherTestInstance(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 	underTest.Start(ctx)
 

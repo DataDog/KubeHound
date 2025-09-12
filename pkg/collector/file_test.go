@@ -2,7 +2,6 @@
 package collector
 
 import (
-	"context"
 	"testing"
 
 	mocks "github.com/DataDog/KubeHound/pkg/collector/mockingest"
@@ -16,10 +15,10 @@ func TestFileCollector_Constructor(t *testing.T) {
 	t.Parallel()
 
 	v := viper.New()
-	cfg, err := config.NewConfig(context.TODO(), v, "testdata/kubehound-test.yaml")
+	cfg, err := config.NewConfig(t.Context(), v, "testdata/kubehound-test.yaml")
 	assert.NoError(t, err)
 
-	c, err := NewFileCollector(context.Background(), cfg)
+	c, err := NewFileCollector(t.Context(), cfg)
 	assert.NoError(t, err)
 	assert.IsType(t, &FileCollector{}, c)
 	assert.Equal(t, cfg.Collector.File.Directory, c.(*FileCollector).cfg.Directory)
@@ -34,7 +33,7 @@ func TestFileCollector_HealthCheck(t *testing.T) {
 		},
 	}
 
-	ok, err := c.HealthCheck(context.Background())
+	ok, err := c.HealthCheck(t.Context())
 	assert.False(t, ok)
 	assert.ErrorContains(t, err, "no such file or directory")
 
@@ -44,7 +43,7 @@ func TestFileCollector_HealthCheck(t *testing.T) {
 		},
 	}
 
-	ok, err = c.HealthCheck(context.Background())
+	ok, err = c.HealthCheck(t.Context())
 	assert.False(t, ok)
 	assert.ErrorContains(t, err, "is not a directory")
 
@@ -55,7 +54,7 @@ func TestFileCollector_HealthCheck(t *testing.T) {
 		clusterName: "test-cluster",
 	}
 
-	ok, err = c.HealthCheck(context.Background())
+	ok, err = c.HealthCheck(t.Context())
 	assert.True(t, ok)
 	assert.NoError(t, err)
 }
@@ -64,10 +63,10 @@ func NewTestFileCollector(t *testing.T) *FileCollector {
 	t.Helper()
 
 	v := viper.New()
-	cfg, err := config.NewConfig(context.TODO(), v, "testdata/kubehound-test.yaml")
+	cfg, err := config.NewConfig(t.Context(), v, "testdata/kubehound-test.yaml")
 	assert.NoError(t, err)
 
-	c, err := NewFileCollector(context.Background(), cfg)
+	c, err := NewFileCollector(t.Context(), cfg)
 	assert.NoError(t, err)
 
 	return c.(*FileCollector)
@@ -77,7 +76,7 @@ func TestFileCollector_ClusterInfo(t *testing.T) {
 	t.Parallel()
 
 	c := NewTestFileCollector(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	info, err := c.ClusterInfo(ctx)
 	assert.NoError(t, err)
@@ -88,7 +87,7 @@ func TestFileCollector_StreamNodes(t *testing.T) {
 	t.Parallel()
 
 	c := NewTestFileCollector(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	i := mocks.NewNodeIngestor(t)
 
 	i.EXPECT().IngestNode(mock.Anything, mock.AnythingOfType("types.NodeType")).Return(nil)
@@ -102,7 +101,7 @@ func TestFileCollector_StreamPods(t *testing.T) {
 	t.Parallel()
 
 	c := NewTestFileCollector(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	i := mocks.NewPodIngestor(t)
 
 	i.EXPECT().IngestPod(mock.Anything, mock.AnythingOfType("types.PodType")).Return(nil).Twice()
@@ -116,7 +115,7 @@ func TestFileCollector_StreamRoles(t *testing.T) {
 	t.Parallel()
 
 	c := NewTestFileCollector(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	i := mocks.NewRoleIngestor(t)
 
 	i.EXPECT().IngestRole(mock.Anything, mock.AnythingOfType("types.RoleType")).Return(nil).Twice()
@@ -130,7 +129,7 @@ func TestFileCollector_StreamRoleBindings(t *testing.T) {
 	t.Parallel()
 
 	c := NewTestFileCollector(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	i := mocks.NewRoleBindingIngestor(t)
 
 	i.EXPECT().IngestRoleBinding(mock.Anything, mock.AnythingOfType("types.RoleBindingType")).Return(nil).Twice()
@@ -144,7 +143,7 @@ func TestFileCollector_StreamClusterRoles(t *testing.T) {
 	t.Parallel()
 
 	c := NewTestFileCollector(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	i := mocks.NewClusterRoleIngestor(t)
 
 	i.EXPECT().IngestClusterRole(mock.Anything, mock.AnythingOfType("types.ClusterRoleType")).Return(nil)
@@ -158,7 +157,7 @@ func TestFileCollector_StreamClusterRoleBindings(t *testing.T) {
 	t.Parallel()
 
 	c := NewTestFileCollector(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	i := mocks.NewClusterRoleBindingIngestor(t)
 
 	i.EXPECT().IngestClusterRoleBinding(mock.Anything, mock.AnythingOfType("types.ClusterRoleBindingType")).Return(nil)
@@ -172,7 +171,7 @@ func TestFileCollector_StreamEndpoints(t *testing.T) {
 	t.Parallel()
 
 	c := NewTestFileCollector(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	i := mocks.NewEndpointIngestor(t)
 
 	i.EXPECT().IngestEndpoint(mock.Anything, mock.AnythingOfType("types.EndpointType")).Return(nil)

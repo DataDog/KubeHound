@@ -32,7 +32,7 @@ func IngestData(ctx context.Context, cfg *config.KubehoundConfig, collect collec
 	}
 	defer ingest.Close(ctx)
 
-	l.Info("Running deependency health checks")
+	l.Info("Running dependency health checks")
 	if err := ingest.HealthCheck(ctx); err != nil {
 		return fmt.Errorf("ingestor dependency health check: %w", err)
 	}

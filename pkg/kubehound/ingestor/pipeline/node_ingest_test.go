@@ -24,7 +24,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	t.Parallel()
 	ni := &NodeIngest{}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	fakeNode, err := loadTestObject[types.NodeType]("testdata/node.json")
 	assert.NoError(t, err)
 

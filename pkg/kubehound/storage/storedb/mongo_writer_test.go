@@ -30,12 +30,12 @@ func makeDB(t *testing.T) (*mongo.Database, CleanupFunc) {
 			ConnectionTimeout: 1 * time.Second,
 		},
 	}
-	mp, err := NewMongoProvider(context.Background(), cfg)
+	mp, err := NewMongoProvider(t.Context(), cfg)
 	assert.NoError(t, err)
 
 	db := mp.writer.Database("testdb")
 	cleanup := func() {
-		_ = mp.writer.Disconnect(context.Background())
+		_ = mp.writer.Disconnect(t.Context())
 	}
 
 	return db, cleanup
@@ -54,7 +54,7 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 		FieldB: "lol",
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	db, cleanup := makeDB(t)
 	t.Cleanup(cleanup)
 
@@ -78,7 +78,7 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 			name: "test adding one item in mongo db queue",
 			args: []args{
 				{
-					ctx:   context.TODO(),
+					ctx:   t.Context(),
 					model: fakeElem,
 				},
 			},
@@ -89,11 +89,11 @@ func TestMongoAsyncWriter_Queue(t *testing.T) {
 			name: "test adding multiple items in mongo db queue",
 			args: []args{
 				{
-					ctx:   context.TODO(),
+					ctx:   t.Context(),
 					model: fakeElem,
 				},
 				{
-					ctx:   context.TODO(),
+					ctx:   t.Context(),
 					model: "test random string insert 2",
 				},
 			},
@@ -158,16 +158,16 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 			name: "test flushing 2 items from mongo db queue",
 			argsQueue: []argsQueue{
 				{
-					ctx:   context.Background(),
+					ctx:   t.Context(),
 					model: fakeElem,
 				},
 				{
-					ctx:   context.Background(),
+					ctx:   t.Context(),
 					model: fakeElem,
 				},
 			},
 			argsFlush: argsFlush{
-				ctx: context.Background(),
+				ctx: t.Context(),
 			},
 			queueSize: 0,
 			wantErr:   false,
@@ -176,7 +176,7 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 			name:      "test flushing 0 items from mongo db queue",
 			argsQueue: []argsQueue{},
 			argsFlush: argsFlush{
-				ctx: context.Background(),
+				ctx: t.Context(),
 			},
 			queueSize: 0,
 			wantErr:   false,
@@ -185,39 +185,39 @@ func TestMongoAsyncWriter_Flush(t *testing.T) {
 			name: "test flushing 6 items from mongo db queue (with TestBatchSize = 5)",
 			argsQueue: []argsQueue{
 				{
-					ctx:   context.Background(),
+					ctx:   t.Context(),
 					model: fakeElem,
 				},
 				{
-					ctx:   context.Background(),
+					ctx:   t.Context(),
 					model: fakeElem,
 				},
 				{
-					ctx:   context.Background(),
+					ctx:   t.Context(),
 					model: fakeElem,
 				},
 				{
-					ctx:   context.Background(),
+					ctx:   t.Context(),
 					model: fakeElem,
 				},
 				{
-					ctx:   context.Background(),
+					ctx:   t.Context(),
 					model: fakeElem,
 				},
 				{
-					ctx:   context.Background(),
+					ctx:   t.Context(),
 					model: fakeElem,
 				},
 			},
 			argsFlush: argsFlush{
-				ctx: context.Background(),
+				ctx: t.Context(),
 			},
 			queueSize: 0,
 			wantErr:   false,
 		},
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	db, cleanup := makeDB(t)
 	t.Cleanup(cleanup)
 

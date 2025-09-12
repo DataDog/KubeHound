@@ -1,7 +1,6 @@
 package writer
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"os"
@@ -19,7 +18,7 @@ const (
 
 func TestFileWriter_Write(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	tmpDir := t.TempDir()
 

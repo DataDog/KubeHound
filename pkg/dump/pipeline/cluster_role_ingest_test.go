@@ -1,7 +1,6 @@
 package pipeline
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -13,7 +12,7 @@ import (
 
 func TestDumpIngestor_IngestClusterRole(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// no ingestion
 	noIngest := func(t *testing.T, _ []*rbacv1.ClusterRole) *ClusterRoleIngestor {

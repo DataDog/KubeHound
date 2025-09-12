@@ -1,7 +1,6 @@
 package converter
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -52,7 +51,7 @@ func loadTestObject[T types.InputType](filename string) (T, error) {
 func TestConverter_NodePipeline(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	input, err := loadTestObject[types.NodeType]("testdata/node.json")
 	assert.NoError(t, err, "node load error")
 
@@ -93,7 +92,7 @@ func TestConverter_RolePipeline(t *testing.T) {
 	assert.NoError(t, err, "role load error")
 
 	// Collector input -> store model
-	storeRole, err := NewStore(testConfig).Role(context.TODO(), input)
+	storeRole, err := NewStore(testConfig).Role(t.Context(), input)
 	assert.NoError(t, err, "store role convert error")
 
 	assert.Equal(t, storeRole.Name, input.Name)
@@ -111,7 +110,7 @@ func TestConverter_ClusterRolePipeline(t *testing.T) {
 	assert.NoError(t, err, "cluster role load error")
 
 	// Collector input -> store model
-	storeRole, err := NewStore(testConfig).ClusterRole(context.TODO(), input)
+	storeRole, err := NewStore(testConfig).ClusterRole(t.Context(), input)
 	assert.NoError(t, err, "store role convert error")
 
 	assert.Equal(t, storeRole.Name, input.Name)
@@ -131,7 +130,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	rawRole, err := loadTestObject[types.RoleType]("testdata/role.json")
 	assert.NoError(t, err, "role load error")
 
-	linkedRole, err := NewStore(testConfig).Role(context.TODO(), rawRole)
+	linkedRole, err := NewStore(testConfig).Role(t.Context(), rawRole)
 	assert.NoError(t, err, "role convert error")
 
 	c := mocks.NewCacheReader(t)
@@ -145,7 +144,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	})
 
 	// Collector input -> store rolebinding
-	storeBinding, err := NewStoreWithCache(testConfig, c).RoleBinding(context.TODO(), input)
+	storeBinding, err := NewStoreWithCache(testConfig, c).RoleBinding(t.Context(), input)
 	assert.NoError(t, err, "store role binding convert error")
 
 	assert.Equal(t, storeBinding.Name, input.Name)
@@ -160,7 +159,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, subject.Subject, input.Subjects[0])
 
 	// Collector input -> store identity
-	storeIdentity, err := NewStore(testConfig).Identity(context.TODO(), &subject, storeBinding)
+	storeIdentity, err := NewStore(testConfig).Identity(t.Context(), &subject, storeBinding)
 	assert.NoError(t, err, "store identity convert error")
 
 	assert.Equal(t, subject.Subject.Name, storeIdentity.Name)
@@ -168,7 +167,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, subject.Subject.Kind, storeIdentity.Type)
 
 	// Collector input -> store permissions
-	storePermissionSet, err := NewStoreWithCache(testConfig, c).PermissionSet(context.TODO(), storeBinding)
+	storePermissionSet, err := NewStoreWithCache(testConfig, c).PermissionSet(t.Context(), storeBinding)
 	assert.NoError(t, err, "store permission set convert error")
 
 	assert.True(t, storePermissionSet.IsNamespaced)
@@ -221,7 +220,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	rawRole, err := loadTestObject[types.ClusterRoleType]("testdata/clusterrole.json")
 	assert.NoError(t, err, "role load error")
 
-	linkedRole, err := NewStore(testConfig).ClusterRole(context.TODO(), rawRole)
+	linkedRole, err := NewStore(testConfig).ClusterRole(t.Context(), rawRole)
 	assert.NoError(t, err, "role convert error")
 
 	c := mocks.NewCacheReader(t)
@@ -235,7 +234,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	})
 
 	// Collector input -> store rolebinding
-	storeBinding, err := NewStoreWithCache(testConfig, c).ClusterRoleBinding(context.TODO(), input)
+	storeBinding, err := NewStoreWithCache(testConfig, c).ClusterRoleBinding(t.Context(), input)
 	assert.NoError(t, err, "store cluster role binding convert error")
 
 	assert.Equal(t, storeBinding.Name, input.Name)
@@ -250,7 +249,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, subject.Subject, input.Subjects[0])
 
 	// Collector input -> store permissions
-	storePermissionSet, err := NewStoreWithCache(testConfig, c).PermissionSetCluster(context.TODO(), storeBinding)
+	storePermissionSet, err := NewStoreWithCache(testConfig, c).PermissionSetCluster(t.Context(), storeBinding)
 	assert.NoError(t, err, "store permission set convert error")
 
 	assert.False(t, storePermissionSet.IsNamespaced)
@@ -261,7 +260,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, storeBinding.Id, storePermissionSet.RoleBindingId)
 
 	// Collector input -> store identity
-	storeIdentity, err := NewStore(testConfig).Identity(context.TODO(), &subject, storeBinding)
+	storeIdentity, err := NewStore(testConfig).Identity(t.Context(), &subject, storeBinding)
 	assert.NoError(t, err, "store identity convert error")
 
 	assert.Equal(t, subject.Subject.Name, storeIdentity.Name)
@@ -338,7 +337,7 @@ func TestConverter_PermissionSet_ClusterRole_RoleBinding(t *testing.T) {
 		Err:   nil,
 	})
 
-	ps, err := NewStoreWithCache(testConfig, c).PermissionSet(context.TODO(), &rb)
+	ps, err := NewStoreWithCache(testConfig, c).PermissionSet(t.Context(), &rb)
 	assert.NoError(t, err, "store permission set convert error")
 
 	assert.True(t, ps.IsNamespaced)
@@ -381,7 +380,7 @@ func TestConverter_PermissionSet_Role_RoleBinding_Namespace(t *testing.T) {
 		Err:   nil,
 	})
 
-	ps, err := NewStoreWithCache(testConfig, c).PermissionSet(context.TODO(), &rb)
+	ps, err := NewStoreWithCache(testConfig, c).PermissionSet(t.Context(), &rb)
 	assert.NoError(t, err, "store permission set convert error")
 
 	assert.True(t, ps.IsNamespaced)
@@ -424,7 +423,7 @@ func TestConverter_PermissionSet_InvalidCombination_Namespace(t *testing.T) {
 		Err:   nil,
 	})
 
-	_, err := NewStoreWithCache(testConfig, c).PermissionSet(context.TODO(), &rb)
+	_, err := NewStoreWithCache(testConfig, c).PermissionSet(t.Context(), &rb)
 	assert.ErrorContains(t, err, "incorrect combination ")
 }
 
@@ -464,7 +463,7 @@ func TestConverter_PermissionSet_InvalidCombination_Users(t *testing.T) {
 		Err:   nil,
 	})
 
-	_, err := NewStoreWithCache(testConfig, c).PermissionSet(context.TODO(), &rb)
+	_, err := NewStoreWithCache(testConfig, c).PermissionSet(t.Context(), &rb)
 	assert.ErrorContains(t, err, "incorrect combination ")
 }
 
@@ -504,7 +503,7 @@ func TestConverter_PermissionSet_InvalidCombination_Types(t *testing.T) {
 		Err:   nil,
 	})
 
-	_, err := NewStoreWithCache(testConfig, c).PermissionSetCluster(context.TODO(), &crb)
+	_, err := NewStoreWithCache(testConfig, c).PermissionSetCluster(t.Context(), &crb)
 	assert.ErrorContains(t, err, "incorrect combination ")
 }
 
@@ -520,13 +519,13 @@ func TestConverter_RoleCacheFailure(t *testing.T) {
 	rb, err := loadTestObject[types.RoleBindingType]("testdata/rolebinding.json")
 	assert.NoError(t, err, "role binding load error")
 
-	_, err = NewStoreWithCache(testConfig, c).RoleBinding(context.TODO(), rb)
+	_, err = NewStoreWithCache(testConfig, c).RoleBinding(t.Context(), rb)
 	assert.ErrorContains(t, err, "role binding found with no matching role")
 
 	crb, err := loadTestObject[types.ClusterRoleBindingType]("testdata/clusterrolebinding.json")
 	assert.NoError(t, err, "cluster role binding load error")
 
-	_, err = NewStoreWithCache(testConfig, c).ClusterRoleBinding(context.TODO(), crb)
+	_, err = NewStoreWithCache(testConfig, c).ClusterRoleBinding(t.Context(), crb)
 	assert.ErrorContains(t, err, "role binding found with no matching role")
 }
 
@@ -545,7 +544,7 @@ func TestConverter_PodPipeline(t *testing.T) {
 	})
 
 	// Collector input -> store pod
-	storePod, err := NewStoreWithCache(testConfig, c).Pod(context.TODO(), input)
+	storePod, err := NewStoreWithCache(testConfig, c).Pod(t.Context(), input)
 	assert.NoError(t, err, "store pod convert error")
 
 	assert.Equal(t, storePod.NodeId.Hex(), id)
@@ -592,13 +591,13 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	})
 
 	// Collector input -> store pod
-	storePod, err := NewStoreWithCache(testConfig, c).Pod(context.TODO(), input)
+	storePod, err := NewStoreWithCache(testConfig, c).Pod(t.Context(), input)
 	assert.NoError(t, err, "store pod convert error")
 
 	// Collector container -> store container
 	assert.Equal(t, 1, len(input.Spec.Containers))
 	inContainer := input.Spec.Containers[0]
-	storeContainer, err := NewStoreWithCache(testConfig, c).Container(context.TODO(), &inContainer, storePod)
+	storeContainer, err := NewStoreWithCache(testConfig, c).Container(t.Context(), &inContainer, storePod)
 	assert.NoError(t, err, "store container convert error")
 
 	assert.Equal(t, storeContainer.NodeId.Hex(), nid)
@@ -627,7 +626,7 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	// Collector volume -> store volume
 	assert.Equal(t, 2, len(input.Spec.Volumes))
 	inVolume0 := storeContainer.K8.VolumeMounts[0]
-	storeVolume0, err := NewStoreWithCache(testConfig, c).Volume(context.TODO(), &inVolume0, storePod, storeContainer)
+	storeVolume0, err := NewStoreWithCache(testConfig, c).Volume(t.Context(), &inVolume0, storePod, storeContainer)
 	assert.NoError(t, err, "store volume convert error")
 
 	assert.Equal(t, storeVolume0.NodeId.Hex(), nid)
@@ -640,7 +639,7 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Empty(t, storeVolume0.ProjectedId)
 
 	inVolume1 := storeContainer.K8.VolumeMounts[1]
-	storeVolume1, err := NewStoreWithCache(testConfig, c).Volume(context.TODO(), &inVolume1, storePod, storeContainer)
+	storeVolume1, err := NewStoreWithCache(testConfig, c).Volume(t.Context(), &inVolume1, storePod, storeContainer)
 	assert.NoError(t, err, "store volume convert error")
 
 	assert.Equal(t, storeVolume1.NodeId.Hex(), nid)
@@ -692,7 +691,7 @@ func TestConverter_PodCacheFailure(t *testing.T) {
 	input, err := loadTestObject[types.PodType]("testdata/pod.json")
 	assert.NoError(t, err, "pod load error")
 
-	_, err = NewStoreWithCache(testConfig, c).Pod(context.TODO(), input)
+	_, err = NewStoreWithCache(testConfig, c).Pod(t.Context(), input)
 	assert.ErrorContains(t, err, "not found")
 }
 
@@ -703,7 +702,7 @@ func TestConverter_EndpointPipeline(t *testing.T) {
 	assert.NoError(t, err, "endpoint slice load error")
 
 	// Collector input -> store model
-	storeEp, err := NewStore(testConfig).Endpoint(context.TODO(), input.Endpoints[0], input.Ports[0], input)
+	storeEp, err := NewStore(testConfig).Endpoint(t.Context(), input.Endpoints[0], input.Ports[0], input)
 	assert.NoError(t, err, "endpoint convert error")
 
 	assert.Equal(t, storeEp.Name, "cassandra-temporal-dev-kmwfp::TCP::cql")
@@ -740,7 +739,7 @@ func TestConverter_EndpointPipeline(t *testing.T) {
 func TestConverter_EndpointPrivatePipeline(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	input, err := loadTestObject[types.PodType]("testdata/pod.json")
 	assert.NoError(t, err, "endpoint slice load error")
 
