@@ -63,10 +63,18 @@ func (e *EscapeSysPtrace) Stream(ctx context.Context, store storedb.Provider, _ 
 					// bson.M{"k8.securitycontext.privileged": true},
 					// AppArmor is enabled by default since Kubernetes 1.31
 					bson.M{
-						"$expr": bson.M{
-							"$and": bson.A{
-								bson.M{"$lte": bson.A{bson.M{"$toInt": "$runtime.cluster.version_major"}, 1}},
-								bson.M{"$lt": bson.A{bson.M{"$toInt": "$runtime.cluster.version_minor"}, 31}},
+						"$and": bson.A{
+							// Ensure version fields exist and are not empty
+							bson.M{"runtime.cluster.version_major": bson.M{"$exists": true, "$ne": ""}},
+							bson.M{"runtime.cluster.version_minor": bson.M{"$exists": true, "$ne": ""}},
+							// Numerical comparison using $expr
+							bson.M{
+								"$expr": bson.M{
+									"$and": bson.A{
+										bson.M{"$lte": bson.A{bson.M{"$toInt": "$runtime.cluster.version_major"}, 1}},
+										bson.M{"$lt": bson.A{bson.M{"$toInt": "$runtime.cluster.version_minor"}, 31}},
+									},
+								},
 							},
 						},
 					},

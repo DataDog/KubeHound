@@ -313,7 +313,7 @@ func (suite *VertexTestSuite) TestVertexCritical() {
 func (suite *VertexTestSuite) TestVertexVolume() {
 	results, err := suite.g.V().Has("class", vertex.VolumeLabel).ElementMap().ToList()
 	suite.NoError(err)
-	suite.Equal(61, len(results))
+	suite.Equal(64, len(results))
 
 	results, err = suite.g.V().Has("class", vertex.VolumeLabel).Has("sourcePath", "/proc/sys/kernel").Has("name", "nodeproc").ElementMap().ToList()
 	suite.NoError(err)

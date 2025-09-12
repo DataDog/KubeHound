@@ -125,6 +125,11 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		return nil, fmt.Errorf("getting server version: %w", err)
 	}
 
+	err = cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithClusterVersionMajor(serverVersion.Major), config.WithClusterVersionMinor(serverVersion.Minor), config.WithRunID(cfg.Dynamic.RunID.String()))
+	if err != nil {
+		return nil, fmt.Errorf("computing dynamic config: %w", err)
+	}
+
 	return &k8sAPICollector{
 		cfg:                 cfg.Collector.Live,
 		clientset:           clientset,

@@ -3,7 +3,8 @@ collector:
   file:
     directory: cluster-data/
 dynamic:
-  cluster_name: test-cluster
+  cluster:
+    name: test-cluster
 mongodb:
   url: "mongodb://localhost:27017"
 telemetry:

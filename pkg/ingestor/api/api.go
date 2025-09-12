@@ -274,8 +274,10 @@ func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName str
 		db := mdb.Collection(collection)
 		filter := bson.M{
 			"runtime": bson.M{
-				"runID":   runID,
-				"cluster": clusterName,
+				"runID": runID,
+				"cluster": bson.M{
+					"name": clusterName,
+				},
 			},
 		}
 		resNum, err = db.CountDocuments(ctx, filter, nil)
