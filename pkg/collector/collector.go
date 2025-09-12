@@ -127,10 +127,10 @@ type CollectorClient interface { //nolint: interfacebloat
 
 // ClientFactory creates an initialized instance of a collector client based on the provided application configuration.
 func ClientFactory(ctx context.Context, cfg *config.KubehoundConfig) (CollectorClient, error) {
-	switch {
-	case cfg.Collector.Type == config.CollectorTypeK8sAPI:
+	switch cfg.Collector.Type {
+	case config.CollectorTypeK8sAPI:
 		return NewK8sAPICollector(ctx, cfg)
-	case cfg.Collector.Type == config.CollectorTypeFile:
+	case config.CollectorTypeFile:
 		return NewFileCollector(ctx, cfg)
 	default:
 		return nil, fmt.Errorf("collector type not supported: %s", cfg.Collector.Type)
