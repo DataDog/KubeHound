@@ -13,6 +13,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const (
+	AppArmorEnabledMajorVersion = 1
+	AppArmorEnabledMinorVersion = 31
+)
+
 func init() {
 	Register(&EscapeSysPtrace{}, RegisterDefault)
 }
@@ -58,9 +63,11 @@ func (e *EscapeSysPtrace) Stream(ctx context.Context, store storedb.Provider, _ 
 			bson.M{"k8.securitycontext.capabilities.add": "SYS_ADMIN"},
 			bson.M{
 				"$or": bson.A{
+					// Before Kubernetes 1.31, AppArmor is disabled by default so we don't need to check for it.
+					// The AppArmor profile does not appear in the security context unless it is modified, so
+					// we just check if it was disabled. See the CE_SYS_PTRACE attack doc for more details.
 					bson.M{"k8.securitycontext.apparmorprofile.type": "Unconfined"},
-					// Technically true, but in this case the CE_NSENTER attack is also possible and easier to execute
-					// bson.M{"k8.securitycontext.privileged": true},
+
 					// AppArmor is enabled by default since Kubernetes 1.31
 					bson.M{
 						"$and": bson.A{
@@ -71,13 +78,16 @@ func (e *EscapeSysPtrace) Stream(ctx context.Context, store storedb.Provider, _ 
 							bson.M{
 								"$expr": bson.M{
 									"$and": bson.A{
-										bson.M{"$lte": bson.A{bson.M{"$toInt": "$runtime.cluster.version_major"}, 1}},
-										bson.M{"$lt": bson.A{bson.M{"$toInt": "$runtime.cluster.version_minor"}, 31}},
+										bson.M{"$lte": bson.A{bson.M{"$toInt": "$runtime.cluster.version_major"}, AppArmorEnabledMajorVersion}},
+										bson.M{"$lt": bson.A{bson.M{"$toInt": "$runtime.cluster.version_minor"}, AppArmorEnabledMinorVersion}},
 									},
 								},
 							},
 						},
 					},
+
+					// Technically true, but in this case the CE_NSENTER attack is also possible and easier to execute
+					// bson.M{"k8.securitycontext.privileged": true},
 				},
 			},
 		},
