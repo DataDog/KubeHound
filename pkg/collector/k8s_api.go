@@ -32,18 +32,16 @@ import (
 
 // FileCollector implements a collector based on local K8s API json files generated outside the KubeHound application via e.g kubectl.
 type k8sAPICollector struct {
-	clientset           kubernetes.Interface
-	rl                  ratelimit.Limiter
-	cfg                 *config.K8SAPICollectorConfig
-	tags                collectorTags
-	waitTime            map[string]time.Duration
-	startTime           time.Time
-	mu                  *sync.Mutex
-	isStreaming         bool
-	clusterName         string
-	clusterVersionMajor string
-	clusterVersionMinor string
-	runID               string
+	clientset   kubernetes.Interface
+	rl          ratelimit.Limiter
+	cfg         *config.K8SAPICollectorConfig
+	tags        collectorTags
+	waitTime    map[string]time.Duration
+	startTime   time.Time
+	mu          *sync.Mutex
+	isStreaming bool
+	cluster     *ClusterInfo
+	runID       string
 }
 
 const (
@@ -125,23 +123,31 @@ func NewK8sAPICollector(ctx context.Context, cfg *config.KubehoundConfig) (Colle
 		return nil, fmt.Errorf("getting server version: %w", err)
 	}
 
-	err = cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithClusterVersionMajor(serverVersion.Major), config.WithClusterVersionMinor(serverVersion.Minor), config.WithRunID(cfg.Dynamic.RunID.String()))
+	clusterInfo := config.DynamicClusterInfo{
+		Name:         clusterName,
+		VersionMajor: serverVersion.Major,
+		VersionMinor: serverVersion.Minor,
+	}
+
+	err = cfg.ComputeDynamic(config.WithClusterInfo(clusterInfo), config.WithRunID(cfg.Dynamic.RunID.String()))
 	if err != nil {
 		return nil, fmt.Errorf("computing dynamic config: %w", err)
 	}
 
 	return &k8sAPICollector{
-		cfg:                 cfg.Collector.Live,
-		clientset:           clientset,
-		rl:                  ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
-		tags:                newCollectorTags(),
-		waitTime:            map[string]time.Duration{},
-		startTime:           time.Now(),
-		mu:                  &sync.Mutex{},
-		clusterName:         clusterName,
-		clusterVersionMajor: serverVersion.Major,
-		clusterVersionMinor: serverVersion.Minor,
-		runID:               cfg.Dynamic.RunID.String(),
+		cfg:       cfg.Collector.Live,
+		clientset: clientset,
+		rl:        ratelimit.New(cfg.Collector.Live.RateLimitPerSecond), // per second
+		tags:      newCollectorTags(),
+		waitTime:  map[string]time.Duration{},
+		startTime: time.Now(),
+		mu:        &sync.Mutex{},
+		cluster: &ClusterInfo{
+			Name:         clusterName,
+			VersionMajor: serverVersion.Major,
+			VersionMinor: serverVersion.Minor,
+		},
+		runID: cfg.Dynamic.RunID.String(),
 	}, nil
 }
 
@@ -152,11 +158,7 @@ func (c *k8sAPICollector) ComputeMetadata(ctx context.Context, ingestor Metadata
 	}
 
 	metadata := Metadata{
-		Cluster: ClusterInfo{
-			Name:         c.clusterName,
-			VersionMajor: c.clusterVersionMajor,
-			VersionMinor: c.clusterVersionMinor,
-		},
+		Cluster: c.cluster,
 		RunID:   c.runID,
 		Metrics: metrics,
 	}
@@ -230,11 +232,16 @@ func (c *k8sAPICollector) ClusterInfo(ctx context.Context) (*ClusterInfo, error)
 		return nil, err
 	}
 
-	return &ClusterInfo{
-		Name:         cfgClusterInfo.Name,
-		VersionMajor: c.clusterVersionMajor,
-		VersionMinor: c.clusterVersionMinor,
-	}, nil
+	clusterInfo := &ClusterInfo{
+		Name: cfgClusterInfo.Name,
+	}
+
+	if c.cluster != nil {
+		clusterInfo.VersionMajor = c.cluster.VersionMajor
+		clusterInfo.VersionMinor = c.cluster.VersionMinor
+	}
+
+	return clusterInfo, nil
 }
 
 // Generate metrics for k8sAPI collector

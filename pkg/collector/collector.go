@@ -175,7 +175,7 @@ type ClusterInfo struct {
 }
 
 type Metadata struct {
-	RunID   string      `json:"run_id"`
-	Cluster ClusterInfo `json:"cluster"`
-	Metrics Metrics     `json:"metrics"`
+	RunID   string       `json:"run_id"`
+	Cluster *ClusterInfo `json:"cluster"`
+	Metrics Metrics      `json:"metrics"`
 }

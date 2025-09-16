@@ -71,12 +71,10 @@ func InitSetupTest(ctx context.Context) *providers.ProvidersFactoryConfig {
 }
 
 type runArgs struct {
-	runID               string
-	clusterName         string
-	clusterVersionMajor string
-	clusterVersionMinor string
-	collectorPath       string
-	resultPath          string
+	runID         string
+	cluster       config.DynamicClusterInfo
+	collectorPath string
+	resultPath    string
 }
 
 func Dump(ctx context.Context, compress bool) (*config.KubehoundConfig, string) {
@@ -126,9 +124,9 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 	// Saving the clusterName and collectorDir for the ingestion step
 	// Those values are needed to run the ingestion pipeline
 	collectorDir := runArgs.collectorPath
-	clusterName := runArgs.clusterName
-	clusterVersionMajor := runArgs.clusterVersionMajor
-	clusterVersionMinor := runArgs.clusterVersionMinor
+	clusterName := runArgs.cluster.Name
+	clusterVersionMajor := runArgs.cluster.VersionMajor
+	clusterVersionMinor := runArgs.cluster.VersionMinor
 	runID := runArgs.runID
 	l := log.Logger(ctx)
 
@@ -167,7 +165,12 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 		l.Fatal("preparing cache provider", log.ErrorField(err))
 	}
 
-	err = khCfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithClusterVersionMajor(clusterVersionMajor), config.WithClusterVersionMinor(clusterVersionMinor), config.WithRunID(runID))
+	clusterInfo := config.DynamicClusterInfo{
+		Name:         clusterName,
+		VersionMajor: clusterVersionMajor,
+		VersionMinor: clusterVersionMinor,
+	}
+	err = khCfg.ComputeDynamic(config.WithClusterInfo(clusterInfo), config.WithRunID(runID))
 	if err != nil {
 		l.Fatal("collector client creation", log.ErrorField(err))
 	}
@@ -181,7 +184,7 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 func RunGRPC(ctx context.Context, runArgs *runArgs, p *providers.ProvidersFactoryConfig) {
 	// Extracting info from Dump phase
 	runID := runArgs.runID
-	clusterName := runArgs.clusterName
+	clusterName := runArgs.cluster.Name
 	fileFolder := runArgs.collectorPath
 	l := log.Logger(ctx)
 
@@ -231,12 +234,10 @@ func DumpAndRun(ctx context.Context, compress bool, p *providers.ProvidersFactor
 
 	// Extracting info from Dump phase
 	runArgs := &runArgs{
-		runID:               khCfg.Dynamic.RunID.String(),
-		clusterName:         khCfg.Dynamic.Cluster.Name,
-		clusterVersionMajor: khCfg.Dynamic.Cluster.VersionMajor,
-		clusterVersionMinor: khCfg.Dynamic.Cluster.VersionMinor,
-		collectorPath:       khCfg.Collector.File.Directory,
-		resultPath:          resultPath,
+		runID:         khCfg.Dynamic.RunID.String(),
+		cluster:       khCfg.Dynamic.Cluster,
+		collectorPath: khCfg.Collector.File.Directory,
+		resultPath:    resultPath,
 	}
 
 	RunLocal(ctx, runArgs, compress, p)
@@ -339,11 +340,9 @@ func (s *GRPCTestSuite) SetupSuite() {
 
 	// Extracting info from Dump phase
 	runArgs := &runArgs{
-		runID:               khCfg.Dynamic.RunID.String(),
-		clusterName:         khCfg.Dynamic.Cluster.Name,
-		clusterVersionMajor: khCfg.Dynamic.Cluster.VersionMajor,
-		clusterVersionMinor: khCfg.Dynamic.Cluster.VersionMinor,
-		collectorPath:       khCfg.Collector.File.Directory,
+		runID:         khCfg.Dynamic.RunID.String(),
+		cluster:       khCfg.Dynamic.Cluster,
+		collectorPath: khCfg.Collector.File.Directory,
 	}
 
 	RunGRPC(ctx, runArgs, p)
@@ -360,7 +359,7 @@ func (s *GRPCTestSuite) SetupSuite() {
 		l.Fatal("get config", log.ErrorField(err))
 	}
 
-	err = core.CoreClientGRPCIngest(ctx, khCfg.Ingestor, runArgs.clusterName, runArgs.runID)
+	err = core.CoreClientGRPCIngest(ctx, khCfg.Ingestor, runArgs.cluster.Name, runArgs.runID)
 	s.ErrorContains(err, api.ErrAlreadyIngested.Error())
 }
 

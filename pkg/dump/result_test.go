@@ -37,7 +37,7 @@ func TestParsePath(t *testing.T) {
 			},
 			want: &DumpResult{
 				Metadata: collector.Metadata{
-					Cluster: collector.ClusterInfo{
+					Cluster: &collector.ClusterInfo{
 						Name: validClusterName,
 					},
 					RunID: validRunID,
@@ -54,7 +54,7 @@ func TestParsePath(t *testing.T) {
 			},
 			want: &DumpResult{
 				Metadata: collector.Metadata{
-					Cluster: collector.ClusterInfo{
+					Cluster: &collector.ClusterInfo{
 						Name: validClusterName,
 					},
 					RunID: validRunID,
@@ -145,7 +145,7 @@ func TestDumpResult_GetFilename(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
 				Metadata: collector.Metadata{
-					Cluster: collector.ClusterInfo{
+					Cluster: &collector.ClusterInfo{
 						Name: tt.fields.ClusterName,
 					},
 					RunID: tt.fields.RunID,
@@ -200,7 +200,7 @@ func TestDumpResult_GetFullPath(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
 				Metadata: collector.Metadata{
-					Cluster: collector.ClusterInfo{
+					Cluster: &collector.ClusterInfo{
 						Name: tt.fields.ClusterName,
 					},
 					RunID: tt.fields.RunID,
@@ -238,7 +238,7 @@ func TestNewDumpResult(t *testing.T) {
 			},
 			want: &DumpResult{
 				Metadata: collector.Metadata{
-					Cluster: collector.ClusterInfo{
+					Cluster: &collector.ClusterInfo{
 						Name: validClusterName,
 					},
 					RunID: validRunID,

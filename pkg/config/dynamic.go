@@ -71,23 +71,9 @@ func WithRunID(runID string) DynamicOption {
 	})
 }
 
-// WithClusterName is a functional option for configuring the cluster name.
-func WithClusterName(cluster string) DynamicOption {
+// WithClusterInfo is a functional option for configuring the cluster info.
+func WithClusterInfo(cluster DynamicClusterInfo) DynamicOption {
 	return success(func(c *DynamicConfig) {
-		c.Cluster.Name = cluster
-	})
-}
-
-// WithClusterVersionMajor is a functional option for configuring the cluster version major.
-func WithClusterVersionMajor(versionMajor string) DynamicOption {
-	return success(func(c *DynamicConfig) {
-		c.Cluster.VersionMajor = versionMajor
-	})
-}
-
-// WithClusterVersionMinor is a functional option for configuring the cluster version minor.
-func WithClusterVersionMinor(versionMinor string) DynamicOption {
-	return success(func(c *DynamicConfig) {
-		c.Cluster.VersionMinor = versionMinor
+		c.Cluster = cluster
 	})
 }

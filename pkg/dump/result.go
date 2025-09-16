@@ -29,7 +29,7 @@ const (
 func NewDumpResult(clusterName, runID string, isCompressed bool) (*DumpResult, error) {
 	dumpResult := &DumpResult{
 		Metadata: collector.Metadata{
-			Cluster: collector.ClusterInfo{
+			Cluster: &collector.ClusterInfo{
 				Name: clusterName,
 				// Version info is populated at collection time
 			},

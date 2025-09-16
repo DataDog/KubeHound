@@ -52,7 +52,9 @@ func TestFileCollector_HealthCheck(t *testing.T) {
 		cfg: &config.FileCollectorConfig{
 			Directory: "testdata/test-cluster/",
 		},
-		clusterName: "test-cluster",
+		cluster: &ClusterInfo{
+			Name: "test-cluster",
+		},
 	}
 
 	ok, err = c.HealthCheck(context.Background())

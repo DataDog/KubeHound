@@ -149,7 +149,12 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error { //nolint:
 
 	defer g.unlockRunID(runID)
 
-	err = g.Cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithClusterVersionMajor(md.Cluster.VersionMajor), config.WithClusterVersionMinor(md.Cluster.VersionMinor), config.WithRunID(runID))
+	clusterInfo := config.DynamicClusterInfo{
+		Name:         clusterName,
+		VersionMajor: md.Cluster.VersionMajor,
+		VersionMinor: md.Cluster.VersionMinor,
+	}
+	err = g.Cfg.ComputeDynamic(config.WithClusterInfo(clusterInfo), config.WithRunID(runID))
 	if err != nil {
 		return err
 	}
