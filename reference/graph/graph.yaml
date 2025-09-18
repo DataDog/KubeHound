@@ -1,0 +1,753 @@
+# yaml-language-server: $schema=graph.schema.json
+apiVersion: app.kubehound.io/models/v1
+kind: GraphSchema
+metadata:
+  name: Kubehound Graph Schema
+  version: v1
+spec:
+  # Define the enumerations used in properties.
+  enums:
+    - label: AddressType
+      values:
+        - IPv4
+        - IPv6
+    - label: Protocol
+      values:
+        - TCP
+        - UDP
+    - label: EndpointExposure
+      values:
+        - None
+        - ClusterIP
+        - NodeIP
+        - External
+        - Public
+    - label: IdentityType
+      values:
+        - User
+        - ServiceAccount
+        - Group
+    - label: VolumeType
+      values:
+        - HostPath
+        - EmptyDir
+        - ConfigMap
+        - Secret
+        - PersistentVolumeClaim
+        - Projected
+        - DownwardAPI
+        - CSI
+        - Ephemeral
+        - AzureDisk
+        - AzureFile
+        - CephFS
+        - Cinder
+        - FC
+        - FlexVolume
+        - Flocker
+        - GCEPersistentDisk
+        - Glusterfs
+        - ISCSI
+        - NFS
+        - PhotonPersistentDisk
+        - PortworxVolume
+        - Quobyte
+        - RBD
+        - ScaleIO
+        - StorageOS
+        - VsphereVolume
+
+  # Define the vertices in the graph.
+  vertices:
+    - label: Container
+      description: >-
+        A container image running on a Kubernetes pod. Containers in a Pod are
+        co-located and co-scheduled to run on the same node.
+    - label: Endpoint
+      description: >-
+        A network endpoint exposed by a container accessible via a Kubernetes
+        service, external node port or cluster IP/port tuple.
+    - label: Identity
+      description: Identity represents a Kubernetes user or service account.
+    - label: Node
+      description: >-
+        A Kubernetes node. Kubernetes runs workloads by placing containers into
+        Pods to run on Nodes. A node may be a virtual or physical machine,
+        depending on the cluster.
+    - label: PermissionSet
+      description: >-
+        A permission set represents a Kubernetes RBAC Role or ClusterRole, which
+        contain rules that represent a set of permissions that has been bound to
+        an identity via a RoleBinding or ClusterRoleBinding. Permissions are
+        purely additive (there are no "deny" rules).
+    - label: Pod
+      description: >-
+        A Kubernetes pod - the smallest deployable units of computing that you can
+        create and manage in Kubernetes.
+    - label: Volume
+      description: Volume represents a volume mounted in a container and exposed by a node.
+
+  # Define the properties for each vertex in the graph.
+  verticeProperties:
+    - property: app
+      type: STRING
+      labels:
+        - Container
+        - Endpoint
+        - Identity
+        - Node
+        - PermissionSet
+        - Pod
+      description: Internal app name extracted from object labels.
+    - property: cluster
+      type: STRING
+      labels:
+        - Container
+        - Endpoint
+        - Identity
+        - Node
+        - PermissionSet
+        - Pod
+        - Volume
+      description: Kubernetes cluster to which the entity belongs.
+    - property: compromised
+      type: INTEGER
+      labels:
+        - Container
+        - Endpoint
+        - Node
+        - Pod
+      description: Enum defining asset compromise for scenario-based simulations.
+    - property: critical
+      type: BOOL
+      labels:
+        - Identity
+        - Node
+        - PermissionSet
+        - Pod
+      description: >-
+        Whether the vertex is a critical asset within the cluster. Critical assets
+        form the termination condition of an attack path and represent an asset
+        that leads to complete cluster compromise.
+    - property: isNamespace
+      type: BOOL
+      labels:
+        - Container
+        - Endpoint
+        - Identity
+        - Node
+        - PermissionSet
+        - Pod
+      description: Whether or not the object has an associated namespace.
+    - property: namespace
+      type: STRING
+      labels:
+        - Container
+        - Endpoint
+        - Identity
+        - Node
+        - PermissionSet
+        - Pod
+      description: Kubernetes namespace to which the object (or its parent) belongs.
+    - property: runID
+      type: STRING
+      labels:
+        - Container
+        - Endpoint
+        - Identity
+        - Node
+        - PermissionSet
+        - Pod
+        - Volume
+      description: Unique ULID identifying a KubeHound run.
+    - property: service
+      type: STRING
+      labels:
+        - Container
+        - Endpoint
+        - Identity
+        - Node
+        - PermissionSet
+        - Pod
+      description: Internal service name extracted from object labels.
+    - property: storeID
+      type: STRING
+      labels:
+        - Container
+        - Endpoint
+        - Identity
+        - Node
+        - PermissionSet
+        - Pod
+      description: >-
+        Unique store database identifier of the store objected generating the
+        vertex.
+    - property: team
+      type: STRING
+      labels:
+        - Container
+        - Endpoint
+        - Identity
+        - Node
+        - PermissionSet
+        - Pod
+      description: Internal team name extracted from object labels.
+    - property: name
+      type: STRING
+      labels:
+        - Container
+      description: Name of the container in Kubernetes.
+    - property: image
+      type: STRING
+      labels:
+        - Container
+      description: Docker the image run by the container.
+    - property: command
+      type: STRING
+      array: true
+      labels:
+        - Container
+      description: List of command used as the container entrypoint.
+    - property: args
+      type: STRING
+      array: true
+      labels:
+        - Container
+      description: List of arguments passed to the container.
+    - property: capabilities
+      type: STRING
+      array: true
+      labels:
+        - Container
+      description: >-
+        List of additional capabilities added to the container via k8s
+        securityContext.
+      example: 'CAP_NET_ADMIN,CAP_SYS_TIME'
+    - property: privilegied
+      type: BOOL
+      labels:
+        - Container
+      description: Whether the container is run in privileged mode.
+    - property: privesc
+      type: BOOL
+      labels:
+        - Container
+      description: Whether the container can gain more privileges than its parent process.
+    - property: hostPid
+      type: BOOL
+      labels:
+        - Container
+      description: Whether the container can access the host's PID namespace.
+    - property: hostIpc
+      type: BOOL
+      labels:
+        - Container
+      description: Whether the container can access the host's IPC namespace.
+    - property: hostNetwork
+      type: BOOL
+      labels:
+        - Container
+      description: Whether the container can access the host's network namespace.
+    - property: runAsUser
+      type: INTEGER
+      labels:
+        - Container
+      description: The user account uid the container is running under e.g 0 for root.
+    - property: ports
+      type: STRING
+      array: true
+      labels:
+        - Container
+      description: List of ports exposed by the container.
+      example: '8080,8443'
+    - property: pod
+      type: STRING
+      labels:
+        - Container
+      description: The name of the pod running the container.
+    - property: node
+      type: STRING
+      labels:
+        - Container
+      description: The name of the node running the container.
+    - property: name
+      type: STRING
+      labels:
+        - Endpoint
+      description: Unique endpoint name.
+    - property: serviceEndpoint
+      type: STRING
+      labels:
+        - Endpoint
+      description: >-
+        Name of the service if the endpoint is exposed outside the cluster via an
+        endpoint slice.
+    - property: serviceDns
+      type: STRING
+      labels:
+        - Endpoint
+      description: >-
+        FQDN of the service if the endpoint is exposed outside the cluster via an
+        endpoint slice.
+    - property: addressType
+      type: STRING
+      labels:
+        - Endpoint
+      description: Type of the addresses array (IPv4 or IPv6).
+      enum: AddressType
+    - property: addresses
+      type: STRING
+      array: true
+      labels:
+        - Endpoint
+      description: Array of addresses exposing the endpoint.
+      example: 172.17.8.24
+    - property: port
+      type: INTEGER
+      labels:
+        - Endpoint
+      description: Port exposed by the endpoint.
+    - property: portName
+      type: STRING
+      labels:
+        - Endpoint
+      description: Name of the exposed port.
+    - property: protocol
+      type: STRING
+      labels:
+        - Endpoint
+      description: Endpoint protocol.
+      enum: Protocol
+    - property: exposure
+      type: STRING
+      labels:
+        - Endpoint
+      description: Enum value describing the level of exposure of the endpoint.
+      enum: EndpointExposure
+    - property: name
+      type: STRING
+      labels:
+        - Identity
+      description: Name of the identity principal in Kubernetes
+    - property: type
+      type: STRING
+      labels:
+        - Identity
+      description: Type of identity
+      enum: IdentityType
+    - property: name
+      type: STRING
+      labels:
+        - Node
+      description: Name of the node in Kubernetes.
+    - property: name
+      type: STRING
+      labels:
+        - PermissionSet
+      description: Name of the underlying role in Kubernetes
+    - property: role
+      type: STRING
+      labels:
+        - PermissionSet
+      description: Role name associated to the permission.
+    - property: roleBinding
+      type: STRING
+      labels:
+        - PermissionSet
+      description: Kubernetes role binding.
+    - property: rules
+      type: STRING
+      array: true
+      labels:
+        - PermissionSet
+      description: List of rules associated with the permission set.
+    - property: name
+      type: STRING
+      labels:
+        - Pod
+      description: Name of the pod in Kubernetes.
+    - property: shareProcessNamespace
+      type: BOOL
+      labels:
+        - Pod
+      description: Whether all the containers in the pod share a process namespace.
+    - property: serviceAccount
+      type: STRING
+      labels:
+        - Pod
+      description: The name of the serviceaccount used to run this pod.
+    - property: node
+      type: STRING
+      labels:
+        - Pod
+      description: The name of the node running the pod.
+    - property: name
+      type: STRING
+      labels:
+        - Volume
+      description: Name of the volume mount in the container spec.
+    - property: type
+      type: STRING
+      labels:
+        - Volume
+      description: Type of volume mount (host/projected/etc).
+      enum: VolumeType
+    - property: sourcePath
+      type: STRING
+      labels:
+        - Volume
+      description: The path of the volume in the host (i.e node) filesystem.
+    - property: mountPath
+      type: STRING
+      labels:
+        - Volume
+      description: The path where the volume is mounted in the container.
+    - property: readOnly
+      type: BOOL
+      labels:
+        - Volume
+      description: Whether the volume is mounted in read-only mode.
+
+  # Define the edges in the graph.
+  edges:
+    - label: CE_MODULE_LOAD
+      description: A container can load a kernel module on the node.
+      references: 
+        - type: ATTCK Technique
+          id: T1611
+          label: Escape to Host
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: CE_NSENTER
+      description: >-
+        Container escape via the nsenter built-in linux program that allows
+        executing a binary into another namespace.
+      references: 
+        - type: ATTCK Technique
+          id: T1611
+          label: Escape to Host
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: CE_PRIV_MOUNT
+      description: >-
+        Mount the host disk and gain access to the host via arbitrary filesystem
+        write.
+      references:
+        - type: ATTCK Technique
+          id: T1611
+          label: Escape to Host
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: CE_SYS_TRACE
+      description: >-
+        Given the requisite capabilities, abuse the legitimate OS debugging
+        mechanisms to escape the container via attaching to a node process.
+      references:
+        - type: ATTCK Technique
+          id: T1611
+          label: Escape to Host
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: CE_UMH_CORE_PATTERN
+      description: >-
+        Abuse the User Mode Helper (UMH) mechanism to execute arbitrary code in
+        the host.
+      references:
+        - type: ATTCK Technique
+          id: T1611
+          label: Escape to Host
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: CE_VAR_LOG_SYMLINK
+      description: Abuse the /var/log symlink to gain access to the host filesystem.
+      references:
+        - type: ATTCK Technique
+          id: T1611
+          label: Escape to Host
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: CONTAINER_ATTACH
+      description: >-
+        Attach to a running container to execute commands or inspect the
+        container.
+      references:
+        - type: ATTCK Technique
+          id: T1609
+          label: Container Administration Command
+        - type: ATTCK Tactic
+          id: TA0002
+          label: Execution
+    - label: ENDPOINT_EXPLOIT
+      description: >-
+        Represents a network endpoint exposed by a container that could be
+        exploited by an attacker (via means known or unknown). This can correspond
+        to a Kubernetes service, node service, node port, or container port.
+      references:
+        - type: ATTCK Technique
+          id: T1210
+          label: Exploitation of Remote Services
+        - type: ATTCK Tactic
+          id: TA0008
+          label: Lateral Movement
+    - label: EXPLOIT_CONTAINERD_SOCK
+      description: Exploit the containerd socket to gain access to the host.
+      references:
+        - type: ATTCK Technique
+          id: T1610
+          label: Deplay Container
+        - type: ATTCK Tactic
+          id: TA0002
+          label: Execution
+    - label: EXPLOIT_HOST_READ
+      description: Read sensitive files on the host.
+      references:
+        - type: ATTCK Technique
+          id: T1611
+          label: Escape to Host
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: EXPLOIT_HOST_TRAVERSE
+      description: >-
+        This attack represents the ability to steal a K8s API token from a
+        container via access to a mounted parent volume of the
+        /var/lib/kubelet/pods directory.
+      references:
+        - type: ATTCK Technique
+          id: T1552
+          label: Unsecured Credentials
+        - type: ATTCK Tactic
+          id: TA0006
+          label: Credentials Access
+    - label: EXPLOIT_HOST_WRITE
+      description: Write sensitive files on the host.
+      references:
+        - type: ATTCK Technique
+          id: T1611
+          label: Escape to Host
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: IDENTITY_ASSUME
+      description: >-
+        Represents the capacity to act as an Identity via ownership of a service
+        account token, user PKI certificate, etc.
+      references:
+        - type: ATTCK Technique
+          id: T1078
+          label: Valid Accounts
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: IDENTITY_IMPERSONATE
+      description: Impersonate an identity.
+      references:
+        - type: ATTCK Technique
+          id: T1078
+          label: Valid Accounts
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: PERMISSION_DISCOVER
+      description: Discover permissions granted to an identity.
+      references:
+        - type: ATTCK Technique
+          id: T1069
+          label: Permission Groups Discovery
+        - type: ATTCK Tactic
+          id: TA0007
+          label: Discovery
+    - label: POD_ATTACH
+      description: Attach to a running pod to execute commands or inspect the pod.
+      references:
+        - type: ATTCK Technique
+          id: T1609
+          label: Container Administration Command
+        - type: ATTCK Tactic
+          id: TA0002
+          label: Execution
+    - label: POD_CREATE
+      description: Create a pod on a node.
+      references:
+        - type: ATTCK Technique
+          id: T1610
+          label: Deploy Container
+        - type: ATTCK Tactic
+          id: TA0002
+          label: Execution
+    - label: POD_EXEC
+      description: Execute a command in a pod.
+      references:
+        - type: ATTCK Technique
+          id: T1609
+          label: Container Administration Command
+        - type: ATTCK Tactic
+          id: TA0002
+          label: Execution
+    - label: POD_PATCH
+      description: Patch a pod on a node.
+      references:
+        - type: ATTCK Technique
+          id: T1609
+          label: Container Administration Command
+        - type: ATTCK Tactic
+          id: TA0002
+          label: Execution
+    - label: ROLE_BIND
+      description: Bind a role to an identity.
+      references:
+        - type: ATTCK Technique
+          id: T1078
+          label: Valid Accounts
+        - type: ATTCK Tactic
+          id: TA0004
+          label: Privilege Escalation
+    - label: SHARE_PS_NAMESPACE
+      description: All containers in a pod share the same process namespace.
+      references:
+        - type: ATTCK Technique
+          id: T1080
+          label: Taint Shared Content
+        - type: ATTCK Tactic
+          id: TA0008
+          label: Lateral Movement
+    - label: TOKEN_BRUTEFORCE
+      description: Bruteforce a token.
+      references:
+        - type: ATTCK Technique
+          id: T1528
+          label: Steal Application Access Token
+        - type: ATTCK Tactic
+          id: TA0006
+          label: Credentials Access
+    - label: TOKEN_LIST
+      description: List tokens.
+      references:
+        - type: ATTCK Technique
+          id: T1528
+          label: Steal Application Access Token
+        - type: ATTCK Tactic
+          id: TA0006
+          label: Credentials Access
+    - label: TOKEN_STEAL
+      description: >-
+        This attack represents the ability to steal a K8s API token from an
+        accessible volume.
+      references:
+        - type: ATTCK Technique
+          id: T1552
+          label: Unsecured Credentials
+        - type: ATTCK Tactic
+          id: TA0006
+          label: Credentials Access
+    - label: VOLUME_ACCESS
+      description: Access a volume mounted in a container.
+      references:
+        - type: ATTCK Technique
+          id: T1613
+          label: Container and Resource Discovery
+        - type: ATTCK Tactic
+          id: TA0007
+          label: Discovery
+    - label: VOLUME_DISCOVER
+      description: Discover volumes mounted in a container.
+      references:
+        - type: ATTCK Technique
+          id: T1613
+          label: Container and Resource Discovery
+        - type: ATTCK Tactic
+          id: TA0007
+          label: Discovery
+
+  # Define the properties for each edge in the graph.
+  edgeProperties: []
+
+  # Define the relationships between vertices and edges in the graph.
+  relationships:
+    - from: Container
+      to: Container
+      label: SHARE_PS_NAMESPACE
+    - from: Container
+      to: Node
+      label: CE_MODULE_LOAD
+    - from: Container
+      to: Container
+      label: CE_NSENTER
+    - from: Container
+      to: Node
+      label: CE_PRIV_MOUNT
+    - from: Container
+      to: Node
+      label: CE_SYS_TRACE
+    - from: Container
+      to: Node
+      label: CE_UMH_CORE_PATTERN
+    - from: Container
+      to: Node
+      label: CE_VAR_LOG_SYMLINK
+    - from: Container
+      to: Node
+      label: EXPLOIT_HOST_READ
+    - from: Container
+      to: Node
+      label: EXPLOIT_HOST_WRITE
+    - from: Container
+      to: Container
+      label: EXPLOIT_CONTAINERD_SOCK
+    - from: Container
+      to: Identity
+      label: IDENTITY_ASSUME
+    - from: Container
+      to: Volume
+      label: VOLUME_DISCOVER
+    - from: Pod
+      to: Container
+      label: CONTAINER_ATTACH
+    - from: Endpoint
+      to: Container
+      label: ENDPOINT_EXPLOIT
+    - from: Identity
+      to: PermissionSet
+      label: PERMISSION_DISCOVER
+    - from: Volume
+      to: Volume
+      label: EXPLOIT_HOST_TRAVERSE
+    - from: Volume
+      to: Identity
+      label: TOKEN_STEAL
+    - from: Node
+      to: Identity
+      label: IDENTITY_ASSUME
+    - from: Node
+      to: Pod
+      label: POD_ATTACH
+    - from: Node
+      to: Volume
+      label: VOLUME_ACCESS
+    - from: PermissionSet
+      to: Identity
+      label: IDENTITY_IMPERSONATE
+    - from: PermissionSet
+      to: Node
+      label: POD_CREATE
+    - from: PermissionSet
+      to: Node
+      label: POD_EXEC
+    - from: PermissionSet
+      to: Node
+      label: POD_PATCH
+    - from: PermissionSet
+      to: PermissionSet
+      label: ROLE_BIND
+    - from: PermissionSet
+      to: Identity
+      label: TOKEN_BRUTEFORCE
+    - from: PermissionSet
+      to: Identity
+      label: TOKEN_LIST

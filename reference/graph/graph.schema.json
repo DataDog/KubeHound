@@ -1,0 +1,262 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$ref": "#/definitions/GraphSchema",
+    "definitions": {
+        "GraphSchema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "apiVersion": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/Metadata"
+                },
+                "spec": {
+                    "$ref": "#/definitions/Spec"
+                }
+            },
+            "required": [
+                "apiVersion",
+                "kind",
+                "metadata",
+                "spec"
+            ],
+            "title": "GraphSchema"
+        },
+        "Metadata": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "version"
+            ],
+            "title": "Metadata"
+        },
+        "Spec": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "enums": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Enum"
+                    }
+                },
+                "vertices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Vertex"
+                    }
+                },
+                "verticeProperties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/VerticeProperty"
+                    }
+                },
+                "edges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Edge"
+                    }
+                },
+                "edgeProperties": {
+                    "type": "array",
+                    "items": {}
+                },
+                "relationships": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Relationship"
+                    }
+                }
+            },
+            "required": [
+                "edgeProperties",
+                "edges",
+                "enums",
+                "relationships",
+                "verticeProperties",
+                "vertices"
+            ],
+            "title": "Spec"
+        },
+        "Edge": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "references": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/StandardRef"
+                    }
+                }
+            },
+            "required": [
+                "description",
+                "label",
+                "references"
+            ],
+            "title": "Edge"
+        },
+        "Vertex": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "description",
+                "label"
+            ],
+            "title": "Vertex"
+        },
+        "Enum": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "label",
+                "values"
+            ],
+            "title": "Enum"
+        },
+        "Relationship": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "from": {
+                    "$ref": "#/definitions/From"
+                },
+                "to": {
+                    "$ref": "#/definitions/From"
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "from",
+                "label",
+                "to"
+            ],
+            "title": "Relationship"
+        },
+        "VerticeProperty": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "property": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/Type"
+                },
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/From"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "array": {
+                    "type": "boolean"
+                },
+                "example": {
+                    "type": "string"
+                },
+                "enum": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "description",
+                "labels",
+                "property",
+                "type"
+            ],
+            "title": "VerticeProperty"
+        },
+        "From": {
+            "type": "string",
+            "enum": [
+                "Container",
+                "Endpoint",
+                "Identity",
+                "Node",
+                "PermissionSet",
+                "Pod",
+                "Volume"
+            ],
+            "title": "From"
+        },
+        "StandardRef": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "ATTCK Technique",
+                        "ATTCK Tactic"
+                    ]
+                },
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "id"
+            ],
+            "title": "StandardRef"
+        },
+        "Type": {
+            "type": "string",
+            "enum": [
+                "STRING",
+                "INTEGER",
+                "BOOL"
+            ],
+            "title": "Type"
+        }
+    }
+}
