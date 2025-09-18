@@ -2,8 +2,6 @@
 package system
 
 import (
-	"context"
-
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
@@ -17,7 +15,7 @@ type DslTestSuite struct {
 }
 
 func (suite *DslTestSuite) SetupTest() {
-	ctx := context.Background()
+	ctx := suite.T().Context()
 	gdb, err := graphdb.Factory(ctx, config.MustLoadConfig(ctx, KubeHoundConfigPath))
 	suite.Require().NoError(err)
 	suite.gdb = gdb
@@ -332,5 +330,5 @@ func (suite *DslTestSuite) TestTraversal_critical() {
 }
 
 func (suite *DslTestSuite) TearDownTest() {
-	suite.gdb.Close(context.Background())
+	suite.gdb.Close(suite.T().Context())
 }

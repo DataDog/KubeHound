@@ -26,7 +26,7 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 
 	crbi := &ClusterRoleBindingIngest{}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	fakeCrb, err := loadTestObject[types.ClusterRoleBindingType]("testdata/clusterrolebinding.json")
 	assert.NoError(t, err)
 

@@ -95,7 +95,7 @@ func (c *StoreConverter) Node(ctx context.Context, input types.NodeType) (*store
 	output := &store.Node{
 		Id:        store.ObjectID(),
 		K8:        *input,
-		Ownership: store.ExtractOwnership(input.ObjectMeta.Labels),
+		Ownership: store.ExtractOwnership(input.Labels),
 		Runtime:   store.Runtime(c.runtime),
 	}
 
@@ -134,7 +134,7 @@ func (c *StoreConverter) Pod(ctx context.Context, input types.PodType) (*store.P
 		Id:        store.ObjectID(),
 		NodeId:    nid,
 		K8:        *input,
-		Ownership: store.ExtractOwnership(input.ObjectMeta.Labels),
+		Ownership: store.ExtractOwnership(input.Labels),
 		Runtime:   store.Runtime(c.runtime),
 	}
 
@@ -165,7 +165,7 @@ func (c *StoreConverter) handleProjectedToken(ctx context.Context, input types.V
 	var sourcePath string
 	for _, proj := range volume.Projected.Sources {
 		if proj.ServiceAccountToken != nil {
-			sourcePath = libkube.ServiceAccountTokenPath(string(pod.K8.ObjectMeta.UID), input.Name)
+			sourcePath = libkube.ServiceAccountTokenPath(string(pod.K8.UID), input.Name)
 
 			break
 		}
@@ -245,7 +245,7 @@ func (c *StoreConverter) Role(_ context.Context, input types.RoleType) (*store.R
 		IsNamespaced: true,
 		Namespace:    input.Namespace,
 		Rules:        input.Rules,
-		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
+		Ownership:    store.ExtractOwnership(input.Labels),
 		Runtime:      store.Runtime(c.runtime),
 	}, nil
 }
@@ -258,7 +258,7 @@ func (c *StoreConverter) ClusterRole(_ context.Context, input types.ClusterRoleT
 		IsNamespaced: false,
 		Namespace:    "",
 		Rules:        input.Rules,
-		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
+		Ownership:    store.ExtractOwnership(input.Labels),
 		Runtime:      store.Runtime(c.runtime),
 	}, nil
 }
@@ -308,7 +308,7 @@ func (c *StoreConverter) RoleBinding(ctx context.Context, input types.RoleBindin
 		IsNamespaced: true,
 		Namespace:    input.Namespace,
 		Subjects:     make([]store.BindSubject, 0, len(subj)),
-		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
+		Ownership:    store.ExtractOwnership(input.Labels),
 		Runtime:      store.Runtime(c.runtime),
 		K8:           input.RoleRef,
 	}
@@ -355,7 +355,7 @@ func (c *StoreConverter) ClusterRoleBinding(ctx context.Context, input types.Clu
 		IsNamespaced: false,
 		Namespace:    "",
 		Subjects:     make([]store.BindSubject, 0, len(subj)),
-		Ownership:    store.ExtractOwnership(input.ObjectMeta.Labels),
+		Ownership:    store.ExtractOwnership(input.Labels),
 		Runtime:      store.Runtime(c.runtime),
 		K8:           input.RoleRef,
 	}
@@ -553,7 +553,7 @@ func (c *StoreConverter) Endpoint(_ context.Context, addr discoveryv1.Endpoint,
 		AddressType:  parent.AddressType,
 		Backend:      addr,
 		Port:         port,
-		Ownership:    store.ExtractOwnership(parent.ObjectMeta.Labels),
+		Ownership:    store.ExtractOwnership(parent.Labels),
 		Runtime:      store.Runtime(c.runtime),
 		K8:           parent.ObjectMeta,
 

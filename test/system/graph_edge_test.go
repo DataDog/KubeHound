@@ -2,8 +2,6 @@
 package system
 
 import (
-	"context"
-
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
@@ -19,7 +17,7 @@ type EdgeTestSuite struct {
 }
 
 func (suite *EdgeTestSuite) SetupTest() {
-	ctx := context.Background()
+	ctx := suite.T().Context()
 	gdb, err := graphdb.Factory(ctx, config.MustLoadConfig(ctx, KubeHoundConfigPath))
 	suite.Require().NoError(err)
 	suite.gdb = gdb
@@ -937,5 +935,5 @@ func (suite *EdgeTestSuite) Test_CE_VAR_LOG_SYMLINK() {
 }
 
 func (suite *EdgeTestSuite) TearDownTest() {
-	suite.gdb.Close(context.Background())
+	suite.gdb.Close(suite.T().Context())
 }

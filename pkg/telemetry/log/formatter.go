@@ -78,13 +78,13 @@ func newZapConfig() zap.Config {
 	// By default, we use text formatter
 	zc := newTextFormatterConfig()
 
-	switch logFormat := os.Getenv("KH_LOG_FORMAT"); {
+	switch logFormat := os.Getenv("KH_LOG_FORMAT"); logFormat {
 	// Datadog require the logged field to be "message" and not "msg"
-	case logFormat == logFormatDD:
+	case logFormatDD:
 		zc = newJSONFormatterConfig()
 		zc.EncoderConfig.MessageKey = "message"
 		zc.EncoderConfig.EncodeTime = legacyTimeEncoder
-	case logFormat == logFormatJSON:
+	case logFormatJSON:
 		zc = newJSONFormatterConfig()
 	}
 

@@ -133,10 +133,8 @@ func ParsePath(ctx context.Context, path string) (*DumpResult, error) {
 	runID := matches[3]
 	extension := matches[4]
 
-	isCompressed := false
-	if extension != "" {
-		isCompressed = true
-	}
+	isCompressed := extension != ""
+
 	result, err := NewDumpResult(clusterName, runID, isCompressed)
 	if err != nil {
 		return nil, err

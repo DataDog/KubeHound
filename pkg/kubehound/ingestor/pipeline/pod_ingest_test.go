@@ -24,7 +24,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	t.Parallel()
 
 	pi := &PodIngest{}
-	ctx := context.Background()
+	ctx := t.Context()
 	fakePod, err := loadTestObject[types.PodType]("testdata/pod.json")
 	assert.NoError(t, err)
 

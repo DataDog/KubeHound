@@ -32,7 +32,7 @@ type ListObject struct {
 // checkSanePath just to make sure we don't delete or overwrite somewhere where we are not supposed to
 func CheckSanePath(path string, baseFolder string) error {
 	if path == "/" || path == "" || !strings.HasPrefix(path, baseFolder) {
-		return fmt.Errorf("Invalid path provided: %q / base: %q", path, baseFolder)
+		return fmt.Errorf("invalid path provided: %q / base: %q", path, baseFolder)
 	}
 
 	return nil

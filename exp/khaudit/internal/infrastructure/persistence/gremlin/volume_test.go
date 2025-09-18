@@ -1,7 +1,6 @@
 package gremlin
 
 import (
-	"context"
 	"testing"
 
 	"github.com/DataDog/KubeHound/exp/khaudit/internal/domain/volume"
@@ -24,7 +23,7 @@ func TestVolumeRepository_GetVolumes(t *testing.T) {
 
 	repo := Volumes(conn)
 
-	volumes, err := repo.GetVolumes(context.Background(), "01jq92qsx1f9ndvk48qm9hp7k4", volume.Filter{})
+	volumes, err := repo.GetVolumes(t.Context(), "01jq92qsx1f9ndvk48qm9hp7k4", volume.Filter{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +47,7 @@ func TestVolumeRepository_GetMountedHostPaths(t *testing.T) {
 
 	repo := Volumes(conn)
 
-	mountedHostPaths, err := repo.GetMountedHostPaths(context.Background(), "01jqnvmdt2rdd19fjm2skzkc3j", volume.Filter{})
+	mountedHostPaths, err := repo.GetMountedHostPaths(t.Context(), "01jqnvmdt2rdd19fjm2skzkc3j", volume.Filter{})
 	if err != nil {
 		t.Fatal(err)
 	}

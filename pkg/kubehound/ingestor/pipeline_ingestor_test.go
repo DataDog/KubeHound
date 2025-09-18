@@ -1,7 +1,6 @@
 package ingestor
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -19,7 +18,7 @@ import (
 func TestPipelineIngestor_HealthCheck(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	client := collector.NewCollectorClient(t)
 	c := cache.NewCacheProvider(t)
 	gdb := graphdb.NewProvider(t)
@@ -126,7 +125,7 @@ func TestPipelineIngestor_Run(t *testing.T) {
 	ingests["rolebindings"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(roleRun).NotBefore(croleRun)
 	ingests["crolebindings"].EXPECT().Run(mock.Anything).Return(nil).Once().NotBefore(roleRun).NotBefore(croleRun)
 
-	err := pi.Run(context.Background())
+	err := pi.Run(t.Context())
 	assert.NoError(t, err)
 }
 
@@ -156,7 +155,7 @@ func TestPipelineIngestor_RunInitError(t *testing.T) {
 	ingests["rolebindings"].EXPECT().Run(mock.Anything).Return(nil).Maybe().NotBefore(roleRun).NotBefore(croleRun)
 	ingests["crolebindings"].EXPECT().Run(mock.Anything).Return(nil).Maybe().NotBefore(roleRun).NotBefore(croleRun)
 
-	err := pi.Run(context.Background())
+	err := pi.Run(t.Context())
 	assert.ErrorContains(t, err, "group k8s-node-group ingest: test error")
 }
 
@@ -185,6 +184,6 @@ func TestPipelineIngestor_RunExecError(t *testing.T) {
 	ingests["roles"].EXPECT().Run(mock.Anything).Return(nil).Once()
 	ingests["croles"].EXPECT().Run(mock.Anything).Return(errors.New("test error")).Once()
 
-	err := pi.Run(context.Background())
+	err := pi.Run(t.Context())
 	assert.ErrorContains(t, err, "group k8s-role-group ingest: test error")
 }

@@ -1,7 +1,6 @@
 package dump
 
 import (
-	"context"
 	"fmt"
 	"path"
 	"reflect"
@@ -92,7 +91,7 @@ func TestParsePath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := ParsePath(context.TODO(), tt.args.path)
+			got, err := ParsePath(t.Context(), tt.args.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParsePath() error = %v, wantErr %v", err, tt.wantErr)
 

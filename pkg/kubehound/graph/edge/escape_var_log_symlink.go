@@ -53,7 +53,7 @@ func (e *EscapeVarLogSymlink) AttckTacticID() AttckTacticID {
 func (e *EscapeVarLogSymlink) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*permissionSetIDEscapeGroup)
 	if !ok {
-		return nil, fmt.Errorf("Invalid type passed to processor: %T", entry)
+		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
 	permissionSetVertexID, err := oic.GraphID(ctx, typed.PermissionSetID.Hex())

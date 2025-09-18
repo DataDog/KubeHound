@@ -1,7 +1,6 @@
 package gremlin
 
 import (
-	"context"
 	"testing"
 
 	"github.com/DataDog/KubeHound/exp/khaudit/internal/domain/permission"
@@ -24,7 +23,7 @@ func TestPermissionRepository_GetReachablePodCountPerNamespace(t *testing.T) {
 
 	repo := Permissions(conn)
 
-	namespaceCounts, err := repo.GetReachablePodCountPerNamespace(context.Background(), "01jq6drwavcfzbpaaab4v21f5s")
+	namespaceCounts, err := repo.GetReachablePodCountPerNamespace(t.Context(), "01jq6drwavcfzbpaaab4v21f5s")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +47,7 @@ func TestPermissionRepository_GetKubectlExecutablePodCount(t *testing.T) {
 
 	repo := Permissions(conn)
 
-	podCount, err := repo.GetKubectlExecutablePodCount(context.Background(), "01jq6drwavcfzbpaaab4v21f5s", "employees")
+	podCount, err := repo.GetKubectlExecutablePodCount(t.Context(), "01jq6drwavcfzbpaaab4v21f5s", "employees")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +71,7 @@ func TestPermissionRepository_GetExposedPodCountPerNamespace(t *testing.T) {
 
 	repo := Permissions(conn)
 
-	exposedPodCounts, err := repo.GetExposedPodCountPerNamespace(context.Background(), "01jq6drwavcfzbpaaab4v21f5s", "employees")
+	exposedPodCounts, err := repo.GetExposedPodCountPerNamespace(t.Context(), "01jq6drwavcfzbpaaab4v21f5s", "employees")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +95,7 @@ func TestPermissionRepository_GetKubectlExecutableGroupsForNamespace(t *testing.
 
 	repo := Permissions(conn)
 
-	groups, err := repo.GetKubectlExecutableGroupsForNamespace(context.Background(), "01jq6drwavcfzbpaaab4v21f5s", "apm-driveline")
+	groups, err := repo.GetKubectlExecutableGroupsForNamespace(t.Context(), "01jq6drwavcfzbpaaab4v21f5s", "apm-driveline")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +119,7 @@ func TestPermissionRepository_GetExposedNamespacePods(t *testing.T) {
 
 	repo := Permissions(conn)
 
-	groups, err := repo.GetExposedNamespacePods(context.Background(), "01jq6drwavcfzbpaaab4v21f5s", "apm-driveline", "employees", permission.ExposedPodFilter{})
+	groups, err := repo.GetExposedNamespacePods(t.Context(), "01jq6drwavcfzbpaaab4v21f5s", "apm-driveline", "employees", permission.ExposedPodFilter{})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -249,7 +249,7 @@ type FlatTestSuite struct {
 
 func (s *FlatTestSuite) SetupSuite() {
 	// Reseting the context to simulate a new ingestion from scratch
-	ctx := context.Background()
+	ctx := s.T().Context()
 
 	p := InitSetupTest(ctx)
 	defer p.Close(ctx)
@@ -267,7 +267,7 @@ type CompressTestSuite struct {
 
 func (s *CompressTestSuite) SetupSuite() {
 	// Reseting the context to simulate a new ingestion from scratch
-	ctx := context.Background()
+	ctx := s.T().Context()
 
 	p := InitSetupTest(ctx)
 	defer p.Close(ctx)
@@ -285,7 +285,7 @@ type MultipleIngestioTestSuite struct {
 
 func (s *MultipleIngestioTestSuite) SetupSuite() {
 	// Reseting the context to simulate a new ingestion from scratch
-	ctx := context.Background()
+	ctx := s.T().Context()
 
 	p := InitSetupTest(ctx)
 	defer p.Close(ctx)
@@ -306,7 +306,7 @@ type LiveTestSuite struct {
 // runKubeHound runs the collector against the local kind cluster, then runs KubeHound to create
 // an attack graph that can be queried in the individual system tests.
 func (s *LiveTestSuite) SetupSuite() {
-	ctx := context.Background()
+	ctx := s.T().Context()
 	l := log.Logger(ctx)
 	libkube.ResetOnce()
 
@@ -330,7 +330,7 @@ type GRPCTestSuite struct {
 
 func (s *GRPCTestSuite) SetupSuite() {
 	// Reseting the context to simulate a new ingestion from scratch
-	ctx := context.Background()
+	ctx := s.T().Context()
 	l := log.Logger(ctx)
 
 	p := InitSetupTest(ctx)

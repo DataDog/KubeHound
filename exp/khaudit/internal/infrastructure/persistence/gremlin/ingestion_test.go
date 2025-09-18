@@ -1,7 +1,6 @@
 package gremlin
 
 import (
-	"context"
 	"testing"
 
 	"github.com/DataDog/KubeHound/exp/khaudit/internal/domain/ingestion"
@@ -24,7 +23,7 @@ func TestIngestion_List(t *testing.T) {
 
 	repo := Ingestions(conn)
 
-	ingestions, err := repo.List(context.Background(), ingestion.ListFilter{})
+	ingestions, err := repo.List(t.Context(), ingestion.ListFilter{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +49,7 @@ func TestIngestion_GetEdgeCountPerClasses(t *testing.T) {
 
 	repo := Ingestions(conn)
 
-	edgeCounts, err := repo.GetEdgeCountPerClasses(context.Background())
+	edgeCounts, err := repo.GetEdgeCountPerClasses(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +75,7 @@ func TestIngestion_GetVertexCountPerClasses(t *testing.T) {
 
 	repo := Ingestions(conn)
 
-	vertexCounts, err := repo.GetVertexCountPerClasses(context.Background())
+	vertexCounts, err := repo.GetVertexCountPerClasses(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}

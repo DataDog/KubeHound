@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -41,7 +40,7 @@ func foundPreviousScan(mt *mtest.T, g *IngestorAPI) {
 
 	// For count to work, mongo needs an index. So we need to create that. Index view should contains a key. Value does not matter
 	indexView := mt.Coll.Indexes()
-	_, err := indexView.CreateOne(context.TODO(), mongo.IndexModel{
+	_, err := indexView.CreateOne(mt.Context(), mongo.IndexModel{
 		Keys: bson.D{{Key: "n", Value: 321}},
 	})
 	require.Nil(mt, err, "CreateOne error for index: %v", err)
@@ -62,7 +61,7 @@ func noPreviousScan(mt *mtest.T, g *IngestorAPI) {
 
 	// For count to work, mongo needs an index. So we need to create that. Index view should contains a key. Value does not matter
 	indexView := mt.Coll.Indexes()
-	_, err := indexView.CreateOne(context.TODO(), mongo.IndexModel{
+	_, err := indexView.CreateOne(mt.Context(), mongo.IndexModel{
 		Keys: bson.D{{Key: "n", Value: 321}},
 	})
 	require.Nil(mt, err, "CreateOne error for index: %v", err)
@@ -160,7 +159,7 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 			}
 			dumpResultPath := dumpResult.GetFullPath()
 
-			if err := g.Ingest(context.TODO(), dumpResultPath); (err != nil) != tt.wantErr {
+			if err := g.Ingest(t.Context(), dumpResultPath); (err != nil) != tt.wantErr {
 				t.Errorf("IngestorAPI.Ingest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -171,7 +170,7 @@ func TestIngestorAPI_isAlreadyIngestedInDB(t *testing.T) {
 	t.Parallel()
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	type fields struct {
 		providers *providers.ProvidersFactoryConfig

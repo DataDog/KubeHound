@@ -1,7 +1,6 @@
 package blob
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path"
@@ -177,7 +176,7 @@ func TestBlobStore_ListFiles(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := context.Background()
+			ctx := t.Context()
 			bs := &BlobStore{
 				bucketName: tt.fields.bucketName,
 				cfg:        tt.fields.cfg,
@@ -281,7 +280,7 @@ func TestBlobStore_Pull(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := context.Background()
+			ctx := t.Context()
 			bs := &BlobStore{
 				bucketName: tt.fields.bucketName,
 				cfg:        tt.fields.cfg,
@@ -450,7 +449,7 @@ func TestBlobStore_Put(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := context.Background()
+			ctx := t.Context()
 			bs := &BlobStore{
 				bucketName: tt.fields.bucketName,
 				cfg:        tt.fields.cfg,
@@ -513,7 +512,7 @@ func TestBlobStore_Extract(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := context.Background()
+			ctx := t.Context()
 			bs := &BlobStore{
 				bucketName: tt.fields.bucketName,
 				cfg:        tt.fields.cfg,

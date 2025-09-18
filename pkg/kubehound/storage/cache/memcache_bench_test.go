@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"testing"
@@ -25,7 +24,7 @@ import (
 // BenchmarkWrite/524288-10               2         583498562 ns/op        261488468 B/op   7358834 allocs/op
 // BenchmarkWrite/1048576-10              1        1194777000 ns/op        522988328 B/op  14717714 allocs/op
 func BenchmarkWrite(b *testing.B) {
-	ctx := context.Background()
+	ctx := b.Context()
 
 	for k := 10.; k <= 20; k++ {
 		n := int(math.Pow(2, k))
@@ -58,7 +57,7 @@ func BenchmarkWrite(b *testing.B) {
 // BenchmarkRead/524288-10         1000000000               0.1908 ns/op          0 B/op          0 allocs/op
 // BenchmarkRead/1048576-10        1000000000               0.3739 ns/op          0 B/op          0 allocs/op
 func BenchmarkRead(b *testing.B) {
-	ctx := context.Background()
+	ctx := b.Context()
 
 	for k := 10.; k <= 20; k++ {
 		n := int(math.Pow(2, k))

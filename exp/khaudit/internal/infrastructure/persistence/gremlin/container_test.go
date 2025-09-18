@@ -1,7 +1,6 @@
 package gremlin
 
 import (
-	"context"
 	"testing"
 
 	"github.com/DataDog/KubeHound/exp/khaudit/internal/domain/container"
@@ -30,7 +29,7 @@ func TestContainer_CountByNamespaces(t *testing.T) {
 	repo := Containers(conn)
 
 	resultChan := make(chan container.NamespaceAggregation, 2000)
-	err = repo.CountByNamespaces(context.Background(), "test.cluster.local", "01jnh21qtrt41ddmgyfpfm29qj", container.NamespaceAggregationFilter{}, resultChan)
+	err = repo.CountByNamespaces(t.Context(), "test.cluster.local", "01jnh21qtrt41ddmgyfpfm29qj", container.NamespaceAggregationFilter{}, resultChan)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +56,7 @@ func TestContainer_GetAttackPathProfiles(t *testing.T) {
 
 	repo := Containers(conn)
 
-	paths, err := repo.GetAttackPathProfiles(context.Background(), "test.cluster.local", "01jnh21qtrt41ddmgyfpfm29qj", container.AttackPathFilter{})
+	paths, err := repo.GetAttackPathProfiles(t.Context(), "test.cluster.local", "01jnh21qtrt41ddmgyfpfm29qj", container.AttackPathFilter{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +83,7 @@ func TestContainer_GetVulnerables(t *testing.T) {
 	repo := Containers(conn)
 
 	resultChan := make(chan container.Container, 2000)
-	err = repo.GetVulnerables(context.Background(), "test.cluster.local", "01jnh21qtrt41ddmgyfpfm29qj", container.AttackPathFilter{
+	err = repo.GetVulnerables(t.Context(), "test.cluster.local", "01jnh21qtrt41ddmgyfpfm29qj", container.AttackPathFilter{
 		Namespace: asRef("default"),
 	}, resultChan)
 	if err != nil {
@@ -115,7 +114,7 @@ func TestContainer_GetAttackPaths(t *testing.T) {
 	repo := Containers(conn)
 
 	resultChan := make(chan kubehound.AttackPath, 2000)
-	err = repo.GetAttackPaths(context.Background(), "test.cluster.local", "01jp28sxeagj7mbsdtkfaf4c9t", container.AttackPathFilter{
+	err = repo.GetAttackPaths(t.Context(), "test.cluster.local", "01jp28sxeagj7mbsdtkfaf4c9t", container.AttackPathFilter{
 		Namespace: asRef("default"),
 		App:       asRef("toolbox"),
 	}, resultChan)

@@ -1,7 +1,6 @@
 package writer
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"path"
@@ -14,7 +13,7 @@ import (
 
 func TestFSWriter_WriteFile(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	fileNameK8sObject := collector.EndpointPath
 	dummyNamespace := "namespace1"

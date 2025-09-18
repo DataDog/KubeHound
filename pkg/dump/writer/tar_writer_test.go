@@ -1,7 +1,6 @@
 package writer
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"os"
@@ -19,7 +18,7 @@ import (
 
 func TestTarWriter_Write(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	tmpTarFileDir := t.TempDir()
 	tmpTarExtractDir := t.TempDir()

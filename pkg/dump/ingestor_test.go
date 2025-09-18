@@ -1,7 +1,6 @@
 package dump
 
 import (
-	"context"
 	"reflect"
 	"testing"
 
@@ -20,7 +19,7 @@ const (
 )
 
 func TestNewDumpIngestor(t *testing.T) { //nolint:paralleltest,nolintlint
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Setenv("KUBECONFIG", "./testdata/kube-config")
 	clientset := fake.NewSimpleClientset()
@@ -87,7 +86,7 @@ func TestNewDumpIngestor(t *testing.T) { //nolint:paralleltest,nolintlint
 
 func TestDumpIngestor_DumpK8sObjects(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	writerOutputPath := "/tmp/cluster_name"
 	singleThreadedPipelineLive := func(t *testing.T) (*mockwriter.DumperWriter, collector.CollectorClient) {

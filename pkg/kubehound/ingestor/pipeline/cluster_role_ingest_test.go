@@ -23,7 +23,7 @@ func TestClusterRoleIngest_Pipeline(t *testing.T) {
 
 	cri := &ClusterRoleIngest{}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	fakeRole, err := loadTestObject[types.ClusterRoleType]("testdata/clusterrole.json")
 	assert.NoError(t, err)
 

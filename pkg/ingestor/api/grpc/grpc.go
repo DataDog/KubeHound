@@ -70,7 +70,8 @@ func (s *server) RehydrateLatest(ctx context.Context, in *pb.RehydrateLatestRequ
 // It uses the config from the passed API for address and ports
 func Listen(ctx context.Context, api *api.IngestorAPI) error {
 	l := log.Logger(ctx)
-	lis, err := net.Listen("tcp", api.Cfg.Ingestor.API.Endpoint)
+	var lc net.ListenConfig
+	lis, err := lc.Listen(ctx, "tcp", api.Cfg.Ingestor.API.Endpoint)
 	if err != nil {
 		return err
 	}

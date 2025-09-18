@@ -243,7 +243,7 @@ func (bs *BlobStore) Extract(ctx context.Context, archivePath string) error {
 	basePath := filepath.Dir(archivePath)
 	err = puller.CheckSanePath(archivePath, basePath)
 	if err != nil {
-		return fmt.Errorf("Dangerous file path used during extraction, aborting: %w", err)
+		return fmt.Errorf("dangerous file path used during extraction, aborting: %w", err)
 	}
 
 	dryRun := false

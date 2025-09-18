@@ -2,7 +2,6 @@
 package system
 
 import (
-	"context"
 	"runtime"
 	"strings"
 
@@ -84,7 +83,7 @@ type VertexTestSuite struct {
 
 func (suite *VertexTestSuite) SetupSuite() {
 	require := suite.Require()
-	ctx := context.Background()
+	ctx := suite.T().Context()
 	cfg := config.MustLoadConfig(ctx, "./kubehound.yaml")
 
 	// JanusGraph
@@ -386,5 +385,5 @@ func (suite *VertexTestSuite) TestVertexClusterProperty() {
 }
 
 func (suite *VertexTestSuite) TearDownSuite() {
-	suite.gdb.Close(context.Background())
+	suite.gdb.Close(suite.T().Context())
 }

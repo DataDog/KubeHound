@@ -24,7 +24,7 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 
 	ei := &EndpointIngest{}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	fakeEp, err := loadTestObject[types.EndpointType]("testdata/endpointslice.json")
 	assert.NoError(t, err)
 
