@@ -63,8 +63,8 @@ func (e *PermissionDiscover) Stream(ctx context.Context, store storedb.Provider,
 	pipeline := bson.A{
 		bson.M{
 			"$match": bson.M{
-				"runtime.runID":   e.runtime.RunID.String(),
-				"runtime.cluster": e.runtime.ClusterName,
+				"runtime.runID":        e.runtime.RunID.String(),
+				"runtime.cluster.name": e.runtime.Cluster.Name,
 			},
 		},
 		// First we retrieve all rolebindings associated to the permissionset

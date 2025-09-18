@@ -19,11 +19,16 @@ Given the requisite capabilities, abuse the legitimate OS debugging mechanisms t
 
 ## Details
 
-The `SYS_PTRACE` capability, which allows the use of `ptrace()`. This system call allows a process to monitor and control the execution of another process. 
+The `SYS_PTRACE` capability, which allows the use of `ptrace()`. This system call allows a process to monitor and control the execution of another process.
 
 ## Prerequisites
 
-To perform this attack, the container must be started with the option `hostPID: true`, which enables the sharing of the PID address space between the container and the host operating system, allowing the container process to see every other process running on the host. And the container needs to be granted `SYS_PTRACE` and `SYS_ADMIN` capabilities. 
+To perform this attack, the container must be started with the option `hostPID: true`, which enables the sharing of the PID address space between the container and the host operating system, allowing the container process to see every other process running on the host. And the container needs to be granted `SYS_PTRACE` and `SYS_ADMIN` capabilities.
+
+Since Kubernetes 1.31.0, [AppArmor is enabled by default](https://kubernetes.io/docs/tutorials/security/apparmor/), which allows ptrace to target processes only on the same pod.
+This adds another requirement, the container needs the `Unconfined` AppArmor profile.
+
+Or, it can be started with the option `privileged: true`, which grants all capabilities and disables AppArmor
 
 See the [example pod spec](https://github.com/DataDog/KubeHound/tree/main/test/setup/test-cluster/attacks/CE_SYS_PTRACE.yaml).
 
@@ -40,6 +45,10 @@ cat /proc/self/status | grep CapEff
 # NOTE: can install capsh via apt-get update && apt-get install libcap2-bin
 capsh --decode=00000000a80425fb | grep cap_sys_admin
 capsh --decode=00000000a80425fb | grep cap_sys_ptrace
+
+# Check AppArmor status - if you see for instance `cri-containerd.apparmor.d (enforce)`, ptrace will
+# fail with Permission Denied
+cat /proc/self/attr/current
 ```
 
 ## Exploitation

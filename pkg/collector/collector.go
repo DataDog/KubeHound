@@ -88,7 +88,7 @@ type CollectorClient interface { //nolint: interfacebloat
 	services.Dependency
 
 	// ClusterInfo returns the target cluster information for the current run.
-	ClusterInfo(ctx context.Context) (*config.ClusterInfo, error)
+	ClusterInfo(ctx context.Context) (*ClusterInfo, error)
 
 	// Compute the metrics and gather all the metadata and dump it through the ingestor.DumpMetadata
 	ComputeMetadata(ctx context.Context, ingestor MetadataIngestor) error
@@ -168,8 +168,14 @@ type Metrics struct {
 	ThrottlingPercentage float64       `json:"throttling_percentage"`
 }
 
+type ClusterInfo struct {
+	Name         string `json:"name"`
+	VersionMajor string `json:"version_major"`
+	VersionMinor string `json:"version_minor"`
+}
+
 type Metadata struct {
-	RunID       string  `json:"run_id"`
-	ClusterName string  `json:"cluster"`
-	Metrics     Metrics `json:"metrics"`
+	RunID   string       `json:"run_id"`
+	Cluster *ClusterInfo `json:"cluster"`
+	Metrics Metrics      `json:"metrics"`
 }

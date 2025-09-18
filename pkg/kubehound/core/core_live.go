@@ -18,7 +18,7 @@ func CoreInitLive(ctx context.Context, khCfg *config.KubehoundConfig) error {
 	if err != nil {
 		return fmt.Errorf("collector cluster info: %w", err)
 	}
-	khCfg.Dynamic.ClusterName = clusterName
+	khCfg.Dynamic.Cluster.Name = clusterName
 
 	return nil
 }
@@ -38,7 +38,7 @@ func CoreLive(ctx context.Context, khCfg *config.KubehoundConfig) error {
 
 	// Start the run
 	start := time.Now()
-	l.Info("Starting KubeHound", log.String(log.FieldRunIDKey, khCfg.Dynamic.RunID.String()), log.String("cluster_name", khCfg.Dynamic.ClusterName))
+	l.Info("Starting KubeHound", log.String(log.FieldRunIDKey, khCfg.Dynamic.RunID.String()), log.String("cluster_name", khCfg.Dynamic.Cluster.Name))
 
 	// Initialize the providers (graph, cache, store)
 	l.Info("Initializing providers (graph, cache, store)")

@@ -93,7 +93,9 @@ func TestMustLoadConfig(t *testing.T) {
 					MaxArchiveSize: DefaultMaxArchiveSize,
 				},
 				Dynamic: DynamicConfig{
-					ClusterName: "test-cluster",
+					Cluster: DynamicClusterInfo{
+						Name: "test-cluster",
+					},
 				},
 			},
 			wantErr: false,

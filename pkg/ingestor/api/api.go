@@ -139,7 +139,7 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error { //nolint:
 		md = dumpMetadata.Metadata
 	}
 
-	clusterName := md.ClusterName
+	clusterName := md.Cluster.Name
 	runID := md.RunID
 
 	err = g.lockRunID(runID)
@@ -149,7 +149,12 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error { //nolint:
 
 	defer g.unlockRunID(runID)
 
-	err = g.Cfg.ComputeDynamic(config.WithClusterName(clusterName), config.WithRunID(runID))
+	clusterInfo := config.DynamicClusterInfo{
+		Name:         clusterName,
+		VersionMajor: md.Cluster.VersionMajor,
+		VersionMinor: md.Cluster.VersionMinor,
+	}
+	err = g.Cfg.ComputeDynamic(config.WithClusterInfo(clusterInfo), config.WithRunID(runID))
 	if err != nil {
 		return err
 	}
@@ -274,8 +279,10 @@ func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName str
 		db := mdb.Collection(collection)
 		filter := bson.M{
 			"runtime": bson.M{
-				"runID":   runID,
-				"cluster": clusterName,
+				"runID": runID,
+				"cluster": bson.M{
+					"name": clusterName,
+				},
 			},
 		}
 		resNum, err = db.CountDocuments(ctx, filter, nil)

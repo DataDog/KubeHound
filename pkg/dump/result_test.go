@@ -37,8 +37,10 @@ func TestParsePath(t *testing.T) {
 			},
 			want: &DumpResult{
 				Metadata: collector.Metadata{
-					ClusterName: validClusterName,
-					RunID:       validRunID,
+					Cluster: &collector.ClusterInfo{
+						Name: validClusterName,
+					},
+					RunID: validRunID,
 				},
 				isDir:     true,
 				extension: "",
@@ -52,8 +54,10 @@ func TestParsePath(t *testing.T) {
 			},
 			want: &DumpResult{
 				Metadata: collector.Metadata{
-					ClusterName: validClusterName,
-					RunID:       validRunID,
+					Cluster: &collector.ClusterInfo{
+						Name: validClusterName,
+					},
+					RunID: validRunID,
 				},
 				isDir:     false,
 				extension: "tar.gz",
@@ -141,8 +145,10 @@ func TestDumpResult_GetFilename(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
 				Metadata: collector.Metadata{
-					ClusterName: tt.fields.ClusterName,
-					RunID:       tt.fields.RunID,
+					Cluster: &collector.ClusterInfo{
+						Name: tt.fields.ClusterName,
+					},
+					RunID: tt.fields.RunID,
 				},
 				isDir:     tt.fields.IsDir,
 				extension: tt.fields.Extension,
@@ -194,8 +200,10 @@ func TestDumpResult_GetFullPath(t *testing.T) {
 			t.Parallel()
 			i := &DumpResult{
 				Metadata: collector.Metadata{
-					ClusterName: tt.fields.ClusterName,
-					RunID:       tt.fields.RunID,
+					Cluster: &collector.ClusterInfo{
+						Name: tt.fields.ClusterName,
+					},
+					RunID: tt.fields.RunID,
 				},
 				isDir:     tt.fields.IsDir,
 				extension: tt.fields.Extension,
@@ -230,8 +238,10 @@ func TestNewDumpResult(t *testing.T) {
 			},
 			want: &DumpResult{
 				Metadata: collector.Metadata{
-					ClusterName: validClusterName,
-					RunID:       validRunID,
+					Cluster: &collector.ClusterInfo{
+						Name: validClusterName,
+					},
+					RunID: validRunID,
 				},
 				isDir: true,
 			},

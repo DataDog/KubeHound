@@ -65,8 +65,8 @@ func (e *VolumeAccess) Stream(ctx context.Context, store storedb.Provider, _ cac
 	projection := bson.M{"_id": 1, "node_id": 1}
 
 	filter := bson.M{
-		"runtime.runID":   e.runtime.RunID.String(),
-		"runtime.cluster": e.runtime.ClusterName,
+		"runtime.runID":        e.runtime.RunID.String(),
+		"runtime.cluster.name": e.runtime.Cluster.Name,
 	}
 
 	cur, err := volumes.Find(ctx, filter, options.Find().SetProjection(projection))

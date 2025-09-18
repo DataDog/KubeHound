@@ -157,5 +157,11 @@ func NewTestK8sAPICollector(ctx context.Context, clientset *fake.Clientset) Coll
 		rl:       ratelimit.New(config.DefaultK8sAPIRateLimitPerSecond), // per second
 		waitTime: map[string]time.Duration{},
 		mu:       &sync.Mutex{},
+		cluster: &ClusterInfo{
+			Name:         "test-cluster",
+			VersionMajor: "1",
+			VersionMinor: "33",
+		},
+		runID: "test-run-id",
 	}
 }

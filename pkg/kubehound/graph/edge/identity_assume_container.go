@@ -63,8 +63,8 @@ func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Prov
 	pipeline := bson.A{
 		bson.M{
 			"$match": bson.M{
-				"runtime.runID":   e.runtime.RunID.String(),
-				"runtime.cluster": e.runtime.ClusterName,
+				"runtime.runID":        e.runtime.RunID.String(),
+				"runtime.cluster.name": e.runtime.Cluster.Name,
 			},
 		},
 		bson.M{
@@ -91,8 +91,8 @@ func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Prov
 								}},
 								bson.M{"type": shared.IdentityTypeSA},
 							},
-							"runtime.runID":   e.runtime.RunID.String(),
-							"runtime.cluster": e.runtime.ClusterName,
+							"runtime.runID":        e.runtime.RunID.String(),
+							"runtime.cluster.name": e.runtime.Cluster.Name,
 						},
 					},
 					{

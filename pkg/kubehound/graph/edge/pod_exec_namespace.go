@@ -64,9 +64,9 @@ func (e *PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
-				"is_namespaced":   true,
-				"runtime.runID":   e.runtime.RunID.String(),
-				"runtime.cluster": e.runtime.ClusterName,
+				"is_namespaced":        true,
+				"runtime.runID":        e.runtime.RunID.String(),
+				"runtime.cluster.name": e.runtime.Cluster.Name,
 				"rules": bson.M{
 					"$elemMatch": bson.M{
 						"$and": bson.A{
@@ -107,8 +107,8 @@ func (e *PodExecNamespace) Stream(ctx context.Context, store storedb.Provider, _
 								}},
 								bson.M{"is_namespaced": false},
 							},
-							"runtime.runID":   e.runtime.RunID.String(),
-							"runtime.cluster": e.runtime.ClusterName,
+							"runtime.runID":        e.runtime.RunID.String(),
+							"runtime.cluster.name": e.runtime.Cluster.Name,
 						},
 					},
 					{

@@ -63,10 +63,10 @@ func (e *TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.C
 	volumes := adapter.MongoDB(ctx, sdb).Collection(collections.VolumeName)
 
 	filter := bson.M{
-		"type":            shared.VolumeTypeProjected,
-		"projected_id":    bson.M{"$ne": nil},
-		"runtime.runID":   e.runtime.RunID.String(),
-		"runtime.cluster": e.runtime.ClusterName,
+		"type":                 shared.VolumeTypeProjected,
+		"projected_id":         bson.M{"$ne": nil},
+		"runtime.runID":        e.runtime.RunID.String(),
+		"runtime.cluster.name": e.runtime.Cluster.Name,
 	}
 
 	// We just need a 1:1 mapping of the volume and projected service account to create this edge

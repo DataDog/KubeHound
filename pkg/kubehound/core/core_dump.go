@@ -35,7 +35,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 	if err != nil {
 		return "", fmt.Errorf("collector cluster info: %w", err)
 	}
-	khCfg.Dynamic.ClusterName = clusterName
+	khCfg.Dynamic.Cluster.Name = clusterName
 	ctx = context.WithValue(ctx, log.ContextFieldCluster, clusterName)
 	ctx = context.WithValue(ctx, log.ContextFieldRunID, khCfg.Dynamic.RunID.String())
 
@@ -64,7 +64,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 			// This error is scope to the defer and not be handled by the other defer function
 			err := os.RemoveAll(khCfg.Collector.File.Directory)
 			if err != nil {
-				errMsg := fmt.Errorf("Failed to remove temporary directory: %w", err)
+				errMsg := fmt.Errorf("failed to remove temporary directory: %w", err)
 				l.Error("Failed to remove temporary directory", log.ErrorField(err))
 				_ = events.PushEvent(ctx, events.DumpFailed, fmt.Sprintf("%s", errMsg))
 			}

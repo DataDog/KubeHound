@@ -111,7 +111,7 @@ func (mp *MongoProvider) Prepare(ctx context.Context) error {
 	return nil
 }
 
-func (mp *MongoProvider) Clean(ctx context.Context, cluster string, runId string) error {
+func (mp *MongoProvider) Clean(ctx context.Context, runId string, clusterName string) error {
 	l := log.Logger(ctx)
 	db := mp.writer.Database(MongoDatabaseName)
 	collections, err := db.ListCollectionNames(ctx, bson.M{})
@@ -119,8 +119,8 @@ func (mp *MongoProvider) Clean(ctx context.Context, cluster string, runId string
 		return fmt.Errorf("listing mongo DB collections: %w", err)
 	}
 	filter := bson.M{
-		"runtime.runID":   runId,
-		"runtime.cluster": cluster,
+		"runtime.runID":        runId,
+		"runtime.cluster.name": clusterName,
 	}
 	for _, collectionName := range collections {
 		res, err := db.Collection(collectionName).DeleteMany(ctx, filter)

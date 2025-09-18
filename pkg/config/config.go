@@ -21,9 +21,11 @@ var (
 )
 
 const (
-	DefaultConfigType  = "yaml"
-	DefaultClusterName = "unknown"
-	DefaultConfigName  = "kubehound"
+	DefaultConfigType          = "yaml"
+	DefaultClusterName         = "unknown"
+	DefaultClusterVersionMajor = ""
+	DefaultClusterVersionMinor = ""
+	DefaultConfigName          = "kubehound"
 
 	GlobalDebug = "debug"
 )
@@ -300,7 +302,9 @@ func (kc *KubehoundConfig) ComputeDynamic(opts ...DynamicOption) error {
 	defer kc.Dynamic.mu.Unlock()
 
 	kc.Dynamic.RunID = NewRunID()
-	kc.Dynamic.ClusterName = DefaultClusterName
+	kc.Dynamic.Cluster.Name = DefaultClusterName
+	kc.Dynamic.Cluster.VersionMajor = DefaultClusterVersionMajor
+	kc.Dynamic.Cluster.VersionMinor = DefaultClusterVersionMinor
 
 	for _, option := range opts {
 		opt, err := option()

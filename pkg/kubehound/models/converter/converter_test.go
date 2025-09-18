@@ -24,8 +24,10 @@ import (
 
 var testConfig = &config.KubehoundConfig{
 	Dynamic: config.DynamicConfig{
-		RunID:       config.NewRunID(),
-		ClusterName: "test-cluster",
+		RunID: config.NewRunID(),
+		Cluster: config.DynamicClusterInfo{
+			Name: "test-cluster",
+		},
 	},
 }
 
@@ -98,7 +100,7 @@ func TestConverter_RolePipeline(t *testing.T) {
 	assert.True(t, storeRole.IsNamespaced)
 	assert.Equal(t, storeRole.Namespace, input.Namespace)
 	assert.Equal(t, storeRole.Rules, input.Rules)
-	assert.Equal(t, storeRole.Runtime.Cluster, testConfig.Dynamic.ClusterName)
+	assert.Equal(t, storeRole.Runtime.Cluster.Name, testConfig.Dynamic.Cluster.Name)
 	assert.Equal(t, storeRole.Runtime.RunID, testConfig.Dynamic.RunID.String())
 }
 
@@ -116,7 +118,7 @@ func TestConverter_ClusterRolePipeline(t *testing.T) {
 	assert.False(t, storeRole.IsNamespaced)
 	assert.Empty(t, storeRole.Namespace)
 	assert.Equal(t, storeRole.Rules, input.Rules)
-	assert.Equal(t, storeRole.Runtime.Cluster, testConfig.Dynamic.ClusterName)
+	assert.Equal(t, storeRole.Runtime.Cluster.Name, testConfig.Dynamic.Cluster.Name)
 	assert.Equal(t, storeRole.Runtime.RunID, testConfig.Dynamic.RunID.String())
 }
 

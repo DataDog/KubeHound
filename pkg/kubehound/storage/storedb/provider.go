@@ -39,7 +39,7 @@ type Provider interface {
 	Prepare(ctx context.Context) error
 
 	// Droping all assets from the database (usually to ensure a clean start) from a runID and cluster name
-	Clean(ctx context.Context, runId string, cluster string) error
+	Clean(ctx context.Context, runId string, clusterName string) error
 
 	// Reader returns a handle to the underlying provider to allow implementation specific queries against the mongo DB
 	Reader() any
