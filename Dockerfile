@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 
-ARG GO_VERSION=1.24.0
+ARG GO_VERSION=1.24.6
 ARG XX_VERSION=1.6.1
-ARG GOLANGCI_LINT_VERSION=v1.64.5
+ARG GOLANGCI_LINT_VERSION=v2.1
 
 # xx is a helper for cross-compilation
 FROM --platform=${BUILDPLATFORM} tonistiigi/xx:${XX_VERSION} AS xx
