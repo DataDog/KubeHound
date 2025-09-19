@@ -12,7 +12,7 @@ ENV pipargs=""
 ENV WORKING_DIR="/kubehound"
 ENV NOTEBOOK_DIR="${WORKING_DIR}/notebooks"
 ENV EXAMPLE_NOTEBOOK_DIR="${NOTEBOOK_DIR}/kubehound_presets"
-ENV NODE_VERSION=14
+ENV NODE_VERSION=20.18.3
 ENV PYTHON_VERSION=3.10
 ENV GRAPH_NOTEBOOK_AUTH_MODE="DEFAULT"
 ENV GRAPH_NOTEBOOK_HOST="kubegraph"
@@ -25,6 +25,8 @@ ENV NOTEBOOK_PORT="8888"
 ENV LAB_PORT="8889"
 ENV GRAPH_NOTEBOOK_SSL="True"
 ENV NOTEBOOK_PASSWORD="admin"
+# Since jupyterlab v??? there is token authentication - this will set the password to "admin"
+ENV JUPYTER_TOKEN="admin"
 ENV PROVIDE_EXAMPLES=0
 
 # "when the SIGTERM signal is sent to the docker process, it immediately quits and all established connections are closed"
@@ -41,6 +43,7 @@ RUN yum update -y && \
     adduser --uid $UID --gid $GID --system nonroot -m && \
     echo 'nonroot ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
+# Blob taken from https://github.com/aws/graph-notebook/blob/6fc775c3b3bdad24ff2fe8c122b8af2b41ef7119/Dockerfile
 RUN mkdir -p "${WORKING_DIR}" && \
     mkdir -p "${NOTEBOOK_DIR}" && \
     mkdir -p "${EXAMPLE_NOTEBOOK_DIR}" && \
@@ -64,25 +67,20 @@ RUN mkdir -p "${WORKING_DIR}" && \
     # Clone the repo and install python dependencies
     git clone https://github.com/aws/graph-notebook && \
     cd "${WORKING_DIR}/graph-notebook" && \
-    # setup.py doesn't exist in later versions of graph-notebook
-    git checkout v4.6.2 && \
     chown -R nonroot:nonroot "${WORKING_DIR}/graph-notebook" && \
     pip3 install --upgrade pip setuptools wheel && \
     pip3 install twine==3.7.1 && \
     pip3 install -r requirements.txt && \
-    pip3 install --upgrade 'jupyter-server<2.0.0' && \
-    pip3 install "jupyterlab>=3,<4" && \
-    pip3 install jupyter_contrib_nbextensions && \
-    pip3 install jupyter_nbextensions_configurator && \
+    pip3 install "jupyterlab>=4.3.5,<5" && \
+    pip3 install --upgrade build hatch hatch-jupyter-builder && \
     # Build the package
-    python3 setup.py sdist bdist_wheel && \
+    python3 -m build . && \
     # install the copied repo
     pip3 install . && \
     # copy premade starter notebooks
     cd "${WORKING_DIR}/graph-notebook" && \
-    jupyter contrib nbextension install --system --debug && \
-    jupyter nbextension enable  --py --sys-prefix graph_notebook.widgets && \
-    jupyter nbextensions_configurator enable --system  # can be skipped for notebook >=5.3 && \
+    # python3 -m graph_notebook.notebooks.install --destination "${EXAMPLE_NOTEBOOK_DIR}" && \
+    jupyter nbclassic-extension enable  --py --sys-prefix graph_notebook.widgets && \
     # This allows for the `.ipython` to be set
     python -m graph_notebook.start_jupyterlab --jupyter-dir "${NOTEBOOK_DIR}" && \
     deactivate && \

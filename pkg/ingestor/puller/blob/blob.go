@@ -268,7 +268,7 @@ func (bs *BlobStore) Close(ctx context.Context, archivePath string) error {
 	path := filepath.Dir(archivePath)
 	err = puller.CheckSanePath(archivePath, bs.cfg.Ingestor.TempDir)
 	if err != nil {
-		return fmt.Errorf("Dangerous file path used while closing, aborting: %w", err)
+		return fmt.Errorf("dangerous file path used while closing, aborting: %w", err)
 	}
 
 	err = os.RemoveAll(path)
