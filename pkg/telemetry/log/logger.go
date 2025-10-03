@@ -34,6 +34,8 @@ type LoggerI interface { //nolint: interfacebloat
 	Errorf(msg string, params ...interface{})
 	Panicf(msg string, params ...interface{})
 	Fatalf(msg string, params ...interface{})
+
+	Skip(skip int)
 }
 
 type KubehoundLogger struct {
