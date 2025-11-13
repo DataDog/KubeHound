@@ -52,7 +52,8 @@ func createClient(ctx context.Context, opts *options.ClientOptions, timeout time
 // createReaderWriter creates a pair of MongoDB clients - one for writes and another for reads.
 func createReaderWriter(ctx context.Context, url string, timeout time.Duration) (*mongo.Client, *mongo.Client, error) {
 	baseOpts := options.Client()
-	baseOpts.ApplyURI(url + fmt.Sprintf("/?connectTimeoutMS=%d", timeout))
+	baseOpts.ApplyURI(url)
+	baseOpts.SetConnectTimeout(timeout)
 
 	writer, err := createClient(ctx, baseOpts, timeout)
 	if err != nil {
