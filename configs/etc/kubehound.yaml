@@ -28,7 +28,10 @@ mongodb:
 
   # Timeout on requests to the mongo DB instance
   connection_timeout: 30s
-
+  
+  # Wipe old copy of k8s/kubehound resources in mongodb
+  wipe: false
+  
 # Graph database configuration
 janusgraph:
   # Connection URL to the JanusGraph DB instance
