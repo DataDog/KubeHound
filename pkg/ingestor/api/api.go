@@ -211,11 +211,23 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error { //nolint:
 
 	// Run the ingest pipeline
 	l.Info("Starting Kubernetes raw data ingest")
+
+	// Droping the storedb data for the cluster if the wipe flag is set
+	if g.Cfg.MongoDB.Wipe {
+		err = g.providers.StoreProvider.Clean(runCtx, "*", clusterName) //nolint: contextcheck
+		if err != nil {
+			return err
+		}
+		l.Info("Droped storedb data for the cluster", log.String(log.FieldClusterKey, clusterName))
+	}
+
+	// Checking if the data is already ingested in the database
 	alreadyIngestedInDB, err := g.isAlreadyIngestedInDB(runCtx, clusterName, runID) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
 
+	// Droping the storedb data for the cluster if the data is already ingested in the database
 	if alreadyIngestedInDB {
 		l.Info("Data already ingested in the database for %s/%s, droping the current data", log.String(log.FieldClusterKey, clusterName), log.String(log.FieldRunIDKey, runID))
 		err := g.providers.StoreProvider.Clean(runCtx, runID, clusterName) //nolint: contextcheck

@@ -43,6 +43,9 @@ janusgraph:
   # Timeout on requests to the JanusGraph DB instance
   connection_timeout: 30s
 
+  # Wipe old copy of k8s/kubehound resources in mongodb
+  wipe: false
+
 # Datadog telemetry configuration
 telemetry:
   # Whether to enable Datadog telemetry (default false)

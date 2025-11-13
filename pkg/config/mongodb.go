@@ -5,14 +5,17 @@ import (
 )
 
 const (
-	DefaultMongoUrl = "mongodb://localhost:27017"
+	DefaultMongoUrl  = "mongodb://localhost:27017"
+	DefaultMongoWipe = false
 
 	MongoUrl               = "mongodb.url"
 	MongoConnectionTimeout = "mongodb.connection_timeout"
+	MongoWipe              = "mongodb.wipe"
 )
 
 // MongoDBConfig configures mongodb specific parameters.
 type MongoDBConfig struct {
 	URL               string        `mapstructure:"url"` // Mongodb specific configuration
 	ConnectionTimeout time.Duration `mapstructure:"connection_timeout"`
+	Wipe              bool          `mapstructure:"wipe"`
 }
