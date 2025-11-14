@@ -22,7 +22,7 @@ var (
 
 type Backend struct {
 	project        *types.Project
-	composeService api.Service
+	composeService api.Compose
 	dockerCli      *command.DockerCli
 }
 
