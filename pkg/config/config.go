@@ -116,6 +116,7 @@ func SetDefaultValues(ctx context.Context, v *viper.Viper) {
 	// Default value for MongoDB
 	v.SetDefault(MongoUrl, DefaultMongoUrl)
 	v.SetDefault(MongoConnectionTimeout, DefaultConnectionTimeout)
+	v.SetDefault(MongoWipe, DefaultMongoWipe)
 
 	// Defaults values for JanusGraph
 	v.SetDefault(JanusGraphUrl, DefaultJanusGraphUrl)
