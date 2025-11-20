@@ -65,3 +65,7 @@ func (z *zapLogger) Panicf(msg string, params ...interface{}) {
 func (z *zapLogger) Fatalf(msg string, params ...interface{}) {
 	z.s.Fatalf(msg, params...)
 }
+
+func (z *zapLogger) Skip(skip int) {
+	z.l = z.l.WithOptions(zap.AddCallerSkip(skip))
+}
