@@ -3,7 +3,8 @@ name: Datadog Static Analysis
 on:
   push:
 
-permissions: {}
+permissions:
+  id-token: write
 
 jobs:
   static-analysis:
@@ -12,11 +13,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Get Datadog credentials
+        id: dd-sts
+        uses: DataDog/dd-sts-action@main
+        with:
+          policy: kubehound-datadog-static-analysis
+
       - name: Check code meets quality and security standards
         id: datadog-static-analysis
         uses: DataDog/datadog-static-analyzer-github-action@2707598b1182dce1d1792186477b5b4132338e1c # v1.2.3
         with:
-          dd_api_key: ${{ secrets.DD_API_KEY }}
-          dd_app_key: ${{ secrets.DD_APP_KEY }}
+          dd_api_key: ${{ steps.dd-sts.outputs.api_key }}
+          dd_app_key: ${{ steps.dd-sts.outputs.app_key }}
           dd_site: datadoghq.com
           cpu_count: 2
