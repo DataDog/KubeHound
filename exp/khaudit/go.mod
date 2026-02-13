@@ -1,6 +1,6 @@
 module github.com/DataDog/KubeHound/exp/khaudit
 
-go 1.24.9
+go 1.25.7
 
 replace github.com/DataDog/KubeHound => ../../
 
