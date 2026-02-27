@@ -6,7 +6,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
 const (
@@ -14,9 +13,8 @@ const (
 )
 
 type NodeIngest struct {
-	vertex     *vertex.Node
-	collection collections.Node
-	r          *IngestResources
+	vertex *vertex.Node
+	r      *IngestResources
 }
 
 var _ ObjectIngest = (*NodeIngest)(nil)
@@ -29,11 +27,9 @@ func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
 	i.vertex = &vertex.Node{}
-	i.collection = collections.Node{}
 
 	i.r, err = CreateResources(ctx, deps,
 		WithConverterDB(),
-		WithStoreWriter(i.collection),
 		WithGraphWriter(i.vertex))
 	if err != nil {
 		return err
@@ -55,8 +51,8 @@ func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error 
 		return err
 	}
 
-	// Async write to store
-	if err := i.r.writeStore(ctx, i.collection, o); err != nil {
+	// Write to store
+	if err := i.r.writeStore(ctx, o); err != nil {
 		return err
 	}
 
@@ -66,7 +62,7 @@ func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error 
 		return err
 	}
 
-	// Async write to graph
+	// Write to graph
 	return i.r.writeVertex(ctx, i.vertex, insert)
 }
 

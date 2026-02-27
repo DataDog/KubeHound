@@ -11,7 +11,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -38,18 +37,13 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 
 	// Store setup
 	sdb := storedb.NewProvider(t)
-	sw := storedb.NewAsyncWriter(t)
-	roles := collections.Role{}
 	storeID := store.ObjectID()
-	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Role")).
+	sdb.EXPECT().Write(ctx, mock.AnythingOfType("*store.Role")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Role).Id = storeID
 
 			return nil
 		}).Once()
-	sw.EXPECT().Flush(ctx).Return(nil)
-	sw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, roles, mock.Anything).Return(sw, nil)
 
 	deps := &Dependencies{
 		Collector: client,

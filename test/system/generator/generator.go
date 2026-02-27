@@ -114,7 +114,7 @@ func main() {
 		return
 	}
 
-	roleWriter := storedb.NewSQLiteWriter(db, nil)
+	provider := storedb.NewSQLiteProviderFromDB(db)
 	cacheRoleBinding := []*rbacv1.RoleBinding{}
 	cacheClusterRoleBinding := []*rbacv1.ClusterRoleBinding{}
 
@@ -133,7 +133,7 @@ func main() {
 		log.Fatal(err)
 	}
 	for _, file := range filesAttack {
-		ProcessFile(ctx, attackPath, file, roleWriter, &cacheRoleBinding, &cacheClusterRoleBinding)
+		ProcessFile(ctx, attackPath, file, provider, &cacheRoleBinding, &cacheClusterRoleBinding)
 	}
 
 	// Generate permissionsets
@@ -202,7 +202,7 @@ func ProcessCluster(content []byte) error {
 	return nil
 }
 
-func ProcessFile(ctx context.Context, basePath string, file os.FileInfo, roleWriter *storedb.SQLiteWriter, cacheRoleBinding *[]*rbacv1.RoleBinding, cacheClusterRoleBinding *[]*rbacv1.ClusterRoleBinding) {
+func ProcessFile(ctx context.Context, basePath string, file os.FileInfo, provider storedb.Provider, cacheRoleBinding *[]*rbacv1.RoleBinding, cacheClusterRoleBinding *[]*rbacv1.ClusterRoleBinding) {
 	fmt.Println("Processing: " + file.Name())
 	data, err := os.ReadFile(filepath.Join(basePath, file.Name()))
 	if err != nil {
@@ -263,13 +263,13 @@ func ProcessFile(ctx context.Context, basePath string, file os.FileInfo, roleWri
 			if err != nil {
 				fmt.Println("Failed to convert role:", err)
 			}
-			roleWriter.Queue(ctx, role)
+			provider.Write(ctx, role)
 		case *rbacv1.ClusterRole:
 			clusterRole, err := conv.ClusterRole(ctx, o)
 			if err != nil {
 				fmt.Println("Failed to convert role:", err)
 			}
-			roleWriter.Queue(ctx, clusterRole)
+			provider.Write(ctx, clusterRole)
 		case *rbacv1.ClusterRoleBinding:
 			*cacheClusterRoleBinding = append(*cacheClusterRoleBinding, o)
 		case *rbacv1.RoleBinding:

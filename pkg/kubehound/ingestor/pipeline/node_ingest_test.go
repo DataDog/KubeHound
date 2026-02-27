@@ -15,7 +15,6 @@ import (
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	khstoredb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -60,18 +59,13 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 
 	// Store setup
 	sdb := storedb.NewProvider(t)
-	sw := storedb.NewAsyncWriter(t)
-	nodes := collections.Node{}
 	storeID := store.ObjectID()
-	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Node")).
+	sdb.EXPECT().Write(ctx, mock.AnythingOfType("*store.Node")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Node).Id = storeID
 
 			return nil
 		}).Once()
-	sw.EXPECT().Flush(ctx).Return(nil)
-	sw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, nodes, mock.Anything).Return(sw, nil)
 
 	// Graph setup
 	vtxInsert := map[string]any{

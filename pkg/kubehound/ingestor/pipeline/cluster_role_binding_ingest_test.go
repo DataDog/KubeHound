@@ -16,7 +16,6 @@ import (
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	khstoredb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -62,42 +61,26 @@ func TestClusterRoleBindingIngest_Pipeline(t *testing.T) {
 		oFakeClusterRole.Id, oFakeClusterRole.Name, 0, oFakeClusterRole.Namespace, string(rulesJSON), testID.String(), "test-cluster")
 	require.NoError(t, err)
 
-	// Store setup -  rolebindings
+	// Store setup
 	sdb := storedb.NewProvider(t)
-	rsw := storedb.NewAsyncWriter(t)
-	crbs := collections.RoleBinding{}
-	rsw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.RoleBinding")).Return(nil).Once()
-	rsw.EXPECT().Flush(ctx).Return(nil)
-	rsw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, crbs, mock.Anything).Return(rsw, nil)
-
-	// Store setup -  identities
-	isw := storedb.NewAsyncWriter(t)
-	identities := collections.Identity{}
 	storeID := store.ObjectID()
-	isw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Identity")).
+	psStoreID := store.ObjectID()
+
+	sdb.EXPECT().Write(ctx, mock.AnythingOfType("*store.RoleBinding")).Return(nil).Once()
+
+	sdb.EXPECT().Write(ctx, mock.AnythingOfType("*store.Identity")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Identity).Id = storeID
 
 			return nil
 		}).Once()
-	isw.EXPECT().Flush(ctx).Return(nil)
-	isw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, identities, mock.Anything).Return(isw, nil)
 
-	// Store setup -  permissionsets
-	pssw := storedb.NewAsyncWriter(t)
-	psbs := collections.PermissionSet{}
-	psStoreID := store.ObjectID()
-	pssw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.PermissionSet")).
+	sdb.EXPECT().Write(ctx, mock.AnythingOfType("*store.PermissionSet")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.PermissionSet).Id = psStoreID
 
 			return nil
 		}).Once()
-	pssw.EXPECT().Flush(ctx).Return(nil)
-	pssw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, psbs, mock.Anything).Return(pssw, nil)
 
 	// Graph setup
 	vtxInsert := map[string]any{

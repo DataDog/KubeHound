@@ -10,7 +10,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
 	"github.com/hashicorp/go-multierror"
@@ -26,12 +25,12 @@ type CleanupFunc func(ctx context.Context) error
 // Should not be used directly, but modified via ObjectIngestOption functions.
 type resourceOptions struct {
 	db           *sql.DB                            // SQLite database handle
+	storeDB      storedb.Provider                   // Store DB provider for direct writes
 	collect      collector.CollectorClient           // Collector from which to stream data
 	flush        []FlushFunc                         // Array of writer flush functions to be called on a flush
 	cleanup      []CleanupFunc                       // Array of dependency cleanup functions to be called on a close
 	storeConvert *converter.StoreConverter           // input -> store model converter
 	graphConvert *converter.GraphConverter           // store -> graph model converter
-	storeWriters map[string]storedb.AsyncWriter      // store writer collection (per model type)
 	graphWriters map[string]graphdb.AsyncVertexWriter // graph writer collection (per vertex type)
 }
 
@@ -47,26 +46,6 @@ func WithConverterDB() IngestResourceOption {
 		}
 		rOpts.db = db
 		rOpts.storeConvert = converter.NewStoreWithDB(deps.Config, db)
-
-		return nil
-	}
-}
-
-// WithStoreWriter initializes a bulk store writer (and registers a cleanup function) for the provided collection.
-// To access the writer use the storeWriter(c collections.Collection) function.
-func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
-	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		w, err := deps.StoreDB.BulkWriter(ctx, c, storedb.WithTags(tag.GetBaseTags()))
-		if err != nil {
-			return err
-		}
-
-		rOpts.storeWriters[c.Name()] = w
-		rOpts.cleanup = append(rOpts.cleanup, func(ctx context.Context) error {
-			return w.Close(ctx)
-		})
-
-		rOpts.flush = append(rOpts.flush, w.Flush)
 
 		return nil
 	}
@@ -106,9 +85,9 @@ type IngestResources struct {
 	resourceOptions
 }
 
-// writeStore delegates a write to the registered store writer.
-func (i *IngestResources) writeStore(ctx context.Context, c collections.Collection, model any) error {
-	return i.storeWriters[c.Name()].Queue(ctx, model)
+// writeStore delegates a write to the store DB provider.
+func (i *IngestResources) writeStore(ctx context.Context, model any) error {
+	return i.storeDB.Write(ctx, model)
 }
 
 // writeVertex delegates a write to the registered graph writer after invoking the vertex.Processor on the provided insert.
@@ -155,12 +134,12 @@ func CreateResources(ctx context.Context, deps *Dependencies, opts ...IngestReso
 	i := &IngestResources{
 		resourceOptions{
 			collect:      deps.Collector,
+			storeDB:      deps.StoreDB,
 			graphConvert: converter.NewGraph(deps.Config),
 			storeConvert: converter.NewStore(deps.Config),
 			flush:        make([]FlushFunc, 0),
 			cleanup:      make([]CleanupFunc, 0),
 			graphWriters: make(map[string]graphdb.AsyncVertexWriter),
-			storeWriters: make(map[string]storedb.AsyncWriter),
 		},
 	}
 

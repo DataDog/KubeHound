@@ -9,7 +9,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
@@ -20,9 +19,6 @@ const (
 type RoleBindingIngest struct {
 	vertexIdentity      *vertex.Identity
 	vertexPermissionSet *vertex.PermissionSet
-	identity            collections.Identity
-	rolebinding         collections.RoleBinding
-	permissionset       collections.PermissionSet
 	r                   *IngestResources
 }
 
@@ -37,15 +33,9 @@ func (i *RoleBindingIngest) Initialize(ctx context.Context, deps *Dependencies) 
 
 	i.vertexIdentity = &vertex.Identity{}
 	i.vertexPermissionSet = &vertex.PermissionSet{}
-	i.identity = collections.Identity{}
-	i.rolebinding = collections.RoleBinding{}
-	i.permissionset = collections.PermissionSet{}
 
 	i.r, err = CreateResources(ctx, deps,
 		WithConverterDB(),
-		WithStoreWriter(i.identity),
-		WithStoreWriter(i.rolebinding),
-		WithStoreWriter(i.permissionset),
 		WithGraphWriter(i.vertexIdentity),
 		WithGraphWriter(i.vertexPermissionSet))
 	if err != nil {
@@ -70,7 +60,7 @@ func (i *RoleBindingIngest) processSubject(ctx context.Context, subj *store.Bind
 	}
 
 	// Write identity to store
-	if err := i.r.writeStore(ctx, i.identity, sid); err != nil {
+	if err := i.r.writeStore(ctx, sid); err != nil {
 		return err
 	}
 
@@ -93,7 +83,7 @@ func (i *RoleBindingIngest) createPermissionSet(ctx context.Context, rb *store.R
 	}
 
 	// Write role binding to store
-	if err := i.r.writeStore(ctx, i.permissionset, o); err != nil {
+	if err := i.r.writeStore(ctx, o); err != nil {
 		return err
 	}
 
@@ -126,7 +116,7 @@ func (i *RoleBindingIngest) IngestRoleBinding(ctx context.Context, rb types.Role
 	}
 
 	// Write role binding to store
-	if err := i.r.writeStore(ctx, i.rolebinding, o); err != nil {
+	if err := i.r.writeStore(ctx, o); err != nil {
 		return err
 	}
 

@@ -15,7 +15,6 @@ import (
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	khstoredb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -61,65 +60,40 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		identityID, "app-monitors", 1, "test-app", "ServiceAccount", testID.String(), "test-cluster")
 	require.NoError(t, err)
 
-	// Store setup - pods
+	// Store setup
 	sdb := storedb.NewProvider(t)
-	psw := storedb.NewAsyncWriter(t)
-	pods := collections.Pod{}
 	pid := store.ObjectID()
-	psw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Pod")).
+	cid := store.ObjectID()
+	vid := store.ObjectID()
+	eid := store.ObjectID()
+
+	sdb.EXPECT().Write(ctx, mock.AnythingOfType("*store.Pod")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Pod).Id = pid
 
 			return nil
 		}).Once()
-	psw.EXPECT().Flush(ctx).Return(nil)
-	psw.EXPECT().Close(ctx).Return(nil)
 
-	// Store setup - containers
-	csw := storedb.NewAsyncWriter(t)
-	containers := collections.Container{}
-	cid := store.ObjectID()
-	csw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Container")).
+	sdb.EXPECT().Write(ctx, mock.AnythingOfType("*store.Container")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Container).Id = cid
 
 			return nil
 		}).Once()
-	csw.EXPECT().Flush(ctx).Return(nil)
-	csw.EXPECT().Close(ctx).Return(nil)
 
-	// Store setup - volumes
-	vsw := storedb.NewAsyncWriter(t)
-	volumes := collections.Volume{}
-	vid := store.ObjectID()
-	vsw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Volume")).
+	sdb.EXPECT().Write(ctx, mock.AnythingOfType("*store.Volume")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Volume).Id = vid
 
 			return nil
 		}).Once()
 
-	vsw.EXPECT().Flush(ctx).Return(nil)
-	vsw.EXPECT().Close(ctx).Return(nil)
-
-	// Store setup - endpoint
-	esw := storedb.NewAsyncWriter(t)
-	endpoints := collections.Endpoint{}
-	eid := store.ObjectID()
-	esw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Endpoint")).
+	sdb.EXPECT().Write(ctx, mock.AnythingOfType("*store.Endpoint")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Endpoint).Id = eid
 
 			return nil
 		}).Once()
-
-	esw.EXPECT().Flush(ctx).Return(nil)
-	esw.EXPECT().Close(ctx).Return(nil)
-
-	sdb.EXPECT().BulkWriter(ctx, pods, mock.Anything).Return(psw, nil)
-	sdb.EXPECT().BulkWriter(ctx, containers, mock.Anything).Return(csw, nil)
-	sdb.EXPECT().BulkWriter(ctx, volumes, mock.Anything).Return(vsw, nil)
-	sdb.EXPECT().BulkWriter(ctx, endpoints, mock.Anything).Return(esw, nil)
 
 	// Graph setup - pods
 	pv := map[string]any{

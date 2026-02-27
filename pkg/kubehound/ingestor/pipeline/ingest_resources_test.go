@@ -14,7 +14,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -67,20 +66,6 @@ func TestIngestResources_Initializer(t *testing.T) {
 	assert.Equal(t, 0, len(oi.cleanup))
 	assert.Equal(t, 0, len(oi.flush))
 
-	// Test store writer mechanics
-	sw := storedb.NewAsyncWriter(t)
-	sw.EXPECT().Flush(ctx).Return(nil)
-	sw.EXPECT().Close(ctx).Return(nil)
-
-	collection := collections.Node{}
-	sdb.EXPECT().BulkWriter(ctx, collection, mock.Anything).Return(sw, nil)
-
-	oi, err = CreateResources(ctx, deps, WithStoreWriter(collection))
-	assert.NoError(t, err)
-
-	assert.NoError(t, oi.flushWriters(ctx))
-	assert.NoError(t, oi.cleanupAll(ctx))
-
 	// Test graph writer mechanics
 	gw := graphdb.NewAsyncVertexWriter(t)
 	gw.EXPECT().Flush(ctx).Return(nil)
@@ -119,12 +104,14 @@ func TestIngestResources_FlushErrors(t *testing.T) {
 		},
 	}
 
-	// Set store to fail
-	sw := storedb.NewAsyncWriter(t)
-	sw.EXPECT().Flush(ctx).Return(errors.New("test error"))
-	sdb.EXPECT().BulkWriter(ctx, mock.Anything, mock.Anything).Return(sw, nil)
+	// Set graph writer to fail on flush
+	gw := graphdb.NewAsyncVertexWriter(t)
+	gw.EXPECT().Flush(ctx).Return(errors.New("test error"))
+	vtx := &vertex.Node{}
+	sdb.EXPECT().Reader().Return(&sql.DB{})
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Node"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
-	oi, err := CreateResources(ctx, deps, WithStoreWriter(collections.Node{}))
+	oi, err := CreateResources(ctx, deps, WithGraphWriter(vtx))
 	assert.NoError(t, err)
 
 	assert.ErrorContains(t, oi.flushWriters(ctx), "test error")
@@ -149,12 +136,14 @@ func TestIngestResources_CloseErrors(t *testing.T) {
 		},
 	}
 
-	// Set store to fail
-	sw := storedb.NewAsyncWriter(t)
-	sw.EXPECT().Close(ctx).Return(errors.New("test error"))
-	sdb.EXPECT().BulkWriter(ctx, mock.Anything, mock.Anything).Return(sw, nil)
+	// Set graph writer to fail on close
+	gw := graphdb.NewAsyncVertexWriter(t)
+	gw.EXPECT().Close(ctx).Return(errors.New("test error"))
+	vtx := &vertex.Node{}
+	sdb.EXPECT().Reader().Return(&sql.DB{})
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Node"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
-	oi, err := CreateResources(ctx, deps, WithStoreWriter(collections.Node{}))
+	oi, err := CreateResources(ctx, deps, WithGraphWriter(vtx))
 	assert.NoError(t, err)
 
 	assert.ErrorContains(t, oi.cleanupAll(ctx), "test error")
@@ -179,11 +168,13 @@ func TestIngestResources_CloseIdempotent(t *testing.T) {
 		},
 	}
 
-	sw := storedb.NewAsyncWriter(t)
-	sw.EXPECT().Close(ctx).Return(nil).Once()
-	sdb.EXPECT().BulkWriter(ctx, mock.Anything, mock.Anything).Return(sw, nil).Once()
+	gw := graphdb.NewAsyncVertexWriter(t)
+	gw.EXPECT().Close(ctx).Return(nil).Once()
+	vtx := &vertex.Node{}
+	sdb.EXPECT().Reader().Return(&sql.DB{})
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Node"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil).Once()
 
-	oi, err := CreateResources(ctx, deps, WithStoreWriter(collections.Node{}))
+	oi, err := CreateResources(ctx, deps, WithGraphWriter(vtx))
 	assert.NoError(t, err)
 
 	assert.NoError(t, oi.cleanupAll(ctx))

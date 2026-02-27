@@ -7,7 +7,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -16,19 +15,8 @@ const (
 	PodIngestName = "k8s-pod-ingest"
 )
 
-type objectIndex int
-
-const (
-	podIndex objectIndex = iota
-	containerIndex
-	volumeIndex
-	endpointIndex
-	maxObjectIndex
-)
-
 type PodIngest struct {
 	v []vertex.Builder
-	c []collections.Collection
 	r *IngestResources
 }
 
@@ -48,18 +36,10 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 		&vertex.Endpoint{},
 	}
 
-	i.c = []collections.Collection{
-		collections.Pod{},
-		collections.Container{},
-		collections.Volume{},
-		collections.Endpoint{},
-	}
-
 	opts := make([]IngestResourceOption, 0)
 	opts = append(opts, WithConverterDB())
-	for objIndex := podIndex; objIndex < maxObjectIndex; objIndex++ {
-		opts = append(opts, WithStoreWriter(i.c[objIndex]))
-		opts = append(opts, WithGraphWriter(i.v[objIndex]))
+	for _, vtx := range i.v {
+		opts = append(opts, WithGraphWriter(vtx))
 	}
 
 	i.r, err = CreateResources(ctx, deps, opts...)
@@ -93,7 +73,7 @@ func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.Container
 	se := tmp
 
 	// Write to store
-	if err := i.r.writeStore(ctx, i.c[endpointIndex], se); err != nil {
+	if err := i.r.writeStore(ctx, se); err != nil {
 		return err
 	}
 
@@ -104,7 +84,7 @@ func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.Container
 	}
 
 	// Write to graph
-	if err := i.r.writeVertex(ctx, i.v[endpointIndex], insert); err != nil {
+	if err := i.r.writeVertex(ctx, i.v[3], insert); err != nil {
 		return err
 	}
 
@@ -124,7 +104,7 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, k8s
 	}
 
 	// Write to store
-	if err := i.r.writeStore(ctx, i.c[containerIndex], sc); err != nil {
+	if err := i.r.writeStore(ctx, sc); err != nil {
 		return err
 	}
 
@@ -135,7 +115,7 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, k8s
 	}
 
 	// Write to graph
-	if err := i.r.writeVertex(ctx, i.v[containerIndex], insert); err != nil {
+	if err := i.r.writeVertex(ctx, i.v[1], insert); err != nil {
 		return err
 	}
 
@@ -175,7 +155,7 @@ func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.Vo
 	}
 
 	// Write to store
-	if err := i.r.writeStore(ctx, i.c[volumeIndex], sv); err != nil {
+	if err := i.r.writeStore(ctx, sv); err != nil {
 		return err
 	}
 
@@ -186,7 +166,7 @@ func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.Vo
 	}
 
 	// Write to graph
-	return i.r.writeVertex(ctx, i.v[volumeIndex], insert)
+	return i.r.writeVertex(ctx, i.v[2], insert)
 }
 
 // streamCallback is invoked by the collector for each pod collected.
@@ -204,7 +184,7 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	}
 
 	// Write to store
-	if err := i.r.writeStore(ctx, i.c[podIndex], sp); err != nil {
+	if err := i.r.writeStore(ctx, sp); err != nil {
 		return err
 	}
 
@@ -215,7 +195,7 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	}
 
 	// Write to graph
-	if err := i.r.writeVertex(ctx, i.v[podIndex], insert); err != nil {
+	if err := i.r.writeVertex(ctx, i.v[0], insert); err != nil {
 		return err
 	}
 

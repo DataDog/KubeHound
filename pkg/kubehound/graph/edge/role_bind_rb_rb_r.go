@@ -62,8 +62,11 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, _ storedb.Provider, db *sql.
 	rows, err := db.QueryContext(ctx, `
 		SELECT DISTINCT src.id, tgt.id
 		FROM permissionsets src
+		JOIN rolebindings rb ON rb.id = src.role_binding_id
+			AND rb.run_id = src.run_id
+			AND rb.cluster_name = src.cluster_name
 		JOIN permissionsets tgt ON (tgt.namespace = src.namespace OR tgt.is_namespaced = 1) AND tgt.run_id = src.run_id AND tgt.cluster_name = src.cluster_name AND tgt.id != src.id
-		WHERE src.is_namespaced = 1 AND src.run_id = ? AND src.cluster_name = ?
+		WHERE src.is_namespaced = 1 AND rb.is_namespaced = 1 AND src.run_id = ? AND src.cluster_name = ?
 		AND EXISTS (
 			SELECT 1 FROM json_each(src.rules) AS r1
 			WHERE EXISTS (SELECT 1 FROM json_each(json_extract(r1.value, '$.apiGroups')) WHERE value IN ('*', 'rbac.authorization.k8s.io'))

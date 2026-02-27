@@ -9,7 +9,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
@@ -20,9 +19,6 @@ const (
 type ClusterRoleBindingIngest struct {
 	vertexIdentity      *vertex.Identity
 	vertexPermissionSet *vertex.PermissionSet
-	identity            collections.Identity
-	rolebinding         collections.RoleBinding
-	permissionset       collections.PermissionSet
 	r                   *IngestResources
 }
 
@@ -37,15 +33,9 @@ func (i *ClusterRoleBindingIngest) Initialize(ctx context.Context, deps *Depende
 
 	i.vertexIdentity = &vertex.Identity{}
 	i.vertexPermissionSet = &vertex.PermissionSet{}
-	i.identity = collections.Identity{}
-	i.rolebinding = collections.RoleBinding{}
-	i.permissionset = collections.PermissionSet{}
 
 	i.r, err = CreateResources(ctx, deps,
 		WithConverterDB(),
-		WithStoreWriter(i.identity),
-		WithStoreWriter(i.rolebinding),
-		WithStoreWriter(i.permissionset),
 		WithGraphWriter(i.vertexIdentity),
 		WithGraphWriter(i.vertexPermissionSet))
 	if err != nil {
@@ -70,7 +60,7 @@ func (i *ClusterRoleBindingIngest) processSubject(ctx context.Context, subj *sto
 	}
 
 	// Write identity to store
-	if err := i.r.writeStore(ctx, i.identity, sid); err != nil {
+	if err := i.r.writeStore(ctx, sid); err != nil {
 		return err
 	}
 
@@ -97,7 +87,7 @@ func (i *ClusterRoleBindingIngest) createPermissionSet(ctx context.Context, crb 
 	}
 
 	// Write role binding to store
-	if err := i.r.writeStore(ctx, i.permissionset, o); err != nil {
+	if err := i.r.writeStore(ctx, o); err != nil {
 		return err
 	}
 
@@ -134,7 +124,7 @@ func (i *ClusterRoleBindingIngest) IngestClusterRoleBinding(ctx context.Context,
 	}
 
 	// Write role binding to store
-	if err := i.r.writeStore(ctx, i.rolebinding, o); err != nil {
+	if err := i.r.writeStore(ctx, o); err != nil {
 		return err
 	}
 

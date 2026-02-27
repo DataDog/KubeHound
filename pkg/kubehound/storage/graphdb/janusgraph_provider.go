@@ -17,9 +17,8 @@ import (
 )
 
 const (
-	channelSizeBatchFactor = 4 // TODO maybe move that into a config file?
-	StorageProviderName    = "janusgraph"
-	deleteBatchSize        = 10000
+	StorageProviderName = "janusgraph"
+	deleteBatchSize     = 10000
 )
 
 var (

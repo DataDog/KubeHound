@@ -5,7 +5,6 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
 const (
@@ -13,8 +12,7 @@ const (
 )
 
 type RoleIngest struct {
-	collection collections.Role
-	r          *IngestResources
+	r *IngestResources
 }
 
 var _ ObjectIngest = (*RoleIngest)(nil)
@@ -26,10 +24,7 @@ func (i *RoleIngest) Name() string {
 func (i *RoleIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
-	i.collection = collections.Role{}
-	i.r, err = CreateResources(ctx, deps,
-		WithStoreWriter(i.collection))
-
+	i.r, err = CreateResources(ctx, deps)
 	if err != nil {
 		return err
 	}
@@ -51,7 +46,7 @@ func (i *RoleIngest) IngestRole(ctx context.Context, role types.RoleType) error 
 	}
 
 	// Write to store
-	return i.r.writeStore(ctx, i.collection, o)
+	return i.r.writeStore(ctx, o)
 }
 
 // completeCallback is invoked by the collector when all roles have been streamed.

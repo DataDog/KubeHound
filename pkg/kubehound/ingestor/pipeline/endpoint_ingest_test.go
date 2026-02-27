@@ -14,7 +14,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -42,19 +41,13 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 
 	// Store setup
 	sdb := storedb.NewProvider(t)
-	sw := storedb.NewAsyncWriter(t)
-	endpoints := collections.Endpoint{}
 	storeID := store.ObjectID()
-	sw.EXPECT().Queue(ctx, mock.AnythingOfType("*store.Endpoint")).
+	sdb.EXPECT().Write(ctx, mock.AnythingOfType("*store.Endpoint")).
 		RunAndReturn(func(ctx context.Context, i any) error {
 			i.(*store.Endpoint).Id = storeID
 
 			return nil
 		}).Times(2)
-
-	sw.EXPECT().Flush(ctx).Return(nil)
-	sw.EXPECT().Close(ctx).Return(nil)
-	sdb.EXPECT().BulkWriter(ctx, endpoints, mock.Anything).Return(sw, nil)
 
 	// Graph setup
 	vtx1 := map[string]interface{}{

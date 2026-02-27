@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 )
 
@@ -17,9 +16,8 @@ const (
 )
 
 type EndpointIngest struct {
-	vertex     *vertex.Endpoint
-	collection collections.Endpoint
-	r          *IngestResources
+	vertex *vertex.Endpoint
+	r      *IngestResources
 }
 
 var _ ObjectIngest = (*EndpointIngest)(nil)
@@ -32,10 +30,8 @@ func (i *EndpointIngest) Initialize(ctx context.Context, deps *Dependencies) err
 	var err error
 
 	i.vertex = &vertex.Endpoint{}
-	i.collection = collections.Endpoint{}
 
 	i.r, err = CreateResources(ctx, deps,
-		WithStoreWriter(i.collection),
 		WithGraphWriter(i.vertex))
 	if err != nil {
 		return err
@@ -67,7 +63,7 @@ func (i *EndpointIngest) IngestEndpoint(ctx context.Context, eps types.EndpointT
 			}
 
 			// Write to store
-			if err := i.r.writeStore(ctx, i.collection, o); err != nil {
+			if err := i.r.writeStore(ctx, o); err != nil {
 				return err
 			}
 
