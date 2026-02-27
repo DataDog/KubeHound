@@ -2,16 +2,13 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func init() {
@@ -23,8 +20,8 @@ type PermissionDiscover struct {
 }
 
 type permissionDiscoverGroup struct {
-	PermissionSet primitive.ObjectID `bson:"_id" json:"permission_set"`
-	Identity      primitive.ObjectID `bson:"identity_id" json:"identity"`
+	PermissionSet int64 `json:"permission_set"`
+	Identity      int64 `json:"identity"`
 }
 
 func (e *PermissionDiscover) Label() string {
@@ -55,97 +52,30 @@ func (e *PermissionDiscover) Processor(ctx context.Context, oic *converter.Objec
 	})
 }
 
-func (e *PermissionDiscover) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *PermissionDiscover) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	permissionSets := adapter.MongoDB(ctx, store).Collection(collections.PermissionSetName)
-
-	pipeline := bson.A{
-		bson.M{
-			"$match": bson.M{
-				"runtime.runID":        e.runtime.RunID.String(),
-				"runtime.cluster.name": e.runtime.Cluster.Name,
-			},
-		},
-		// First we retrieve all rolebindings associated to the permissionset
-		bson.M{
-			"$lookup": bson.M{
-				"from":         "rolebindings",
-				"localField":   "role_binding_id",
-				"foreignField": "_id",
-				"as":           "result",
-			},
-		},
-		// We filter only when there are subjects associated to the rolebindings
-		bson.M{
-			"$match": bson.M{
-				"result": bson.M{
-					"$elemMatch": bson.M{
-						"subjects": bson.M{
-							"$exists": true,
-							"$ne":     bson.A{},
-						},
-					},
-				},
-			},
-		},
-		// We flatten all the subjects
-		bson.M{"$unwind": bson.M{"path": "$result"}},
-		bson.M{"$unwind": bson.M{"path": "$result.subjects"}},
-		// We check if the rolebinding is relevant
-		bson.M{
-			"$match": bson.M{
-				"$expr": bson.M{
-					"$or": bson.A{
-						bson.M{
-							"$and": bson.A{
-								// the identity and rolebinding namespace need to match
-								bson.M{
-									"$eq": bson.A{
-										"$namespace",
-										"$result.subjects.subject.namespace",
-									},
-								},
-								// the rolebinding is not a clusterrolebinding
-								bson.M{
-									"$eq": bson.A{
-										"$is_namespaced",
-										true,
-									},
-								},
-							},
-						},
-						// identities with no namespace so the scope is cluster wide
-						bson.M{
-							"$eq": bson.A{
-								"$result.subjects.subject.namespace",
-								"",
-							},
-						},
-						// clusterrolerbinding so no namespace checks needed
-						bson.M{
-							"$eq": bson.A{
-								"$is_namespaced",
-								false,
-							},
-						},
-					},
-				},
-			},
-		},
-		bson.M{
-			"$project": bson.M{
-				"_id":         1,
-				"identity_id": "$result.subjects.identity_id",
-			},
-		},
-	}
-
-	cur, err := permissionSets.Aggregate(ctx, pipeline)
+	rows, err := db.QueryContext(ctx, `
+		SELECT ps.id, CAST(json_extract(sub.value, '$.identity_id') AS INTEGER)
+		FROM permissionsets ps
+		JOIN rolebindings rb ON rb.id = ps.role_binding_id
+			AND rb.run_id = ps.run_id
+			AND rb.cluster_name = ps.cluster_name,
+		json_each(rb.subjects) AS sub
+		WHERE ps.run_id = ? AND ps.cluster_name = ?
+		AND (
+			(ps.is_namespaced = 1 AND ps.namespace = json_extract(sub.value, '$.subject.namespace'))
+			OR json_extract(sub.value, '$.subject.namespace') = ''
+			OR ps.is_namespaced = 0
+		)`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[permissionDiscoverGroup](ctx, cur, callback, complete)
+	return adapter.SQLiteRowHandler[permissionDiscoverGroup](ctx, rows, func(row *sql.Rows) (permissionDiscoverGroup, error) {
+		var g permissionDiscoverGroup
+		err := row.Scan(&g.PermissionSet, &g.Identity)
+		return g, err
+	}, callback, complete)
 }

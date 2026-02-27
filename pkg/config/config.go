@@ -34,7 +34,7 @@ const (
 type KubehoundConfig struct {
 	Debug      bool             `mapstructure:"debug"`      // Debug mode
 	Collector  CollectorConfig  `mapstructure:"collector"`  // Collector configuration
-	MongoDB    MongoDBConfig    `mapstructure:"mongodb"`    // MongoDB configuration
+	SQLite     SQLiteConfig     `mapstructure:"sqlite"`     // SQLite configuration
 	JanusGraph JanusGraphConfig `mapstructure:"janusgraph"` // JanusGraph configuration
 	Storage    StorageConfig    `mapstructure:"storage"`    // Global param for all storage provider
 	Telemetry  TelemetryConfig  `mapstructure:"telemetry"`  // telemetry configuration, contains statsd and other sub structures
@@ -113,10 +113,8 @@ func SetDefaultValues(ctx context.Context, v *viper.Viper) {
 	// Disable Datadog telemetry by default
 	v.SetDefault(TelemetryEnabled, false)
 
-	// Default value for MongoDB
-	v.SetDefault(MongoUrl, DefaultMongoUrl)
-	v.SetDefault(MongoConnectionTimeout, DefaultConnectionTimeout)
-	v.SetDefault(MongoWipe, DefaultMongoWipe)
+	// Default value for SQLite
+	v.SetDefault(SQLitePath, DefaultSQLitePath)
 
 	// Defaults values for JanusGraph
 	v.SetDefault(JanusGraphUrl, DefaultJanusGraphUrl)
@@ -160,7 +158,6 @@ func SetEnvOverrides(ctx context.Context, c *viper.Viper) {
 	res = multierror.Append(res, c.BindEnv("collector.file.directory", "KH_COLLECTOR_DIR"))
 	res = multierror.Append(res, c.BindEnv("collector.file.cluster", "KH_COLLECTOR_TARGET"))
 
-	res = multierror.Append(res, c.BindEnv(MongoUrl, "KH_MONGODB_URL"))
 	res = multierror.Append(res, c.BindEnv(JanusGraphUrl, "KH_JANUSGRAPH_URL"))
 	res = multierror.Append(res, c.BindEnv(JanusGraphWriterMaxRetry, "KH_JANUSGRAPH_WRITER_MAX_RETRY"))
 	res = multierror.Append(res, c.BindEnv(JanusGraphWriterTimeout, "KH_JANUSGRAPH_WRITER_TIMEOUT"))

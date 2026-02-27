@@ -10,6 +10,6 @@ After the initial ingestion is done, you use a compatible client or the provided
 
 [![KubeHound architecture  (click to enlarge)](./images/kubehound-high-level-v2.png)](./images/kubehound-high-level-v2.png)
 
-Under the hood, KubeHound leverages a caching and persistence layer (Redis and MongoDB) while computing attack paths. As an end user, this is mostly transparent to you.
+Under the hood, KubeHound leverages a persistence layer (SQLite) while computing attack paths. As an end user, this is mostly transparent to you.
 
 [![KubeHound architecture (click to enlarge)](./images/kubehound-detailed.png)](./images/kubehound-detailed.png)

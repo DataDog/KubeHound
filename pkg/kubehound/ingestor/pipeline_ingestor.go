@@ -9,7 +9,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/pipeline"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -19,7 +18,6 @@ import (
 type PipelineIngestor struct {
 	cfg       *config.KubehoundConfig
 	collector collector.CollectorClient
-	cache     cache.CacheProvider
 	storedb   storedb.Provider
 	graphdb   graphdb.Provider
 	sequences []pipeline.Sequence
@@ -64,13 +62,12 @@ func ingestSequence() []pipeline.Sequence {
 }
 
 // newPipelineIngestor creates a new pipeline ingestor instance.
-func newPipelineIngestor(cfg *config.KubehoundConfig, collect collector.CollectorClient, c cache.CacheProvider,
+func newPipelineIngestor(cfg *config.KubehoundConfig, collect collector.CollectorClient,
 	storedb storedb.Provider, graphdb graphdb.Provider) (Ingestor, error) {
 
 	n := &PipelineIngestor{
 		cfg:       cfg,
 		collector: collect,
-		cache:     c,
 		storedb:   storedb,
 		graphdb:   graphdb,
 		sequences: ingestSequence(),
@@ -82,7 +79,6 @@ func newPipelineIngestor(cfg *config.KubehoundConfig, collect collector.Collecto
 // HealthCheck enables a check of the ingestor service dependencies.
 func (i PipelineIngestor) HealthCheck(ctx context.Context) error {
 	return services.HealthCheck(ctx, []services.Dependency{
-		i.cache,
 		i.storedb,
 		i.graphdb,
 		i.collector,
@@ -101,13 +97,11 @@ func (i PipelineIngestor) Run(outer context.Context) error {
 	deps := &pipeline.Dependencies{
 		Config:    i.cfg,
 		Collector: i.collector,
-		Cache:     i.cache,
 		StoreDB:   i.storedb,
 		GraphDB:   i.graphdb,
 	}
 
-	// Run the sequences in parallel and cancel ingest on any errors. Note we deliberately avoid
-	// using a worker pool here as have a small, fixed number of tasks to run in parallel.
+	// Run the sequences in parallel and cancel ingest on any errors.
 	for _, seq := range i.sequences {
 		s := seq
 		wg.Add(1)

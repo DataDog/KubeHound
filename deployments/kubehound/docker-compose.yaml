@@ -1,22 +1,4 @@
 services:
-  mongodb:
-    image: mongo:6.0.6
-    restart: unless-stopped
-    networks:
-      - kubenet
-    depends_on:
-      kubegraph:
-        condition: service_healthy
-    labels:
-      com.datadoghq.ad.logs: '[{"app": "mongodb", "service": "kubehound"}]'
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh 127.0.0.1:27017/test --quiet
-      interval: 10s
-      timeout: 2s
-      retries: 10
-    volumes:
-      - mongodb_data:/data/db
-
   kubegraph:
     restart: unless-stopped
     networks:
@@ -78,6 +60,5 @@ networks:
   kubenet:
 
 volumes:
-  mongodb_data:
   kubegraph_data:
   kubeui_data:

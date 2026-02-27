@@ -4,9 +4,10 @@ package mocks
 
 import (
 	config "github.com/DataDog/KubeHound/pkg/config"
-	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 
 	context "context"
+
+	sql "database/sql"
 
 	converter "github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 
@@ -365,7 +366,7 @@ func (_c *Builder_Processor_Call) RunAndReturn(run func(context.Context, *conver
 }
 
 // Stream provides a mock function with given fields: ctx, store, _a2, process, complete
-func (_m *Builder) Stream(ctx context.Context, store storedb.Provider, _a2 cache.CacheReader, process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
+func (_m *Builder) Stream(ctx context.Context, store storedb.Provider, _a2 *sql.DB, process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 	ret := _m.Called(ctx, store, _a2, process, complete)
 
 	if len(ret) == 0 {
@@ -373,7 +374,7 @@ func (_m *Builder) Stream(ctx context.Context, store storedb.Provider, _a2 cache
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, storedb.Provider, cache.CacheReader, types.ProcessEntryCallback, types.CompleteQueryCallback) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, storedb.Provider, *sql.DB, types.ProcessEntryCallback, types.CompleteQueryCallback) error); ok {
 		r0 = rf(ctx, store, _a2, process, complete)
 	} else {
 		r0 = ret.Error(0)
@@ -390,16 +391,16 @@ type Builder_Stream_Call struct {
 // Stream is a helper method to define mock.On call
 //   - ctx context.Context
 //   - store storedb.Provider
-//   - _a2 cache.CacheReader
+//   - _a2 *sql.DB
 //   - process types.ProcessEntryCallback
 //   - complete types.CompleteQueryCallback
 func (_e *Builder_Expecter) Stream(ctx interface{}, store interface{}, _a2 interface{}, process interface{}, complete interface{}) *Builder_Stream_Call {
 	return &Builder_Stream_Call{Call: _e.mock.On("Stream", ctx, store, _a2, process, complete)}
 }
 
-func (_c *Builder_Stream_Call) Run(run func(ctx context.Context, store storedb.Provider, _a2 cache.CacheReader, process types.ProcessEntryCallback, complete types.CompleteQueryCallback)) *Builder_Stream_Call {
+func (_c *Builder_Stream_Call) Run(run func(ctx context.Context, store storedb.Provider, _a2 *sql.DB, process types.ProcessEntryCallback, complete types.CompleteQueryCallback)) *Builder_Stream_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(storedb.Provider), args[2].(cache.CacheReader), args[3].(types.ProcessEntryCallback), args[4].(types.CompleteQueryCallback))
+		run(args[0].(context.Context), args[1].(storedb.Provider), args[2].(*sql.DB), args[3].(types.ProcessEntryCallback), args[4].(types.CompleteQueryCallback))
 	})
 	return _c
 }
@@ -409,7 +410,7 @@ func (_c *Builder_Stream_Call) Return(_a0 error) *Builder_Stream_Call {
 	return _c
 }
 
-func (_c *Builder_Stream_Call) RunAndReturn(run func(context.Context, storedb.Provider, cache.CacheReader, types.ProcessEntryCallback, types.CompleteQueryCallback) error) *Builder_Stream_Call {
+func (_c *Builder_Stream_Call) RunAndReturn(run func(context.Context, storedb.Provider, *sql.DB, types.ProcessEntryCallback, types.CompleteQueryCallback) error) *Builder_Stream_Call {
 	_c.Call.Return(run)
 	return _c
 }

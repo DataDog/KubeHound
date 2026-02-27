@@ -2,17 +2,13 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
@@ -24,8 +20,8 @@ type VolumeAccess struct {
 }
 
 type volumeAccessGroup struct {
-	Volume primitive.ObjectID `bson:"_id" json:"volume"`
-	Node   primitive.ObjectID `bson:"node_id" json:"node"`
+	Volume int64 `json:"volume"`
+	Node   int64 `json:"node"`
 }
 
 func (e *VolumeAccess) Label() string {
@@ -56,24 +52,18 @@ func (e *VolumeAccess) Processor(ctx context.Context, oic *converter.ObjectIDCon
 	})
 }
 
-func (e *VolumeAccess) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *VolumeAccess) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	volumes := adapter.MongoDB(ctx, store).Collection(collections.VolumeName)
-
-	// We just need a 1:1 mapping of the node and volume to create this edge
-	projection := bson.M{"_id": 1, "node_id": 1}
-
-	filter := bson.M{
-		"runtime.runID":        e.runtime.RunID.String(),
-		"runtime.cluster.name": e.runtime.Cluster.Name,
-	}
-
-	cur, err := volumes.Find(ctx, filter, options.Find().SetProjection(projection))
+	rows, err := db.QueryContext(ctx, `SELECT id, node_id FROM volumes WHERE run_id = ? AND cluster_name = ?`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[volumeAccessGroup](ctx, cur, callback, complete)
+	return adapter.SQLiteRowHandler[volumeAccessGroup](ctx, rows, func(row *sql.Rows) (volumeAccessGroup, error) {
+		var g volumeAccessGroup
+		err := row.Scan(&g.Volume, &g.Node)
+		return g, err
+	}, callback, complete)
 }

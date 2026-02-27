@@ -3,6 +3,7 @@ package pipeline
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
@@ -11,7 +12,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	mockcache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -39,14 +39,6 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 
 			return i.Complete(ctx)
 		})
-
-	// Cache setup
-	c := mockcache.NewCacheProvider(t)
-	cw := mockcache.NewAsyncWriter(t)
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.endpointCacheKey"), true).Return(nil).Times(2)
-	cw.EXPECT().Flush(ctx).Return(nil)
-	cw.EXPECT().Close(ctx).Return(nil)
-	c.EXPECT().BulkWriter(ctx, mock.AnythingOfType("cache.WriterOption")).Return(cw, nil)
 
 	// Store setup
 	sdb := storedb.NewProvider(t)
@@ -80,7 +72,7 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 		"service":         "cassandra",
 		"serviceDns":      "cassandra-temporal-dev.cassandra-temporal-dev",
 		"serviceEndpoint": "cassandra-temporal-dev",
-		"storeID":         storeID.Hex(),
+		"storeID":         store.Hex(storeID),
 		"team":            "workflow-engine",
 		"cluster":         "test-cluster",
 		"runID":           testID.String(),
@@ -100,7 +92,7 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 		"service":         "cassandra",
 		"serviceDns":      "cassandra-temporal-dev.cassandra-temporal-dev",
 		"serviceEndpoint": "cassandra-temporal-dev",
-		"storeID":         storeID.Hex(),
+		"storeID":         store.Hex(storeID),
 		"team":            "workflow-engine",
 		"cluster":         "test-cluster",
 		"runID":           testID.String(),
@@ -112,11 +104,11 @@ func TestEndpointSlice_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, vtx2).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Endpoint"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
+	sdb.EXPECT().Reader().Return(&sql.DB{})
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Endpoint"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
-		Cache:     c,
 		GraphDB:   gdb,
 		StoreDB:   sdb,
 		Config: &config.KubehoundConfig{

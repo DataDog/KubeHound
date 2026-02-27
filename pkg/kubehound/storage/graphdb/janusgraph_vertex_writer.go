@@ -2,6 +2,7 @@ package graphdb
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"sync"
@@ -10,8 +11,6 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/metric"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
@@ -32,7 +31,7 @@ type JanusGraphVertexWriter struct {
 	qcounter        int32                           // Track items queued
 	wcounter        int32                           // Track items writtn
 	tags            []string                        // Telemetry tags
-	cache           cache.AsyncWriter               // Cache writer to cache store id -> vertex id mappings
+	db              *sql.DB                         // SQLite database for store->graph ID mapping
 	writerTimeout   time.Duration                   // Timeout for the writer
 	maxRetry        int                             // Maximum number of retries for failed writes
 	mb              *microBatcher                   // Micro batcher to batch writes
@@ -40,7 +39,7 @@ type JanusGraphVertexWriter struct {
 
 // NewJanusGraphAsyncVertexWriter creates a new bulk vertex writer instance.
 func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlin.DriverRemoteConnection,
-	v vertex.Builder, c cache.CacheProvider, opts ...WriterOption,
+	v vertex.Builder, db *sql.DB, opts ...WriterOption,
 ) (*JanusGraphVertexWriter, error) {
 	options := &writerOptions{
 		WriterTimeout:     defaultWriterTimeout,
@@ -51,11 +50,6 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlin.DriverRemo
 		opt(options)
 	}
 
-	cw, err := c.BulkWriter(ctx, cache.WithTest())
-	if err != nil {
-		return nil, fmt.Errorf("janusgraph vertex writer cache creation: %w", err)
-	}
-
 	jw := JanusGraphVertexWriter{
 		builder:         v.Label(),
 		gremlin:         v.Traversal(),
@@ -63,7 +57,7 @@ func NewJanusGraphAsyncVertexWriter(ctx context.Context, drc *gremlin.DriverRemo
 		traversalSource: gremlin.Traversal_().WithRemote(drc),
 		writingInFlight: &sync.WaitGroup{},
 		tags:            append(options.Tags, tag.Label(v.Label()), tag.Builder(v.Label())),
-		cache:           cw,
+		db:              db,
 		writerTimeout:   options.WriterTimeout,
 		maxRetry:        options.MaxRetry,
 	}
@@ -106,9 +100,11 @@ func (jgv *JanusGraphVertexWriter) cacheIds(ctx context.Context, idMap []*gremli
 			return errors.New("vertex id type conversion")
 		}
 
-		err := jgv.cache.Queue(ctx, cachekey.ObjectID(storeID), vertexId)
+		_, err := jgv.db.ExecContext(ctx,
+			"INSERT OR REPLACE INTO store_graph_id_map(store_id, vertex_id) VALUES(?, ?)",
+			storeID, vertexId)
 		if err != nil {
-			return fmt.Errorf("vertex id cache write: %w", err)
+			return fmt.Errorf("vertex id db write: %w", err)
 		}
 	}
 
@@ -230,12 +226,6 @@ func (jgv *JanusGraphVertexWriter) splitAndRetry(ctx context.Context, retryCount
 }
 
 func (jgv *JanusGraphVertexWriter) Close(ctx context.Context) error {
-	if jgv.cache != nil {
-		if err := jgv.cache.Close(ctx); err != nil {
-			return fmt.Errorf("closing cache: %w", err)
-		}
-	}
-
 	return nil
 }
 
@@ -259,11 +249,6 @@ func (jgv *JanusGraphVertexWriter) Flush(ctx context.Context) error {
 
 	// Wait for all writes to complete.
 	jgv.writingInFlight.Wait()
-
-	err = jgv.cache.Flush(ctx)
-	if err != nil {
-		return fmt.Errorf("vertex id cacheflush: %w", err)
-	}
 
 	log.Trace(ctx).Debugf("Batch writer %d %s queued", jgv.qcounter, jgv.builder)
 	log.Trace(ctx).Infof("Batch writer %d %s written", jgv.wcounter, jgv.builder)

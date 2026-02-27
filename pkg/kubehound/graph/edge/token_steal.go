@@ -2,18 +2,13 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
@@ -21,8 +16,8 @@ func init() {
 }
 
 type tokenStealGroup struct {
-	Volume   primitive.ObjectID `bson:"_id" json:"volume"`
-	Identity primitive.ObjectID `bson:"projected_id" json:"identity"`
+	Volume   int64 `json:"volume"`
+	Identity int64 `json:"identity"`
 }
 
 type TokenSteal struct {
@@ -57,26 +52,18 @@ func (e *TokenSteal) Processor(ctx context.Context, oic *converter.ObjectIDConve
 	})
 }
 
-func (e *TokenSteal) Stream(ctx context.Context, sdb storedb.Provider, c cache.CacheReader,
+func (e *TokenSteal) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	volumes := adapter.MongoDB(ctx, sdb).Collection(collections.VolumeName)
-
-	filter := bson.M{
-		"type":                 shared.VolumeTypeProjected,
-		"projected_id":         bson.M{"$ne": nil},
-		"runtime.runID":        e.runtime.RunID.String(),
-		"runtime.cluster.name": e.runtime.Cluster.Name,
-	}
-
-	// We just need a 1:1 mapping of the volume and projected service account to create this edge
-	projection := bson.M{"_id": 1, "projected_id": 1}
-
-	cur, err := volumes.Find(ctx, filter, options.Find().SetProjection(projection))
+	rows, err := db.QueryContext(ctx, `SELECT id, projected_id FROM volumes WHERE type = 'Projected' AND projected_id IS NOT NULL AND projected_id != 0 AND run_id = ? AND cluster_name = ?`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[tokenStealGroup](ctx, cur, process, complete)
+	return adapter.SQLiteRowHandler[tokenStealGroup](ctx, rows, func(row *sql.Rows) (tokenStealGroup, error) {
+		var g tokenStealGroup
+		err := row.Scan(&g.Volume, &g.Identity)
+		return g, err
+	}, process, complete)
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -16,7 +15,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-func IngestData(ctx context.Context, cfg *config.KubehoundConfig, collect collector.CollectorClient, cache cache.CacheProvider,
+func IngestData(ctx context.Context, cfg *config.KubehoundConfig, collect collector.CollectorClient,
 	storedb storedb.Provider, graphdb graphdb.Provider) error {
 	l := log.Logger(ctx)
 
@@ -26,7 +25,7 @@ func IngestData(ctx context.Context, cfg *config.KubehoundConfig, collect collec
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
 	l.Info("Loading data ingestor")
-	ingest, err := ingestor.Factory(cfg, collect, cache, storedb, graphdb)
+	ingest, err := ingestor.Factory(cfg, collect, storedb, graphdb)
 	if err != nil {
 		return fmt.Errorf("ingestor creation: %w", err)
 	}

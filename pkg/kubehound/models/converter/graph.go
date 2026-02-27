@@ -27,55 +27,35 @@ func NewGraph(cfg *config.KubehoundConfig) *GraphConverter {
 // Container returns the graph representation of a container vertex from a store container model input.
 func (c *GraphConverter) Container(input *store.Container, parent *store.Pod) (*graph.Container, error) {
 	output := &graph.Container{
-		StoreID:     input.Id.Hex(),
+		StoreID:     store.Hex(input.Id),
 		App:         input.Ownership.Application,
 		Team:        input.Ownership.Team,
 		Service:     input.Ownership.Service,
 		RunID:       c.runtime.RunID.String(),
 		Cluster:     c.runtime.Cluster.Name,
 		Namespace:   input.Inherited.Namespace,
-		Name:        input.K8.Name,
-		Image:       input.K8.Image,
-		Command:     input.K8.Command,
-		Args:        input.K8.Args,
+		Name:        input.Name,
+		Image:       input.Image,
+		Command:     input.Command,
+		Args:        input.Args,
 		HostPID:     input.Inherited.HostPID,
 		HostIPC:     input.Inherited.HostIPC,
 		HostNetwork: input.Inherited.HostNetwork,
 		Pod:         input.Inherited.PodName,
 		Node:        input.Inherited.NodeName,
 		RunAsUser:   input.Inherited.RunAsUser,
-	}
-
-	// Determine if a user is set in the security context
-	if input.K8.SecurityContext != nil && input.K8.SecurityContext.RunAsUser != nil {
-		output.RunAsUser = *input.K8.SecurityContext.RunAsUser
-	}
-
-	// Privileged pod/container
-	if input.K8.SecurityContext != nil && input.K8.SecurityContext.Privileged != nil {
-		output.Privileged = *input.K8.SecurityContext.Privileged
-	}
-
-	// Privilege escalation permitted
-	if input.K8.SecurityContext != nil && input.K8.SecurityContext.AllowPrivilegeEscalation != nil {
-		output.PrivEsc = *input.K8.SecurityContext.AllowPrivilegeEscalation
+		Privileged:  input.Privileged,
+		PrivEsc:     input.PrivEsc,
 	}
 
 	// Capabilities
-	output.Capabilities = make([]string, 0)
-	if input.K8.SecurityContext != nil && input.K8.SecurityContext.Capabilities != nil {
-		for _, cap := range input.K8.SecurityContext.Capabilities.Add {
-			output.Capabilities = append(output.Capabilities, string(cap))
-		}
-	}
+	output.Capabilities = make([]string, len(input.Capabilities))
+	copy(output.Capabilities, input.Capabilities)
 
-	// Exposed ports
-	output.Ports = make([]string, 0)
-	if input.K8.Ports != nil {
-		for _, p := range input.K8.Ports {
-			// We map the integer port to a string to make our lives easier in the bullk gaph insert (#gremlin)
-			output.Ports = append(output.Ports, strconv.Itoa((int(p.ContainerPort))))
-		}
+	// Ports
+	output.Ports = make([]string, 0, len(input.Ports))
+	for _, p := range input.Ports {
+		output.Ports = append(output.Ports, strconv.Itoa(int(p)))
 	}
 
 	if output.Namespace != "" {
@@ -88,19 +68,19 @@ func (c *GraphConverter) Container(input *store.Container, parent *store.Pod) (*
 // Node returns the graph representation of a node vertex from a store node model input.
 func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 	output := &graph.Node{
-		StoreID:  input.Id.Hex(),
+		StoreID:  store.Hex(input.Id),
 		App:      input.Ownership.Application,
 		Team:     input.Ownership.Team,
 		Service:  input.Ownership.Service,
 		RunID:    c.runtime.RunID.String(),
 		Cluster:  c.runtime.Cluster.Name,
-		Name:     input.K8.Name,
+		Name:     input.Name,
 		Critical: risk.Engine().IsCritical(input),
 	}
 
 	if input.IsNamespaced {
 		output.IsNamespaced = true
-		output.Namespace = input.K8.Namespace
+		output.Namespace = input.Namespace
 	}
 
 	return output, nil
@@ -109,20 +89,18 @@ func (c *GraphConverter) Node(input *store.Node) (*graph.Node, error) {
 // Pod returns the graph representation of a pod vertex from a store pod model input.
 func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 	output := &graph.Pod{
-		StoreID:        input.Id.Hex(),
-		App:            input.Ownership.Application,
-		Team:           input.Ownership.Team,
-		Service:        input.Ownership.Service,
-		RunID:          c.runtime.RunID.String(),
-		Cluster:        c.runtime.Cluster.Name,
-		Name:           input.K8.Name,
-		Namespace:      input.K8.GetNamespace(),
-		ServiceAccount: input.K8.Spec.ServiceAccountName,
-		Node:           input.K8.Spec.NodeName,
-		Critical:       risk.Engine().IsCritical(input),
-	}
-	if input.K8.Spec.ShareProcessNamespace != nil {
-		output.ShareProcessNamespace = *input.K8.Spec.ShareProcessNamespace
+		StoreID:               store.Hex(input.Id),
+		App:                   input.Ownership.Application,
+		Team:                  input.Ownership.Team,
+		Service:               input.Ownership.Service,
+		RunID:                 c.runtime.RunID.String(),
+		Cluster:               c.runtime.Cluster.Name,
+		Name:                  input.Name,
+		Namespace:             input.Namespace,
+		ServiceAccount:        input.ServiceAccount,
+		Node:                  input.NodeName,
+		ShareProcessNamespace: input.ShareProcessNamespace,
+		Critical:              risk.Engine().IsCritical(input),
 	}
 	if output.Namespace != "" {
 		output.IsNamespaced = true
@@ -134,14 +112,14 @@ func (c *GraphConverter) Pod(input *store.Pod) (*graph.Pod, error) {
 // Volume returns the graph representation of a volume vertex from a store volume model input.
 func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.Volume, error) {
 	output := &graph.Volume{
-		StoreID:    input.Id.Hex(),
+		StoreID:    store.Hex(input.Id),
 		App:        input.Ownership.Application,
 		Team:       input.Ownership.Team,
 		Service:    input.Ownership.Service,
 		RunID:      c.runtime.RunID.String(),
 		Cluster:    c.runtime.Cluster.Name,
 		Name:       input.Name,
-		Namespace:  parent.K8.Namespace,
+		Namespace:  parent.Namespace,
 		Type:       input.Type,
 		SourcePath: input.SourcePath,
 		MountPath:  input.MountPath,
@@ -156,7 +134,6 @@ func (c *GraphConverter) Volume(input *store.Volume, parent *store.Pod) (*graph.
 }
 
 // flattenPolicyRules flattens the policy rule array into a string array.
-// This is necessary as graph databases cannot typically handle complex data type attributes on nodes.
 func (c *GraphConverter) flattenPolicyRules(input []rbacv1.PolicyRule) []string {
 	rules := make([]string, 0, len(input))
 
@@ -188,7 +165,7 @@ func (c *GraphConverter) flattenPolicyRules(input []rbacv1.PolicyRule) []string 
 // PermissionSet returns the graph representation of a role vertex from a store role model input.
 func (c *GraphConverter) PermissionSet(input *store.PermissionSet) (*graph.PermissionSet, error) {
 	output := &graph.PermissionSet{
-		StoreID:     input.Id.Hex(),
+		StoreID:     store.Hex(input.Id),
 		App:         input.Ownership.Application,
 		Team:        input.Ownership.Team,
 		Service:     input.Ownership.Service,
@@ -212,7 +189,7 @@ func (c *GraphConverter) PermissionSet(input *store.PermissionSet) (*graph.Permi
 // Identity returns the graph representation of an identity vertex from a store identity model input.
 func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error) {
 	output := &graph.Identity{
-		StoreID:   input.Id.Hex(),
+		StoreID:   store.Hex(input.Id),
 		App:       input.Ownership.Application,
 		Team:      input.Ownership.Team,
 		Service:   input.Ownership.Service,
@@ -234,7 +211,7 @@ func (c *GraphConverter) Identity(input *store.Identity) (*graph.Identity, error
 // Endpoint returns the graph representation of an endpoint vertex from a store endpoint model input.
 func (c *GraphConverter) Endpoint(input *store.Endpoint) (*graph.Endpoint, error) {
 	output := &graph.Endpoint{
-		StoreID:             input.Id.Hex(),
+		StoreID:             store.Hex(input.Id),
 		App:                 input.Ownership.Application,
 		Team:                input.Ownership.Team,
 		Service:             input.Ownership.Service,
@@ -245,11 +222,11 @@ func (c *GraphConverter) Endpoint(input *store.Endpoint) (*graph.Endpoint, error
 		Name:                input.Name,
 		ServiceEndpointName: input.ServiceName,
 		ServiceDnsName:      input.ServiceDns,
-		AddressType:         string(input.AddressType),
-		Addresses:           input.Backend.Addresses,
-		Port:                input.SafePort(),
-		PortName:            input.SafePortName(),
-		Protocol:            input.SafeProtocol(),
+		AddressType:         input.AddressType,
+		Addresses:           input.Addresses,
+		Port:                input.Port,
+		PortName:            input.PortName,
+		Protocol:            input.Protocol,
 		Exposure:            input.Exposure,
 	}
 

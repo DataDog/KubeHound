@@ -4,15 +4,15 @@ import "github.com/DataDog/KubeHound/pkg/config"
 
 // Cluster encapsulates information about the target Kubernetes cluster.
 type Cluster struct {
-	Name         string `bson:"name"`
-	VersionMajor string `bson:"version_major"`
-	VersionMinor string `bson:"version_minor"`
+	Name         string
+	VersionMajor string
+	VersionMinor string
 }
 
 // RuntimeInfo encapsulates information about the KubeHound run.
 type RuntimeInfo struct {
-	RunID   string  `bson:"runID"`
-	Cluster Cluster `bson:"cluster"`
+	RunID   string
+	Cluster Cluster
 }
 
 // Runtime extracts information about the KubeHound run from passed in config.

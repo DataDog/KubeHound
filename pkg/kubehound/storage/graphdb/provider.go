@@ -2,6 +2,7 @@ package graphdb
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/DataDog/KubeHound/pkg/config"
@@ -9,7 +10,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 )
 
 const (
@@ -70,7 +70,7 @@ type Provider interface {
 	Clean(ctx context.Context, cluster string) error
 
 	// VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
-	VertexWriter(ctx context.Context, v vertex.Builder, c cache.CacheProvider, opts ...WriterOption) (AsyncVertexWriter, error)
+	VertexWriter(ctx context.Context, v vertex.Builder, db *sql.DB, opts ...WriterOption) (AsyncVertexWriter, error)
 
 	// EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.
 	EdgeWriter(ctx context.Context, e edge.Builder, opts ...WriterOption) (AsyncEdgeWriter, error)

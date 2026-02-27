@@ -1,9 +1,5 @@
 name: kubehound-testing
 services:
-  mongodb:
-    ports:
-      - "127.0.0.1:27018:27017"
-
   kubegraph:
     build: ./graph/
     ports:

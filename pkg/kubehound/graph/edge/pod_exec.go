@@ -2,18 +2,16 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func init() {
@@ -25,7 +23,7 @@ type PodExec struct {
 }
 
 type podExecGroup struct {
-	Role primitive.ObjectID `bson:"_id" json:"role"`
+	Role int64 `json:"role"`
 }
 
 func (e *PodExec) Label() string {
@@ -59,7 +57,7 @@ func (e *PodExec) Processor(ctx context.Context, oic *converter.ObjectIDConverte
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	rid, err := oic.GraphID(ctx, typed.Role.Hex())
+	rid, err := oic.GraphID(ctx, store.Hex(typed.Role))
 	if err != nil {
 		return nil, fmt.Errorf("%s edge role id convert: %w", e.Label(), err)
 	}
@@ -113,50 +111,24 @@ func (e *PodExec) Traversal() types.EdgeTraversal {
 }
 
 // Stream finds all roles that are NOT namespaced and have pod/exec or equivalent wildcard permissions.
-func (e *PodExec) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *PodExec) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	permissionSets := adapter.MongoDB(ctx, store).Collection(collections.PermissionSetName)
-	pipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"is_namespaced":        false,
-				"runtime.runID":        e.runtime.RunID.String(),
-				"runtime.cluster.name": e.runtime.Cluster.Name,
-				"rules": bson.M{
-					"$elemMatch": bson.M{
-						"$and": bson.A{
-							bson.M{"$or": bson.A{
-								bson.M{"apigroups": ""},
-								bson.M{"apigroups": "*"},
-							}},
-							bson.M{"$or": bson.A{
-								bson.M{"resources": "pods/exec"},
-								bson.M{"resources": "pods/*"},
-								bson.M{"resources": "*"},
-							}},
-							bson.M{"$or": bson.A{
-								bson.M{"verbs": "create"},
-								bson.M{"verbs": "*"},
-							}},
-							bson.M{"resourcenames": nil}, // TODO: handle resource scope
-						},
-					},
-				},
-			},
-		},
-		{
-			"$project": bson.M{
-				"_id": 1,
-			},
-		},
-	}
-
-	cur, err := permissionSets.Aggregate(ctx, pipeline)
+	rows, err := db.QueryContext(ctx, `
+		SELECT DISTINCT ps.id FROM permissionsets ps, json_each(ps.rules) AS r
+		WHERE ps.is_namespaced = 0 AND ps.run_id = ? AND ps.cluster_name = ?
+		AND EXISTS (SELECT 1 FROM json_each(json_extract(r.value, '$.apiGroups')) WHERE value IN ('', '*'))
+		AND EXISTS (SELECT 1 FROM json_each(json_extract(r.value, '$.resources')) WHERE value IN ('pods/exec', 'pods/*', '*'))
+		AND EXISTS (SELECT 1 FROM json_each(json_extract(r.value, '$.verbs')) WHERE value IN ('create', '*'))
+		AND (json_extract(r.value, '$.resourceNames') IS NULL OR json_extract(r.value, '$.resourceNames') = '[]')`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[podExecGroup](ctx, cur, callback, complete)
+	return adapter.SQLiteRowHandler[podExecGroup](ctx, rows, func(row *sql.Rows) (podExecGroup, error) {
+		var g podExecGroup
+		err := row.Scan(&g.Role)
+		return g, err
+	}, callback, complete)
 }

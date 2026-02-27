@@ -55,15 +55,3 @@ services:
       lab: 8888
       tree: 8889
 
-  db:
-    host: kubehound-db.kubehound.cluster-local.local
-    port: 27017
-    image: mongo
-    version: 6.0.6
-    resources:
-      requests:
-        cpu: "4"
-        memory: "16Gi"
-      limits:
-        cpu: "4"
-        memory: "16Gi"

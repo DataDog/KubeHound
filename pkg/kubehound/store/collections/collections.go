@@ -1,10 +1,6 @@
 package collections
 
 const (
-	DefaultBatchSize = 1000
-)
-
-const (
 	NodeName          = "nodes"
 	PodName           = "pods"
 	ContainerName     = "containers"
@@ -16,14 +12,10 @@ const (
 	EndpointName      = "endpoints"
 )
 
-// Collection provides a common abstraction of a SQL database table or a NoSQL object
-// collection to work with the storedb provider interface.
+// Collection provides a common abstraction of a database table.
 type Collection interface {
-	// Name returns the name of the collection.
+	// Name returns the name of the collection (table).
 	Name() string
-
-	// BatchSize returns the batch size of bulk inserts (and threshold for triggering a flush).
-	BatchSize() int
 }
 
 func GetCollections() []string {

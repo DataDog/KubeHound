@@ -25,7 +25,6 @@ services:
       - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./datadog/datadog.yaml:/etc/datadog-agent/datadog.yaml:ro
-      - ./datadog/mongodb.yaml:/etc/datadog-agent/conf.d/mongo.d/conf.yaml:ro
       - ./datadog/openmetrics.yaml:/etc/datadog-agent/conf.d/openmetrics.d/conf.yaml:ro
     networks:
       - kubenet

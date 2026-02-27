@@ -27,14 +27,6 @@ storage:
   # Delay between connection retries
   retry_delay: 10s
 
-# Store database configuration
-mongodb:
-  # Connection URL to the mongo DB instance
-  url: "mongodb://{{ $.Values.services.db.host }}:{{ $.Values.services.db.port }}"
-
-  # Timeout on requests to the mongo DB instance
-  connection_timeout: 30s
-
 # Graph database configuration
 janusgraph:
   # Connection URL to the JanusGraph DB instance
@@ -43,7 +35,7 @@ janusgraph:
   # Timeout on requests to the JanusGraph DB instance
   connection_timeout: 30s
 
-  # Wipe old copy of k8s/kubehound resources in mongodb
+  # Wipe old copy of k8s/kubehound resources in store
   wipe: false
 
 # Datadog telemetry configuration

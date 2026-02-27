@@ -2,13 +2,13 @@ package graphdb
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	"github.com/DataDog/KubeHound/pkg/telemetry/tag"
@@ -159,14 +159,14 @@ func (jgp *JanusGraphProvider) Raw() any {
 
 // VertexWriter creates a new AsyncVertexWriter instance to enable asynchronous bulk inserts of vertices.
 func (jgp *JanusGraphProvider) VertexWriter(ctx context.Context, v vertex.Builder,
-	c cache.CacheProvider, opts ...WriterOption) (AsyncVertexWriter, error) {
+	db *sql.DB, opts ...WriterOption) (AsyncVertexWriter, error) {
 
 	opts = append(opts, WithTags(jgp.tags))
 	opts = append(opts, WithWriterWorkerCount(jgp.cfg.JanusGraph.WriterWorkerCount))
 	opts = append(opts, WithWriterTimeout(jgp.cfg.JanusGraph.WriterTimeout))
 	opts = append(opts, WithWriterMaxRetry(jgp.cfg.JanusGraph.WriterMaxRetry))
 
-	return NewJanusGraphAsyncVertexWriter(ctx, jgp.drc, v, c, opts...)
+	return NewJanusGraphAsyncVertexWriter(ctx, jgp.drc, v, db, opts...)
 }
 
 // EdgeWriter creates a new AsyncEdgeWriter instance to enable asynchronous bulk inserts of edges.

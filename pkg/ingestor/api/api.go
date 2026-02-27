@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -15,14 +16,12 @@ import (
 	grpc "github.com/DataDog/KubeHound/pkg/ingestor/api/grpc/pb"
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
-	"go.mongodb.org/mongo-driver/bson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/ext"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -189,14 +188,6 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error { //nolint:
 
 	_ = events.PushEvent(runCtx, events.IngestStarted, "") //nolint: contextcheck
 
-	// We need to flush the cache to prevent warnings/errors when overwriting elements in cache from the previous ingestion
-	// This avoid conflicts from previous ingestion (there is no need to reuse the cache from a previous ingestion)
-	l.Info("Preparing cache provider")
-	err = g.providers.CacheProvider.Prepare(runCtx) //nolint: contextcheck
-	if err != nil {
-		return fmt.Errorf("cache client creation: %w", err)
-	}
-
 	// Create the collector instance
 	l.Info("Loading Kubernetes data collector client")
 	collect, err := collector.ClientFactory(runCtx, runCfg) //nolint: contextcheck
@@ -213,7 +204,7 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error { //nolint:
 	l.Info("Starting Kubernetes raw data ingest")
 
 	// Droping the storedb data for the cluster if the wipe flag is set
-	if g.Cfg.MongoDB.Wipe {
+	if g.Cfg.Storage.Wipe {
 		err = g.providers.StoreProvider.Clean(runCtx, "*", clusterName) //nolint: contextcheck
 		if err != nil {
 			return err
@@ -284,29 +275,26 @@ func (g *IngestorAPI) isAlreadyIngestedInGraph(_ context.Context, clusterName st
 
 func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName string, runID string) (bool, error) {
 	l := log.Logger(ctx)
-	var resNum int64
-	var err error
-	for _, collection := range collections.GetCollections() {
-		mdb := adapter.MongoDB(ctx, g.providers.StoreProvider)
-		db := mdb.Collection(collection)
-		filter := bson.M{
-			"runtime": bson.M{
-				"runID": runID,
-				"cluster": bson.M{
-					"name": clusterName,
-				},
-			},
-		}
-		resNum, err = db.CountDocuments(ctx, filter, nil)
+	db, ok := g.providers.StoreProvider.Reader().(*sql.DB)
+	if !ok {
+		return false, fmt.Errorf("assert store reader as *sql.DB")
+	}
+
+	for _, table := range collections.GetCollections() {
+		var count int64
+		//nolint:gosec // table names are from a hardcoded trusted list
+		err := db.QueryRowContext(ctx,
+			fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE run_id = ? AND cluster_name = ?", table),
+			runID, clusterName).Scan(&count)
 		if err != nil {
-			return false, fmt.Errorf("error counting documents in collection %s: %w", collection, err)
+			return false, fmt.Errorf("error counting rows in table %s: %w", table, err)
 		}
-		if resNum != 0 {
-			l.Info("Found element(s) in collection", log.Int64(log.FieldCountKey, resNum), log.String("collection", collection))
+		if count != 0 {
+			l.Info("Found element(s) in table", log.Int64(log.FieldCountKey, count), log.String("table", table))
 
 			return true, nil
 		}
-		l.Debug("No element found in collection", log.Int64(log.FieldCountKey, resNum), log.String("collection", collection))
+		l.Debug("No element found in table", log.Int64(log.FieldCountKey, count), log.String("table", table))
 	}
 
 	return false, nil

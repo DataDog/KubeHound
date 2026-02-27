@@ -19,7 +19,6 @@ const (
 	CollectionTag         = "collection"
 	BuilderTag            = "builder"
 	StorageTag            = "storage"
-	CacheKeyTag           = "cache_key"
 	EdgeTypeTag           = "edge_type"
 )
 
@@ -33,8 +32,7 @@ var (
 
 const (
 	StorageJanusGraph = "janusgraph"
-	StorageMongoDB    = "mongodb"
-	StorageMemCache   = "memcache"
+	StorageSQLite     = "sqlite"
 )
 
 const (
@@ -113,10 +111,6 @@ func Builder(builder string) string {
 
 func Collection(collection string) string {
 	return MakeTag(CollectionTag, collection)
-}
-
-func CacheKey(ck string) string {
-	return MakeTag(CacheKeyTag, ck)
 }
 
 func EdgeType(et string) string {

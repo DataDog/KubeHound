@@ -74,7 +74,6 @@ backend_reset() {
 backend_reset_hard() {
     check_docker
     backend_down
-    ${DOCKER_CMD} volume rm "kubehound-${KUBEHOUND_ENV}_mongodb_data"
     ${DOCKER_CMD} volume rm "kubehound-${KUBEHOUND_ENV}_kubegraph_data"
     backend_up
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
@@ -41,7 +40,7 @@ type Provider interface {
 	// Droping all assets from the database (usually to ensure a clean start) from a runID and cluster name
 	Clean(ctx context.Context, runId string, clusterName string) error
 
-	// Reader returns a handle to the underlying provider to allow implementation specific queries against the mongo DB
+	// Reader returns a handle to the underlying provider to allow implementation specific queries against the store DB
 	Reader() any
 
 	// BulkWriter creates a new AsyncWriter instance to enable asynchronous bulk inserts.
@@ -67,7 +66,5 @@ type AsyncWriter interface {
 
 // Factory returns an initialized instance of a storedb provider from the provided application config.
 func Factory(ctx context.Context, cfg *config.KubehoundConfig) (Provider, error) {
-	r := storage.Retrier(NewMongoProvider, cfg.Storage.Retry, cfg.Storage.RetryDelay)
-
-	return r(ctx, cfg)
+	return NewSQLiteProvider(ctx, cfg)
 }

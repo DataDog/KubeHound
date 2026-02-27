@@ -2,16 +2,13 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func init() {
@@ -22,12 +19,9 @@ type SharePSNamespace struct {
 	BaseEdge
 }
 
-type sharedPsNamespaceGroup struct {
-	Containers []primitive.ObjectID `bson:"container_ids" json:"container_ids"`
-}
 type sharedPsNamespaceGroupPair struct {
-	ContainerA primitive.ObjectID `bson:"container_a_id" json:"container_a"`
-	ContainerB primitive.ObjectID `bson:"container_b_id" json:"container_b"`
+	ContainerA int64 `json:"container_a"`
+	ContainerB int64 `json:"container_b"`
 }
 
 func (e *SharePSNamespace) Label() string {
@@ -59,69 +53,29 @@ func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectI
 	})
 }
 
-func (e *SharePSNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *SharePSNamespace) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	coll := adapter.MongoDB(ctx, store).Collection(collections.PodName)
-	pipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"k8.spec.shareprocessnamespace": true,
-				"runtime.runID":                 e.runtime.RunID.String(),
-				"runtime.cluster.name":          e.runtime.Cluster.Name,
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"as":           "containers_with_shared_ns",
-				"from":         "containers",
-				"localField":   "_id",
-				"foreignField": "pod_id",
-			},
-		},
-		{
-			"$project": bson.M{
-				"_id":                       1,
-				"containers_with_shared_ns": bson.M{"_id": 1},
-			},
-		},
-		{
-			"$project": bson.M{
-				"_id":           0,
-				"container_ids": "$containers_with_shared_ns._id",
-			},
-		},
-	}
-	cur, err := coll.Aggregate(ctx, pipeline)
-
+	rows, err := db.QueryContext(ctx, `
+		SELECT ca.id, cb.id
+		FROM pods p
+		JOIN containers ca ON ca.pod_id = p.id
+			AND ca.run_id = p.run_id
+			AND ca.cluster_name = p.cluster_name
+		JOIN containers cb ON cb.pod_id = p.id
+			AND cb.run_id = p.run_id
+			AND cb.cluster_name = p.cluster_name
+			AND cb.id != ca.id
+		WHERE p.share_process_namespace = 1
+		AND p.run_id = ? AND p.cluster_name = ?`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	for cur.Next(ctx) {
-		var entry sharedPsNamespaceGroup
-		err := cur.Decode(&entry)
-		if err != nil {
-			return err
-		}
-
-		for _, containerSrc := range entry.Containers {
-			for _, containerDst := range entry.Containers {
-				// No need to create a link with itself
-				if containerSrc == containerDst {
-					continue
-				}
-				err = callback(ctx, &sharedPsNamespaceGroupPair{
-					ContainerA: containerSrc,
-					ContainerB: containerDst,
-				})
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	return complete(ctx)
+	return adapter.SQLiteRowHandler[sharedPsNamespaceGroupPair](ctx, rows, func(row *sql.Rows) (sharedPsNamespaceGroupPair, error) {
+		var g sharedPsNamespaceGroupPair
+		err := row.Scan(&g.ContainerA, &g.ContainerB)
+		return g, err
+	}, callback, complete)
 }

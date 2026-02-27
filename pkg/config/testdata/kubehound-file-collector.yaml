@@ -5,8 +5,6 @@ collector:
 dynamic:
   cluster:
     name: test-cluster
-mongodb:
-  url: "mongodb://localhost:27017"
 telemetry:
   statsd:
     url: "127.0.0.1:8125"

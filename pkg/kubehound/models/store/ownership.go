@@ -2,9 +2,9 @@ package store
 
 // OwnershipInfo encapsulates internal ownership information of Kubernetes assets.
 type OwnershipInfo struct {
-	Application string `bson:"application"`
-	Team        string `bson:"team"`
-	Service     string `bson:"service"`
+	Application string
+	Team        string
+	Service     string
 }
 
 // ExtractOwnership extracts ownership information from a provided Kubernets labels map.

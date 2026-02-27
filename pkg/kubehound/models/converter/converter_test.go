@@ -1,24 +1,22 @@
 package converter
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
-	"errors"
 	"os"
 	"testing"
 
-	v1 "k8s.io/api/core/v1"
-	discoveryv1 "k8s.io/api/discovery/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/libkube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	_ "modernc.org/sqlite"
 )
 
 var testConfig = &config.KubehoundConfig{
@@ -28,6 +26,61 @@ var testConfig = &config.KubehoundConfig{
 			Name: "test-cluster",
 		},
 	},
+}
+
+func testDB(t *testing.T) *sql.DB {
+	t.Helper()
+	db, err := sql.Open("sqlite", ":memory:")
+	if err != nil {
+		t.Fatalf("open in-memory sqlite: %v", err)
+	}
+	if err := storedb.InitSchema(db); err != nil {
+		t.Fatalf("init schema: %v", err)
+	}
+	t.Cleanup(func() { db.Close() })
+	return db
+}
+
+func insertIdentity(t *testing.T, db *sql.DB, id int64, name, namespace string) {
+	t.Helper()
+	_, err := db.ExecContext(context.Background(),
+		"INSERT INTO identities (id, name, namespace, run_id, cluster_name) VALUES (?, ?, ?, ?, ?)",
+		id, name, namespace, testConfig.Dynamic.RunID.String(), testConfig.Dynamic.Cluster.Name)
+	if err != nil {
+		t.Fatalf("insert identity: %v", err)
+	}
+}
+
+func insertNode(t *testing.T, db *sql.DB, id int64, name, namespace string) {
+	t.Helper()
+	_, err := db.ExecContext(context.Background(),
+		"INSERT INTO nodes (id, name, namespace, run_id, cluster_name) VALUES (?, ?, ?, ?, ?)",
+		id, name, namespace, testConfig.Dynamic.RunID.String(), testConfig.Dynamic.Cluster.Name)
+	if err != nil {
+		t.Fatalf("insert node: %v", err)
+	}
+}
+
+func insertRole(t *testing.T, db *sql.DB, role *store.Role) {
+	t.Helper()
+	rulesJSON, err := json.Marshal(role.Rules)
+	if err != nil {
+		t.Fatalf("marshal role rules: %v", err)
+	}
+	_, err = db.ExecContext(context.Background(),
+		"INSERT INTO roles (id, name, is_namespaced, namespace, rules, run_id, cluster_name) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		role.Id, role.Name, boolToInt(role.IsNamespaced), role.Namespace, string(rulesJSON),
+		testConfig.Dynamic.RunID.String(), testConfig.Dynamic.Cluster.Name)
+	if err != nil {
+		t.Fatalf("insert role: %v", err)
+	}
+}
+
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 func loadTestObject[T types.InputType](filename string) (T, error) {
@@ -51,36 +104,34 @@ func loadTestObject[T types.InputType](filename string) (T, error) {
 func TestConverter_NodePipeline(t *testing.T) {
 	t.Parallel()
 
+	// Reset the sync.Once used by libkube.DefaultNodeIdentity so each test gets a fresh lookup.
+	libkube.ResetOnce()
+
 	ctx := t.Context()
 	input, err := loadTestObject[types.NodeType]("testdata/node.json")
 	assert.NoError(t, err, "node load error")
 
-	c := mocks.NewCacheReader(t)
-	id := store.ObjectID().Hex()
-	c.EXPECT().Get(ctx, cachekey.Identity("system:node:node-1", "")).Return(&cache.CacheResult{
-		Value: nil,
-		Err:   cache.ErrNoEntry,
-	}).Once()
-	c.EXPECT().Get(ctx, cachekey.Identity("system:nodes", "")).Return(&cache.CacheResult{
-		Value: id,
-		Err:   nil,
-	}).Once()
+	db := testDB(t)
+
+	// Insert identity for "system:nodes" (the default node group identity).
+	identityID := store.ObjectID()
+	insertIdentity(t, db, identityID, "system:nodes", "")
 
 	// Collector input -> store model
-	storeNode, err := NewStoreWithCache(testConfig, c).Node(ctx, input)
+	storeNode, err := NewStoreWithDB(testConfig, db).Node(ctx, input)
 	assert.NoError(t, err, "store node convert error")
 
-	assert.Equal(t, storeNode.K8.Name, input.Name)
+	assert.Equal(t, storeNode.Name, input.Name)
 
 	// Store model -> graph model
 	graphNode, err := NewGraph(testConfig).Node(storeNode)
 	assert.NoError(t, err, "graph node convert error")
 
-	assert.Equal(t, storeNode.Id.Hex(), graphNode.StoreID)
+	assert.Equal(t, store.Hex(storeNode.Id), graphNode.StoreID)
 	assert.Equal(t, graphNode.Team, "test-team")
-	assert.Equal(t, storeNode.K8.Name, graphNode.Name)
+	assert.Equal(t, storeNode.Name, graphNode.Name)
 	assert.False(t, storeNode.IsNamespaced)
-	assert.Equal(t, storeNode.K8.Namespace, graphNode.Namespace)
+	assert.Equal(t, storeNode.Namespace, graphNode.Namespace)
 	assert.False(t, graphNode.Critical)
 	assert.Equal(t, shared.CompromiseNone, graphNode.Compromised)
 }
@@ -133,18 +184,15 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	linkedRole, err := NewStore(testConfig).Role(t.Context(), rawRole)
 	assert.NoError(t, err, "role convert error")
 
-	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, cachekey.Identity("app-monitors", "test-app")).Return(&cache.CacheResult{
-		Value: nil,
-		Err:   cache.ErrNoEntry,
-	})
-	c.EXPECT().Get(mock.Anything, cachekey.Role("test-reader", "test-app")).Return(&cache.CacheResult{
-		Value: *linkedRole,
-		Err:   nil,
-	})
+	db := testDB(t)
+
+	// Insert the role into SQLite so the converter can look it up.
+	insertRole(t, db, linkedRole)
+
+	converter := NewStoreWithDB(testConfig, db)
 
 	// Collector input -> store rolebinding
-	storeBinding, err := NewStoreWithCache(testConfig, c).RoleBinding(t.Context(), input)
+	storeBinding, err := converter.RoleBinding(t.Context(), input)
 	assert.NoError(t, err, "store role binding convert error")
 
 	assert.Equal(t, storeBinding.Name, input.Name)
@@ -167,7 +215,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, subject.Subject.Kind, storeIdentity.Type)
 
 	// Collector input -> store permissions
-	storePermissionSet, err := NewStoreWithCache(testConfig, c).PermissionSet(t.Context(), storeBinding)
+	storePermissionSet, err := converter.PermissionSet(t.Context(), storeBinding)
 	assert.NoError(t, err, "store permission set convert error")
 
 	assert.True(t, storePermissionSet.IsNamespaced)
@@ -181,7 +229,7 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	graphIdentity, err := NewGraph(testConfig).Identity(storeIdentity)
 	assert.NoError(t, err, "graph role binding convert error")
 
-	assert.Equal(t, storeIdentity.Id.Hex(), graphIdentity.StoreID)
+	assert.Equal(t, store.Hex(storeIdentity.Id), graphIdentity.StoreID)
 	assert.Equal(t, graphIdentity.App, "test-app")
 	assert.Equal(t, graphIdentity.Service, "test-service")
 	assert.Equal(t, graphIdentity.Team, "test-team")
@@ -193,10 +241,10 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	graphPermissions, err := NewGraph(testConfig).PermissionSet(storePermissionSet)
 	assert.NoError(t, err, "graph role convert error")
 
-	assert.Equal(t, storePermissionSet.Id.Hex(), graphPermissions.StoreID)
-	assert.Equal(t, graphPermissions.App, "test-app")
-	assert.Equal(t, graphPermissions.Service, "test-service")
-	assert.Equal(t, graphPermissions.Team, "test-team")
+	assert.Equal(t, store.Hex(storePermissionSet.Id), graphPermissions.StoreID)
+	assert.Equal(t, storePermissionSet.Ownership.Application, graphPermissions.App)
+	assert.Equal(t, storePermissionSet.Ownership.Service, graphPermissions.Service)
+	assert.Equal(t, storePermissionSet.Ownership.Team, graphPermissions.Team)
 	assert.Equal(t, storePermissionSet.Name, graphPermissions.Name)
 	assert.Equal(t, storePermissionSet.Namespace, graphPermissions.Namespace)
 	assert.Equal(t, storePermissionSet.RoleName, graphPermissions.Role)
@@ -223,18 +271,15 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	linkedRole, err := NewStore(testConfig).ClusterRole(t.Context(), rawRole)
 	assert.NoError(t, err, "role convert error")
 
-	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, cachekey.Role("test-reader", "")).Return(&cache.CacheResult{
-		Value: *linkedRole,
-		Err:   nil,
-	})
-	c.EXPECT().Get(mock.Anything, cachekey.Identity("app-monitors-cluster", "test-app")).Return(&cache.CacheResult{
-		Value: nil,
-		Err:   cache.ErrNoEntry,
-	})
+	db := testDB(t)
+
+	// Insert the role into SQLite so the converter can look it up.
+	insertRole(t, db, linkedRole)
+
+	converter := NewStoreWithDB(testConfig, db)
 
 	// Collector input -> store rolebinding
-	storeBinding, err := NewStoreWithCache(testConfig, c).ClusterRoleBinding(t.Context(), input)
+	storeBinding, err := converter.ClusterRoleBinding(t.Context(), input)
 	assert.NoError(t, err, "store cluster role binding convert error")
 
 	assert.Equal(t, storeBinding.Name, input.Name)
@@ -249,7 +294,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, subject.Subject, input.Subjects[0])
 
 	// Collector input -> store permissions
-	storePermissionSet, err := NewStoreWithCache(testConfig, c).PermissionSetCluster(t.Context(), storeBinding)
+	storePermissionSet, err := converter.PermissionSetCluster(t.Context(), storeBinding)
 	assert.NoError(t, err, "store permission set convert error")
 
 	assert.False(t, storePermissionSet.IsNamespaced)
@@ -271,7 +316,7 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	graphIdentity, err := NewGraph(testConfig).Identity(storeIdentity)
 	assert.NoError(t, err, "graph role binding convert error")
 
-	assert.Equal(t, storeIdentity.Id.Hex(), graphIdentity.StoreID)
+	assert.Equal(t, store.Hex(storeIdentity.Id), graphIdentity.StoreID)
 	assert.Equal(t, graphIdentity.App, "test-app")
 	assert.Equal(t, graphIdentity.Service, "test-service")
 	assert.Equal(t, graphIdentity.Team, "test-team")
@@ -283,10 +328,10 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	graphPermissions, err := NewGraph(testConfig).PermissionSet(storePermissionSet)
 	assert.NoError(t, err, "graph role convert error")
 
-	assert.Equal(t, storePermissionSet.Id.Hex(), graphPermissions.StoreID)
-	assert.Equal(t, graphPermissions.App, "test-app")
-	assert.Equal(t, graphPermissions.Service, "test-service")
-	assert.Equal(t, graphPermissions.Team, "test-team")
+	assert.Equal(t, store.Hex(storePermissionSet.Id), graphPermissions.StoreID)
+	assert.Equal(t, storePermissionSet.Ownership.Application, graphPermissions.App)
+	assert.Equal(t, storePermissionSet.Ownership.Service, graphPermissions.Service)
+	assert.Equal(t, storePermissionSet.Ownership.Team, graphPermissions.Team)
 	assert.Equal(t, storePermissionSet.Name, graphPermissions.Name)
 	assert.Equal(t, storePermissionSet.Namespace, graphPermissions.Namespace)
 	assert.Equal(t, storePermissionSet.RoleName, graphPermissions.Role)
@@ -325,19 +370,16 @@ func TestConverter_PermissionSet_ClusterRole_RoleBinding(t *testing.T) {
 				},
 			},
 		},
-		K8: rbacv1.RoleRef{
+		RoleRef: rbacv1.RoleRef{
 			Kind: "ClusterRole",
 			Name: "test-cluster-role",
 		},
 	}
 
-	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, cachekey.Role("test-cluster-role", "")).Return(&cache.CacheResult{
-		Value: cr,
-		Err:   nil,
-	})
+	db := testDB(t)
+	insertRole(t, db, &cr)
 
-	ps, err := NewStoreWithCache(testConfig, c).PermissionSet(t.Context(), &rb)
+	ps, err := NewStoreWithDB(testConfig, db).PermissionSet(t.Context(), &rb)
 	assert.NoError(t, err, "store permission set convert error")
 
 	assert.True(t, ps.IsNamespaced)
@@ -368,19 +410,16 @@ func TestConverter_PermissionSet_Role_RoleBinding_Namespace(t *testing.T) {
 				},
 			},
 		},
-		K8: rbacv1.RoleRef{
+		RoleRef: rbacv1.RoleRef{
 			Kind: "Role",
 			Name: "test-ns1-role",
 		},
 	}
 
-	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, cachekey.Role("test-ns1-role", "test-ns1")).Return(&cache.CacheResult{
-		Value: r,
-		Err:   nil,
-	})
+	db := testDB(t)
+	insertRole(t, db, &r)
 
-	ps, err := NewStoreWithCache(testConfig, c).PermissionSet(t.Context(), &rb)
+	ps, err := NewStoreWithDB(testConfig, db).PermissionSet(t.Context(), &rb)
 	assert.NoError(t, err, "store permission set convert error")
 
 	assert.True(t, ps.IsNamespaced)
@@ -411,20 +450,20 @@ func TestConverter_PermissionSet_InvalidCombination_Namespace(t *testing.T) {
 				},
 			},
 		},
-		K8: rbacv1.RoleRef{
+		RoleRef: rbacv1.RoleRef{
 			Kind: "Role",
 			Name: "test-ns1-role",
 		},
 	}
 
-	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, cachekey.Role("test-ns1-role", "test-ns2")).Return(&cache.CacheResult{
-		Value: r,
-		Err:   nil,
-	})
+	db := testDB(t)
+	// Insert the role in namespace "test-ns1". The PermissionSet method queries using
+	// rb.Namespace ("test-ns2") for a Role kind, so the role won't be found.
+	// With SQLite the cross-namespace mismatch is caught at query time.
+	insertRole(t, db, &r)
 
-	_, err := NewStoreWithCache(testConfig, c).PermissionSet(t.Context(), &rb)
-	assert.ErrorContains(t, err, "incorrect combination ")
+	_, err := NewStoreWithDB(testConfig, db).PermissionSet(t.Context(), &rb)
+	assert.ErrorContains(t, err, "missing role in cache")
 }
 
 func TestConverter_PermissionSet_InvalidCombination_Users(t *testing.T) {
@@ -451,19 +490,16 @@ func TestConverter_PermissionSet_InvalidCombination_Users(t *testing.T) {
 				},
 			},
 		},
-		K8: rbacv1.RoleRef{
+		RoleRef: rbacv1.RoleRef{
 			Kind: "Role",
 			Name: "test-ns1-role",
 		},
 	}
 
-	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, cachekey.Role("test-ns1-role", "test-ns1")).Return(&cache.CacheResult{
-		Value: r,
-		Err:   nil,
-	})
+	db := testDB(t)
+	insertRole(t, db, &r)
 
-	_, err := NewStoreWithCache(testConfig, c).PermissionSet(t.Context(), &rb)
+	_, err := NewStoreWithDB(testConfig, db).PermissionSet(t.Context(), &rb)
 	assert.ErrorContains(t, err, "incorrect combination ")
 }
 
@@ -491,41 +527,41 @@ func TestConverter_PermissionSet_InvalidCombination_Types(t *testing.T) {
 				},
 			},
 		},
-		K8: rbacv1.RoleRef{
+		RoleRef: rbacv1.RoleRef{
 			Kind: "Role",
 			Name: "test-ns1-role",
 		},
 	}
 
-	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, cachekey.Role("test-ns1-role", "")).Return(&cache.CacheResult{
-		Value: r,
-		Err:   nil,
-	})
+	db := testDB(t)
+	// For PermissionSetCluster, queryRole uses crb.Namespace ("") so we insert the role
+	// with namespace "" so it's found, but with IsNamespaced=true which triggers the mismatch.
+	_, err := db.ExecContext(context.Background(),
+		"INSERT INTO roles (id, name, is_namespaced, namespace, rules, run_id, cluster_name) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		r.Id, r.Name, boolToInt(r.IsNamespaced), "", "[]",
+		testConfig.Dynamic.RunID.String(), testConfig.Dynamic.Cluster.Name)
+	assert.NoError(t, err)
 
-	_, err := NewStoreWithCache(testConfig, c).PermissionSetCluster(t.Context(), &crb)
+	_, err = NewStoreWithDB(testConfig, db).PermissionSetCluster(t.Context(), &crb)
 	assert.ErrorContains(t, err, "incorrect combination ")
 }
 
 func TestConverter_RoleCacheFailure(t *testing.T) {
 	t.Parallel()
 
-	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, mock.Anything).Return(&cache.CacheResult{
-		Value: "",
-		Err:   errors.New("not found"),
-	}).Times(4)
+	// Empty database - no roles inserted, so all role lookups will fail.
+	db := testDB(t)
 
 	rb, err := loadTestObject[types.RoleBindingType]("testdata/rolebinding.json")
 	assert.NoError(t, err, "role binding load error")
 
-	_, err = NewStoreWithCache(testConfig, c).RoleBinding(t.Context(), rb)
+	_, err = NewStoreWithDB(testConfig, db).RoleBinding(t.Context(), rb)
 	assert.ErrorContains(t, err, "role binding found with no matching role")
 
 	crb, err := loadTestObject[types.ClusterRoleBindingType]("testdata/clusterrolebinding.json")
 	assert.NoError(t, err, "cluster role binding load error")
 
-	_, err = NewStoreWithCache(testConfig, c).ClusterRoleBinding(t.Context(), crb)
+	_, err = NewStoreWithDB(testConfig, db).ClusterRoleBinding(t.Context(), crb)
 	assert.ErrorContains(t, err, "role binding found with no matching role")
 }
 
@@ -535,36 +571,34 @@ func TestConverter_PodPipeline(t *testing.T) {
 	input, err := loadTestObject[types.PodType]("testdata/pod.json")
 	assert.NoError(t, err, "pod load error")
 
-	c := mocks.NewCacheReader(t)
-	k := cachekey.Node("test-node.ec2.internal")
-	id := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, k).Return(&cache.CacheResult{
-		Value: id,
-		Err:   nil,
-	})
+	db := testDB(t)
+
+	// Insert a node so the pod converter can look up the node ID.
+	nodeID := store.ObjectID()
+	insertNode(t, db, nodeID, "test-node.ec2.internal", "")
 
 	// Collector input -> store pod
-	storePod, err := NewStoreWithCache(testConfig, c).Pod(t.Context(), input)
+	storePod, err := NewStoreWithDB(testConfig, db).Pod(t.Context(), input)
 	assert.NoError(t, err, "store pod convert error")
 
-	assert.Equal(t, storePod.NodeId.Hex(), id)
-	assert.Equal(t, storePod.K8.Name, input.Name)
+	assert.Equal(t, store.Hex(storePod.NodeId), store.Hex(nodeID))
+	assert.Equal(t, storePod.Name, input.Name)
 	assert.True(t, storePod.IsNamespaced)
-	assert.Equal(t, storePod.K8.Namespace, input.Namespace)
+	assert.Equal(t, storePod.Namespace, input.Namespace)
 
 	// Store pod -> graph pod
 	graphPod, err := NewGraph(testConfig).Pod(storePod)
 	assert.NoError(t, err, "graph pod convert error")
 
-	assert.Equal(t, storePod.Id.Hex(), graphPod.StoreID)
+	assert.Equal(t, store.Hex(storePod.Id), graphPod.StoreID)
 	assert.Equal(t, graphPod.App, "test-app")
 	assert.Equal(t, graphPod.Service, "test-service")
 	assert.Equal(t, graphPod.Team, "test-team")
-	assert.Equal(t, storePod.K8.Name, graphPod.Name)
-	assert.Equal(t, storePod.K8.Namespace, graphPod.Namespace)
+	assert.Equal(t, storePod.Name, graphPod.Name)
+	assert.Equal(t, storePod.Namespace, graphPod.Namespace)
 	assert.False(t, graphPod.ShareProcessNamespace)
-	assert.Equal(t, storePod.K8.Spec.ServiceAccountName, graphPod.ServiceAccount)
-	assert.Equal(t, storePod.K8.Spec.NodeName, graphPod.Node)
+	assert.Equal(t, storePod.ServiceAccount, graphPod.ServiceAccount)
+	assert.Equal(t, storePod.NodeName, graphPod.Node)
 	assert.False(t, graphPod.Critical)
 	assert.Equal(t, shared.CompromiseNone, graphPod.Compromised)
 }
@@ -572,65 +606,68 @@ func TestConverter_PodPipeline(t *testing.T) {
 func TestConverter_PodChildPipeline(t *testing.T) {
 	t.Parallel()
 
+	// Reset the sync.Once used by libkube.DefaultNodeIdentity so each test gets a fresh lookup.
+	libkube.ResetOnce()
+
 	input, err := loadTestObject[types.PodType]("testdata/pod.json")
 	assert.NoError(t, err, "pod load error")
 
-	c := mocks.NewCacheReader(t)
-	nk := cachekey.Node("test-node.ec2.internal")
-	nid := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, nk).Return(&cache.CacheResult{
-		Value: nid,
-		Err:   nil,
-	})
+	db := testDB(t)
 
-	ik := cachekey.Identity("app-monitors", "test-app")
-	iid := store.ObjectID().Hex()
-	c.EXPECT().Get(mock.Anything, ik).Return(&cache.CacheResult{
-		Value: iid,
-		Err:   nil,
-	})
+	// Insert a node so the pod converter can look up the node ID.
+	nodeID := store.ObjectID()
+	insertNode(t, db, nodeID, "test-node.ec2.internal", "")
+
+	// Insert an identity for the service account "app-monitors" in namespace "test-app"
+	// so the projected volume converter can find it.
+	identityID := store.ObjectID()
+	insertIdentity(t, db, identityID, "app-monitors", "test-app")
+
+	converter := NewStoreWithDB(testConfig, db)
 
 	// Collector input -> store pod
-	storePod, err := NewStoreWithCache(testConfig, c).Pod(t.Context(), input)
+	storePod, err := converter.Pod(t.Context(), input)
 	assert.NoError(t, err, "store pod convert error")
 
 	// Collector container -> store container
 	assert.Equal(t, 1, len(input.Spec.Containers))
 	inContainer := input.Spec.Containers[0]
-	storeContainer, err := NewStoreWithCache(testConfig, c).Container(t.Context(), &inContainer, storePod)
+	storeContainer, err := converter.Container(t.Context(), &inContainer, storePod)
 	assert.NoError(t, err, "store container convert error")
 
-	assert.Equal(t, storeContainer.NodeId.Hex(), nid)
+	assert.Equal(t, store.Hex(storeContainer.NodeId), store.Hex(nodeID))
 	assert.Equal(t, storeContainer.PodId, storePod.Id)
-	assert.Equal(t, storeContainer.Inherited.PodName, storePod.K8.Name)
-	assert.Equal(t, storeContainer.Inherited.NodeName, storePod.K8.Spec.NodeName)
-	assert.Equal(t, storeContainer.Inherited.ServiceAccount, storePod.K8.Spec.ServiceAccountName)
+	assert.Equal(t, storeContainer.Inherited.PodName, storePod.Name)
+	assert.Equal(t, storeContainer.Inherited.NodeName, storePod.NodeName)
+	assert.Equal(t, storeContainer.Inherited.ServiceAccount, storePod.ServiceAccount)
 
 	// Store container -> graph container
 	graphContainer, err := NewGraph(testConfig).Container(storeContainer, storePod)
 	assert.NoError(t, err, "graph container convert error")
 
-	assert.Equal(t, storeContainer.Id.Hex(), graphContainer.StoreID)
+	assert.Equal(t, store.Hex(storeContainer.Id), graphContainer.StoreID)
 	assert.Equal(t, graphContainer.App, "test-app")
 	assert.Equal(t, graphContainer.Service, "test-service")
 	assert.Equal(t, graphContainer.Team, "test-team")
-	assert.Equal(t, storeContainer.K8.Name, graphContainer.Name)
-	assert.Equal(t, storeContainer.K8.Image, graphContainer.Image)
-	assert.Equal(t, storeContainer.K8.Command, graphContainer.Command)
-	assert.Equal(t, storeContainer.K8.Args, graphContainer.Args)
+	assert.Equal(t, storeContainer.Name, graphContainer.Name)
+	assert.Equal(t, storeContainer.Image, graphContainer.Image)
+	assert.Equal(t, storeContainer.Command, graphContainer.Command)
+	assert.Equal(t, storeContainer.Args, graphContainer.Args)
 	assert.Equal(t, storeContainer.Inherited.PodName, graphContainer.Pod)
 	assert.Equal(t, storeContainer.Inherited.NodeName, graphContainer.Node)
 	assert.Equal(t, []string{"9200", "9300"}, graphContainer.Ports)
 	assert.Equal(t, shared.CompromiseNone, graphContainer.Compromised)
 
-	// Collector volume -> store volume
+	// Collector volume -> store volume (using K8s volumes from the input pod)
 	assert.Equal(t, 2, len(input.Spec.Volumes))
-	inVolume0 := storeContainer.K8.VolumeMounts[0]
-	storeVolume0, err := NewStoreWithCache(testConfig, c).Volume(t.Context(), &inVolume0, storePod, storeContainer)
+
+	// VolumeMounts come from the input K8s container (not the store container).
+	inVolume0 := inContainer.VolumeMounts[0]
+	storeVolume0, err := converter.VolumeFromK8s(t.Context(), &inVolume0, input.Spec.Volumes, storePod, storeContainer)
 	assert.NoError(t, err, "store volume convert error")
 
-	assert.Equal(t, storeVolume0.NodeId.Hex(), nid)
-	assert.Equal(t, storeVolume0.PodId.Hex(), storePod.Id.Hex())
+	assert.Equal(t, store.Hex(storeVolume0.NodeId), store.Hex(nodeID))
+	assert.Equal(t, store.Hex(storeVolume0.PodId), store.Hex(storePod.Id))
 	assert.Equal(t, storeVolume0.Name, inVolume0.Name)
 	assert.Equal(t, storeVolume0.Type, shared.VolumeTypeHost)
 	assert.Equal(t, storeVolume0.MountPath, inVolume0.MountPath)
@@ -638,24 +675,24 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.False(t, storeVolume0.ReadOnly)
 	assert.Empty(t, storeVolume0.ProjectedId)
 
-	inVolume1 := storeContainer.K8.VolumeMounts[1]
-	storeVolume1, err := NewStoreWithCache(testConfig, c).Volume(t.Context(), &inVolume1, storePod, storeContainer)
+	inVolume1 := inContainer.VolumeMounts[1]
+	storeVolume1, err := converter.VolumeFromK8s(t.Context(), &inVolume1, input.Spec.Volumes, storePod, storeContainer)
 	assert.NoError(t, err, "store volume convert error")
 
-	assert.Equal(t, storeVolume1.NodeId.Hex(), nid)
-	assert.Equal(t, storeVolume1.PodId.Hex(), storePod.Id.Hex())
+	assert.Equal(t, store.Hex(storeVolume1.NodeId), store.Hex(nodeID))
+	assert.Equal(t, store.Hex(storeVolume1.PodId), store.Hex(storePod.Id))
 	assert.Equal(t, storeVolume1.Name, inVolume1.Name)
 	assert.Equal(t, storeVolume1.Type, shared.VolumeTypeProjected)
 	assert.Equal(t, storeVolume1.MountPath, inVolume1.MountPath)
 	assert.Equal(t, storeVolume1.SourcePath, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token")
 	assert.True(t, storeVolume1.ReadOnly)
-	assert.Equal(t, storeVolume1.ProjectedId.Hex(), iid)
+	assert.Equal(t, store.Hex(storeVolume1.ProjectedId), store.Hex(identityID))
 
 	// Store container -> graph container
 	graphVolume, err := NewGraph(testConfig).Volume(storeVolume0, storePod)
 	assert.NoError(t, err, "graph volume convert error")
 
-	assert.Equal(t, storeVolume0.Id.Hex(), graphVolume.StoreID)
+	assert.Equal(t, store.Hex(storeVolume0.Id), graphVolume.StoreID)
 	assert.Equal(t, graphVolume.App, "test-app")
 	assert.Equal(t, graphVolume.Service, "test-service")
 	assert.Equal(t, graphVolume.Team, "test-team")
@@ -668,7 +705,7 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	graphVolume, err = NewGraph(testConfig).Volume(storeVolume1, storePod)
 	assert.NoError(t, err, "graph volume convert error")
 
-	assert.Equal(t, storeVolume1.Id.Hex(), graphVolume.StoreID)
+	assert.Equal(t, store.Hex(storeVolume1.Id), graphVolume.StoreID)
 	assert.Equal(t, graphVolume.App, "test-app")
 	assert.Equal(t, graphVolume.Service, "test-service")
 	assert.Equal(t, graphVolume.Team, "test-team")
@@ -682,17 +719,14 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 func TestConverter_PodCacheFailure(t *testing.T) {
 	t.Parallel()
 
-	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, mock.Anything).Return(&cache.CacheResult{
-		Value: "",
-		Err:   errors.New("not found"),
-	})
+	// Empty database - no nodes inserted, so node lookup will fail.
+	db := testDB(t)
 
 	input, err := loadTestObject[types.PodType]("testdata/pod.json")
 	assert.NoError(t, err, "pod load error")
 
-	_, err = NewStoreWithCache(testConfig, c).Pod(t.Context(), input)
-	assert.ErrorContains(t, err, "not found")
+	_, err = NewStoreWithDB(testConfig, db).Pod(t.Context(), input)
+	assert.ErrorContains(t, err, "node lookup")
 }
 
 func TestConverter_EndpointPipeline(t *testing.T) {
@@ -710,18 +744,18 @@ func TestConverter_EndpointPipeline(t *testing.T) {
 	assert.Equal(t, storeEp.Namespace, input.Namespace)
 	assert.Equal(t, storeEp.ServiceName, "cassandra-temporal-dev")
 	assert.Equal(t, storeEp.ServiceDns, "cassandra-temporal-dev.cassandra-temporal-dev")
-	assert.Equal(t, storeEp.AddressType, discoveryv1.AddressType("IPv4"))
-	assert.Equal(t, storeEp.Backend.Addresses, []string{"10.1.1.1"})
-	assert.Equal(t, *storeEp.Backend.NodeName, "node.ec2.internal")
-	assert.Equal(t, *storeEp.Port.Port, int32(9042))
-	assert.Equal(t, *storeEp.Port.Protocol, v1.Protocol("TCP"))
-	assert.Equal(t, *storeEp.Port.Name, "cql")
+	assert.Equal(t, storeEp.AddressType, "IPv4")
+	assert.Equal(t, storeEp.Addresses, []string{"10.1.1.1"})
+	assert.Equal(t, storeEp.NodeName, "node.ec2.internal")
+	assert.Equal(t, storeEp.Port, 9042)
+	assert.Equal(t, storeEp.Protocol, "TCP")
+	assert.Equal(t, storeEp.PortName, "cql")
 
 	// Store model -> graph model
 	graphEp, err := NewGraph(testConfig).Endpoint(storeEp)
 	assert.NoError(t, err, "graph endpoint convert error")
 
-	assert.Equal(t, storeEp.Id.Hex(), graphEp.StoreID)
+	assert.Equal(t, store.Hex(storeEp.Id), graphEp.StoreID)
 	assert.Equal(t, graphEp.App, "test-app")
 	assert.Equal(t, graphEp.Service, "test-service")
 	assert.Equal(t, graphEp.Team, "test-team")
@@ -743,40 +777,41 @@ func TestConverter_EndpointPrivatePipeline(t *testing.T) {
 	input, err := loadTestObject[types.PodType]("testdata/pod.json")
 	assert.NoError(t, err, "endpoint slice load error")
 
-	c := mocks.NewCacheReader(t)
-	c.EXPECT().Get(mock.Anything, mock.AnythingOfType("*cachekey.nodeCacheKey")).Return(&cache.CacheResult{
-		Value: store.ObjectID().Hex(),
-		Err:   nil,
-	})
-	converter := NewStoreWithCache(testConfig, c)
+	db := testDB(t)
+
+	// Insert a node so the pod converter can look up the node ID.
+	nodeID := store.ObjectID()
+	insertNode(t, db, nodeID, "test-node.ec2.internal", "")
+
+	converter := NewStoreWithDB(testConfig, db)
 
 	// Collector input -> store model
 	pod, err := converter.Pod(ctx, input)
 	assert.NoError(t, err)
-	container, err := converter.Container(ctx, &pod.K8.Spec.Containers[0], pod)
+	container, err := converter.Container(ctx, &input.Spec.Containers[0], pod)
 	assert.NoError(t, err)
-	containerPort := container.K8.Ports[0]
+	containerPort := input.Spec.Containers[0].Ports[0]
 
 	storeEp, err := converter.EndpointPrivate(ctx, &containerPort, pod, container)
 	assert.NoError(t, err, "endpoint convert error")
 
 	assert.Equal(t, storeEp.Name, "test-app::app-monitors-client-78cb6d7899-j2rjp::TCP::9200")
 	assert.True(t, storeEp.IsNamespaced)
-	assert.Equal(t, storeEp.Namespace, pod.K8.Namespace)
+	assert.Equal(t, storeEp.Namespace, pod.Namespace)
 	assert.Equal(t, storeEp.ServiceName, "http")
 	assert.Equal(t, storeEp.ServiceDns, "")
-	assert.Equal(t, storeEp.AddressType, discoveryv1.AddressType("IPv4"))
-	assert.Equal(t, storeEp.Backend.Addresses, []string{"10.1.1.2"})
-	assert.Equal(t, *storeEp.Backend.NodeName, "test-node.ec2.internal")
-	assert.Equal(t, *storeEp.Port.Port, int32(9200))
-	assert.Equal(t, *storeEp.Port.Protocol, v1.Protocol("TCP"))
-	assert.Equal(t, *storeEp.Port.Name, "http")
+	assert.Equal(t, storeEp.AddressType, "IPv4")
+	assert.Equal(t, storeEp.Addresses, []string{"10.1.1.2"})
+	assert.Equal(t, storeEp.NodeName, "test-node.ec2.internal")
+	assert.Equal(t, storeEp.Port, 9200)
+	assert.Equal(t, storeEp.Protocol, "TCP")
+	assert.Equal(t, storeEp.PortName, "http")
 
 	// Store model -> graph model
 	graphEp, err := NewGraph(testConfig).Endpoint(storeEp)
 	assert.NoError(t, err, "graph endpoint convert error")
 
-	assert.Equal(t, storeEp.Id.Hex(), graphEp.StoreID)
+	assert.Equal(t, store.Hex(storeEp.Id), graphEp.StoreID)
 	assert.Equal(t, graphEp.App, "test-app")
 	assert.Equal(t, graphEp.Service, "test-service")
 	assert.Equal(t, graphEp.Team, "test-team")

@@ -3,6 +3,8 @@ package pipeline
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
@@ -11,14 +13,14 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
-	mockcache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
+	khstoredb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	_ "modernc.org/sqlite"
 )
 
 func TestRoleBindingIngest_Pipeline(t *testing.T) {
@@ -46,18 +48,18 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 			return i.Complete(ctx)
 		})
 
-	// Cache setup
-	c := mockcache.NewCacheProvider(t)
+	// SQLite in-memory DB setup for converter lookups
+	db, err := sql.Open("sqlite", ":memory:")
+	require.NoError(t, err)
+	defer db.Close()
+	err = khstoredb.InitSchema(db)
+	require.NoError(t, err)
 
-	c.EXPECT().Get(ctx, cachekey.Identity("app-monitors", "test-app")).Return(&cache.CacheResult{
-		Value: nil,
-		Err:   cache.ErrNoEntry,
-	}).Once()
-
-	c.EXPECT().Get(ctx, cachekey.Role("test-reader", "test-app")).Return(&cache.CacheResult{
-		Value: *oFakeRole,
-		Err:   nil,
-	}).Twice()
+	// Insert the role that the converter will look up
+	rulesJSON, _ := json.Marshal(oFakeRole.Rules)
+	_, err = db.ExecContext(ctx, "INSERT INTO roles (id, name, is_namespaced, namespace, rules, run_id, cluster_name) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		oFakeRole.Id, oFakeRole.Name, 1, oFakeRole.Namespace, string(rulesJSON), testID.String(), "test-cluster")
+	require.NoError(t, err)
 
 	// Store setup -  rolebindings
 	sdb := storedb.NewProvider(t)
@@ -70,10 +72,6 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 
 	// Store setup -  identities
 	isw := storedb.NewAsyncWriter(t)
-	csw := mockcache.NewAsyncWriter(t)
-	csw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.identityCacheKey"), mock.AnythingOfType("string")).Return(nil)
-	csw.EXPECT().Flush(ctx).Return(nil)
-	csw.EXPECT().Close(ctx).Return(nil)
 
 	// Store setup -  permissionsets
 	pssw := storedb.NewAsyncWriter(t)
@@ -100,7 +98,6 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	isw.EXPECT().Flush(ctx).Return(nil)
 	isw.EXPECT().Close(ctx).Return(nil)
 	sdb.EXPECT().BulkWriter(ctx, identities, mock.Anything).Return(isw, nil)
-	c.EXPECT().BulkWriter(ctx, mock.AnythingOfType("cache.WriterOption")).Return(csw, nil)
 
 	// Graph setup
 	vtxInsert := map[string]any{
@@ -108,7 +105,7 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 		"critical":     false,
 		"name":         "app-monitors",
 		"namespace":    "test-app",
-		"storeID":      storeID.Hex(),
+		"storeID":      store.Hex(storeID),
 		"type":         "ServiceAccount",
 		"team":         "test-team",
 		"app":          "test-app",
@@ -121,7 +118,8 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Identity"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
+	sdb.EXPECT().Reader().Return(db)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Identity"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	psVtxInsert := map[string]any{
 		"isNamespaced": true,
@@ -130,10 +128,10 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 		"role":         "test-reader",
 		"roleBinding":  "app-monitors-read",
 		"namespace":    "test-app",
-		"storeID":      psStoreID.Hex(),
-		"team":         "test-team",
-		"app":          "test-app",
-		"service":      "test-service",
+		"storeID":      store.Hex(psStoreID),
+		"team":         "",
+		"app":          "",
+		"service":      "",
 		"cluster":      "test-cluster",
 		"runID":        testID.String(),
 		"rules":        []interface{}{"API()::R(pods)::N()::V(get,list)", "API()::R(configmaps)::N()::V(get)", "API(apps)::R(statefulsets)::N()::V(get,list)"},
@@ -143,11 +141,10 @@ func TestRoleBindingIngest_Pipeline(t *testing.T) {
 	psgw.EXPECT().Queue(ctx, psVtxInsert).Return(nil).Once()
 	psgw.EXPECT().Flush(ctx).Return(nil)
 	psgw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.PermissionSet"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(psgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.PermissionSet"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(psgw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
-		Cache:     c,
 		GraphDB:   gdb,
 		StoreDB:   sdb,
 		Config: &config.KubehoundConfig{

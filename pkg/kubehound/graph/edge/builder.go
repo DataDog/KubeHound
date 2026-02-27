@@ -2,11 +2,11 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
@@ -46,7 +46,7 @@ type Builder interface {
 	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
 	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput via a call to
 	// the edge's Processor function. Invoking the complete callback signals the end of the stream.
-	Stream(ctx context.Context, store storedb.Provider, cache cache.CacheReader,
+	Stream(ctx context.Context, store storedb.Provider, db *sql.DB,
 		process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error
 }
 

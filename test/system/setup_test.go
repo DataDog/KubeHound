@@ -159,12 +159,6 @@ func RunLocal(ctx context.Context, runArgs *runArgs, compress bool, p *providers
 		l.Fatal("get config", log.ErrorField(err))
 	}
 
-	// We need to flush the cache to prevent warning/error on the overwriting element in cache the  any conflict with the previous ingestion
-	err = p.CacheProvider.Prepare(ctx)
-	if err != nil {
-		l.Fatal("preparing cache provider", log.ErrorField(err))
-	}
-
 	clusterInfo := config.DynamicClusterInfo{
 		Name:         clusterName,
 		VersionMajor: clusterVersionMajor,

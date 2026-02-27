@@ -2,13 +2,10 @@ package libkube
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"sync"
-
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -22,7 +19,7 @@ var (
 
 var (
 	lookupOnce sync.Once
-	lookupNid  primitive.ObjectID
+	lookupNid  int64
 	errLookup  error
 )
 
@@ -33,17 +30,15 @@ func NodeUser(nodeName string) string {
 }
 
 // DefaultNodeIdentity will return the store id of the default system:nodes group.
-// See reference for details: https://kubernetes.io/docs/reference/access-authn-authz/node/.
-func DefaultNodeIdentity(ctx context.Context, c cache.CacheReader) (primitive.ObjectID, error) {
+func DefaultNodeIdentity(ctx context.Context, db *sql.DB, runID, clusterName string) (int64, error) {
 	lookupOnce.Do(func() {
-		var err error
-		ck := cachekey.Identity(DefaultNodeGroup, DefaultNodeNamespace)
-
-		lookupNid, err = c.Get(ctx, ck).ObjectID()
+		err := db.QueryRowContext(ctx,
+			"SELECT id FROM identities WHERE name = ? AND namespace = ? AND run_id = ? AND cluster_name = ? LIMIT 1",
+			DefaultNodeGroup, DefaultNodeNamespace, runID, clusterName).Scan(&lookupNid)
 		switch {
 		case err == nil:
 			// NOP
-		case errors.Is(err, cache.ErrNoEntry):
+		case errors.Is(err, sql.ErrNoRows):
 			errLookup = ErrMissingNodeUser
 		default:
 			errLookup = err
@@ -53,26 +48,24 @@ func DefaultNodeIdentity(ctx context.Context, c cache.CacheReader) (primitive.Ob
 	return lookupNid, errLookup
 }
 
-// NodeIdentity will either return the store id of the dedicated node user or store id of the default system:nodes group if a dedicated user is not present.
-// See reference for details: https://kubernetes.io/docs/reference/access-authn-authz/node/.
-func NodeIdentity(ctx context.Context, c cache.CacheReader, nodeName string) (primitive.ObjectID, error) {
-	// Lookup whether the node has a dedicated user
-	ck := cachekey.Identity(NodeUser(nodeName), DefaultNodeNamespace)
-	nid, err := c.Get(ctx, ck).ObjectID()
+// NodeIdentity will either return the store id of the dedicated node user or the default system:nodes group.
+func NodeIdentity(ctx context.Context, db *sql.DB, nodeName, runID, clusterName string) (int64, error) {
+	var nid int64
+	err := db.QueryRowContext(ctx,
+		"SELECT id FROM identities WHERE name = ? AND namespace = ? AND run_id = ? AND cluster_name = ? LIMIT 1",
+		NodeUser(nodeName), DefaultNodeNamespace, runID, clusterName).Scan(&nid)
 	switch {
 	case err == nil:
-		// We have a dedicated user, return its id
 		return nid, nil
-	case errors.Is(err, cache.ErrNoEntry):
-		// Return the default user id
-		return DefaultNodeIdentity(ctx, c)
+	case errors.Is(err, sql.ErrNoRows):
+		return DefaultNodeIdentity(ctx, db, runID, clusterName)
 	}
 
-	return primitive.NilObjectID, fmt.Errorf("resolving node identity (%s): %w", nodeName, err)
+	return 0, fmt.Errorf("resolving node identity (%s): %w", nodeName, err)
 }
 
 func ResetOnce() {
 	lookupOnce = sync.Once{}
-	lookupNid = primitive.NilObjectID
+	lookupNid = 0
 	errLookup = nil
 }

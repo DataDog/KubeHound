@@ -2,17 +2,13 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
@@ -24,8 +20,8 @@ type VolumeDiscover struct {
 }
 
 type volumeMountGroup struct {
-	Volume    primitive.ObjectID `bson:"_id" json:"volume"`
-	Container primitive.ObjectID `bson:"container_id" json:"container"`
+	Volume    int64 `json:"volume"`
+	Container int64 `json:"container"`
 }
 
 func (e *VolumeDiscover) Label() string {
@@ -56,23 +52,18 @@ func (e *VolumeDiscover) Processor(ctx context.Context, oic *converter.ObjectIDC
 	})
 }
 
-func (e *VolumeDiscover) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *VolumeDiscover) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	volumes := adapter.MongoDB(ctx, store).Collection(collections.VolumeName)
-
-	// We just need a 1:1 mapping of the container and volume to create this edge
-	projection := bson.M{"_id": 1, "container_id": 1}
-
-	filter := bson.M{
-		"runtime.runID":        e.runtime.RunID.String(),
-		"runtime.cluster.name": e.runtime.Cluster.Name,
-	}
-
-	cur, err := volumes.Find(ctx, filter, options.Find().SetProjection(projection))
+	rows, err := db.QueryContext(ctx, `SELECT id, container_id FROM volumes WHERE run_id = ? AND cluster_name = ?`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
 
-	return adapter.MongoCursorHandler[volumeMountGroup](ctx, cur, callback, complete)
+	return adapter.SQLiteRowHandler[volumeMountGroup](ctx, rows, func(row *sql.Rows) (volumeMountGroup, error) {
+		var g volumeMountGroup
+		err := row.Scan(&g.Volume, &g.Container)
+		return g, err
+	}, callback, complete)
 }

@@ -7,8 +7,8 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // Optional syntactic sugar.
@@ -48,14 +48,14 @@ func structToMap(in any) (map[string]any, error) {
 
 // GremlinEdgeProcessor transforms the inputs into a map suitable for bulk edge insert using the MergeE API.
 func GremlinEdgeProcessor(ctx context.Context, oic *converter.ObjectIDConverter, label string,
-	out primitive.ObjectID, in primitive.ObjectID, attributes map[string]any) (map[any]any, error) {
+	out int64, in int64, attributes map[string]any) (map[any]any, error) {
 
-	vidIn, err := oic.GraphID(ctx, in.Hex())
+	vidIn, err := oic.GraphID(ctx, store.Hex(in))
 	if err != nil {
 		return nil, fmt.Errorf("%s edge IN id convert: %w", label, err)
 	}
 
-	vidOut, err := oic.GraphID(ctx, out.Hex())
+	vidOut, err := oic.GraphID(ctx, store.Hex(out))
 	if err != nil {
 		return nil, fmt.Errorf("%s edge OUT id convert: %w", label, err)
 	}

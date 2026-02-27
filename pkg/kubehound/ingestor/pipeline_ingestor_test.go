@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/pipeline"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/pipeline/mocks"
-	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/stretchr/testify/assert"
@@ -20,30 +19,25 @@ func TestPipelineIngestor_HealthCheck(t *testing.T) {
 
 	ctx := t.Context()
 	client := collector.NewCollectorClient(t)
-	c := cache.NewCacheProvider(t)
 	gdb := graphdb.NewProvider(t)
 	sdb := storedb.NewProvider(t)
 
-	i, err := newPipelineIngestor(&config.KubehoundConfig{}, client, c, sdb, gdb)
+	i, err := newPipelineIngestor(&config.KubehoundConfig{}, client, sdb, gdb)
 	assert.NoError(t, err)
 
 	// All succeeded
 	client.EXPECT().HealthCheck(mock.Anything).Return(true, nil).Once()
-	c.EXPECT().HealthCheck(mock.Anything).Return(true, nil).Once()
 	gdb.EXPECT().HealthCheck(mock.Anything).Return(true, nil).Once()
 	sdb.EXPECT().HealthCheck(mock.Anything).Return(true, nil).Once()
 
 	assert.NoError(t, i.HealthCheck(ctx))
 
-	// Multiple failures
+	// Store failure
 	client.EXPECT().HealthCheck(mock.Anything).Return(true, nil).Once()
-	c.EXPECT().HealthCheck(mock.Anything).Return(false, nil).Once()
-	c.EXPECT().Name().Return("cache").Once()
 	gdb.EXPECT().HealthCheck(mock.Anything).Return(true, nil).Once()
 	sdb.EXPECT().HealthCheck(mock.Anything).Return(false, errors.New("store test")).Once()
 
 	err = i.HealthCheck(ctx)
-	assert.ErrorContains(t, err, "cache healthcheck")
 	assert.ErrorContains(t, err, "store test")
 }
 

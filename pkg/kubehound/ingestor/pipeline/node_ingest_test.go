@@ -3,21 +3,23 @@ package pipeline
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	mockcollect "github.com/DataDog/KubeHound/pkg/collector/mockcollector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
+	"github.com/DataDog/KubeHound/pkg/kubehound/libkube"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
-	mockcache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
+	khstoredb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	_ "modernc.org/sqlite"
 )
 
 func TestNodeIngest_Pipeline(t *testing.T) {
@@ -40,21 +42,21 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 			return i.Complete(ctx)
 		})
 
-	// Cache setup
-	c := mockcache.NewCacheProvider(t)
-	cw := mockcache.NewAsyncWriter(t)
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.nodeCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
-	cw.EXPECT().Flush(ctx).Return(nil)
-	cw.EXPECT().Close(ctx).Return(nil)
-	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
-	c.EXPECT().Get(ctx, cachekey.Identity("system:node:node-1", "")).Return(&cache.CacheResult{
-		Value: nil,
-		Err:   cache.ErrNoEntry,
-	}).Once()
-	c.EXPECT().Get(ctx, cachekey.Identity("system:nodes", "")).Return(&cache.CacheResult{
-		Value: store.ObjectID().Hex(),
-		Err:   nil,
-	}).Once()
+	// SQLite in-memory DB setup for converter lookups
+	db, err := sql.Open("sqlite", ":memory:")
+	require.NoError(t, err)
+	defer db.Close()
+	err = khstoredb.InitSchema(db)
+	require.NoError(t, err)
+
+	// Reset the sync.Once in libkube so the DefaultNodeIdentity lookup runs fresh
+	libkube.ResetOnce()
+
+	// Insert the system:nodes identity that the node converter will look up
+	nodesIdentityID := store.ObjectID()
+	_, err = db.ExecContext(ctx, "INSERT INTO identities (id, name, is_namespaced, namespace, type, run_id, cluster_name) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		nodesIdentityID, "system:nodes", 0, "", "Group", testID.String(), "test-cluster")
+	require.NoError(t, err)
 
 	// Store setup
 	sdb := storedb.NewProvider(t)
@@ -78,7 +80,7 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 		"isNamespaced": false,
 		"name":         "node-1",
 		"namespace":    "",
-		"storeID":      storeID.Hex(),
+		"storeID":      store.Hex(storeID),
 		"app":          "",
 		"service":      "",
 		"team":         "test-team",
@@ -90,11 +92,11 @@ func TestNodeIngest_Pipeline(t *testing.T) {
 	gw.EXPECT().Queue(ctx, vtxInsert).Return(nil).Once()
 	gw.EXPECT().Flush(ctx).Return(nil)
 	gw.EXPECT().Close(ctx).Return(nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Node"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
+	sdb.EXPECT().Reader().Return(db)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Node"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(gw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
-		Cache:     c,
 		GraphDB:   gdb,
 		StoreDB:   sdb,
 		Config: &config.KubehoundConfig{

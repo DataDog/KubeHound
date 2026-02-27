@@ -55,13 +55,10 @@ INFO[01:42:19] Spawning the kubehound stack
 [+] Running 3/3
  ✔ Container kubehound-release-kubegraph-1 Healthy                                                                                                                                                                              50.3s
  ✔ Container kubehound-release-ui-jupyter-1  Healthy                                                                                                                                                                              50.3s
- ✔ Container kubehound-release-mongodb-1     Healthy                                                                                                                                                                              58.4s
 INFO[01:43:20] Starting KubeHound (run_id: 01j4fwbg88j6eptasgegdh2sgs)
-INFO[01:43:20] Initializing providers (graph, cache, store)
-INFO[01:43:20] Loading cache provider
-INFO[01:43:20] Loaded memcache cache provider
+INFO[01:43:20] Initializing providers (graph, store)
 INFO[01:43:20] Loading store database provider
-INFO[01:43:20] Loaded mongodb store provider
+INFO[01:43:20] Loaded sqlite store provider
 INFO[01:43:21] Loading graph database provider
 INFO[01:43:21] Loaded janusgraph graph provider
 INFO[01:43:21] Running the ingestion pipeline

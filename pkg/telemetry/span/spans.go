@@ -22,12 +22,6 @@ const (
 	JanusGraphBatchWrite = "kubehound.janusgraph.batchwrite"
 )
 
-// MongoDB provider spans
-const (
-	MongoDBFlush      = "kubehound.mongo.flush"
-	MongoDBBatchWrite = "kubehound.mongo.batchwrite"
-)
-
 // Collector/dumper component spans
 const (
 	CollectorStream = "kubehound.collector.stream"

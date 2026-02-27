@@ -2,23 +2,13 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/bson"
 )
-
-var ProcMountList = bson.A{
-	"/",
-	"/proc",
-	"/proc/sys",
-	"/proc/sys/kernel",
-}
 
 func init() {
 	Register(&EscapeCorePattern{}, RegisterDefault)
@@ -51,59 +41,27 @@ func (e *EscapeCorePattern) Processor(ctx context.Context, oic *converter.Object
 	})
 }
 
-func (e *EscapeCorePattern) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *EscapeCorePattern) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-	containers := adapter.MongoDB(ctx, store).Collection(collections.ContainerName)
 
-	pipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"k8.securitycontext.runasuser": 0,
-				"runtime.runID":                e.runtime.RunID.String(),
-				"runtime.cluster.name":         e.runtime.Cluster.Name,
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"as":           "procMountContainers",
-				"from":         "volumes",
-				"foreignField": "pod_id",
-				"localField":   "pod_id",
-				"pipeline": []bson.M{
-					{
-						"$match": bson.M{
-							"$and": bson.A{
-								bson.M{"type": shared.VolumeTypeHost},
-								bson.M{"source": bson.M{
-									"$in": ProcMountList,
-								}},
-								bson.M{"runtime.runID": e.runtime.RunID.String()},
-								bson.M{"runtime.cluster.name": e.runtime.Cluster.Name},
-							},
-						},
-					},
-				},
-			},
-		},
-		{
-			"$unwind": bson.M{
-				"path":                       "$procMountContainers",
-				"preserveNullAndEmptyArrays": false,
-			},
-		},
-		{
-			"$project": bson.M{
-				"_id":     1,
-				"node_id": 1,
-			},
-		},
-	}
-
-	cur, err := containers.Aggregate(ctx, pipeline)
+	rows, err := db.QueryContext(ctx, `
+		SELECT DISTINCT c.id, c.node_id
+		FROM containers c
+		JOIN volumes v ON v.pod_id = c.pod_id
+			AND v.run_id = c.run_id
+			AND v.cluster_name = c.cluster_name
+		WHERE c.run_as_user = 0
+		AND v.type = 'HostPath'
+		AND v.source IN ('/', '/proc', '/proc/sys', '/proc/sys/kernel')
+		AND c.run_id = ? AND c.cluster_name = ?`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[containerEscapeGroup](ctx, cur, callback, complete)
+	return adapter.SQLiteRowHandler[containerEscapeGroup](ctx, rows, func(row *sql.Rows) (containerEscapeGroup, error) {
+		var g containerEscapeGroup
+		err := row.Scan(&g.Container, &g.Node)
+		return g, err
+	}, callback, complete)
 }

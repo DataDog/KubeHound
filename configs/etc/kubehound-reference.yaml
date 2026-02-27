@@ -46,17 +46,6 @@ storage:
   # Delay between connection retries
   retry_delay: 10s
 
-# Store database configuration
-mongodb:
-  # Connection URL to the mongo DB instance
-  url: "mongodb://localhost:27017"
-
-  # Timeout on requests to the mongo DB instance
-  connection_timeout: 30s
-
-  # Wipe old copy of k8s/kubehound resources in mongodb
-  wipe: false
-
 # Graph database configuration
 janusgraph:
   # Connection URL to the JanusGraph DB instance

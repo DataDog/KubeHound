@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"fmt"
 	"testing"
 
@@ -9,69 +10,51 @@ import (
 	mocksNotifier "github.com/DataDog/KubeHound/pkg/ingestor/notifier/mocks"
 	mocksPuller "github.com/DataDog/KubeHound/pkg/ingestor/puller/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
-	mocksCache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	mocksGraph "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	mocksStore "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
+	_ "modernc.org/sqlite"
 )
 
-func foundPreviousScan(mt *mtest.T, g *IngestorAPI) {
-	mt.Helper()
+func testDB(t *testing.T) *sql.DB {
+	t.Helper()
+	db, err := sql.Open("sqlite", ":memory:")
+	require.NoError(t, err)
+	t.Cleanup(func() { db.Close() })
+	err = storedb.InitSchema(db)
+	require.NoError(t, err)
 
-	store, ok := g.providers.StoreProvider.(*mocksStore.Provider)
-	if !ok {
-		mt.Fatalf("failed to cast store provider to mock")
-	}
-
-	defer func() {
-		mt.Client = nil
-	}()
-	mt.AddMockResponses(mtest.CreateSuccessResponse())
-
-	// Return X documents to emulate a previous scan
-	store.On("Reader", mock.Anything).Return(mt.DB).Once()
-	mt.AddMockResponses(mtest.CreateCursorResponse(1, "test.nodes", mtest.FirstBatch, bson.D{{Key: "n", Value: 123}}))
-
-	// For count to work, mongo needs an index. So we need to create that. Index view should contains a key. Value does not matter
-	indexView := mt.Coll.Indexes()
-	_, err := indexView.CreateOne(mt.Context(), mongo.IndexModel{
-		Keys: bson.D{{Key: "n", Value: 321}},
-	})
-	require.Nil(mt, err, "CreateOne error for index: %v", err)
+	return db
 }
 
-func noPreviousScan(mt *mtest.T, g *IngestorAPI) {
-	mt.Helper()
-
+func foundPreviousScan(t *testing.T, g *IngestorAPI, db *sql.DB) {
+	t.Helper()
 	store, ok := g.providers.StoreProvider.(*mocksStore.Provider)
 	if !ok {
-		mt.Fatalf("failed to cast store provider to mock")
+		t.Fatalf("failed to cast store provider to mock")
 	}
 
-	defer func() {
-		mt.Client = nil
-	}()
-	mt.AddMockResponses(mtest.CreateSuccessResponse())
+	// Insert a row in one table to emulate a previous scan
+	_, err := db.ExecContext(t.Context(),
+		"INSERT INTO nodes (id, name, run_id, cluster_name) VALUES (?, ?, ?, ?)",
+		1, "test-node", "test-run-id", "test-cluster")
+	require.NoError(t, err)
 
-	// For count to work, mongo needs an index. So we need to create that. Index view should contains a key. Value does not matter
-	indexView := mt.Coll.Indexes()
-	_, err := indexView.CreateOne(mt.Context(), mongo.IndexModel{
-		Keys: bson.D{{Key: "n", Value: 321}},
-	})
-	require.Nil(mt, err, "CreateOne error for index: %v", err)
+	store.On("Reader").Return(db)
+}
 
-	// Iterate over all collections without findings any element
-	for _, collection := range collections.GetCollections() {
-		store.On("Reader", mock.Anything).Return(mt.DB)
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, fmt.Sprintf("test.%s", collection), mtest.FirstBatch, bson.D{{Key: "n", Value: 0}}))
-
+func noPreviousScan(t *testing.T, g *IngestorAPI, db *sql.DB) {
+	t.Helper()
+	store, ok := g.providers.StoreProvider.(*mocksStore.Provider)
+	if !ok {
+		t.Fatalf("failed to cast store provider to mock")
 	}
+
+	// No data inserted - all tables are empty
+	store.On("Reader").Return(db)
 }
 
 func TestIngestorAPI_Ingest(t *testing.T) {
@@ -84,71 +67,33 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 		runID       string
 	}
 
-	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
 		wantErr bool
-		mock    func(puller *mocksPuller.DataPuller, notifier *mocksNotifier.Notifier, cache *mocksCache.CacheProvider, store *mocksStore.Provider, graph *mocksGraph.Provider)
+		mock    func(puller *mocksPuller.DataPuller, notifier *mocksNotifier.Notifier, store *mocksStore.Provider, graph *mocksGraph.Provider)
 	}{
-		// {
-		// 	name: "Pulling invalid bucket name",
-		// 	fields: fields{
-		// 		cfg: config.MustLoadEmbedConfig(),
-		// 	},
-		// 	args: args{
-		// 		clusterName: "test-cluster",
-		// 		runID:       "test-run-id",
-		// 	},
-		// 	wantErr: true,
-		// 	mock: func(puller *mocksPuller.DataPuller, notifier *mocksNotifier.Notifier, cache *mocksCache.CacheProvider, store *mocksStore.Provider, graph *mocksGraph.Provider) {
-		// 		puller.On("Pull", mock.Anything, "test-cluster", "test-run-id").Return("", blob.ErrInvalidBucketName)
-		// 	},
-		// },
-		// // TODO: find a better way to test this
-		// // The mock here would be very fragile and annoying to use: it depends on ~all the mocks of KH.
-		// // (we need to mock all the datastore, the writers, the graph builder...)
-		// // Keeping this as an example to understand the issues and potentially as an head start for improvement later.
-		// {
-		// 	name: "Pull archive successfully",
-		// 	fields: fields{
-		// 		cfg: config.MustLoadEmbedConfig(),
-		// 	},
-		// 	args: args{
-		// 		clusterName: "test-cluster",
-		// 		runID:       "test-run-id",
-		// 	},
-		// 	wantErr: false,
-		// 	mock: func(puller *mocksPuller.DataPuller, notifier *mocksNotifier.Notifier, cache *mocksCache.CacheProvider, store *mocksStore.Provider, graph *mocksGraph.Provider, edgeWriter *mocksGraph.AsyncEdgeWriter, cacheReader *mocksCache.CacheReader) {
-		// 		puller.EXPECT().Pull(mock.Anything, "test-cluster", "test-run-id").Return("/tmp/kubehound/kh-1234/test-cluster/test-run-id", nil)
-		// 		puller.EXPECT().Close(mock.Anything, "/tmp/kubehound/kh-1234/test-cluster/test-run-id").Return(nil)
-		// 		puller.EXPECT().Extract(mock.Anything, "/tmp/kubehound/kh-1234/test-cluster/test-run-id").Return(nil)
-		// 		store.On("HealthCheck", mock.Anything).Return(true, nil)
-		// 		graph.On("HealthCheck", mock.Anything).Return(true, nil)
-		// 		cache.On("HealthCheck", mock.Anything).Return(true, nil)
-		// 	},
-		// },
+		// Test cases are commented out as they require extensive mocking of the full pipeline.
+		// See the inline comments for context on why.
 	}
 	for _, tt := range tests {
-		mt.Run(tt.name, func(mt *mtest.T) {
-			mt.Parallel()
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			mockedPuller := mocksPuller.NewDataPuller(t)
 			mockedNotifier := mocksNotifier.NewNotifier(t)
-			mockedCache := mocksCache.NewCacheProvider(t)
 			mockedStoreDB := mocksStore.NewProvider(t)
 			mockedGraphDB := mocksGraph.NewProvider(t)
 
 			mockedProvider := &providers.ProvidersFactoryConfig{
-				CacheProvider: mockedCache,
 				StoreProvider: mockedStoreDB,
 				GraphProvider: mockedGraphDB,
 			}
 
+			db := testDB(t)
 			g := NewIngestorAPI(tt.fields.cfg, mockedPuller, mockedNotifier, mockedProvider)
-			noPreviousScan(mt, g)
-			tt.mock(mockedPuller, mockedNotifier, mockedCache, mockedStoreDB, mockedGraphDB)
+			noPreviousScan(t, g, db)
+			tt.mock(mockedPuller, mockedNotifier, mockedStoreDB, mockedGraphDB)
 
 			// Construct dump result path
 			dumpResult, err := dump.NewDumpResult(tt.args.clusterName, tt.args.runID, true)
@@ -168,72 +113,66 @@ func TestIngestorAPI_Ingest(t *testing.T) {
 
 func TestIngestorAPI_isAlreadyIngestedInDB(t *testing.T) {
 	t.Parallel()
-	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
 	ctx := t.Context()
 
-	type fields struct {
-		providers *providers.ProvidersFactoryConfig
-		mock      *mtest.T
-	}
-	type args struct {
-		clusterName string
-		runID       string
-	}
 	tests := []struct {
 		name            string
-		fields          fields
-		args            args
+		clusterName     string
+		runID           string
 		wantErr         bool
 		alreadyIngested bool
-		testfct         func(mt *mtest.T, g *IngestorAPI)
+		setup           func(t *testing.T, g *IngestorAPI, db *sql.DB)
 	}{
 		{
-			name: "RunID already ingested",
-			fields: fields{
-				mock: mt,
-				providers: &providers.ProvidersFactoryConfig{
-					StoreProvider: mocksStore.NewProvider(t),
-				},
-			},
-			args: args{
-				clusterName: "test-cluster",
-				runID:       "test-run-id",
-			},
+			name:            "RunID already ingested",
+			clusterName:     "test-cluster",
+			runID:           "test-run-id",
 			wantErr:         false,
-			testfct:         foundPreviousScan,
 			alreadyIngested: true,
+			setup:           foundPreviousScan,
 		},
 		{
-			name: "RunID not ingested",
-			fields: fields{
-				mock: mt,
-				providers: &providers.ProvidersFactoryConfig{
-					StoreProvider: mocksStore.NewProvider(t),
-				},
-			},
-			args: args{
-				clusterName: "test-cluster",
-				runID:       "test-run-id",
-			},
+			name:            "RunID not ingested",
+			clusterName:     "test-cluster",
+			runID:           "test-run-id",
 			wantErr:         false,
-			testfct:         noPreviousScan,
 			alreadyIngested: false,
+			setup:           noPreviousScan,
 		},
 	}
 	for _, tt := range tests {
-		mt.Run(tt.name, func(mt *mtest.T) {
-			mt.Parallel()
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			db := testDB(t)
 			g := &IngestorAPI{
-				providers: tt.fields.providers,
+				providers: &providers.ProvidersFactoryConfig{
+					StoreProvider: mocksStore.NewProvider(t),
+				},
 			}
 
-			tt.testfct(mt, g)
-			alreadyIngested, err := g.isAlreadyIngestedInDB(ctx, tt.args.clusterName, tt.args.runID)
+			tt.setup(t, g, db)
+			alreadyIngested, err := g.isAlreadyIngestedInDB(ctx, tt.clusterName, tt.runID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("%s - IngestorAPI.checkPreviousRun() error = %d, wantErr %v", tt.name, err, tt.wantErr)
+				t.Errorf("%s - IngestorAPI.checkPreviousRun() error = %v, wantErr %v", tt.name, err, tt.wantErr)
 			}
 			assert.Equal(t, tt.alreadyIngested, alreadyIngested)
 		})
+	}
+}
+
+func TestGetCollections(t *testing.T) {
+	t.Parallel()
+	got := collections.GetCollections()
+	expected := []string{"nodes", "pods", "containers", "volumes", "roles", "rolebindings", "identities", "permissionsets", "endpoints"}
+	assert.Equal(t, expected, got)
+
+	// Verify all tables exist in SQLite schema by checking each one
+	db := testDB(t)
+	for _, table := range got {
+		var count int64
+		//nolint:gosec
+		err := db.QueryRowContext(t.Context(), fmt.Sprintf("SELECT COUNT(*) FROM %s", table)).Scan(&count)
+		assert.NoError(t, err, "table %s should exist", table)
 	}
 }

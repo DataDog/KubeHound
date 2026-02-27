@@ -2,17 +2,13 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
@@ -24,8 +20,8 @@ type ContainerAttach struct {
 }
 
 type containerAttachGroup struct {
-	Pod       primitive.ObjectID `bson:"pod_id" json:"pod"`
-	Container primitive.ObjectID `bson:"_id" json:"container"`
+	Container int64 `json:"container"`
+	Pod       int64 `json:"pod"`
 }
 
 func (e *ContainerAttach) Label() string {
@@ -60,24 +56,18 @@ func (e *ContainerAttach) Traversal() types.EdgeTraversal {
 	return adapter.DefaultEdgeTraversal()
 }
 
-func (e *ContainerAttach) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *ContainerAttach) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(ctx, store).Collection(collections.ContainerName)
-
-	// We just need a 1:1 mapping of the container and pod to create this edge
-	projection := bson.M{"_id": 1, "pod_id": 1}
-
-	filter := bson.M{
-		"runtime.runID":        e.runtime.RunID.String(),
-		"runtime.cluster.name": e.runtime.Cluster.Name,
-	}
-
-	cur, err := containers.Find(ctx, filter, options.Find().SetProjection(projection))
+	rows, err := db.QueryContext(ctx, `SELECT id, pod_id FROM containers WHERE run_id = ? AND cluster_name = ?`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[containerAttachGroup](ctx, cur, callback, complete)
+	return adapter.SQLiteRowHandler[containerAttachGroup](ctx, rows, func(row *sql.Rows) (containerAttachGroup, error) {
+		var g containerAttachGroup
+		err := row.Scan(&g.Container, &g.Pod)
+		return g, err
+	}, callback, complete)
 }

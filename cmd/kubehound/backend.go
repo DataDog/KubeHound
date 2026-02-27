@@ -20,7 +20,7 @@ var (
 	backendCmd = &cobra.Command{
 		Use:   "backend",
 		Short: "Handle the kubehound stack",
-		Long:  `Handle the kubehound stack - docker compose based stack for kubehound services (mongodb, graphdb and UI)`,
+		Long:  `Handle the kubehound stack - docker compose based stack for kubehound services (graphdb and UI)`,
 		PersistentPreRunE: func(cobraCmd *cobra.Command, args []string) error {
 			if uiInvana {
 				uiProfile = append(uiProfile, "invana")

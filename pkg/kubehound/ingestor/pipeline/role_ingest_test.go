@@ -10,7 +10,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	cache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
@@ -37,15 +36,6 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 			return i.Complete(ctx)
 		})
 
-	// Cache setup
-	c := cache.NewCacheProvider(t)
-	cw := cache.NewAsyncWriter(t)
-
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.roleCacheKey"), mock.AnythingOfType("store.Role")).Return(nil).Once()
-	cw.EXPECT().Flush(ctx).Return(nil)
-	cw.EXPECT().Close(ctx).Return(nil)
-	c.EXPECT().BulkWriter(ctx).Return(cw, nil)
-
 	// Store setup
 	sdb := storedb.NewProvider(t)
 	sw := storedb.NewAsyncWriter(t)
@@ -63,7 +53,6 @@ func TestRoleIngest_Pipeline(t *testing.T) {
 
 	deps := &Dependencies{
 		Collector: client,
-		Cache:     c,
 		StoreDB:   sdb,
 		Config: &config.KubehoundConfig{
 			Builder: config.BuilderConfig{

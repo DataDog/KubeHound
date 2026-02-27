@@ -37,11 +37,6 @@ For various reasons, you might want to use a specific version or pull the image 
 ```yaml
 name: kubehound-release
 services:
-  mongodb:
-    image: your.registry.tld/mongo/mongo:6.0.6
-    ports:
-      - "127.0.0.1:27017:27017"
-
   kubegraph:
     image: your.registry.tld/datadog/kubehound-graph:my-specific-tag
     ports:

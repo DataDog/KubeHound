@@ -1,23 +1,22 @@
 package store
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	rbacv1 "k8s.io/api/rbac/v1"
 )
 
 type BindSubject struct {
-	IdentityId primitive.ObjectID `bson:"identity_id"`
-	Subject    rbacv1.Subject     `bson:"subject"`
+	IdentityId int64          `json:"identity_id"`
+	Subject    rbacv1.Subject `json:"subject"`
 }
 
 type RoleBinding struct {
-	Id           primitive.ObjectID `bson:"_id"`
-	Name         string             `bson:"name"`
-	RoleId       primitive.ObjectID `bson:"role_id"`
-	IsNamespaced bool               `bson:"is_namespaced"`
-	Namespace    string             `bson:"namespace"`
-	Subjects     []BindSubject      `bson:"subjects"`
-	Ownership    OwnershipInfo      `bson:"ownership"`
-	Runtime      RuntimeInfo        `bson:"runtime"`
-	K8           rbacv1.RoleRef     `bson:"k8"`
+	Id           int64
+	Name         string
+	RoleId       int64
+	IsNamespaced bool
+	Namespace    string
+	Subjects     []BindSubject
+	RoleRef      rbacv1.RoleRef
+	Ownership    OwnershipInfo
+	Runtime      RuntimeInfo
 }

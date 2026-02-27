@@ -2,14 +2,11 @@ package pipeline
 
 import (
 	"context"
-	"errors"
 
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	corev1 "k8s.io/api/core/v1"
@@ -44,11 +41,6 @@ func (i *PodIngest) Name() string {
 func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	var err error
 
-	//
-	// Pods will create other objects such as volumes (from the pod volume mount list) and containers
-	// from the (container/init container lists). As such we need to initialize a list of the writers we need.
-	//
-
 	i.v = []vertex.Builder{
 		&vertex.Pod{},
 		&vertex.Container{},
@@ -64,9 +56,7 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	}
 
 	opts := make([]IngestResourceOption, 0)
-	opts = append(opts, WithCacheReader())
-	opts = append(opts, WithCacheWriter(cache.WithTest()))
-	opts = append(opts, WithConverterCache())
+	opts = append(opts, WithConverterDB())
 	for objIndex := podIndex; objIndex < maxObjectIndex; objIndex++ {
 		opts = append(opts, WithStoreWriter(i.c[objIndex]))
 		opts = append(opts, WithGraphWriter(i.v[objIndex]))
@@ -80,7 +70,7 @@ func (i *PodIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	return nil
 }
 
-// processEndpoints will handle the ingestion pipeline for a endpoints belonging to a processed K8s pod input.
+// processEndpoints will handle the ingestion pipeline for endpoints belonging to a processed K8s pod input.
 func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.ContainerPort, pod *store.Pod, container *store.Container) error {
 	// Normalize endpoint to temporary store object format
 	tmp, err := i.r.storeConvert.EndpointPrivate(ctx, port, pod, container)
@@ -88,30 +78,21 @@ func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.Container
 		return err
 	}
 
-	// Check whether this exposed container endpoint has an associated endpoint slice. If so, we need do nothing
-	// further. However if it does NOT we write the details of the container port as a private endpoint entry.
-	ck := cachekey.Endpoint(tmp.Namespace, tmp.PodName, tmp.SafeProtocol(), tmp.SafePort())
-	_, err = i.r.readCache(ctx, ck).Bool()
-	switch {
-	case errors.Is(err, cache.ErrNoEntry):
-		// No associated endpoint slice, create the endpoint from container parameters
-	case err == nil:
-		// Validate our assumptions - the below not be possible in our data model and will result in missing edges
+	// Check whether this exposed container endpoint has an associated endpoint slice.
+	// If it does, nothing further to do. If it does NOT, write the container port as a private endpoint.
+	if i.r.endpointSliceExists(ctx, tmp.Namespace, tmp.PodName, tmp.SafeProtocol(), tmp.SafePort()) {
+		// Validate our assumptions
 		if port.HostPort != 0 && port.ContainerPort != port.HostPort {
-			log.Trace(ctx).Warnf("assumption failure: host port set on container with associated endpoint slice (%s)", ck.Key())
+			log.Trace(ctx).Warnf("assumption failure: host port set on container with associated endpoint slice (%s::%s::%s::%d)",
+				tmp.Namespace, tmp.PodName, tmp.SafeProtocol(), tmp.SafePort())
 		}
-
-		// Entry already has an associated store entry with the endpoint slice ingest pipeline
-		// Nothing further to do...
 		return nil
-	default:
-		return err
 	}
 
 	// Promote the temporary object to an object that will be written to our databases.
 	se := tmp
 
-	// Async write to store
+	// Write to store
 	if err := i.r.writeStore(ctx, i.c[endpointIndex], se); err != nil {
 		return err
 	}
@@ -122,7 +103,7 @@ func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.Container
 		return err
 	}
 
-	// Aysnc write to graph
+	// Write to graph
 	if err := i.r.writeVertex(ctx, i.v[endpointIndex], insert); err != nil {
 		return err
 	}
@@ -131,7 +112,7 @@ func (i *PodIngest) processEndpoints(ctx context.Context, port *corev1.Container
 }
 
 // processContainer will handle the ingestion pipeline for a container belonging to a processed K8s pod input.
-func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, container types.ContainerType) error {
+func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, k8sPod types.PodType, container types.ContainerType) error {
 	if ok, err := preflight.CheckContainer(container); !ok {
 		return err
 	}
@@ -142,14 +123,8 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 		return err
 	}
 
-	// Async write to store
+	// Write to store
 	if err := i.r.writeStore(ctx, i.c[containerIndex], sc); err != nil {
-		return err
-	}
-
-	// Async write to cache
-	if err := i.r.writeCache(ctx, cachekey.Container(parent.K8.Name, sc.K8.Name, parent.K8.Namespace),
-		sc.Id.Hex()); err != nil {
 		return err
 	}
 
@@ -159,7 +134,7 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 		return err
 	}
 
-	// Aysnc write to graph
+	// Write to graph
 	if err := i.r.writeVertex(ctx, i.v[containerIndex], insert); err != nil {
 		return err
 	}
@@ -167,7 +142,7 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 	// Handle volume mounts
 	for _, volumeMount := range container.VolumeMounts {
 		vm := volumeMount
-		err := i.processVolumeMount(ctx, &vm, parent, sc)
+		err := i.processVolumeMount(ctx, &vm, k8sPod.Spec.Volumes, parent, sc)
 		if err != nil {
 			return err
 		}
@@ -186,21 +161,20 @@ func (i *PodIngest) processContainer(ctx context.Context, parent *store.Pod, con
 }
 
 // processVolumeMount will handle the ingestion pipeline for a volume belonging to a processed K8s pod input.
-func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.VolumeMountType, pod *store.Pod, container *store.Container) error {
-	// TODO can we skip known good e.g agent here to cuyt down the volume??
+func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.VolumeMountType, k8sVolumes []corev1.Volume, pod *store.Pod, container *store.Container) error {
 	if ok, err := preflight.CheckVolume(volumeMount); !ok {
 		return err
 	}
 
 	// Normalize volume to store object format
-	sv, err := i.r.storeConvert.Volume(ctx, volumeMount, pod, container)
+	sv, err := i.r.storeConvert.VolumeFromK8s(ctx, volumeMount, k8sVolumes, pod, container)
 	if err != nil {
 		log.Trace(ctx).Debugf("process volume type: %v (continuing)", err)
 
 		return nil
 	}
 
-	// Async write to store
+	// Write to store
 	if err := i.r.writeStore(ctx, i.c[volumeIndex], sv); err != nil {
 		return err
 	}
@@ -211,13 +185,11 @@ func (i *PodIngest) processVolumeMount(ctx context.Context, volumeMount types.Vo
 		return err
 	}
 
-	// Aysnc write to graph
+	// Write to graph
 	return i.r.writeVertex(ctx, i.v[volumeIndex], insert)
 }
 
 // streamCallback is invoked by the collector for each pod collected.
-// The function ingests an input pod object into the cache/store/graph and then ingests
-// all child objects (containers, volumes, etc) through their own ingestion pipeline.
 func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	if ok, err := preflight.CheckPod(ctx, pod); !ok {
 		return err
@@ -231,7 +203,7 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 		return nil
 	}
 
-	// Async write to store
+	// Write to store
 	if err := i.r.writeStore(ctx, i.c[podIndex], sp); err != nil {
 		return err
 	}
@@ -242,7 +214,7 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 		return err
 	}
 
-	// Aysnc write to graph
+	// Write to graph
 	if err := i.r.writeVertex(ctx, i.v[podIndex], insert); err != nil {
 		return err
 	}
@@ -250,21 +222,16 @@ func (i *PodIngest) IngestPod(ctx context.Context, pod types.PodType) error {
 	// Handle containers
 	for _, container := range pod.Spec.Containers {
 		c := container
-		err := i.processContainer(ctx, sp, &c)
+		err := i.processContainer(ctx, sp, pod, &c)
 		if err != nil {
 			return err
 		}
 	}
 
-	// Currently do not process init containers. Any interesting identity they are running under will be the same as the container since
-	// service accounts are defined at a pod level (although this may change in future K8s releases). Any interesting properties of the
-	// container will be ephemeral, making any exploitation very complex. Thus we do not include init containers within our graph.
-
 	return nil
 }
 
 // completeCallback is invoked by the collector when all pods have been streamed.
-// The function flushes all writers and waits for completion.
 func (i *PodIngest) Complete(ctx context.Context) error {
 	return i.r.flushWriters(ctx)
 }

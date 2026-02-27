@@ -29,6 +29,9 @@ func TestMustLoadConfig(t *testing.T) {
 					Retry:      DefaultRetry,
 					Wipe:       true,
 				},
+				SQLite: SQLiteConfig{
+					Path: DefaultSQLitePath,
+				},
 				Collector: CollectorConfig{
 					Type: CollectorTypeFile,
 					File: &FileCollectorConfig{
@@ -43,10 +46,6 @@ func TestMustLoadConfig(t *testing.T) {
 						PageBufferSize:     10,
 						RateLimitPerSecond: 100,
 					},
-				},
-				MongoDB: MongoDBConfig{
-					URL:               "mongodb://localhost:27017",
-					ConnectionTimeout: DefaultConnectionTimeout,
 				},
 				JanusGraph: JanusGraphConfig{
 					URL:               "ws://localhost:8182/gremlin",
@@ -110,6 +109,9 @@ func TestMustLoadConfig(t *testing.T) {
 					Retry:      DefaultRetry,
 					Wipe:       true,
 				},
+				SQLite: SQLiteConfig{
+					Path: DefaultSQLitePath,
+				},
 				Collector: CollectorConfig{
 					Type: CollectorTypeK8sAPI,
 					File: &FileCollectorConfig{
@@ -122,10 +124,6 @@ func TestMustLoadConfig(t *testing.T) {
 						PageBufferSize:     10,
 						RateLimitPerSecond: 100,
 					},
-				},
-				MongoDB: MongoDBConfig{
-					URL:               "mongodb://localhost:27017",
-					ConnectionTimeout: DefaultConnectionTimeout,
 				},
 				JanusGraph: JanusGraphConfig{
 					URL:               "ws://localhost:8182/gremlin",

@@ -3,6 +3,7 @@ package pipeline
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
@@ -11,13 +12,14 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	mockcache "github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/mocks"
 	graphdb "github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb/mocks"
 	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb/mocks"
+	khstoredb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	_ "modernc.org/sqlite"
 )
 
 func TestPodIngest_Pipeline(t *testing.T) {
@@ -40,26 +42,24 @@ func TestPodIngest_Pipeline(t *testing.T) {
 			return i.Complete(ctx)
 		})
 
-	// Cache setup
-	c := mockcache.NewCacheProvider(t)
-	cw := mockcache.NewAsyncWriter(t)
-	cw.EXPECT().Queue(ctx, mock.AnythingOfType("*cachekey.containerCacheKey"), mock.AnythingOfType("string")).Return(nil).Once()
+	// SQLite in-memory DB setup for converter lookups
+	db, err := sql.Open("sqlite", ":memory:")
+	require.NoError(t, err)
+	defer db.Close()
+	err = khstoredb.InitSchema(db)
+	require.NoError(t, err)
 
-	cw.EXPECT().Flush(ctx).Return(nil)
-	cw.EXPECT().Close(ctx).Return(nil)
-	c.EXPECT().BulkWriter(ctx, mock.AnythingOfType("cache.WriterOption")).Return(cw, nil)
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.nodeCacheKey")).Return(&cache.CacheResult{
-		Value: store.ObjectID().Hex(),
-		Err:   nil,
-	})
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.identityCacheKey")).Return(&cache.CacheResult{
-		Value: store.ObjectID().Hex(),
-		Err:   nil,
-	})
-	c.EXPECT().Get(ctx, mock.AnythingOfType("*cachekey.endpointCacheKey")).Return(&cache.CacheResult{
-		Value: nil,
-		Err:   cache.ErrNoEntry,
-	})
+	// Insert the node that the pod converter will look up via queryNodeID
+	nodeID := store.ObjectID()
+	_, err = db.ExecContext(ctx, "INSERT INTO nodes (id, name, run_id, cluster_name) VALUES (?, ?, ?, ?)",
+		nodeID, "test-node.ec2.internal", testID.String(), "test-cluster")
+	require.NoError(t, err)
+
+	// Insert the identity that the volume converter will look up via queryIdentityID (for projected token)
+	identityID := store.ObjectID()
+	_, err = db.ExecContext(ctx, "INSERT INTO identities (id, name, is_namespaced, namespace, type, run_id, cluster_name) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		identityID, "app-monitors", 1, "test-app", "ServiceAccount", testID.String(), "test-cluster")
+	require.NoError(t, err)
 
 	// Store setup - pods
 	sdb := storedb.NewProvider(t)
@@ -131,7 +131,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"node":                  "test-node.ec2.internal",
 		"serviceAccount":        "app-monitors",
 		"shareProcessNamespace": false,
-		"storeID":               pid.Hex(),
+		"storeID":               store.Hex(pid),
 		"team":                  "test-team",
 		"app":                   "test-app",
 		"service":               "test-service",
@@ -163,8 +163,8 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"ports":        []any{"9200"},
 		"privesc":      false,
 		"privileged":   false,
-		"runAsUser":    float64(1000),
-		"storeID":      cid.Hex(),
+		"runAsUser":    float64(0),
+		"storeID":      store.Hex(cid),
 		"team":         "test-team",
 		"app":          "test-app",
 		"service":      "test-service",
@@ -185,7 +185,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"namespace":    "test-app",
 		"sourcePath":   "/var/lib/kubelet/pods//volumes/kubernetes.io~projected/kube-api-access-4x9fz/token",
 		"mountPath":    "/var/run/secrets/kubernetes.io/serviceaccount",
-		"storeID":      vid.Hex(),
+		"storeID":      store.Hex(vid),
 		"team":         "test-team",
 		"app":          "test-app",
 		"service":      "test-service",
@@ -216,7 +216,7 @@ func TestPodIngest_Pipeline(t *testing.T) {
 		"service":         "test-service",
 		"serviceDns":      "",
 		"serviceEndpoint": "http",
-		"storeID":         eid.Hex(),
+		"storeID":         store.Hex(eid),
 		"team":            "test-team",
 		"cluster":         "test-cluster",
 		"runID":           testID.String(),
@@ -226,14 +226,14 @@ func TestPodIngest_Pipeline(t *testing.T) {
 	egw.EXPECT().Flush(ctx).Return(nil)
 	egw.EXPECT().Close(ctx).Return(nil)
 
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Pod"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(pgw, nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Container"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(cgw, nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Volume"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(vgw, nil)
-	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Endpoint"), c, mock.AnythingOfType("graphdb.WriterOption")).Return(egw, nil)
+	sdb.EXPECT().Reader().Return(db)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Pod"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(pgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Container"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(cgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Volume"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(vgw, nil)
+	gdb.EXPECT().VertexWriter(ctx, mock.AnythingOfType("*vertex.Endpoint"), mock.AnythingOfType("*sql.DB"), mock.AnythingOfType("graphdb.WriterOption")).Return(egw, nil)
 
 	deps := &Dependencies{
 		Collector: client,
-		Cache:     c,
 		GraphDB:   gdb,
 		StoreDB:   sdb,
 		Config: &config.KubehoundConfig{

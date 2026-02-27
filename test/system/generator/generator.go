@@ -14,13 +14,16 @@ import (
 	"text/template"
 	"time"
 
+	"database/sql"
+
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
+	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"gopkg.in/yaml.v3"
+
+	_ "modernc.org/sqlite"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
@@ -99,18 +102,19 @@ func main() {
 	codegenPath := os.Args[2]
 
 	ctx := context.Background()
-	cp, err := cache.Factory(ctx, nil)
+	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
-		fmt.Printf("cache client creation: %v", err)
+		fmt.Printf("sqlite open: %v", err)
 		return
 	}
-	defer cp.Close(ctx)
+	defer db.Close()
 
-	cacheRole, err := cp.BulkWriter(ctx, cache.WithExpectedOverwrite())
-	if err != nil {
-		fmt.Printf("cache bulk writer: %v", err)
+	if err := storedb.InitSchema(db); err != nil {
+		fmt.Printf("sqlite schema: %v", err)
 		return
 	}
+
+	roleWriter := storedb.NewSQLiteWriter(db, nil)
 	cacheRoleBinding := []*rbacv1.RoleBinding{}
 	cacheClusterRoleBinding := []*rbacv1.ClusterRoleBinding{}
 
@@ -129,11 +133,11 @@ func main() {
 		log.Fatal(err)
 	}
 	for _, file := range filesAttack {
-		ProcessFile(ctx, attackPath, file, cacheRole, &cacheRoleBinding, &cacheClusterRoleBinding)
+		ProcessFile(ctx, attackPath, file, roleWriter, &cacheRoleBinding, &cacheClusterRoleBinding)
 	}
 
 	// Generate permissionsets
-	ConvertRoleBindings(ctx, cacheRoleBinding, cacheClusterRoleBinding, cp)
+	ConvertRoleBindings(ctx, cacheRoleBinding, cacheClusterRoleBinding, db)
 	outPermSets, err := GeneratePermissionSetTemplate()
 	if err != nil {
 		fmt.Println("failed to permission sets: ", err)
@@ -198,7 +202,7 @@ func ProcessCluster(content []byte) error {
 	return nil
 }
 
-func ProcessFile(ctx context.Context, basePath string, file os.FileInfo, cacheRole cache.AsyncWriter, cacheRoleBinding *[]*rbacv1.RoleBinding, cacheClusterRoleBinding *[]*rbacv1.ClusterRoleBinding) {
+func ProcessFile(ctx context.Context, basePath string, file os.FileInfo, roleWriter *storedb.SQLiteWriter, cacheRoleBinding *[]*rbacv1.RoleBinding, cacheClusterRoleBinding *[]*rbacv1.ClusterRoleBinding) {
 	fmt.Println("Processing: " + file.Name())
 	data, err := os.ReadFile(filepath.Join(basePath, file.Name()))
 	if err != nil {
@@ -230,7 +234,13 @@ func ProcessFile(ctx context.Context, basePath string, file os.FileInfo, cacheRo
 				fmt.Println("Failed to add pod to list:", err)
 			}
 			p := store.Pod{
-				K8: *o,
+				Name:           o.Name,
+				Namespace:      o.Namespace,
+				NodeName:       o.Spec.NodeName,
+				ServiceAccount: o.Spec.ServiceAccountName,
+				HostPID:        o.Spec.HostPID,
+				HostIPC:        o.Spec.HostIPC,
+				HostNetwork:    o.Spec.HostNetwork,
 			}
 
 			for _, cont := range o.Spec.Containers {
@@ -253,13 +263,13 @@ func ProcessFile(ctx context.Context, basePath string, file os.FileInfo, cacheRo
 			if err != nil {
 				fmt.Println("Failed to convert role:", err)
 			}
-			cacheRole.Queue(ctx, cachekey.Role(role.Name, role.Namespace), *role)
+			roleWriter.Queue(ctx, role)
 		case *rbacv1.ClusterRole:
 			clusterRole, err := conv.ClusterRole(ctx, o)
 			if err != nil {
 				fmt.Println("Failed to convert role:", err)
 			}
-			cacheRole.Queue(ctx, cachekey.Role(clusterRole.Name, clusterRole.Namespace), *clusterRole)
+			roleWriter.Queue(ctx, clusterRole)
 		case *rbacv1.ClusterRoleBinding:
 			*cacheClusterRoleBinding = append(*cacheClusterRoleBinding, o)
 		case *rbacv1.RoleBinding:
@@ -284,9 +294,9 @@ func AddPermissionSetToList(ctx context.Context, roleBinding *store.RoleBinding,
 	return nil
 }
 
-func ConvertRoleBindings(ctx context.Context, cacheRoleBinding []*rbacv1.RoleBinding, cacheClusterRoleBinding []*rbacv1.ClusterRoleBinding, cp cache.CacheReader) error {
+func ConvertRoleBindings(ctx context.Context, cacheRoleBinding []*rbacv1.RoleBinding, cacheClusterRoleBinding []*rbacv1.ClusterRoleBinding, db *sql.DB) error {
 
-	convStore := converter.NewStoreWithCache(GeneratorConfig, cp)
+	convStore := converter.NewStoreWithDB(GeneratorConfig, db)
 	convGraph := converter.NewGraph(GeneratorConfig)
 	var errConvert error
 	for _, rb := range cacheRoleBinding {
@@ -346,7 +356,14 @@ func AddPodToList(pod *corev1.Pod) error {
 		pod.Namespace = defaultNamespace
 	}
 	storePod := store.Pod{
-		K8: *pod,
+		Name:                  pod.Name,
+		Namespace:             pod.Namespace,
+		NodeName:              pod.Spec.NodeName,
+		ServiceAccount:        pod.Spec.ServiceAccountName,
+		HostPID:               pod.Spec.HostPID,
+		HostIPC:               pod.Spec.HostIPC,
+		HostNetwork:           pod.Spec.HostNetwork,
+		ShareProcessNamespace: pod.Spec.ShareProcessNamespace != nil && *pod.Spec.ShareProcessNamespace,
 	}
 	conv := converter.NewGraph(GeneratorConfig)
 	convertedPod, err := conv.Pod(&storePod)
@@ -365,7 +382,8 @@ func AddPodToList(pod *corev1.Pod) error {
 func AddNodeToList(node *corev1.Node) error {
 	fmt.Printf("Node name: %s\n", node.Name)
 	storeNode := store.Node{
-		K8: *node,
+		Name:      node.Name,
+		Namespace: node.Namespace,
 	}
 	conv := converter.NewGraph(GeneratorConfig)
 	convertedNode, err := conv.Node(&storeNode)
@@ -390,7 +408,7 @@ func AddContainerToList(Container *corev1.Container, storePod *store.Pod) error 
 	if err != nil {
 		return err
 	}
-	convertedContainer.Pod = storePod.K8.Name
+	convertedContainer.Pod = storePod.Name
 	Containers[Container.Name] = *convertedContainer
 
 	return nil

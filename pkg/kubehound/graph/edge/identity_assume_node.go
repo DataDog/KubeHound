@@ -2,17 +2,13 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func init() {
@@ -24,8 +20,8 @@ type IdentityAssumeNode struct {
 }
 
 type nodeIdentityGroup struct {
-	Node     primitive.ObjectID `bson:"_id" json:"node"`
-	Identity primitive.ObjectID `bson:"user_id" json:"user_id"`
+	Node     int64 `json:"node"`
+	Identity int64 `json:"user_id"`
 }
 
 func (e *IdentityAssumeNode) Label() string {
@@ -56,27 +52,18 @@ func (e *IdentityAssumeNode) Processor(ctx context.Context, oic *converter.Objec
 	})
 }
 
-func (e *IdentityAssumeNode) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *IdentityAssumeNode) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	nodes := adapter.MongoDB(ctx, store).Collection(collections.NodeName)
-
-	// Nodes will either have a dedicated user based on node name or use the default system:nodes group
-	// See reference for details: https://kubernetes.io/docs/reference/access-authn-authz/node/
-	projection := bson.M{"_id": 1, "user_id": 1}
-
-	// If the default node group has no permissions, we do not set a user id
-	filter := bson.M{
-		"user_id":              bson.M{"$ne": primitive.NilObjectID},
-		"runtime.runID":        e.runtime.RunID.String(),
-		"runtime.cluster.name": e.runtime.Cluster.Name,
-	}
-
-	cur, err := nodes.Find(ctx, filter, options.Find().SetProjection(projection))
+	rows, err := db.QueryContext(ctx, `SELECT id, user_id FROM nodes WHERE user_id != 0 AND run_id = ? AND cluster_name = ?`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[nodeIdentityGroup](ctx, cur, callback, complete)
+	return adapter.SQLiteRowHandler[nodeIdentityGroup](ctx, rows, func(row *sql.Rows) (nodeIdentityGroup, error) {
+		var g nodeIdentityGroup
+		err := row.Scan(&g.Node, &g.Identity)
+		return g, err
+	}, callback, complete)
 }

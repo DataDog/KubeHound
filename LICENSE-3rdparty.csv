@@ -156,7 +156,6 @@ github.com/xdg-go/pbkdf2,https://github.com/xdg-go/pbkdf2/blob/v1.0.0/LICENSE,Ap
 github.com/xdg-go/scram,https://github.com/xdg-go/scram/blob/v1.1.2/LICENSE,Apache-2.0,xdg Go code
 github.com/xdg-go/stringprep,https://github.com/xdg-go/stringprep/blob/v1.0.4/LICENSE,Apache-2.0,xdg Go code
 github.com/youmark/pkcs8,https://github.com/youmark/pkcs8/blob/a2c0da244d78/LICENSE,MIT,Yutong Wang
-go.mongodb.org/mongo-driver,https://github.com/mongodb/mongo-go-driver/blob/v1.17.3/LICENSE,Apache-2.0,mongodb
 go.opencensus.io,https://github.com/census-instrumentation/opencensus-go/blob/v0.24.0/LICENSE,Apache-2.0,OpenCensus
 go.opentelemetry.io/collector/component,https://github.com/open-telemetry/opentelemetry-collector/blob/component/v0.104.0/component/LICENSE,Apache-2.0,OpenTelemetry - CNCF
 go.opentelemetry.io/collector/config/configtelemetry,https://github.com/open-telemetry/opentelemetry-collector/blob/config/configtelemetry/v0.104.0/config/configtelemetry/LICENSE,Apache-2.0,OpenTelemetry - CNCF

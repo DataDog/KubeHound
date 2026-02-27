@@ -2,16 +2,15 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
+	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 const (
@@ -48,7 +47,7 @@ func (e *RoleBindCrbCrCr) Processor(ctx context.Context, oic *converter.ObjectID
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
 	}
 
-	psid, err := oic.GraphID(ctx, typed.PermissionSet.Hex())
+	psid, err := oic.GraphID(ctx, store.Hex(typed.PermissionSet))
 	if err != nil {
 		return nil, fmt.Errorf("%s edge PermissionSet id convert: %w", e.Label(), err)
 	}
@@ -99,99 +98,36 @@ func (e *RoleBindCrbCrCr) Traversal() types.EdgeTraversal {
 	}
 }
 
-func (e *RoleBindCrbCrCr) Stream(ctx context.Context, store storedb.Provider, c cache.CacheReader,
+func (e *RoleBindCrbCrCr) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	permissionSets := adapter.MongoDB(ctx, store).Collection(collections.PermissionSetName)
-	// Handle clusterrolebindings against clusterroles
-	pipeline := []bson.M{
-		// $match stage
-		{
-			"$match": bson.M{
-				// looking for CRB/CR role only
-				"is_namespaced":        false,
-				"runtime.runID":        e.runtime.RunID.String(),
-				"runtime.cluster.name": e.runtime.Cluster.Name,
-				"$and": []bson.M{
-					// Looking for RBAC objects
-					{
-						"rules": bson.M{
-							"$elemMatch": bson.M{
-								"$or": []bson.M{
-									{"apigroups": "*"},
-									{"apigroups": "rbac.authorization.k8s.io"},
-								},
-							},
-						},
-					},
-					// looking for creation of rolebindings / clusterrolebindings
-					{
-						"rules": bson.M{
-							"$elemMatch": bson.M{
-								"$and": []bson.M{
-									{
-										"$or": []bson.M{
-											{"verbs": "create"},
-											{"verbs": "*"},
-										},
-									},
-									{
-										"$or": []bson.M{
-											{"resources": "clusterrolebindings"},
-											{"resources": "rolebindings"},
-											{"resources": "*"},
-										},
-									},
-									{
-										"$or": []bson.M{
-											{"resourcenames": nil},
-										},
-									},
-								},
-							},
-						},
-					},
-					// Looking for binding clusterroles
-					{
-						"rules": bson.M{
-							"$elemMatch": bson.M{
-								"$and": []bson.M{
-									{
-										"$or": []bson.M{
-											{"verbs": "bind"},
-											{"verbs": "*"},
-										},
-									},
-									{
-										"$or": []bson.M{
-											{"resources": "clusterroles"},
-											{"resources": "*"},
-										},
-									},
-									{
-										"$or": []bson.M{
-											{"resourcenames": nil},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		// $project stage
-		{
-			"$project": bson.M{
-				"_id": 1,
-			},
-		},
-	}
-	cur, err := permissionSets.Aggregate(ctx, pipeline)
+	rows, err := db.QueryContext(ctx, `
+		SELECT DISTINCT ps.id FROM permissionsets ps
+		WHERE ps.is_namespaced = 0 AND ps.run_id = ? AND ps.cluster_name = ?
+		AND EXISTS (
+			SELECT 1 FROM json_each(ps.rules) AS r1
+			WHERE EXISTS (SELECT 1 FROM json_each(json_extract(r1.value, '$.apiGroups')) WHERE value IN ('*', 'rbac.authorization.k8s.io'))
+		)
+		AND EXISTS (
+			SELECT 1 FROM json_each(ps.rules) AS r2
+			WHERE EXISTS (SELECT 1 FROM json_each(json_extract(r2.value, '$.verbs')) WHERE value IN ('create', '*'))
+			AND EXISTS (SELECT 1 FROM json_each(json_extract(r2.value, '$.resources')) WHERE value IN ('clusterrolebindings', 'rolebindings', '*'))
+			AND (json_extract(r2.value, '$.resourceNames') IS NULL OR json_extract(r2.value, '$.resourceNames') = '[]')
+		)
+		AND EXISTS (
+			SELECT 1 FROM json_each(ps.rules) AS r3
+			WHERE EXISTS (SELECT 1 FROM json_each(json_extract(r3.value, '$.verbs')) WHERE value IN ('bind', '*'))
+			AND EXISTS (SELECT 1 FROM json_each(json_extract(r3.value, '$.resources')) WHERE value IN ('clusterroles', '*'))
+			AND (json_extract(r3.value, '$.resourceNames') IS NULL OR json_extract(r3.value, '$.resourceNames') = '[]')
+		)`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[roleBindGroup](ctx, cur, callback, complete)
+	return adapter.SQLiteRowHandler[roleBindGroup](ctx, rows, func(row *sql.Rows) (roleBindGroup, error) {
+		var g roleBindGroup
+		err := row.Scan(&g.PermissionSet)
+		return g, err
+	}, callback, complete)
 }

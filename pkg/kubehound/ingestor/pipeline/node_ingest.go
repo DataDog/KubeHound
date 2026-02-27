@@ -6,7 +6,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/globals/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor/preflight"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 )
 
@@ -33,10 +32,9 @@ func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 	i.collection = collections.Node{}
 
 	i.r, err = CreateResources(ctx, deps,
-		WithCacheWriter(),
+		WithConverterDB(),
 		WithStoreWriter(i.collection),
-		WithGraphWriter(i.vertex),
-		WithConverterCache())
+		WithGraphWriter(i.vertex))
 	if err != nil {
 		return err
 	}
@@ -45,7 +43,7 @@ func (i *NodeIngest) Initialize(ctx context.Context, deps *Dependencies) error {
 }
 
 // streamCallback is invoked by the collector for each node collected.
-// The function ingests an input node into the cache/store/graph databases asynchronously.
+// The function ingests an input node into the store/graph databases asynchronously.
 func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error {
 	if ok, err := preflight.CheckNode(node); !ok {
 		return err
@@ -62,17 +60,13 @@ func (i *NodeIngest) IngestNode(ctx context.Context, node types.NodeType) error 
 		return err
 	}
 
-	// Async write to cache
-	if err := i.r.writeCache(ctx, cachekey.Node(o.K8.Name), o.Id.Hex()); err != nil {
-		return err
-	}
 	// Transform store model to vertex input
 	insert, err := i.r.graphConvert.Node(o) //nolint: contextcheck
 	if err != nil {
 		return err
 	}
 
-	// Aysnc write to graph
+	// Async write to graph
 	return i.r.writeVertex(ctx, i.vertex, insert)
 }
 

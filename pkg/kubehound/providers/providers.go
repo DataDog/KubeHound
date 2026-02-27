@@ -9,7 +9,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/ingestor"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/events"
@@ -20,26 +19,13 @@ import (
 )
 
 type ProvidersFactoryConfig struct {
-	CacheProvider cache.CacheProvider
 	StoreProvider storedb.Provider
 	GraphProvider graphdb.Provider
 }
 
-// Initiating all the providers need for KubeHound (cache, store, graph)
+// Initiating all the providers need for KubeHound (store, graph)
 func NewProvidersFactoryConfig(ctx context.Context, khCfg *config.KubehoundConfig) (*ProvidersFactoryConfig, error) {
 	l := log.Logger(ctx)
-	// Create the cache client
-	l.Info("Loading cache provider")
-	cp, err := cache.Factory(ctx, khCfg)
-	if err != nil {
-		return nil, fmt.Errorf("cache client creation: %w", err)
-	}
-	l.Info("Loaded cache provider", log.String("provider", cp.Name()))
-
-	err = cp.Prepare(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("store database prepare: %w", err)
-	}
 
 	// Create the store client
 	l.Info("Loading store database provider")
@@ -70,14 +56,12 @@ func NewProvidersFactoryConfig(ctx context.Context, khCfg *config.KubehoundConfi
 	}
 
 	return &ProvidersFactoryConfig{
-		CacheProvider: cp,
 		StoreProvider: sp,
 		GraphProvider: gp,
 	}, nil
 }
 
 func (p *ProvidersFactoryConfig) Close(ctx context.Context) {
-	p.CacheProvider.Close(ctx)
 	p.StoreProvider.Close(ctx)
 	p.GraphProvider.Close(ctx)
 }
@@ -96,7 +80,7 @@ func (p *ProvidersFactoryConfig) IngestBuildData(ctx context.Context, khCfg *con
 
 	// Run the ingest pipeline
 	l.Info("Starting Kubernetes raw data ingest")
-	err = ingestor.IngestData(ctx, khCfg, collect, p.CacheProvider, p.StoreProvider, p.GraphProvider)
+	err = ingestor.IngestData(ctx, khCfg, collect, p.StoreProvider, p.GraphProvider)
 	if err != nil {
 		return fmt.Errorf("raw data ingest: %w", err)
 	}
@@ -104,7 +88,7 @@ func (p *ProvidersFactoryConfig) IngestBuildData(ctx context.Context, khCfg *con
 	_ = statsd.Gauge(ctx, metric.IngestionIngestDuration, float64(time.Since(start)), tag.GetDefaultTags(ctx), 1)
 
 	startBuild := time.Now()
-	err = graph.BuildGraph(ctx, khCfg, p.StoreProvider, p.GraphProvider, p.CacheProvider)
+	err = graph.BuildGraph(ctx, khCfg, p.StoreProvider, p.GraphProvider)
 	if err != nil {
 		return err
 	}

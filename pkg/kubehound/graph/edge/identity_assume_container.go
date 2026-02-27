@@ -2,17 +2,13 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func init() {
@@ -24,8 +20,8 @@ type IdentityAssumeContainer struct {
 }
 
 type containerIdentityGroup struct {
-	Container primitive.ObjectID `bson:"container_id" json:"container"`
-	Identity  primitive.ObjectID `bson:"identity_id" json:"identity"`
+	Container int64 `json:"container"`
+	Identity  int64 `json:"identity"`
 }
 
 func (e *IdentityAssumeContainer) Label() string {
@@ -56,70 +52,26 @@ func (e *IdentityAssumeContainer) Processor(ctx context.Context, oic *converter.
 	})
 }
 
-func (e *IdentityAssumeContainer) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *IdentityAssumeContainer) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	containers := adapter.MongoDB(ctx, store).Collection(collections.ContainerName)
-	pipeline := bson.A{
-		bson.M{
-			"$match": bson.M{
-				"runtime.runID":        e.runtime.RunID.String(),
-				"runtime.cluster.name": e.runtime.Cluster.Name,
-			},
-		},
-		bson.M{
-			"$lookup": bson.M{
-				"as":   "idc",
-				"from": collections.IdentityName,
-				"let": bson.M{
-					"idName":      "$inherited.service_account",
-					"idNamespace": "$inherited.namespace",
-				},
-				"pipeline": []bson.M{
-					{
-						"$match": bson.M{
-							"$and": bson.A{
-								bson.M{"$expr": bson.M{
-									"$eq": bson.A{
-										"$name", "$$idName",
-									},
-								}},
-								bson.M{"$expr": bson.M{
-									"$eq": bson.A{
-										"$namespace", "$$idNamespace",
-									},
-								}},
-								bson.M{"type": shared.IdentityTypeSA},
-							},
-							"runtime.runID":        e.runtime.RunID.String(),
-							"runtime.cluster.name": e.runtime.Cluster.Name,
-						},
-					},
-					{
-						"$project": bson.M{
-							"_id": 1,
-						},
-					},
-				},
-			},
-		},
-		bson.M{
-			"$unwind": "$idc",
-		},
-		bson.M{
-			"$project": bson.M{
-				"container_id": "$_id",
-				"identity_id":  "$idc._id",
-				"_id":          0,
-			},
-		},
-	}
-
-	cur, err := containers.Aggregate(ctx, pipeline)
+	rows, err := db.QueryContext(ctx, `
+		SELECT c.id, i.id
+		FROM containers c
+		JOIN identities i ON i.name = c.service_account
+			AND i.namespace = c.namespace
+			AND i.type = 'ServiceAccount'
+			AND i.run_id = c.run_id
+			AND i.cluster_name = c.cluster_name
+		WHERE c.run_id = ? AND c.cluster_name = ?`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[containerIdentityGroup](ctx, cur, callback, complete)
+	return adapter.SQLiteRowHandler[containerIdentityGroup](ctx, rows, func(row *sql.Rows) (containerIdentityGroup, error) {
+		var g containerIdentityGroup
+		err := row.Scan(&g.Container, &g.Identity)
+		return g, err
+	}, callback, complete)
 }

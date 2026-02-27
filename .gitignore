@@ -38,6 +38,11 @@ deployments/kubehound/data/*
 # System test json files
 test/**/*.json
 
+# SQLite database files
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
 # Collected json files
 scripts/collectors/**/*.json
 

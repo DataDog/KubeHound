@@ -2,13 +2,12 @@ package pipeline
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache/cachekey"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
@@ -26,52 +25,28 @@ type CleanupFunc func(ctx context.Context) error
 // resourceOptions is a generic container to hold dependencies created on initialization.
 // Should not be used directly, but modified via ObjectIngestOption functions.
 type resourceOptions struct {
-	cacheReader  cache.CacheReader                    // Cache reader
-	cacheWriter  cache.AsyncWriter                    // Cache provider
-	collect      collector.CollectorClient            // Collector fromm which to steam data
-	flush        []FlushFunc                          // Array of writer flush functions to be called on a flush
-	cleanup      []CleanupFunc                        // Array of dependency cleanup functions to be called on a close
-	storeConvert *converter.StoreConverter            // input -> store model converter
-	graphConvert *converter.GraphConverter            // store -> graph model converter
-	storeWriters map[string]storedb.AsyncWriter       // store writer collection (per model type)
+	db           *sql.DB                            // SQLite database handle
+	collect      collector.CollectorClient           // Collector from which to stream data
+	flush        []FlushFunc                         // Array of writer flush functions to be called on a flush
+	cleanup      []CleanupFunc                       // Array of dependency cleanup functions to be called on a close
+	storeConvert *converter.StoreConverter           // input -> store model converter
+	graphConvert *converter.GraphConverter           // store -> graph model converter
+	storeWriters map[string]storedb.AsyncWriter      // store writer collection (per model type)
 	graphWriters map[string]graphdb.AsyncVertexWriter // graph writer collection (per vertex type)
 }
 
 // IngestResourceOption enables options to be passed to the pipeline initializer.
 type IngestResourceOption func(ctx context.Context, oic *resourceOptions, deps *Dependencies) error
 
-// WithCacheWriter initializes a cache writer (and registers a cleanup function) for the ingest pipeline.
-func WithCacheWriter(opts ...cache.WriterOption) IngestResourceOption {
-	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		var err error
-		rOpts.cacheWriter, err = deps.Cache.BulkWriter(ctx, opts...)
-		if err != nil {
-			return err
-		}
-
-		rOpts.cleanup = append(rOpts.cleanup, func(ctx context.Context) error {
-			return rOpts.cacheWriter.Close(ctx)
-		})
-
-		rOpts.flush = append(rOpts.flush, rOpts.cacheWriter.Flush)
-
-		return nil
-	}
-}
-
-// WithCacheReader initializes a cache reader (and registers a cleanup function to close the connection) for the ingest pipeline.
-func WithCacheReader() IngestResourceOption {
-	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		rOpts.cacheReader = deps.Cache
-
-		return nil
-	}
-}
-
-// WithCacheWriter initializes a store converter with cache access for the ingest pipeline.
-func WithConverterCache() IngestResourceOption {
+// WithConverterDB initializes a store converter with database access for the ingest pipeline.
+func WithConverterDB() IngestResourceOption {
 	return func(_ context.Context, rOpts *resourceOptions, deps *Dependencies) error {
-		rOpts.storeConvert = converter.NewStoreWithCache(deps.Config, deps.Cache)
+		db, ok := deps.StoreDB.Reader().(*sql.DB)
+		if !ok {
+			return fmt.Errorf("store provider reader is not *sql.DB")
+		}
+		rOpts.db = db
+		rOpts.storeConvert = converter.NewStoreWithDB(deps.Config, db)
 
 		return nil
 	}
@@ -97,7 +72,7 @@ func WithStoreWriter[T collections.Collection](c T) IngestResourceOption {
 	}
 }
 
-// WithStoreWriter initializes a bulk graph writer (and registers a cleanup function) for the provided vertex.
+// WithGraphWriter initializes a bulk graph writer (and registers a cleanup function) for the provided vertex.
 // To access the writer use the graphWriter(v vertex.Vertex) function.
 func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 	return func(ctx context.Context, rOpts *resourceOptions, deps *Dependencies) error {
@@ -105,7 +80,12 @@ func WithGraphWriter(v vertex.Builder) IngestResourceOption {
 			return err
 		}
 
-		w, err := deps.GraphDB.VertexWriter(ctx, v, deps.Cache, graphdb.WithTags(tag.GetBaseTags()))
+		db, ok := deps.StoreDB.Reader().(*sql.DB)
+		if !ok {
+			return fmt.Errorf("store provider reader is not *sql.DB")
+		}
+
+		w, err := deps.GraphDB.VertexWriter(ctx, v, db, graphdb.WithTags(tag.GetBaseTags()))
 		if err != nil {
 			return err
 		}
@@ -126,16 +106,6 @@ type IngestResources struct {
 	resourceOptions
 }
 
-// writeCache delegates a write to the cache writer.
-func (i *IngestResources) writeCache(ctx context.Context, ck cachekey.CacheKey, value any) error {
-	return i.cacheWriter.Queue(ctx, ck, value)
-}
-
-// readCache delegates a read request to the cache reader.
-func (i *IngestResources) readCache(ctx context.Context, ck cachekey.CacheKey) *cache.CacheResult {
-	return i.cacheReader.Get(ctx, ck)
-}
-
 // writeStore delegates a write to the registered store writer.
 func (i *IngestResources) writeStore(ctx context.Context, c collections.Collection, model any) error {
 	return i.storeWriters[c.Name()].Queue(ctx, model)
@@ -151,6 +121,30 @@ func (i *IngestResources) writeVertex(ctx context.Context, v vertex.Builder, ins
 	}
 
 	return w.Queue(ctx, processed)
+}
+
+// identityExists checks if an identity with the given name and namespace already exists in the database.
+func (i *IngestResources) identityExists(ctx context.Context, name, namespace string) bool {
+	if i.db == nil {
+		return false
+	}
+	var id int64
+	err := i.db.QueryRowContext(ctx,
+		"SELECT id FROM identities WHERE name = ? AND namespace = ? LIMIT 1",
+		name, namespace).Scan(&id)
+	return err == nil
+}
+
+// endpointSliceExists checks if an endpoint slice exists for the given parameters.
+func (i *IngestResources) endpointSliceExists(ctx context.Context, namespace, podName, protocol string, port int) bool {
+	if i.db == nil {
+		return false
+	}
+	var id int64
+	err := i.db.QueryRowContext(ctx,
+		"SELECT id FROM endpoints WHERE namespace = ? AND pod_name = ? AND protocol = ? AND port = ? AND has_slice = 1 LIMIT 1",
+		namespace, podName, protocol, port).Scan(&id)
+	return err == nil
 }
 
 // CreateResources handles the base initialization of service dependencies for an object ingest pipeline.

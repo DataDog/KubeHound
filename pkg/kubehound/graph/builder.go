@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
@@ -25,18 +25,18 @@ type Builder struct {
 	cfg     *config.KubehoundConfig
 	storedb storedb.Provider
 	graphdb graphdb.Provider
-	cache   cache.CacheReader
+	db      *sql.DB
 	edges   *edge.Registry
 }
 
 // NewBuilder returns a new builder instance from the provided application config and service dependencies.
 func NewBuilder(cfg *config.KubehoundConfig, store storedb.Provider, graph graphdb.Provider,
-	cache cache.CacheReader, edges *edge.Registry) (*Builder, error) {
+	db *sql.DB, edges *edge.Registry) (*Builder, error) {
 	n := &Builder{
 		cfg:     cfg,
 		storedb: store,
 		graphdb: graph,
-		cache:   cache,
+		db:      db,
 		edges:   edges,
 	}
 
@@ -48,7 +48,6 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 	return services.HealthCheck(ctx, []services.Dependency{
 		b.storedb,
 		b.graphdb,
-		b.cache,
 	})
 }
 
@@ -70,7 +69,7 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 		return err
 	}
 
-	err = e.Stream(ctx, b.storedb, b.cache,
+	err = e.Stream(ctx, b.storedb, b.db,
 		func(ctx context.Context, entry types.DataContainer) error {
 			insert, err := e.Processor(ctx, oic, entry)
 			if err != nil {
@@ -94,15 +93,9 @@ func (b *Builder) buildMutating(ctx context.Context, oic *converter.ObjectIDConv
 	for label, e := range b.edges.Mutating() {
 		err := b.buildEdge(ctx, label, e, oic)
 		if err != nil {
-			// In case we don't want to continue and have a partial graph built, we return an error.
-			// This then fails the WaitForComplete early and bubbles up to main.
 			if b.cfg.Builder.StopOnError {
 				return fmt.Errorf("building mutating edge %s: %w", label, err)
 			}
-			// Otherwise, by returning nil AND printing an error, we explicitly tell the user that something is going wrong.
-			// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
-			// values to the user (permissions of the users etc...)
-			// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
 			l.Warnf("Failed to create a mutating edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead): %v", e.Name(), err)
 
 			return nil
@@ -130,16 +123,9 @@ func (b *Builder) buildSimple(ctx context.Context, oic *converter.ObjectIDConver
 		wp.Submit(func() error {
 			err := b.buildEdge(workCtx, label, e, oic)
 			if err != nil {
-				// l.Errorf("building simple edge %s: %v", label, err)
-				// In case we don't want to continue and have a partial graph built, we return an error.
-				// This then fails the WaitForComplete early and bubbles up to main.
 				if b.cfg.Builder.StopOnError {
 					return err
 				}
-				// Otherwise, by returning nil AND printing an error, we explicitly tell the user that something is going wrong.
-				// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
-				// values to the user (permissions of the users etc...)
-				// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
 				l.Warnf("Failed to create a simple edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead): %v", e.Name(), err)
 
 				return nil
@@ -163,15 +149,9 @@ func (b *Builder) buildDependent(ctx context.Context, oic *converter.ObjectIDCon
 	for label, e := range b.edges.Dependent() {
 		err := b.buildEdge(ctx, label, e, oic)
 		if err != nil {
-			// In case we don't want to continue and have a partial graph built, we return an error.
-			// This then fails the WaitForComplete early and bubbles up to main.
 			if b.cfg.Builder.StopOnError {
 				return fmt.Errorf("building dependent edge %s: %w", label, err)
 			}
-			// Otherwise, by returning nil AND printing an error, we explicitly tell the user that something is going wrong.
-			// Since the issue might not be easy or even possible for the user to fix, we still want to be able to provide _some_
-			// values to the user (permissions of the users etc...)
-			// TODO(#ASENG-512): Add an error handling framework to accumulate all errors and display them to the user in an user friendly way
 			l.Warnf("Failed to create a dependent edge (type: %s). The created graph will be INCOMPLETE (change `builder.stop_on_error` to abort or error instead): %v", e.Name(), err)
 
 			return nil
@@ -182,10 +162,9 @@ func (b *Builder) buildDependent(ctx context.Context, oic *converter.ObjectIDCon
 }
 
 // Run constructs all the registered edges in the graph database.
-// NOTE: edges are constructed in parallel using a worker pool with properties configured via the top-level KubeHound config.
 func (b *Builder) Run(ctx context.Context) error {
 	l := log.Trace(ctx)
-	oic := converter.NewObjectID(b.cache)
+	oic := converter.NewObjectID(b.db)
 
 	if b.cfg.Builder.Edge.LargeClusterOptimizations {
 		log.Trace(ctx).Warnf("Using large cluster optimizations in graph construction")
@@ -214,10 +193,9 @@ func (b *Builder) Run(ctx context.Context) error {
 	return nil
 }
 
-// buildGraph will construct the attack graph by calculating and inserting all registered edges in parallel.
-// All I/O operations are performed asynchronously.
+// BuildGraph will construct the attack graph by calculating and inserting all registered edges in parallel.
 func BuildGraph(outer context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
-	graphdb graphdb.Provider, cache cache.CacheReader) error {
+	graphdb graphdb.Provider) error {
 	l := log.Logger(outer)
 	start := time.Now()
 	span, ctx := span.SpanRunFromContext(outer, span.BuildGraph)
@@ -230,8 +208,13 @@ func BuildGraph(outer context.Context, cfg *config.KubehoundConfig, storedb stor
 		return fmt.Errorf("edge registry verification: %w", err)
 	}
 
+	db, ok := storedb.Reader().(*sql.DB)
+	if !ok {
+		return fmt.Errorf("store provider reader is not *sql.DB")
+	}
+
 	l.Info("Loading graph builder")
-	builder, err := NewBuilder(cfg, storedb, graphdb, cache, edges)
+	builder, err := NewBuilder(cfg, storedb, graphdb, db, edges)
 	if err != nil {
 		return fmt.Errorf("graph builder creation: %w", err)
 	}

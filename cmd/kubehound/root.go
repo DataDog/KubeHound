@@ -64,7 +64,7 @@ var (
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", cfgFile, "application config file")
 
-	rootCmd.PersistentFlags().BoolVar(&skipBackend, "skip-backend", skipBackend, "skip the auto deployment of the backend stack (janusgraph, mongodb, and UI)")
+	rootCmd.PersistentFlags().BoolVar(&skipBackend, "skip-backend", skipBackend, "skip the auto deployment of the backend stack (janusgraph and UI)")
 
 	cmd.InitRootCmd(rootCmd)
 }

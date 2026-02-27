@@ -12,7 +12,7 @@ import (
 
 var (
 	DefaultComposeTestingPath    = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.testing.yaml"}
-	DefaultComposeDevPath        = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.dev.graph.yaml", "./deployments/kubehound/docker-compose.dev.mongo.yaml"}
+	DefaultComposeDevPath        = []string{"./deployments/kubehound/docker-compose.yaml", "./deployments/kubehound/docker-compose.dev.graph.yaml"}
 	DefaultComposeDevPathUI      = "./deployments/kubehound/docker-compose.dev.ui.yaml"
 	DefaultComposeDevPathGRPC    = "./deployments/kubehound/docker-compose.dev.ingestor.yaml"
 	DefaultComposeDevPathDatadog = "./deployments/kubehound/docker-compose.dev.datadog.yaml"

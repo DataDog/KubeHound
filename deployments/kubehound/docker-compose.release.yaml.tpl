@@ -1,9 +1,5 @@
 name: kubehound-release
 services:
-  mongodb:
-    ports:
-      - "127.0.0.1:27017:27017"
-
   kubegraph:
     image: ghcr.io/datadog/kubehound-graph:{{ .VersionTag }}
     ports:

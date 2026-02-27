@@ -1,5 +1,4 @@
 # Custom config for docker compose environment
-KH_MONGODB_URL=mongodb://mongodb:27017
 KH_JANUSGRAPH_URL=ws://kubegraph:8182/gremlin
 # Default config
 KH_INGESTOR_API_ENDPOINT=0.0.0.0:9000

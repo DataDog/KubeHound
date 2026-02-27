@@ -2,16 +2,13 @@ package edge
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/cache"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func init() {
@@ -23,8 +20,8 @@ type TokenListNamespace struct {
 }
 
 type tokenListNSGroup struct {
-	Role     primitive.ObjectID `bson:"_id" json:"role"`
-	Identity primitive.ObjectID `bson:"identity" json:"identity"`
+	Role     int64 `json:"role"`
+	Identity int64 `json:"identity"`
 }
 
 func (e *TokenListNamespace) Label() string {
@@ -57,86 +54,25 @@ func (e *TokenListNamespace) Processor(ctx context.Context, oic *converter.Objec
 
 // Stream finds all roles that are namespaced and have secrets/list or equivalent wildcard permissions and matching identities.
 // Matching identities are defined as namespaced identities that share the role namespace or non-namespaced identities.
-func (e *TokenListNamespace) Stream(ctx context.Context, store storedb.Provider, _ cache.CacheReader,
+func (e *TokenListNamespace) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
 
-	permissionSets := adapter.MongoDB(ctx, store).Collection(collections.PermissionSetName)
-	pipeline := []bson.M{
-		{
-			"$match": bson.M{
-				"is_namespaced":        true,
-				"runtime.runID":        e.runtime.RunID.String(),
-				"runtime.cluster.name": e.runtime.Cluster.Name,
-				"rules": bson.M{
-					"$elemMatch": bson.M{
-						"$and": bson.A{
-							bson.M{"$or": bson.A{
-								bson.M{"apigroups": ""},
-								bson.M{"apigroups": "*"},
-							}},
-							bson.M{"$or": bson.A{
-								bson.M{"resources": "secrets"},
-								bson.M{"resources": "*"},
-							}},
-							bson.M{"$or": bson.A{
-								bson.M{"verbs": "list"},
-								bson.M{"verbs": "*"},
-							}},
-							bson.M{"resourcenames": nil}, // TODO: handle resource scope
-						},
-					},
-				},
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"as":   "idsInNamespace",
-				"from": "identities",
-				"let": bson.M{
-					"roleNamespace": "$namespace",
-				},
-				"pipeline": []bson.M{
-					{
-						"$match": bson.M{
-							"$and": bson.A{
-								bson.M{"$or": bson.A{
-									bson.M{"$expr": bson.M{
-										"$eq": bson.A{
-											"$namespace", "$$roleNamespace",
-										},
-									}},
-									bson.M{"is_namespaced": false},
-								}},
-								bson.M{"type": "ServiceAccount"},
-							},
-							"runtime.runID":        e.runtime.RunID.String(),
-							"runtime.cluster.name": e.runtime.Cluster.Name,
-						},
-					},
-					{
-						"$project": bson.M{
-							"_id": 1,
-						},
-					},
-				},
-			},
-		},
-		{
-			"$unwind": "$idsInNamespace",
-		},
-		{
-			"$project": bson.M{
-				"_id":      1,
-				"identity": "$idsInNamespace._id",
-			},
-		},
-	}
-
-	cur, err := permissionSets.Aggregate(ctx, pipeline)
+	rows, err := db.QueryContext(ctx, `
+		SELECT DISTINCT ps.id, i.id FROM permissionsets ps, json_each(ps.rules) AS r
+		JOIN identities i ON (i.namespace = ps.namespace OR i.is_namespaced = 0) AND i.type = 'ServiceAccount' AND i.run_id = ps.run_id AND i.cluster_name = ps.cluster_name
+		WHERE ps.is_namespaced = 1 AND ps.run_id = ? AND ps.cluster_name = ?
+		AND EXISTS (SELECT 1 FROM json_each(json_extract(r.value, '$.apiGroups')) WHERE value IN ('', '*'))
+		AND EXISTS (SELECT 1 FROM json_each(json_extract(r.value, '$.resources')) WHERE value IN ('secrets', '*'))
+		AND EXISTS (SELECT 1 FROM json_each(json_extract(r.value, '$.verbs')) WHERE value IN ('list', '*'))
+		AND (json_extract(r.value, '$.resourceNames') IS NULL OR json_extract(r.value, '$.resourceNames') = '[]')`,
+		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-	defer cur.Close(ctx)
 
-	return adapter.MongoCursorHandler[tokenListNSGroup](ctx, cur, callback, complete)
+	return adapter.SQLiteRowHandler[tokenListNSGroup](ctx, rows, func(row *sql.Rows) (tokenListNSGroup, error) {
+		var g tokenListNSGroup
+		err := row.Scan(&g.Role, &g.Identity)
+		return g, err
+	}, callback, complete)
 }
