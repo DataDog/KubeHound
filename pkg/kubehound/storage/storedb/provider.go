@@ -13,11 +13,8 @@ import (
 type Provider interface {
 	services.Dependency
 
-	// Prepare drops all collections from the database (usually to ensure a clean start) and recreates indices.
+	// Prepare drops and recreates all tables and indices (idempotent reset).
 	Prepare(ctx context.Context) error
-
-	// Droping all assets from the database (usually to ensure a clean start) from a runID and cluster name
-	Clean(ctx context.Context, runId string, clusterName string) error
 
 	// Reader returns a handle to the underlying provider to allow implementation specific queries against the store DB
 	Reader() any

@@ -9,7 +9,6 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	_ "modernc.org/sqlite"
 )
@@ -67,9 +66,19 @@ func (p *SQLiteProvider) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// Prepare creates all tables and indices.
+// Prepare drops and recreates all tables and indices (idempotent reset).
 func (p *SQLiteProvider) Prepare(ctx context.Context) error {
 	l := log.Logger(ctx)
+
+	l.Info("Resetting SQLite schema")
+	for _, table := range Tables {
+		if _, err := p.db.ExecContext(ctx, "DROP TABLE IF EXISTS "+string(table)); err != nil {
+			return fmt.Errorf("sqlite drop table %s: %w", table, err)
+		}
+	}
+	if _, err := p.db.ExecContext(ctx, "DROP TABLE IF EXISTS store_graph_id_map"); err != nil {
+		return fmt.Errorf("sqlite drop table store_graph_id_map: %w", err)
+	}
 
 	l.Info("Creating SQLite schema")
 	if _, err := p.db.ExecContext(ctx, schemaDDL); err != nil {
@@ -79,19 +88,6 @@ func (p *SQLiteProvider) Prepare(ctx context.Context) error {
 	l.Info("Creating SQLite indices")
 	if _, err := p.db.ExecContext(ctx, schemaIndices); err != nil {
 		return fmt.Errorf("sqlite index creation: %w", err)
-	}
-
-	return nil
-}
-
-// Clean deletes data for a specific run/cluster combination.
-func (p *SQLiteProvider) Clean(ctx context.Context, runID string, clusterName string) error {
-	tables := collections.GetCollections()
-	for _, table := range tables {
-		query := fmt.Sprintf("DELETE FROM %s WHERE run_id = ? AND cluster_name = ?", table)
-		if _, err := p.db.ExecContext(ctx, query, runID, clusterName); err != nil {
-			return fmt.Errorf("sqlite clean table %s: %w", table, err)
-		}
 	}
 
 	return nil

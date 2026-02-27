@@ -5,6 +5,26 @@ import "database/sql"
 // SQLite schema DDL for the KubeHound store database.
 // Decomposed columns matching rkh's design — no JSON blob for K8s objects.
 
+type Table string
+
+const (
+	TableNodes          Table = "nodes"
+	TablePods           Table = "pods"
+	TableContainers     Table = "containers"
+	TableVolumes        Table = "volumes"
+	TableRoles          Table = "roles"
+	TableRoleBindings   Table = "rolebindings"
+	TableIdentities     Table = "identities"
+	TablePermissionSets Table = "permissionsets"
+	TableEndpoints      Table = "endpoints"
+)
+
+var Tables = []Table{
+	TableNodes, TablePods, TableContainers, TableVolumes,
+	TableRoles, TableRoleBindings, TableIdentities,
+	TablePermissionSets, TableEndpoints,
+}
+
 // InitSchema initializes the schema and indices on the given database.
 func InitSchema(db *sql.DB) error {
 	if _, err := db.Exec(schemaDDL); err != nil {

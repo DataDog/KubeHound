@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -17,7 +16,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/ingestor/notifier"
 	"github.com/DataDog/KubeHound/pkg/ingestor/puller"
 	"github.com/DataDog/KubeHound/pkg/kubehound/providers"
-	"github.com/DataDog/KubeHound/pkg/kubehound/store/collections"
 	"github.com/DataDog/KubeHound/pkg/telemetry/events"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
@@ -203,28 +201,9 @@ func (g *IngestorAPI) Ingest(ctx context.Context, path string) error { //nolint:
 	// Run the ingest pipeline
 	l.Info("Starting Kubernetes raw data ingest")
 
-	// Droping the storedb data for the cluster if the wipe flag is set
-	if g.Cfg.Storage.Wipe {
-		err = g.providers.StoreProvider.Clean(runCtx, "*", clusterName) //nolint: contextcheck
-		if err != nil {
-			return err
-		}
-		l.Info("Droped storedb data for the cluster", log.String(log.FieldClusterKey, clusterName))
-	}
-
-	// Checking if the data is already ingested in the database
-	alreadyIngestedInDB, err := g.isAlreadyIngestedInDB(runCtx, clusterName, runID) //nolint: contextcheck
-	if err != nil {
+	// Reset storedb for a clean ingestion
+	if err = g.providers.StoreProvider.Prepare(runCtx); err != nil { //nolint: contextcheck
 		return err
-	}
-
-	// Droping the storedb data for the cluster if the data is already ingested in the database
-	if alreadyIngestedInDB {
-		l.Info("Data already ingested in the database for %s/%s, droping the current data", log.String(log.FieldClusterKey, clusterName), log.String(log.FieldRunIDKey, runID))
-		err := g.providers.StoreProvider.Clean(runCtx, runID, clusterName) //nolint: contextcheck
-		if err != nil {
-			return err
-		}
 	}
 
 	// Keeping only the latest dump for each cluster in memory
@@ -268,33 +247,6 @@ func (g *IngestorAPI) isAlreadyIngestedInGraph(_ context.Context, clusterName st
 
 	if nodeCount != 0 {
 		return true, nil
-	}
-
-	return false, nil
-}
-
-func (g *IngestorAPI) isAlreadyIngestedInDB(ctx context.Context, clusterName string, runID string) (bool, error) {
-	l := log.Logger(ctx)
-	db, ok := g.providers.StoreProvider.Reader().(*sql.DB)
-	if !ok {
-		return false, fmt.Errorf("assert store reader as *sql.DB")
-	}
-
-	for _, table := range collections.GetCollections() {
-		var count int64
-		//nolint:gosec // table names are from a hardcoded trusted list
-		err := db.QueryRowContext(ctx,
-			fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE run_id = ? AND cluster_name = ?", table),
-			runID, clusterName).Scan(&count)
-		if err != nil {
-			return false, fmt.Errorf("error counting rows in table %s: %w", table, err)
-		}
-		if count != 0 {
-			l.Info("Found element(s) in table", log.Int64(log.FieldCountKey, count), log.String("table", table))
-
-			return true, nil
-		}
-		l.Debug("No element found in table", log.Int64(log.FieldCountKey, count), log.String("table", table))
 	}
 
 	return false, nil
