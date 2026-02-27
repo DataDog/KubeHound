@@ -122,18 +122,7 @@ func TestConverter_NodePipeline(t *testing.T) {
 	assert.NoError(t, err, "store node convert error")
 
 	assert.Equal(t, storeNode.Name, input.Name)
-
-	// Store model -> graph model
-	graphNode, err := NewGraph(testConfig).Node(storeNode)
-	assert.NoError(t, err, "graph node convert error")
-
-	assert.Equal(t, store.Hex(storeNode.Id), graphNode.StoreID)
-	assert.Equal(t, graphNode.Team, "test-team")
-	assert.Equal(t, storeNode.Name, graphNode.Name)
 	assert.False(t, storeNode.IsNamespaced)
-	assert.Equal(t, storeNode.Namespace, graphNode.Namespace)
-	assert.False(t, graphNode.Critical)
-	assert.Equal(t, shared.CompromiseNone, graphNode.Compromised)
 }
 
 func TestConverter_RolePipeline(t *testing.T) {
@@ -225,38 +214,9 @@ func TestConverter_RoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, linkedRole.Id, storePermissionSet.RoleId)
 	assert.Equal(t, storeBinding.Id, storePermissionSet.RoleBindingId)
 
-	// Store identity -> graph identity
-	graphIdentity, err := NewGraph(testConfig).Identity(storeIdentity)
-	assert.NoError(t, err, "graph role binding convert error")
-
-	assert.Equal(t, store.Hex(storeIdentity.Id), graphIdentity.StoreID)
-	assert.Equal(t, graphIdentity.App, "test-app")
-	assert.Equal(t, graphIdentity.Service, "test-service")
-	assert.Equal(t, graphIdentity.Team, "test-team")
-	assert.Equal(t, storeIdentity.Name, graphIdentity.Name)
-	assert.Equal(t, storeIdentity.Namespace, graphIdentity.Namespace)
-	assert.Equal(t, storeIdentity.Type, graphIdentity.Type)
-
-	// Store model -> graph model
-	graphPermissions, err := NewGraph(testConfig).PermissionSet(storePermissionSet)
-	assert.NoError(t, err, "graph role convert error")
-
-	assert.Equal(t, store.Hex(storePermissionSet.Id), graphPermissions.StoreID)
-	assert.Equal(t, storePermissionSet.Ownership.Application, graphPermissions.App)
-	assert.Equal(t, storePermissionSet.Ownership.Service, graphPermissions.Service)
-	assert.Equal(t, storePermissionSet.Ownership.Team, graphPermissions.Team)
-	assert.Equal(t, storePermissionSet.Name, graphPermissions.Name)
-	assert.Equal(t, storePermissionSet.Namespace, graphPermissions.Namespace)
-	assert.Equal(t, storePermissionSet.RoleName, graphPermissions.Role)
-	assert.Equal(t, storePermissionSet.RoleBindingName, graphPermissions.RoleBinding)
-
-	rules := []string{
-		"API()::R(pods)::N()::V(get,list)",
-		"API()::R(configmaps)::N()::V(get)",
-		"API(apps)::R(statefulsets)::N()::V(get,list)",
-	}
-
-	assert.Equal(t, rules, graphPermissions.Rules)
+	assert.Equal(t, subject.Subject.Name, storeIdentity.Name)
+	assert.Equal(t, subject.Subject.Namespace, storeIdentity.Namespace)
+	assert.Equal(t, subject.Subject.Kind, storeIdentity.Type)
 }
 
 func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
@@ -311,39 +271,6 @@ func TestConverter_ClusterRoleBindingPipeline(t *testing.T) {
 	assert.Equal(t, subject.Subject.Name, storeIdentity.Name)
 	assert.Equal(t, subject.Subject.Namespace, storeIdentity.Namespace)
 	assert.Equal(t, subject.Subject.Kind, storeIdentity.Type)
-
-	// Store identity -> graph identity
-	graphIdentity, err := NewGraph(testConfig).Identity(storeIdentity)
-	assert.NoError(t, err, "graph role binding convert error")
-
-	assert.Equal(t, store.Hex(storeIdentity.Id), graphIdentity.StoreID)
-	assert.Equal(t, graphIdentity.App, "test-app")
-	assert.Equal(t, graphIdentity.Service, "test-service")
-	assert.Equal(t, graphIdentity.Team, "test-team")
-	assert.Equal(t, storeIdentity.Name, graphIdentity.Name)
-	assert.Equal(t, storeIdentity.Namespace, graphIdentity.Namespace)
-	assert.Equal(t, storeIdentity.Type, graphIdentity.Type)
-
-	// Store model -> graph model
-	graphPermissions, err := NewGraph(testConfig).PermissionSet(storePermissionSet)
-	assert.NoError(t, err, "graph role convert error")
-
-	assert.Equal(t, store.Hex(storePermissionSet.Id), graphPermissions.StoreID)
-	assert.Equal(t, storePermissionSet.Ownership.Application, graphPermissions.App)
-	assert.Equal(t, storePermissionSet.Ownership.Service, graphPermissions.Service)
-	assert.Equal(t, storePermissionSet.Ownership.Team, graphPermissions.Team)
-	assert.Equal(t, storePermissionSet.Name, graphPermissions.Name)
-	assert.Equal(t, storePermissionSet.Namespace, graphPermissions.Namespace)
-	assert.Equal(t, storePermissionSet.RoleName, graphPermissions.Role)
-	assert.Equal(t, storePermissionSet.RoleBindingName, graphPermissions.RoleBinding)
-
-	rules := []string{
-		"API()::R(pods)::N()::V(get,list)",
-		"API()::R(configmaps)::N()::V(get)",
-		"API(apps)::R(statefulsets)::N()::V(get,list)",
-	}
-
-	assert.Equal(t, rules, graphPermissions.Rules)
 }
 
 func TestConverter_PermissionSet_ClusterRole_RoleBinding(t *testing.T) {
@@ -585,22 +512,6 @@ func TestConverter_PodPipeline(t *testing.T) {
 	assert.Equal(t, storePod.Name, input.Name)
 	assert.True(t, storePod.IsNamespaced)
 	assert.Equal(t, storePod.Namespace, input.Namespace)
-
-	// Store pod -> graph pod
-	graphPod, err := NewGraph(testConfig).Pod(storePod)
-	assert.NoError(t, err, "graph pod convert error")
-
-	assert.Equal(t, store.Hex(storePod.Id), graphPod.StoreID)
-	assert.Equal(t, graphPod.App, "test-app")
-	assert.Equal(t, graphPod.Service, "test-service")
-	assert.Equal(t, graphPod.Team, "test-team")
-	assert.Equal(t, storePod.Name, graphPod.Name)
-	assert.Equal(t, storePod.Namespace, graphPod.Namespace)
-	assert.False(t, graphPod.ShareProcessNamespace)
-	assert.Equal(t, storePod.ServiceAccount, graphPod.ServiceAccount)
-	assert.Equal(t, storePod.NodeName, graphPod.Node)
-	assert.False(t, graphPod.Critical)
-	assert.Equal(t, shared.CompromiseNone, graphPod.Compromised)
 }
 
 func TestConverter_PodChildPipeline(t *testing.T) {
@@ -641,23 +552,6 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, storeContainer.Inherited.NodeName, storePod.NodeName)
 	assert.Equal(t, storeContainer.Inherited.ServiceAccount, storePod.ServiceAccount)
 
-	// Store container -> graph container
-	graphContainer, err := NewGraph(testConfig).Container(storeContainer, storePod)
-	assert.NoError(t, err, "graph container convert error")
-
-	assert.Equal(t, store.Hex(storeContainer.Id), graphContainer.StoreID)
-	assert.Equal(t, graphContainer.App, "test-app")
-	assert.Equal(t, graphContainer.Service, "test-service")
-	assert.Equal(t, graphContainer.Team, "test-team")
-	assert.Equal(t, storeContainer.Name, graphContainer.Name)
-	assert.Equal(t, storeContainer.Image, graphContainer.Image)
-	assert.Equal(t, storeContainer.Command, graphContainer.Command)
-	assert.Equal(t, storeContainer.Args, graphContainer.Args)
-	assert.Equal(t, storeContainer.Inherited.PodName, graphContainer.Pod)
-	assert.Equal(t, storeContainer.Inherited.NodeName, graphContainer.Node)
-	assert.Equal(t, []string{"9200", "9300"}, graphContainer.Ports)
-	assert.Equal(t, shared.CompromiseNone, graphContainer.Compromised)
-
 	// Collector volume -> store volume (using K8s volumes from the input pod)
 	assert.Equal(t, 2, len(input.Spec.Volumes))
 
@@ -687,33 +581,6 @@ func TestConverter_PodChildPipeline(t *testing.T) {
 	assert.Equal(t, storeVolume1.SourcePath, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token")
 	assert.True(t, storeVolume1.ReadOnly)
 	assert.Equal(t, store.Hex(storeVolume1.ProjectedId), store.Hex(identityID))
-
-	// Store container -> graph container
-	graphVolume, err := NewGraph(testConfig).Volume(storeVolume0, storePod)
-	assert.NoError(t, err, "graph volume convert error")
-
-	assert.Equal(t, store.Hex(storeVolume0.Id), graphVolume.StoreID)
-	assert.Equal(t, graphVolume.App, "test-app")
-	assert.Equal(t, graphVolume.Service, "test-service")
-	assert.Equal(t, graphVolume.Team, "test-team")
-	assert.Equal(t, storeVolume0.Name, graphVolume.Name)
-	assert.Equal(t, shared.VolumeTypeHost, graphVolume.Type)
-	assert.Equal(t, "/var/run/datadog-agent", graphVolume.SourcePath)
-	assert.Equal(t, "/var/run/datadog-agent", graphVolume.MountPath)
-	assert.False(t, graphVolume.Readonly)
-
-	graphVolume, err = NewGraph(testConfig).Volume(storeVolume1, storePod)
-	assert.NoError(t, err, "graph volume convert error")
-
-	assert.Equal(t, store.Hex(storeVolume1.Id), graphVolume.StoreID)
-	assert.Equal(t, graphVolume.App, "test-app")
-	assert.Equal(t, graphVolume.Service, "test-service")
-	assert.Equal(t, graphVolume.Team, "test-team")
-	assert.Equal(t, storeVolume1.Name, graphVolume.Name)
-	assert.Equal(t, shared.VolumeTypeProjected, graphVolume.Type)
-	assert.Equal(t, "/var/lib/kubelet/pods/5a9fc508-8410-444a-bf63-9f11e5979bee/volumes/kubernetes.io~projected/kube-api-access-4x9fz/token", graphVolume.SourcePath)
-	assert.Equal(t, "/var/run/secrets/kubernetes.io/serviceaccount", graphVolume.MountPath)
-	assert.True(t, graphVolume.Readonly)
 }
 
 func TestConverter_PodCacheFailure(t *testing.T) {
@@ -750,24 +617,6 @@ func TestConverter_EndpointPipeline(t *testing.T) {
 	assert.Equal(t, storeEp.Port, 9042)
 	assert.Equal(t, storeEp.Protocol, "TCP")
 	assert.Equal(t, storeEp.PortName, "cql")
-
-	// Store model -> graph model
-	graphEp, err := NewGraph(testConfig).Endpoint(storeEp)
-	assert.NoError(t, err, "graph endpoint convert error")
-
-	assert.Equal(t, store.Hex(storeEp.Id), graphEp.StoreID)
-	assert.Equal(t, graphEp.App, "test-app")
-	assert.Equal(t, graphEp.Service, "test-service")
-	assert.Equal(t, graphEp.Team, "test-team")
-	assert.Equal(t, storeEp.Name, graphEp.Name)
-	assert.Equal(t, storeEp.ServiceName, graphEp.ServiceEndpointName)
-	assert.Equal(t, storeEp.ServiceDns, graphEp.ServiceDnsName)
-	assert.Equal(t, "IPv4", graphEp.AddressType)
-	assert.Equal(t, []string{"10.1.1.1"}, graphEp.Addresses)
-	assert.Equal(t, 9042, graphEp.Port)
-	assert.Equal(t, "cql", graphEp.PortName)
-	assert.Equal(t, "TCP", graphEp.Protocol)
-	assert.Equal(t, shared.EndpointExposureExternal, graphEp.Exposure)
 }
 
 func TestConverter_EndpointPrivatePipeline(t *testing.T) {
@@ -806,22 +655,4 @@ func TestConverter_EndpointPrivatePipeline(t *testing.T) {
 	assert.Equal(t, storeEp.Port, 9200)
 	assert.Equal(t, storeEp.Protocol, "TCP")
 	assert.Equal(t, storeEp.PortName, "http")
-
-	// Store model -> graph model
-	graphEp, err := NewGraph(testConfig).Endpoint(storeEp)
-	assert.NoError(t, err, "graph endpoint convert error")
-
-	assert.Equal(t, store.Hex(storeEp.Id), graphEp.StoreID)
-	assert.Equal(t, graphEp.App, "test-app")
-	assert.Equal(t, graphEp.Service, "test-service")
-	assert.Equal(t, graphEp.Team, "test-team")
-	assert.Equal(t, storeEp.Name, graphEp.Name)
-	assert.Equal(t, storeEp.ServiceName, graphEp.ServiceEndpointName)
-	assert.Equal(t, storeEp.ServiceDns, graphEp.ServiceDnsName)
-	assert.Equal(t, "IPv4", graphEp.AddressType)
-	assert.Equal(t, []string{"10.1.1.2"}, graphEp.Addresses)
-	assert.Equal(t, 9200, graphEp.Port)
-	assert.Equal(t, "http", graphEp.PortName)
-	assert.Equal(t, "TCP", graphEp.Protocol)
-	assert.Equal(t, shared.EndpointExposureNodeIP, graphEp.Exposure)
 }

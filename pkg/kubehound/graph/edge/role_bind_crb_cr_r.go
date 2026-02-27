@@ -5,11 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
@@ -41,7 +39,7 @@ func (e *RoleBindCrbCrR) AttckTacticID() AttckTacticID {
 	return AttckTacticPrivilegeEscalation
 }
 
-func (e *RoleBindCrbCrR) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *RoleBindCrbCrR) processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*roleBindGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -98,9 +96,8 @@ func (e *RoleBindCrbCrR) Traversal() types.EdgeTraversal {
 	}
 }
 
-func (e *RoleBindCrbCrR) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
-	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-
+func (e *RoleBindCrbCrR) Stream(ctx context.Context, db *sql.DB, w types.EdgeWriter) error {
+	oic := converter.NewObjectID(db)
 	rows, err := db.QueryContext(ctx, `
 		SELECT DISTINCT ps.id
 		FROM permissionsets ps
@@ -129,10 +126,22 @@ func (e *RoleBindCrbCrR) Stream(ctx context.Context, _ storedb.Provider, db *sql
 	if err != nil {
 		return err
 	}
-
-	return adapter.SQLiteRowHandler[roleBindGroup](ctx, rows, func(row *sql.Rows) (roleBindGroup, error) {
+	defer rows.Close()
+	for rows.Next() {
 		var g roleBindGroup
-		err := row.Scan(&g.PermissionSet)
-		return g, err
-	}, callback, complete)
+		if err := rows.Scan(&g.PermissionSet); err != nil {
+			return err
+		}
+		insert, err := e.processor(ctx, oic, &g)
+		if err != nil {
+			return err
+		}
+		if err := w.Queue(ctx, insert); err != nil {
+			return err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return w.Flush(ctx)
 }

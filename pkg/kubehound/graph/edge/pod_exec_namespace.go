@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 )
 
 func init() {
@@ -40,7 +39,7 @@ func (e *PodExecNamespace) AttckTacticID() AttckTacticID {
 	return AttckTacticExecution
 }
 
-func (e *PodExecNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *PodExecNamespace) processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*podExecNSGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -54,9 +53,8 @@ func (e *PodExecNamespace) Processor(ctx context.Context, oic *converter.ObjectI
 
 // Stream finds all roles that are namespaced and have pod/exec or equivalent wildcard permissions and matching pods.
 // Matching pods are defined as all pods that share the role namespace or non-namespaced pods.
-func (e *PodExecNamespace) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
-	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-
+func (e *PodExecNamespace) Stream(ctx context.Context, db *sql.DB, w types.EdgeWriter) error {
+	oic := converter.NewObjectID(db)
 	rows, err := db.QueryContext(ctx, `
 		SELECT DISTINCT ps.id, p.id FROM permissionsets ps, json_each(ps.rules) AS r
 		JOIN pods p ON (p.namespace = ps.namespace OR p.is_namespaced = 0) AND p.run_id = ps.run_id AND p.cluster_name = ps.cluster_name
@@ -69,10 +67,22 @@ func (e *PodExecNamespace) Stream(ctx context.Context, _ storedb.Provider, db *s
 	if err != nil {
 		return err
 	}
-
-	return adapter.SQLiteRowHandler[podExecNSGroup](ctx, rows, func(row *sql.Rows) (podExecNSGroup, error) {
+	defer rows.Close()
+	for rows.Next() {
 		var g podExecNSGroup
-		err := row.Scan(&g.Role, &g.Pod)
-		return g, err
-	}, callback, complete)
+		if err := rows.Scan(&g.Role, &g.Pod); err != nil {
+			return err
+		}
+		insert, err := e.processor(ctx, oic, &g)
+		if err != nil {
+			return err
+		}
+		if err := w.Queue(ctx, insert); err != nil {
+			return err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return w.Flush(ctx)
 }

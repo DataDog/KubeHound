@@ -1,7 +1,7 @@
 package vertex
 
 import (
-	"context"
+	"database/sql"
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
@@ -13,9 +13,9 @@ var __ = gremlin.T__
 var Column = gremlin.Column
 var P = gremlin.P
 
-// Builder interface defines objects used to construct vertices within our graph database through processing data from an ingestion pipeline.
+// Builder interface defines objects used to construct vertices within our graph database.
 type Builder interface {
-	// Initialize intializes an edge builder from the application config
+	// Initialize intializes a vertex builder from the application config
 	Initialize(cfg *config.KubehoundConfig) error
 
 	// Label returns the label for the vertex (convention is all camelcase i.e VertexName)
@@ -24,8 +24,12 @@ type Builder interface {
 	// BatchSize returns the batch size of bulk inserts (and threshold for triggering a flush).
 	BatchSize() int
 
-	// Processor transforms an object queued for writing to a format suitable for consumption by the Traversal function.
-	Processor(context.Context, any) (any, error)
+	// Query returns the SQL SELECT statement for this vertex type.
+	// The query MUST use positional parameters ($1, $2) for run_id and cluster_name.
+	Query(runID, clusterName string) string
+
+	// Scanner scans a single row into a map suitable for the gremlin traversal.
+	Scanner(rows *sql.Rows) (map[string]any, error)
 
 	// Traversal returns a graph traversal function that enables creating vertices from an input array of TraversalInput objects.
 	Traversal() types.VertexTraversal

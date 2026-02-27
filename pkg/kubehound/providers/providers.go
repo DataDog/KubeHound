@@ -80,7 +80,7 @@ func (p *ProvidersFactoryConfig) IngestBuildData(ctx context.Context, khCfg *con
 
 	// Run the ingest pipeline
 	l.Info("Starting Kubernetes raw data ingest")
-	err = ingestor.IngestData(ctx, khCfg, collect, p.StoreProvider, p.GraphProvider)
+	err = ingestor.IngestData(ctx, khCfg, collect, p.StoreProvider)
 	if err != nil {
 		return fmt.Errorf("raw data ingest: %w", err)
 	}

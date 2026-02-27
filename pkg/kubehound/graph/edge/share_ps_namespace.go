@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 )
 
 func init() {
@@ -40,8 +39,7 @@ func (e *SharePSNamespace) AttckTacticID() AttckTacticID {
 	return AttckTacticLateralMovement
 }
 
-// Processor delegates the processing tasks to the generic containerEscapeProcessor.
-func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *SharePSNamespace) processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*sharedPsNamespaceGroupPair)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -53,9 +51,8 @@ func (e *SharePSNamespace) Processor(ctx context.Context, oic *converter.ObjectI
 	})
 }
 
-func (e *SharePSNamespace) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
-	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-
+func (e *SharePSNamespace) Stream(ctx context.Context, db *sql.DB, w types.EdgeWriter) error {
+	oic := converter.NewObjectID(db)
 	rows, err := db.QueryContext(ctx, `
 		SELECT ca.id, cb.id
 		FROM pods p
@@ -72,10 +69,22 @@ func (e *SharePSNamespace) Stream(ctx context.Context, _ storedb.Provider, db *s
 	if err != nil {
 		return err
 	}
-
-	return adapter.SQLiteRowHandler[sharedPsNamespaceGroupPair](ctx, rows, func(row *sql.Rows) (sharedPsNamespaceGroupPair, error) {
+	defer rows.Close()
+	for rows.Next() {
 		var g sharedPsNamespaceGroupPair
-		err := row.Scan(&g.ContainerA, &g.ContainerB)
-		return g, err
-	}, callback, complete)
+		if err := rows.Scan(&g.ContainerA, &g.ContainerB); err != nil {
+			return err
+		}
+		insert, err := e.processor(ctx, oic, &g)
+		if err != nil {
+			return err
+		}
+		if err := w.Queue(ctx, insert); err != nil {
+			return err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return w.Flush(ctx)
 }

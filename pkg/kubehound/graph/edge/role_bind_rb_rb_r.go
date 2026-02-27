@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 )
 
 const (
@@ -44,7 +43,7 @@ func (e *RoleBindRbRbR) AttckTacticID() AttckTacticID {
 	return AttckTacticPrivilegeEscalation
 }
 
-func (e *RoleBindRbRbR) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *RoleBindRbRbR) processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*roleBindNameSpaceGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -56,9 +55,8 @@ func (e *RoleBindRbRbR) Processor(ctx context.Context, oic *converter.ObjectIDCo
 	})
 }
 
-func (e *RoleBindRbRbR) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
-	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-
+func (e *RoleBindRbRbR) Stream(ctx context.Context, db *sql.DB, w types.EdgeWriter) error {
+	oic := converter.NewObjectID(db)
 	rows, err := db.QueryContext(ctx, `
 		SELECT DISTINCT src.id, tgt.id
 		FROM permissionsets src
@@ -87,10 +85,22 @@ func (e *RoleBindRbRbR) Stream(ctx context.Context, _ storedb.Provider, db *sql.
 	if err != nil {
 		return err
 	}
-
-	return adapter.SQLiteRowHandler[roleBindNameSpaceGroup](ctx, rows, func(row *sql.Rows) (roleBindNameSpaceGroup, error) {
+	defer rows.Close()
+	for rows.Next() {
 		var g roleBindNameSpaceGroup
-		err := row.Scan(&g.FromPerm, &g.ToPerm)
-		return g, err
-	}, callback, complete)
+		if err := rows.Scan(&g.FromPerm, &g.ToPerm); err != nil {
+			return err
+		}
+		insert, err := e.processor(ctx, oic, &g)
+		if err != nil {
+			return err
+		}
+		if err := w.Queue(ctx, insert); err != nil {
+			return err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return w.Flush(ctx)
 }

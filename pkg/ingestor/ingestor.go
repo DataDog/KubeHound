@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/collector"
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/ingestor"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	"github.com/DataDog/KubeHound/pkg/telemetry/log"
 	"github.com/DataDog/KubeHound/pkg/telemetry/span"
@@ -16,7 +15,7 @@ import (
 )
 
 func IngestData(ctx context.Context, cfg *config.KubehoundConfig, collect collector.CollectorClient,
-	storedb storedb.Provider, graphdb graphdb.Provider) error {
+	storedb storedb.Provider) error {
 	l := log.Logger(ctx)
 
 	start := time.Now()
@@ -24,20 +23,8 @@ func IngestData(ctx context.Context, cfg *config.KubehoundConfig, collect collec
 	var err error
 	defer func() { span.Finish(tracer.WithError(err)) }()
 
-	l.Info("Loading data ingestor")
-	ingest, err := ingestor.Factory(cfg, collect, storedb, graphdb)
-	if err != nil {
-		return fmt.Errorf("ingestor creation: %w", err)
-	}
-	defer ingest.Close(ctx)
-
-	l.Info("Running dependency health checks")
-	if err := ingest.HealthCheck(ctx); err != nil {
-		return fmt.Errorf("ingestor dependency health check: %w", err)
-	}
-
 	l.Info("Running data ingest and normalization")
-	if err := ingest.Run(ctx); err != nil {
+	if err = ingestor.Collect(ctx, cfg, collect, storedb); err != nil {
 		return fmt.Errorf("ingest: %w", err)
 	}
 

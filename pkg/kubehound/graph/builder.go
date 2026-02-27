@@ -8,8 +8,7 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
+	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
 	"github.com/DataDog/KubeHound/pkg/kubehound/services"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
@@ -20,7 +19,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-// Builder handles the construction of the graph edges once vertices have been ingested via the ingestion pipeline.
+// Builder handles the construction of the graph vertices and edges.
 type Builder struct {
 	cfg     *config.KubehoundConfig
 	storedb storedb.Provider
@@ -51,8 +50,70 @@ func (b *Builder) HealthCheck(ctx context.Context) error {
 	})
 }
 
+// buildVertex inserts all vertices of a single type into the graph database.
+func (b *Builder) buildVertex(ctx context.Context, vb vertex.Builder) error {
+	span, ctx := span.StartSpanFromContext(ctx, span.BuildEdge, tracer.Measured(), tracer.ResourceName(vb.Label()))
+	span.SetTag(tag.LabelTag, vb.Label())
+	var err error
+	defer func() { span.Finish(tracer.WithError(err)) }()
+
+	l := log.Logger(ctx)
+	l.Info("Building vertex", log.String("label", vb.Label()))
+
+	if err = vb.Initialize(b.cfg); err != nil {
+		return err
+	}
+
+	w, err := b.graphdb.VertexWriter(ctx, vb, b.db, graphdb.WithTags(tag.GetBaseTags()))
+	if err != nil {
+		return err
+	}
+	defer w.Close(ctx)
+
+	rows, err := b.db.QueryContext(ctx, vb.Query(b.cfg.Dynamic.RunID.String(), b.cfg.Dynamic.Cluster.Name))
+	if err != nil {
+		return fmt.Errorf("vertex query %s: %w", vb.Label(), err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		m, err := vb.Scanner(rows)
+		if err != nil {
+			return fmt.Errorf("vertex scan %s: %w", vb.Label(), err)
+		}
+		if err := w.Queue(ctx, m); err != nil {
+			return fmt.Errorf("vertex queue %s: %w", vb.Label(), err)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("vertex rows %s: %w", vb.Label(), err)
+	}
+
+	return w.Flush(ctx)
+}
+
+// buildVertices inserts all vertex types into the graph database.
+func (b *Builder) buildVertices(ctx context.Context) error {
+	vertexBuilders := []vertex.Builder{
+		&vertex.Node{},
+		&vertex.Pod{},
+		&vertex.Container{},
+		&vertex.Volume{},
+		&vertex.Identity{},
+		&vertex.PermissionSet{},
+		&vertex.Endpoint{},
+	}
+	for _, vb := range vertexBuilders {
+		if err := b.buildVertex(ctx, vb); err != nil {
+			return fmt.Errorf("building vertex %s: %w", vb.Label(), err)
+		}
+	}
+	return nil
+}
+
 // buildEdge inserts a class of edges into the graph database.
-func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, oic *converter.ObjectIDConverter) error {
+func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder) error {
 	span, ctx := span.StartSpanFromContext(ctx, span.BuildEdge, tracer.Measured(), tracer.ResourceName(e.Label()))
 	span.SetTag(tag.LabelTag, e.Label())
 	var err error
@@ -68,30 +129,16 @@ func (b *Builder) buildEdge(ctx context.Context, label string, e edge.Builder, o
 	if err != nil {
 		return err
 	}
+	defer w.Close(ctx)
 
-	err = e.Stream(ctx, b.storedb, b.db,
-		func(ctx context.Context, entry types.DataContainer) error {
-			insert, err := e.Processor(ctx, oic, entry)
-			if err != nil {
-				return err
-			}
-
-			return w.Queue(ctx, insert)
-		},
-		func(ctx context.Context) error {
-			return w.Flush(ctx)
-		})
-
-	w.Close(ctx)
-
-	return err
+	return e.Stream(ctx, b.db, w)
 }
 
 // buildMutating constructs all the mutating edges in the graph database.
-func (b *Builder) buildMutating(ctx context.Context, oic *converter.ObjectIDConverter) error {
+func (b *Builder) buildMutating(ctx context.Context) error {
 	l := log.Logger(ctx)
 	for label, e := range b.edges.Mutating() {
-		err := b.buildEdge(ctx, label, e, oic)
+		err := b.buildEdge(ctx, label, e)
 		if err != nil {
 			if b.cfg.Builder.StopOnError {
 				return fmt.Errorf("building mutating edge %s: %w", label, err)
@@ -106,7 +153,7 @@ func (b *Builder) buildMutating(ctx context.Context, oic *converter.ObjectIDConv
 }
 
 // buildSimple constructs all the simple edges in the graph database.
-func (b *Builder) buildSimple(ctx context.Context, oic *converter.ObjectIDConverter) error {
+func (b *Builder) buildSimple(ctx context.Context) error {
 	l := log.Logger(ctx)
 	l.Info("Creating edge builder worker pool")
 	wp, err := worker.PoolFactory(b.cfg.Builder.Edge.WorkerPoolSize, b.cfg.Builder.Edge.WorkerPoolCapacity)
@@ -121,7 +168,7 @@ func (b *Builder) buildSimple(ctx context.Context, oic *converter.ObjectIDConver
 
 	for label, e := range b.edges.Simple() {
 		wp.Submit(func() error {
-			err := b.buildEdge(workCtx, label, e, oic)
+			err := b.buildEdge(workCtx, label, e)
 			if err != nil {
 				if b.cfg.Builder.StopOnError {
 					return err
@@ -144,10 +191,10 @@ func (b *Builder) buildSimple(ctx context.Context, oic *converter.ObjectIDConver
 }
 
 // buildDependent constructs all the dependent edges in the graph database.
-func (b *Builder) buildDependent(ctx context.Context, oic *converter.ObjectIDConverter) error {
+func (b *Builder) buildDependent(ctx context.Context) error {
 	l := log.Logger(ctx)
 	for label, e := range b.edges.Dependent() {
-		err := b.buildEdge(ctx, label, e, oic)
+		err := b.buildEdge(ctx, label, e)
 		if err != nil {
 			if b.cfg.Builder.StopOnError {
 				return fmt.Errorf("building dependent edge %s: %w", label, err)
@@ -161,39 +208,45 @@ func (b *Builder) buildDependent(ctx context.Context, oic *converter.ObjectIDCon
 	return nil
 }
 
-// Run constructs all the registered edges in the graph database.
+// Run constructs all vertices and edges in the graph database.
 func (b *Builder) Run(ctx context.Context) error {
 	l := log.Trace(ctx)
-	oic := converter.NewObjectID(b.db)
 
 	if b.cfg.Builder.Edge.LargeClusterOptimizations {
 		log.Trace(ctx).Warnf("Using large cluster optimizations in graph construction")
 	}
 
+	// Phase 1: Insert all vertices
+	l.Info("Starting vertex construction")
+	if err := b.buildVertices(ctx); err != nil {
+		return err
+	}
+
+	// Phase 2: Build edges
 	// Mutating edges must be built first, sequentially
 	l.Info("Starting mutating edge construction")
-	if err := b.buildMutating(ctx, oic); err != nil {
+	if err := b.buildMutating(ctx); err != nil {
 		return err
 	}
 
 	// Simple edges can be built in parallel
 	l.Info("Starting simple edge construction")
-	if err := b.buildSimple(ctx, oic); err != nil {
+	if err := b.buildSimple(ctx); err != nil {
 		return err
 	}
 
 	// Dependent edges must be built last, sequentially
 	l.Info("Starting dependent edge construction")
-	if err := b.buildDependent(ctx, oic); err != nil {
+	if err := b.buildDependent(ctx); err != nil {
 		return err
 	}
 
-	l.Info("Completed edge construction")
+	l.Info("Completed graph construction")
 
 	return nil
 }
 
-// BuildGraph will construct the attack graph by calculating and inserting all registered edges in parallel.
+// BuildGraph will construct the attack graph by calculating and inserting all registered vertices and edges.
 func BuildGraph(outer context.Context, cfg *config.KubehoundConfig, storedb storedb.Provider,
 	graphdb graphdb.Provider) error {
 	l := log.Logger(outer)
@@ -226,7 +279,7 @@ func BuildGraph(outer context.Context, cfg *config.KubehoundConfig, storedb stor
 
 	l.Info("Constructing graph")
 	if err := builder.Run(ctx); err != nil {
-		return fmt.Errorf("graph builder edge calculation: %w", err)
+		return fmt.Errorf("graph builder construction: %w", err)
 	}
 
 	l.Info("Completed graph construction", log.Duration("duration", time.Since(start)))

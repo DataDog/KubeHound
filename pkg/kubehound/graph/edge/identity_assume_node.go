@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 )
 
 func init() {
@@ -40,7 +39,7 @@ func (e *IdentityAssumeNode) AttckTacticID() AttckTacticID {
 	return AttckTacticPrivilegeEscalation
 }
 
-func (e *IdentityAssumeNode) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *IdentityAssumeNode) processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*nodeIdentityGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -52,18 +51,29 @@ func (e *IdentityAssumeNode) Processor(ctx context.Context, oic *converter.Objec
 	})
 }
 
-func (e *IdentityAssumeNode) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
-	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-
+func (e *IdentityAssumeNode) Stream(ctx context.Context, db *sql.DB, w types.EdgeWriter) error {
+	oic := converter.NewObjectID(db)
 	rows, err := db.QueryContext(ctx, `SELECT id, user_id FROM nodes WHERE user_id != 0 AND run_id = ? AND cluster_name = ?`,
 		e.runtime.RunID.String(), e.runtime.Cluster.Name)
 	if err != nil {
 		return err
 	}
-
-	return adapter.SQLiteRowHandler[nodeIdentityGroup](ctx, rows, func(row *sql.Rows) (nodeIdentityGroup, error) {
+	defer rows.Close()
+	for rows.Next() {
 		var g nodeIdentityGroup
-		err := row.Scan(&g.Node, &g.Identity)
-		return g, err
-	}, callback, complete)
+		if err := rows.Scan(&g.Node, &g.Identity); err != nil {
+			return err
+		}
+		insert, err := e.processor(ctx, oic, &g)
+		if err != nil {
+			return err
+		}
+		if err := w.Queue(ctx, insert); err != nil {
+			return err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return w.Flush(ctx)
 }

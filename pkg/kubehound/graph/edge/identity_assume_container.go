@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 )
 
 func init() {
@@ -40,7 +39,7 @@ func (e *IdentityAssumeContainer) AttckTacticID() AttckTacticID {
 	return AttckTacticPrivilegeEscalation
 }
 
-func (e *IdentityAssumeContainer) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *IdentityAssumeContainer) processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*containerIdentityGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -52,9 +51,8 @@ func (e *IdentityAssumeContainer) Processor(ctx context.Context, oic *converter.
 	})
 }
 
-func (e *IdentityAssumeContainer) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
-	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-
+func (e *IdentityAssumeContainer) Stream(ctx context.Context, db *sql.DB, w types.EdgeWriter) error {
+	oic := converter.NewObjectID(db)
 	rows, err := db.QueryContext(ctx, `
 		SELECT c.id, i.id
 		FROM containers c
@@ -68,10 +66,22 @@ func (e *IdentityAssumeContainer) Stream(ctx context.Context, _ storedb.Provider
 	if err != nil {
 		return err
 	}
-
-	return adapter.SQLiteRowHandler[containerIdentityGroup](ctx, rows, func(row *sql.Rows) (containerIdentityGroup, error) {
+	defer rows.Close()
+	for rows.Next() {
 		var g containerIdentityGroup
-		err := row.Scan(&g.Container, &g.Identity)
-		return g, err
-	}, callback, complete)
+		if err := rows.Scan(&g.Container, &g.Identity); err != nil {
+			return err
+		}
+		insert, err := e.processor(ctx, oic, &g)
+		if err != nil {
+			return err
+		}
+		if err := w.Queue(ctx, insert); err != nil {
+			return err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return w.Flush(ctx)
 }

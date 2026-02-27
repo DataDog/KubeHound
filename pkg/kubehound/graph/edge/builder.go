@@ -6,8 +6,6 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
@@ -40,14 +38,8 @@ type Builder interface {
 	// Traversal returns a graph traversal function that enables creating edges from an input array of TraversalInput objects.
 	Traversal() types.EdgeTraversal
 
-	// Processor transforms an object queued for writing to a format suitable for consumption by the Traversal function.
-	Processor(context.Context, *converter.ObjectIDConverter, any) (any, error)
-
-	// Stream will query the store db for the data required to create an edge and stream to graph DB via callbacks.
-	// Each query result is encapsulated within an DataContainer and transformed to a TraversalInput via a call to
-	// the edge's Processor function. Invoking the complete callback signals the end of the stream.
-	Stream(ctx context.Context, store storedb.Provider, db *sql.DB,
-		process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error
+	// Stream queries the store db, processes each row, and writes edges to the graph db writer.
+	Stream(ctx context.Context, db *sql.DB, w types.EdgeWriter) error
 }
 
 // DependentBuilder interface defines objects used to construct edges with dependencies on other edges in the graph.

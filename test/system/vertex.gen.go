@@ -14,11 +14,10 @@
 package system
 
 import (
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 )
 
-var expectedPods = map[string]graph.Pod{
+var expectedPods = map[string]Pod{
 	"control-pod": {
 		StoreID:               "",
 		Name:                  "control-pod",
@@ -321,7 +320,7 @@ var expectedPods = map[string]graph.Pod{
 	},
 }
 
-var expectedNodes = map[string]graph.Node{
+var expectedNodes = map[string]Node{
 	"kubehound.test.local-control-plane": {
 		StoreID:      "",
 		Name:         "kubehound.test.local-control-plane",
@@ -348,7 +347,7 @@ var expectedNodes = map[string]graph.Node{
 	},
 }
 
-var expectedVolumes = map[string]graph.Volume{
+var expectedVolumes = map[string]Volume{
 	"host-pod-dir": {
 		StoreID:    "",
 		Name:       "host-pod-dir",
@@ -396,7 +395,7 @@ var expectedVolumes = map[string]graph.Volume{
 	},
 }
 
-var expectedContainers = map[string]graph.Container{
+var expectedContainers = map[string]Container{
 	"control-pod": {
 		StoreID:      "",
 		Name:         "control-pod",
@@ -1026,7 +1025,7 @@ var expectedContainers = map[string]graph.Container{
 	},
 }
 
-var expectedPermissionSets = map[string]graph.PermissionSet{
+var expectedPermissionSets = map[string]PermissionSet{
 	"create-pods::pod-create-pods": {
 		StoreID:      "",
 		Name:         "create-pods::pod-create-pods",
@@ -1219,7 +1218,7 @@ var expectedPermissionSets = map[string]graph.PermissionSet{
 	},
 }
 
-var expectedIdentities = map[string]graph.Identity{
+var expectedIdentities = map[string]Identity{
 	"group-rb-r-crb-cr-fail": {
 		StoreID:      "",
 		Name:         "group-rb-r-crb-cr-fail",

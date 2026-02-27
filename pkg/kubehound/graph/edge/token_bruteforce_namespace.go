@@ -8,7 +8,6 @@ import (
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 )
 
 func init() {
@@ -40,7 +39,7 @@ func (e *TokenBruteforceNamespace) AttckTacticID() AttckTacticID {
 	return AttckTacticCredentialAccess
 }
 
-func (e *TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *TokenBruteforceNamespace) processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*tokenBruteforceNSGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -54,9 +53,8 @@ func (e *TokenBruteforceNamespace) Processor(ctx context.Context, oic *converter
 
 // Stream finds all roles that are namespaced and have secrets/get or equivalent wildcard permissions and matching identities.
 // Matching identities are defined as namespaced identities that share the role namespace or non-namespaced identities.
-func (e *TokenBruteforceNamespace) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
-	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-
+func (e *TokenBruteforceNamespace) Stream(ctx context.Context, db *sql.DB, w types.EdgeWriter) error {
+	oic := converter.NewObjectID(db)
 	var query string
 	if e.cfg.LargeClusterOptimizations {
 		// For large clusters do not create a redundant edge already covered by the TOKEN_LIST attack as this technique is much more complex
@@ -83,10 +81,22 @@ func (e *TokenBruteforceNamespace) Stream(ctx context.Context, _ storedb.Provide
 	if err != nil {
 		return err
 	}
-
-	return adapter.SQLiteRowHandler[tokenBruteforceNSGroup](ctx, rows, func(row *sql.Rows) (tokenBruteforceNSGroup, error) {
+	defer rows.Close()
+	for rows.Next() {
 		var g tokenBruteforceNSGroup
-		err := row.Scan(&g.Role, &g.Identity)
-		return g, err
-	}, callback, complete)
+		if err := rows.Scan(&g.Role, &g.Identity); err != nil {
+			return err
+		}
+		insert, err := e.processor(ctx, oic, &g)
+		if err != nil {
+			return err
+		}
+		if err := w.Queue(ctx, insert); err != nil {
+			return err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return w.Flush(ctx)
 }

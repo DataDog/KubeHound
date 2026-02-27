@@ -5,11 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/DataDog/KubeHound/pkg/kubehound/graph/adapter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/store"
-	"github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 	gremlin "github.com/apache/tinkerpop/gremlin-go/v3/driver"
 )
 
@@ -50,7 +48,7 @@ func (e *TokenList) BatchSize() int {
 	return e.cfg.BatchSizeClusterImpact
 }
 
-func (e *TokenList) Processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
+func (e *TokenList) processor(ctx context.Context, oic *converter.ObjectIDConverter, entry any) (any, error) {
 	typed, ok := entry.(*tokenListGroup)
 	if !ok {
 		return nil, fmt.Errorf("invalid type passed to processor: %T", entry)
@@ -103,9 +101,8 @@ func (e *TokenList) Traversal() types.EdgeTraversal {
 }
 
 // Stream finds all roles that are NOT namespaced and have secrets/list or equivalent wildcard permissions.
-func (e *TokenList) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
-	callback types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-
+func (e *TokenList) Stream(ctx context.Context, db *sql.DB, w types.EdgeWriter) error {
+	oic := converter.NewObjectID(db)
 	rows, err := db.QueryContext(ctx, `
 		SELECT DISTINCT ps.id FROM permissionsets ps, json_each(ps.rules) AS r
 		WHERE ps.is_namespaced = 0 AND ps.run_id = ? AND ps.cluster_name = ?
@@ -117,10 +114,22 @@ func (e *TokenList) Stream(ctx context.Context, _ storedb.Provider, db *sql.DB,
 	if err != nil {
 		return err
 	}
-
-	return adapter.SQLiteRowHandler[tokenListGroup](ctx, rows, func(row *sql.Rows) (tokenListGroup, error) {
+	defer rows.Close()
+	for rows.Next() {
 		var g tokenListGroup
-		err := row.Scan(&g.Role)
-		return g, err
-	}, callback, complete)
+		if err := rows.Scan(&g.Role); err != nil {
+			return err
+		}
+		insert, err := e.processor(ctx, oic, &g)
+		if err != nil {
+			return err
+		}
+		if err := w.Queue(ctx, insert); err != nil {
+			return err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	return w.Flush(ctx)
 }

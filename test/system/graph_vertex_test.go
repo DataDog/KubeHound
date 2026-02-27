@@ -7,7 +7,6 @@ import (
 
 	"github.com/DataDog/KubeHound/pkg/config"
 	"github.com/DataDog/KubeHound/pkg/kubehound/graph/vertex"
-	"github.com/DataDog/KubeHound/pkg/kubehound/models/graph"
 	"github.com/DataDog/KubeHound/pkg/kubehound/models/shared"
 	"github.com/DataDog/KubeHound/pkg/kubehound/storage/graphdb"
 	gremlingo "github.com/apache/tinkerpop/gremlin-go/v3/driver"
@@ -110,7 +109,7 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 	suite.NoError(err)
 
 	suite.Equal(len(expectedContainers), len(results)-numberOfKindDefaultContainer)
-	resultsMap := map[string]graph.Container{}
+	resultsMap := map[string]Container{}
 	for _, res := range results {
 		res := res.GetInterface()
 		converted := res.(map[any]any)
@@ -159,7 +158,7 @@ func (suite *VertexTestSuite) TestVertexContainer() {
 			continue
 		}
 
-		resultsMap[containerName] = graph.Container{
+		resultsMap[containerName] = Container{
 			StoreID:      "",
 			Name:         containerName,
 			Image:        imageName,
@@ -187,7 +186,7 @@ func (suite *VertexTestSuite) TestVertexNode() {
 	suite.NoError(err)
 
 	suite.Equal(len(expectedNodes), len(results))
-	resultsMap := map[string]graph.Node{}
+	resultsMap := map[string]Node{}
 	for _, res := range results {
 		res := res.GetInterface()
 		converted := res.(map[any]any)
@@ -207,7 +206,7 @@ func (suite *VertexTestSuite) TestVertexNode() {
 		critical, ok := converted["critical"].(bool)
 		suite.True(ok, "failed to convert critical field to bool")
 
-		resultsMap[nodeName] = graph.Node{
+		resultsMap[nodeName] = Node{
 			Name:         nodeName,
 			Compromised:  shared.CompromiseType(compromised),
 			IsNamespaced: isNamespaced,
@@ -223,7 +222,7 @@ func (suite *VertexTestSuite) TestVertexPod() {
 	suite.NoError(err)
 
 	suite.Equal(len(expectedPods), len(results)-numberOfKindDefaultPod)
-	resultsMap := map[string]graph.Pod{}
+	resultsMap := map[string]Pod{}
 	for _, res := range results {
 		res := res.GetInterface()
 		converted := res.(map[any]any)
@@ -254,7 +253,7 @@ func (suite *VertexTestSuite) TestVertexPod() {
 			continue
 		}
 
-		resultsMap[podName] = graph.Pod{
+		resultsMap[podName] = Pod{
 			Name:                  podName,
 			ServiceAccount:        serviceAccount,
 			Compromised:           shared.CompromiseType(compromised),

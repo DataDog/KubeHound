@@ -9,13 +9,9 @@ import (
 
 	sql "database/sql"
 
-	converter "github.com/DataDog/KubeHound/pkg/kubehound/models/converter"
-
 	edge "github.com/DataDog/KubeHound/pkg/kubehound/graph/edge"
 
 	mock "github.com/stretchr/testify/mock"
-
-	storedb "github.com/DataDog/KubeHound/pkg/kubehound/storage/storedb"
 
 	types "github.com/DataDog/KubeHound/pkg/kubehound/graph/types"
 )
@@ -305,77 +301,17 @@ func (_c *Builder_Name_Call) RunAndReturn(run func() string) *Builder_Name_Call 
 	return _c
 }
 
-// Processor provides a mock function with given fields: _a0, _a1, _a2
-func (_m *Builder) Processor(_a0 context.Context, _a1 *converter.ObjectIDConverter, _a2 interface{}) (interface{}, error) {
-	ret := _m.Called(_a0, _a1, _a2)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Processor")
-	}
-
-	var r0 interface{}
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *converter.ObjectIDConverter, interface{}) (interface{}, error)); ok {
-		return rf(_a0, _a1, _a2)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, *converter.ObjectIDConverter, interface{}) interface{}); ok {
-		r0 = rf(_a0, _a1, _a2)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, *converter.ObjectIDConverter, interface{}) error); ok {
-		r1 = rf(_a0, _a1, _a2)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Builder_Processor_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Processor'
-type Builder_Processor_Call struct {
-	*mock.Call
-}
-
-// Processor is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *converter.ObjectIDConverter
-//   - _a2 interface{}
-func (_e *Builder_Expecter) Processor(_a0 interface{}, _a1 interface{}, _a2 interface{}) *Builder_Processor_Call {
-	return &Builder_Processor_Call{Call: _e.mock.On("Processor", _a0, _a1, _a2)}
-}
-
-func (_c *Builder_Processor_Call) Run(run func(_a0 context.Context, _a1 *converter.ObjectIDConverter, _a2 interface{})) *Builder_Processor_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*converter.ObjectIDConverter), args[2].(interface{}))
-	})
-	return _c
-}
-
-func (_c *Builder_Processor_Call) Return(_a0 interface{}, _a1 error) *Builder_Processor_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Builder_Processor_Call) RunAndReturn(run func(context.Context, *converter.ObjectIDConverter, interface{}) (interface{}, error)) *Builder_Processor_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// Stream provides a mock function with given fields: ctx, store, _a2, process, complete
-func (_m *Builder) Stream(ctx context.Context, store storedb.Provider, _a2 *sql.DB, process types.ProcessEntryCallback, complete types.CompleteQueryCallback) error {
-	ret := _m.Called(ctx, store, _a2, process, complete)
+// Stream provides a mock function with given fields: ctx, db, w
+func (_m *Builder) Stream(ctx context.Context, db *sql.DB, w types.EdgeWriter) error {
+	ret := _m.Called(ctx, db, w)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Stream")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, storedb.Provider, *sql.DB, types.ProcessEntryCallback, types.CompleteQueryCallback) error); ok {
-		r0 = rf(ctx, store, _a2, process, complete)
+	if rf, ok := ret.Get(0).(func(context.Context, *sql.DB, types.EdgeWriter) error); ok {
+		r0 = rf(ctx, db, w)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -390,17 +326,15 @@ type Builder_Stream_Call struct {
 
 // Stream is a helper method to define mock.On call
 //   - ctx context.Context
-//   - store storedb.Provider
-//   - _a2 *sql.DB
-//   - process types.ProcessEntryCallback
-//   - complete types.CompleteQueryCallback
-func (_e *Builder_Expecter) Stream(ctx interface{}, store interface{}, _a2 interface{}, process interface{}, complete interface{}) *Builder_Stream_Call {
-	return &Builder_Stream_Call{Call: _e.mock.On("Stream", ctx, store, _a2, process, complete)}
+//   - db *sql.DB
+//   - w types.EdgeWriter
+func (_e *Builder_Expecter) Stream(ctx interface{}, db interface{}, w interface{}) *Builder_Stream_Call {
+	return &Builder_Stream_Call{Call: _e.mock.On("Stream", ctx, db, w)}
 }
 
-func (_c *Builder_Stream_Call) Run(run func(ctx context.Context, store storedb.Provider, _a2 *sql.DB, process types.ProcessEntryCallback, complete types.CompleteQueryCallback)) *Builder_Stream_Call {
+func (_c *Builder_Stream_Call) Run(run func(ctx context.Context, db *sql.DB, w types.EdgeWriter)) *Builder_Stream_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(storedb.Provider), args[2].(*sql.DB), args[3].(types.ProcessEntryCallback), args[4].(types.CompleteQueryCallback))
+		run(args[0].(context.Context), args[1].(*sql.DB), args[2].(types.EdgeWriter))
 	})
 	return _c
 }
@@ -410,7 +344,7 @@ func (_c *Builder_Stream_Call) Return(_a0 error) *Builder_Stream_Call {
 	return _c
 }
 
-func (_c *Builder_Stream_Call) RunAndReturn(run func(context.Context, storedb.Provider, *sql.DB, types.ProcessEntryCallback, types.CompleteQueryCallback) error) *Builder_Stream_Call {
+func (_c *Builder_Stream_Call) RunAndReturn(run func(context.Context, *sql.DB, types.EdgeWriter) error) *Builder_Stream_Call {
 	_c.Call.Return(run)
 	return _c
 }
