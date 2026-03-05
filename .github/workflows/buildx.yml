@@ -26,7 +26,9 @@ jobs:
           echo matrix=$(docker buildx bake binary-cross --print | jq -cr '.target."binary-cross".platforms') >> $GITHUB_OUTPUT
       - name: Show matrix
         run: |
-          echo ${{ steps.platforms.outputs.matrix }}
+          echo ${PLATFORMS_MATRIX}
+        env:
+          PLATFORMS_MATRIX: ${{ steps.platforms.outputs.matrix }}
 
   validate:
     runs-on: ubuntu-latest
