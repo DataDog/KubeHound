@@ -2,6 +2,8 @@ module github.com/DataDog/KubeHound/exp/khaudit
 
 go 1.24.9
 
+toolchain go1.26.0
+
 replace github.com/DataDog/KubeHound => ../../
 
 require (
