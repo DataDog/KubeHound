@@ -7,11 +7,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-gremlinpython = "^3.7.2"
-panel = "^1.4.2"
-watchfiles = "^0.21.0"
-async-timeout = "^4.0.3"
-nest-asyncio = "^1.6.0"
+gremlinpython = "3.8.0"
+panel = "1.8.10"
+watchfiles = "0.21.0"
+async-timeout = "4.0.3"
+nest-asyncio = "1.6.0"
 
 
 [build-system]
