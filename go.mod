@@ -28,7 +28,7 @@ require (
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.11.1
-	go.mongodb.org/mongo-driver v1.17.3
+	go.mongodb.org/mongo-driver v1.17.9
 	go.uber.org/ratelimit v0.3.1
 	go.uber.org/zap v1.27.0
 	gocloud.dev v0.43.0
