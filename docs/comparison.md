@@ -6,7 +6,7 @@ Cartography has a [Kubernetes module](https://lyft.github.io/cartography/modules
 
 ## [BloodHound](https://github.com/SpecterOps/BloodHound)
 
-BloodHound is one of the first projects (and certainly the most popular) that introduced attack graphs mapping. It is currently focused on Active Directory and [Azure](https://bloodhound.readthedocs.io/en/latest/data-collection/azurehound.html) environments, and does not support Kubernetes.
+BloodHound is one of the first projects (and certainly the most popular) that introduced attack graphs mapping. Its [OpenGraph extension framework](https://specterops.io/opengraph/) supports community-defined models, including [Kubernetes extensions](https://bloodhound.specterops.io/opengraph/library#kubernetes). Community projects such as [Bloodhound-Kube](https://github.com/HackinAhab/bloodhound-kube) and [ClusterHound](https://github.com/dovesec/ClusterHound) collect and model Kubernetes attack-path data for analysis in BloodHound.
 
 ## [BOtB](https://github.com/brompwnie/botb)
 
