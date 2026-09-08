@@ -144,3 +144,7 @@ func (t *traceLogger) Panicf(msg string, params ...interface{}) {
 func (t *traceLogger) Fatalf(msg string, params ...interface{}) {
 	t.logger.With(t.fields...).Fatalf(msg, params...)
 }
+
+func (t *traceLogger) Skip(skip int) {
+	t.logger.Skip(skip)
+}
