@@ -1,6 +1,6 @@
 module github.com/DataDog/KubeHound
 
-go 1.25.0
+go 1.26.0
 
 // in-toto dependency must be bumped to v0.9.0 to fix a breaking change in the
 // github.com/secure-systems-lab/go-securesystemslib package which breaks docker
