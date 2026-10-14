@@ -59,8 +59,7 @@ deployments/kubehound/graph/dsl/kubehound/target
 # RBAC certificates
 test/setup/test-cluster/RBAC/
 
-# poetry file
-poetry.lock
+# poetry lockfiles should be committed for reproducible builds
 
 ###############################################################################
 # Terraform Files
