@@ -166,6 +166,45 @@ mcphost -m ollama:qwen3:14b
 > You can replace `ollama:qwen3:14b` with the actual model you want to use as soon 
 > as the model supports function calling.
 
+### Using OrcaRouter Cyber Inference
+
+[OrcaRouter Cyber Inference](https://www.orcarouter.ai/cyber) is a named model provider for authorized
+security work, exposed as one OpenAI-compatible endpoint at `https://api.orcarouter.ai/v1`. It is aimed
+at security teams that have completed business verification, so scoped security reasoning — attack-path
+triage, control review — is not refused or silently downgraded as it often is on general-purpose
+gateways. The same endpoint carries the blue-team controls — Agent Firewall, Guardrails and the
+OrcaCode Review merge gate.
+
+> [!NOTE]
+> The local setup above is recommended because the dataset stays on your machine. Pick a hosted
+> provider only when your team is authorized to send this data to it.
+
+[mcphost](https://github.com/mark3labs/mcphost) talks to any OpenAI-compatible endpoint through
+`--provider-url` and `--provider-api-key`, so the KubeHound MCP server can also be driven by OrcaRouter
+without a local model runner:
+
+```sh
+export ORCA_KEY="sk-orca-…" # replace with the key issued at https://www.orcarouter.ai/console
+mcphost --model openai/orcarouter/auto \
+  --provider-url https://api.orcarouter.ai/v1 \
+  --provider-api-key "$ORCA_KEY"
+```
+
+The `openai/` prefix selects mcphost's OpenAI-compatible client; what follows is OrcaRouter's own model
+id, which keeps its `vendor/model` namespace (`orcarouter/auto`).
+
+Model selection, in the order we recommend it:
+
+1. `orcarouter/auto` (default) — automatic routing, usable with any key.
+2. `orcacyber-ultra-1.0` and `orcacyber-zero-1.5` — the
+   [cyber model tier](https://www.orcarouter.ai/models?tier=cyber), recommended for security teams
+   after business verification. OrcaCyber Ultra targets multi-step reasoning over large codebases;
+   OrcaCyber Zero is driven by the OrcaCyber harness.
+3. `orcarouter/fusion` — general fallback.
+
+Whichever backend you choose, the model must support function calling: every capability above is
+exposed to the client as an MCP tool.
+
 ### Using WhiteRabbitNeo fine-tuned from Qwen2.5
 
 [WhiteRabbitNeo](https://www.whiterabbitneo.com/) is a fine-tuned version of the Qwen2.5 model that supports function 
