@@ -44,6 +44,7 @@ func DumpCore(ctx context.Context, khCfg *config.KubehoundConfig, upload bool) (
 	span, ctx := span.SpanRunFromContext(ctx, span.DumperLaunch)
 	span.SetTag(ext.ManualKeep, true)
 	l = log.Logger(ctx)
+	l.Skip(1)
 	defer func() {
 		span.Finish(tracer.WithError(err))
 	}()
