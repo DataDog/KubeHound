@@ -8,23 +8,13 @@ on:
 
 permissions:
   contents: read # to fetch code (actions/checkout)
+  id-token: write
 
 jobs:
   system-test:
     runs-on:
       group: Large Runner Shared Public
       labels: ubuntu-8-core-latest
-    services:
-      dd-agent:
-        image: ${{ (! github.event.pull_request.head.repo.fork ) && 'gcr.io/datadoghq/agent:7' || '' }}
-        env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-          DD_TRACE_DEBUG: 1
-          DD_LOGS_ENABLED: true
-          DD_APM_ENABLED: true
-          DD_HOSTNAME: "kubehound-github-action"
-        ports:
-          - 8126:8126
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
@@ -51,6 +41,35 @@ jobs:
 
       - name: Checkout Git Repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Get Datadog credentials
+        id: dd-sts
+        uses: DataDog/dd-sts-action@main
+        with:
+          policy: kubehound-system-test
+
+      - name: Start Datadog Agent
+        if: ${{ ! github.event.pull_request.head.repo.fork }}
+        run: |
+          docker run -d \
+            --name dd-agent \
+            --network host \
+            -e DD_API_KEY="${{ steps.dd-sts.outputs.api_key }}" \
+            -e DD_TRACE_DEBUG=1 \
+            -e DD_LOGS_ENABLED=true \
+            -e DD_APM_ENABLED=true \
+            -e DD_HOSTNAME="kubehound-github-action" \
+            gcr.io/datadoghq/agent:7
+
+          echo "Waiting for DD agent to be ready..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:8126/info > /dev/null 2>&1; then
+              echo "DD agent is ready!"
+              break
+            fi
+            echo "Waiting for DD agent... ($i/30)"
+            sleep 2
+          done
 
       - name: Create K8s Kind Cluster
         uses: helm/kind-action@a1b0e391336a6ee6713a0583f8c6240d70863de3 # v1.12.0
